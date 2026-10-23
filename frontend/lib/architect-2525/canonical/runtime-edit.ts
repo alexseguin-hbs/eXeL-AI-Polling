@@ -11,14 +11,19 @@
 import { assertSafeInt, MIN_DIMENSION_UM } from "./units";
 import { commitRevision, nextRevision } from "./rcore";
 import type { RCore } from "./rcore";
-import type { ArchitectProject, SpaceEntity, AiPreviewState } from "./types";
+import { SPACE_FUNCTIONS, WET_CLASSES } from "./types";
+import type { ArchitectProject, SpaceEntity, AiPreviewState, SpaceFunction, WetClass } from "./types";
 
 export type Edge = "NORTH" | "EAST" | "SOUTH" | "WEST";
 export interface EdgeEditRequest { bay_code: string; edge: Edge; deltaUm: number; }
 
 interface EntityPatch { entity_id: string; x_um?: number; y_um?: number; width_um?: number; depth_um?: number; }
-export interface EdgeProposal { edge: Edge; interior: boolean; patches: EntityPatch[]; }
+export interface EdgeProposal { kind: "edge"; edge: Edge; interior: boolean; patches: EntityPatch[]; base_revision_id: string; }
+/** SPECS §XIV — a function/wet-class change to one Space (no geometry move). */
+export interface AttrProposal { kind: "attr"; entity_id: string; bay_code: string; function?: SpaceFunction; wet_class?: WetClass; base_revision_id: string; }
+export type EditProposal = EdgeProposal | AttrProposal;
 export type ProposeResult = { ok: true; preview: AiPreviewState } | { ok: false; reason: string };
+export interface AttrEditRequest { bay_code: string; function?: SpaceFunction; wet_class?: WetClass; }
 
 const spaces = (p: ArchitectProject) => p.entities.filter((e): e is SpaceEntity => e.entity_type === "SPACE");
 const overlaps = (a0: number, a1: number, b0: number, b1: number) => a0 < b1 && b0 < a1;
@@ -77,7 +82,23 @@ export function proposeEdgeEdit(project: ArchitectProject, req: EdgeEditRequest)
     }
   } catch (e) { return { ok: false, reason: `BLOCKED · ${(e as Error).message}` }; }
 
-  const proposal: EdgeProposal = { edge: req.edge, interior: !!n, patches };
+  // Stamp the base revision so a HELD preview whose base later advanced is INVALIDATED, never silently
+  // applied against a stale state (ARC-35.01 / advisory §4 green-but-false).
+  const proposal: EdgeProposal = { kind: "edge", edge: req.edge, interior: !!n, patches, base_revision_id: project.current_revision_id };
+  return { ok: true, preview: { status: "PROPOSED", proposed_change: proposal } };
+}
+
+/**
+ * SPECS §XIV/§XVI — propose a function or wet-class change to one Space (no geometry). AI previews it; HI
+ * ACCEPT commits one revision; HOLD/REJECT write nothing. Pure.
+ */
+export function proposeAttrEdit(project: ArchitectProject, req: AttrEditRequest): ProposeResult {
+  const s = spaces(project).find((x) => x.bay_code === req.bay_code);
+  if (!s) return { ok: false, reason: `BLOCKED · no Space ${req.bay_code}` };
+  if (req.function === undefined && req.wet_class === undefined) return { ok: false, reason: "BLOCKED · nothing to change" };
+  if (req.function !== undefined && !(SPACE_FUNCTIONS as readonly string[]).includes(req.function)) return { ok: false, reason: `BLOCKED · unknown function ${req.function}` };
+  if (req.wet_class !== undefined && !(WET_CLASSES as readonly string[]).includes(req.wet_class)) return { ok: false, reason: `BLOCKED · unknown wet class ${req.wet_class}` };
+  const proposal: AttrProposal = { kind: "attr", entity_id: s.entity_id, bay_code: s.bay_code, function: req.function, wet_class: req.wet_class, base_revision_id: project.current_revision_id };
   return { ok: true, preview: { status: "PROPOSED", proposed_change: proposal } };
 }
 
@@ -92,26 +113,46 @@ export function acceptEdit(project: ArchitectProject, rcore: RCore, preview: AiP
   if (!preview || preview.status !== "PROPOSED" || !preview.proposed_change) {
     throw new Error("ACCEPT requires a PROPOSED preview (HOLD/REJECT commit nothing)");
   }
-  const proposal = preview.proposed_change as EdgeProposal;
+  const proposal = preview.proposed_change as EditProposal;
+  // ARC-35.01 — a preview computed against an earlier head is out of date; invalidate it rather than apply it
+  // against the advanced base (never recompute-and-silently-apply).
+  if (proposal.base_revision_id && proposal.base_revision_id !== project.current_revision_id) {
+    throw new Error(`ACCEPT: preview is out of date (built on ${proposal.base_revision_id}, head is ${project.current_revision_id}) — re-edit`);
+  }
   const rev = nextRevision(rcore);
   const child = structuredClone(project);
   const byId = new Map(child.entities.map((e) => [e.entity_id, e]));
-  for (const pt of proposal.patches) {
-    const e = byId.get(pt.entity_id) as SpaceEntity | undefined;
-    if (!e) throw new Error(`ACCEPT: entity ${pt.entity_id} not found`);
-    if (pt.x_um !== undefined) e.x_um = pt.x_um;
-    if (pt.y_um !== undefined) e.y_um = pt.y_um;
-    if (pt.width_um !== undefined) e.width_um = pt.width_um;
-    if (pt.depth_um !== undefined) e.depth_um = pt.depth_um;
+  const stamp = (e: SpaceEntity) => {
     e.revision_id = rev;
     e.evidence = { ...e.evidence, validity: "CURRENT", source_revision_id: rev, invalidated_by_revision_id: null, invalidated_reason: null };
+  };
+  let event_type: "EDGE_RESIZE" | "FUNCTION_CHANGE" | "WET_CHANGE";
+  let reason: string;
+  if (proposal.kind === "edge") {
+    for (const pt of proposal.patches) {
+      const e = byId.get(pt.entity_id) as SpaceEntity | undefined;
+      if (!e) throw new Error(`ACCEPT: entity ${pt.entity_id} not found`);
+      if (pt.x_um !== undefined) e.x_um = pt.x_um;
+      if (pt.y_um !== undefined) e.y_um = pt.y_um;
+      if (pt.width_um !== undefined) e.width_um = pt.width_um;
+      if (pt.depth_um !== undefined) e.depth_um = pt.depth_um;
+      stamp(e);
+    }
+    event_type = "EDGE_RESIZE";
+    reason = `${proposal.edge} edge resize`;
+  } else {
+    const e = byId.get(proposal.entity_id) as SpaceEntity | undefined;
+    if (!e) throw new Error(`ACCEPT: entity ${proposal.entity_id} not found`);
+    if (proposal.function !== undefined) e.function = proposal.function;
+    if (proposal.wet_class !== undefined) e.wet_class = proposal.wet_class;
+    stamp(e);
+    event_type = proposal.function !== undefined ? "FUNCTION_CHANGE" : "WET_CHANGE";
+    reason = proposal.function !== undefined ? `function → ${proposal.function}` : `wet class → ${proposal.wet_class}`;
   }
   child.current_revision_id = rev;
   child.plan_state = "REVIEWABLE"; // §04 — ACCEPT of an edit is NOT plan approval
   const { rcore: next } = commitRevision(rcore, project, child, {
-    event_type: proposal.edge ? "EDGE_RESIZE" : "EDGE_RESIZE",
-    actor_id: actor.actor_id, actor_role: actor.actor_role,
-    reason: `${proposal.edge} edge resize`,
+    event_type, actor_id: actor.actor_id, actor_role: actor.actor_role, reason,
     timestamp_ms: meta?.timestamp_ms, local_date: meta?.local_date,
   });
   return { project: child, rcore: next };

@@ -245,7 +245,8 @@
     "test:architect-canonical-package": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-canonical-package.test.mjs",
     "test:architect-canonical-package-hostile": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-canonical-package-hostile.test.mjs",
     "test:architect-wireframe": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-wireframe.test.mjs",
-    "test:architect-legacy-view": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-legacy-view.test.mjs"
+    "test:architect-legacy-view": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-legacy-view.test.mjs",
+    "test:architect-edit": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-edit.test.mjs"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",
