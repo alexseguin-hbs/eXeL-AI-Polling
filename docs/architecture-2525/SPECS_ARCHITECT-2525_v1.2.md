@@ -1,12 +1,12 @@
 # SPECS / ARCHITECT-2525 — FINAL Master of Thought Handoff · v1.2
 
-**Provenance (operator 2026-10-23).** This is the controlling specification for the ARCHITECT-2525 "truth loop"
+**Provenance (operator 2026-10-22).** This is the controlling specification for the ARCHITECT-2525 "truth loop"
 implementation mission, converged by a Trinity of reviews — **DeepSeek** (systems/product/UX), **Grok** (code-grounded
 adversarial), and **eXeL ◬** (product authority / architecture synthesis) — and cleared by the operator for
 implementation. It is persisted here verbatim (PERSIST FIRST) as the governing SPECS that the code cites in doc comments
 (e.g. `SPECS / ARCHITECT-2525 §14`). Part 1 is the controlling patch (v1.2, sections 01–27). Part 2 is the Master of
 Thought execution prompt (sections I–XXXIV). **Status: CLEARED FOR IMPLEMENTATION.** Target: Claude Code / Fable /
-Ultracode · Master of Thought. Window: 1–2 concentrated programming days / up to 48 hours. Demo due Monday EOD; this is
+Ultracode · Master of Thought. Window: 1–2 concentrated programming days / up to 48 hours. Demo due Monday 2026-10-26 EOD; this is
 the operator's demo and interview prep for the ICON (3D-printed home) Senior Product Owner / Senior Product Manager role
 (interview Thursday 2026-10-29).
 
