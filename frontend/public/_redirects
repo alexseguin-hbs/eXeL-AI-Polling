@@ -25,3 +25,25 @@
 /Drone-2525/ /drone-2525/ 301
 /Vision-2525 /vision-2525/ 301
 /Vision-2525/ /vision-2525/ 301
+
+# 2026-10-24 · operator "all apps should have lower case and upper case yield same working version" — every
+# *-2525 app resolves at BOTH cases. Where the canonical app route is lowercase (architect/financial/drone/
+# vision above · review below) the capital 301s to it; where it is CAPITAL (Celestial · Security · SensorFusion ·
+# SoI — a second route differing only in case is a TypeScript forceConsistentCasingInFileNames collision, so the
+# other case can only be an alias here) the lowercase 301s to it. EXACT paths only — NEVER a `/security-2525/*`
+# splat — so Security-2525's DEM/geojson data served at /security-2525/<file>.json (real static assets at distinct
+# paths) is never matched and keeps loading. Lowercase previously SPA-fell-back to the homepage; now it lands right.
+/celestial-2525 /Celestial-2525/ 301
+/celestial-2525/ /Celestial-2525/ 301
+/security-2525 /Security-2525/ 301
+/security-2525/ /Security-2525/ 301
+/sensorfusion-2525 /SensorFusion-2525/ 301
+/sensorfusion-2525/ /SensorFusion-2525/ 301
+/soi-2525 /SoI-2525/ 301
+/soi-2525/ /SoI-2525/ 301
+/SOI-2525 /SoI-2525/ 301
+/SOI-2525/ /SoI-2525/ 301
+/Soi-2525 /SoI-2525/ 301
+/Soi-2525/ /SoI-2525/ 301
+/Review-2525 /review-2525/ 301
+/Review-2525/ /review-2525/ 301
