@@ -71,6 +71,8 @@ const WORLDS: { code: string; name: string; tagline: string; href: string; color
   { code: "SECURITY-2525", name: "Security", tagline: "Air & Missile Defense C2", href: "/main/Security-2525/", color: "#ff6b6b" },
   { code: "CELESTIAL-2525", name: "Celestial", tagline: "Sky · Learn · Family", href: "/main/Celestial-2525/", color: SUNSET },
   { code: "DRONE-2525", name: "Drone", tagline: "The Range · Target · Approve · Fire", href: "/main/Drone-2525/", color: "#f59e0b" },
+  { code: "FINANCIAL-2525", name: "Financial", tagline: "Budget · Ladder · $/min", href: "/main/Financial-2525/", color: "#22c55e" },
+  { code: "SENSORFUSION-2525", name: "Sensor Fusion", tagline: "Capture · Annotate · Models", href: "/SensorFusion-2525/", color: "#38bdf8" },
   { code: "LIGHT CODEX", name: "Light Codex", tagline: "Encode · Image · Key", href: "/light-codex/", color: "#e879f9" },
 ];
 
