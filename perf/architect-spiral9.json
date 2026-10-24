@@ -1,0 +1,35 @@
+{
+  "domain": "architect",
+  "n": 3,
+  "gates": 15,
+  "totalChecks": 205,
+  "allGreen": true,
+  "deterministic": true,
+  "nondet": [],
+  "artefactByteIdentical": true,
+  "artefactDrift": [],
+  "artefact": {
+    "projectHash": "443932a276d9857e0438b6ce24ce9de26d4eadbb92c8c3cb90eb732fac45f8b7",
+    "spaces": 13
+  },
+  "ssses": {
+    "pillars": {
+      "Stability": {
+        "score": 100,
+        "why": "3 runs agree; artefact byte-identical."
+      },
+      "Succinctness": {
+        "score": 75,
+        "why": "0 export(s) nothing imports; longest function RoomDesigner at 817 lines against the 300 rule.",
+        "dead": 0,
+        "longest": {
+          "name": "RoomDesigner",
+          "lines": 817
+        }
+      }
+    },
+    "avg": 88,
+    "measured": 2
+  },
+  "durationMs": 28590
+}

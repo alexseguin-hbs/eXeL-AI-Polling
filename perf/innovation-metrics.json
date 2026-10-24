@@ -1,0 +1,230 @@
+{
+  "n": 3,
+  "domains": [
+    {
+      "domain": "architect",
+      "n": 3,
+      "gates": 15,
+      "totalChecks": 205,
+      "allGreen": true,
+      "deterministic": true,
+      "nondet": [],
+      "artefactByteIdentical": true,
+      "artefactDrift": [],
+      "artefact": {
+        "projectHash": "443932a276d9857e0438b6ce24ce9de26d4eadbb92c8c3cb90eb732fac45f8b7",
+        "spaces": 13
+      },
+      "ssses": {
+        "pillars": {
+          "Stability": {
+            "score": 100,
+            "why": "3 runs agree; artefact byte-identical."
+          },
+          "Succinctness": {
+            "score": 75,
+            "why": "0 export(s) nothing imports; longest function RoomDesigner at 817 lines against the 300 rule.",
+            "dead": 0,
+            "longest": {
+              "name": "RoomDesigner",
+              "lines": 817
+            }
+          }
+        },
+        "avg": 88,
+        "measured": 2
+      },
+      "durationMs": 15117
+    },
+    {
+      "domain": "drone",
+      "n": 3,
+      "gates": 5,
+      "totalChecks": 1586,
+      "allGreen": true,
+      "deterministic": true,
+      "nondet": [],
+      "artefactByteIdentical": true,
+      "artefactDrift": [],
+      "artefact": {
+        "modelHash": "fd9a70fa9565c492ca097dca7b53395d2007f3556b91df14da9c553074f6a0f2",
+        "doors": 14
+      },
+      "ssses": {
+        "pillars": {
+          "Stability": {
+            "score": 100,
+            "why": "3 runs agree; artefact byte-identical."
+          },
+          "Succinctness": {
+            "score": 100,
+            "why": "0 export(s) nothing imports; longest function buildArena at 113 lines against the 300 rule.",
+            "dead": 0,
+            "longest": {
+              "name": "buildArena",
+              "lines": 113
+            }
+          }
+        },
+        "avg": 100,
+        "measured": 2
+      },
+      "durationMs": 8070
+    },
+    {
+      "domain": "security",
+      "n": 3,
+      "gates": 3,
+      "totalChecks": 0,
+      "allGreen": true,
+      "deterministic": true,
+      "nondet": [],
+      "artefactByteIdentical": null,
+      "artefactDrift": [],
+      "artefact": null,
+      "ssses": {
+        "pillars": {
+          "Stability": {
+            "score": 100,
+            "why": "3 runs agree; suite-determinism only (no artefact yet)."
+          },
+          "Succinctness": {
+            "score": 85,
+            "why": "0 export(s) nothing imports; longest function SecurityCommandUX1 at 482 lines against the 300 rule.",
+            "dead": 0,
+            "longest": {
+              "name": "SecurityCommandUX1",
+              "lines": 482
+            }
+          }
+        },
+        "avg": 93,
+        "measured": 2
+      },
+      "durationMs": 3285
+    },
+    {
+      "domain": "celestial",
+      "n": 3,
+      "gates": 3,
+      "totalChecks": 0,
+      "allGreen": true,
+      "deterministic": true,
+      "nondet": [],
+      "artefactByteIdentical": null,
+      "artefactDrift": [],
+      "artefact": null,
+      "ssses": {
+        "pillars": {
+          "Stability": {
+            "score": 100,
+            "why": "3 runs agree; suite-determinism only (no artefact yet)."
+          },
+          "Succinctness": {
+            "score": 100,
+            "why": "0 export(s) nothing imports; longest function CelestialReader at 166 lines against the 300 rule.",
+            "dead": 0,
+            "longest": {
+              "name": "CelestialReader",
+              "lines": 166
+            }
+          }
+        },
+        "avg": 100,
+        "measured": 2
+      },
+      "durationMs": 17505
+    },
+    {
+      "domain": "sensorfusion",
+      "n": 3,
+      "gates": 4,
+      "totalChecks": 0,
+      "allGreen": true,
+      "deterministic": true,
+      "nondet": [],
+      "artefactByteIdentical": null,
+      "artefactDrift": [],
+      "artefact": null,
+      "ssses": {
+        "pillars": {
+          "Stability": {
+            "score": 100,
+            "why": "3 runs agree; suite-determinism only (no artefact yet)."
+          },
+          "Succinctness": {
+            "score": null,
+            "why": "no source read for this domain"
+          }
+        },
+        "avg": 100,
+        "measured": 1
+      },
+      "durationMs": 5484
+    },
+    {
+      "domain": "financial",
+      "n": 3,
+      "gates": 4,
+      "totalChecks": 809,
+      "allGreen": true,
+      "deterministic": true,
+      "nondet": [],
+      "artefactByteIdentical": null,
+      "artefactDrift": [],
+      "artefact": null,
+      "ssses": {
+        "pillars": {
+          "Stability": {
+            "score": 100,
+            "why": "3 runs agree; suite-determinism only (no artefact yet)."
+          },
+          "Succinctness": {
+            "score": 75,
+            "why": "0 export(s) nothing imports; longest function FinancialCommandUX1 at 1016 lines against the 300 rule.",
+            "dead": 0,
+            "longest": {
+              "name": "FinancialCommandUX1",
+              "lines": 1016
+            }
+          }
+        },
+        "avg": 88,
+        "measured": 2
+      },
+      "durationMs": 5961
+    },
+    {
+      "domain": "soi",
+      "n": 3,
+      "gates": 4,
+      "totalChecks": 27,
+      "allGreen": true,
+      "deterministic": true,
+      "nondet": [],
+      "artefactByteIdentical": null,
+      "artefactDrift": [],
+      "artefact": null,
+      "ssses": {
+        "pillars": {
+          "Stability": {
+            "score": 100,
+            "why": "3 runs agree; suite-determinism only (no artefact yet)."
+          },
+          "Succinctness": {
+            "score": 100,
+            "why": "0 export(s) nothing imports; longest function storiesOf at 69 lines against the 300 rule.",
+            "dead": 0,
+            "longest": {
+              "name": "storiesOf",
+              "lines": 69
+            }
+          }
+        },
+        "avg": 100,
+        "measured": 2
+      },
+      "durationMs": 16560
+    }
+  ]
+}
