@@ -67,7 +67,7 @@ pre.copy{background:#0b1220;border:1px solid #334155;border-radius:8px;padding:1
 <header class="top"><div class="wrap">
   <h1>ARCHITECT-2525 · ARCH-SIM-PLAN v.02</h1>
   <div class="sub">Your APPROVE-WITH-CHANGES answered · each item shows HI · round 1 + the MoT adjustment + a fresh round-2 input</div>
-  <div class="prov">STAMP <b>2026.10.24_09.08..32CST</b> · HEAD <b>b76279f4c</b> · <b style="color:#eab308">LIVE ✓</b> https://exel-ai-polling.explore-096.workers.dev/Architect-2525/ (Verify Live #3048) · tsc <b>0</b> · 6 surfaces · metrics <b>7/7 deterministic</b></div>
+  <div class="prov">STAMP <b>2026.10.24_10.13..09CST</b> · HEAD <b>b76279f4c</b> · <b style="color:#eab308">LIVE ✓</b> https://exel-ai-polling.explore-096.workers.dev/Architect-2525/ (Verify Live #3048) · tsc <b>0</b> · 6 surfaces · metrics <b>7/7 deterministic</b></div>
 </div></header>
 <div class="wrap">
   <p class="lead">Round 2 of the loop (<b>approve plan → feedback file → MoT adjustments → feedback file on changes → until resolved</b>). Every item you flagged shows <span style="color:#fcd34d">HI · round 1</span> and the <span style="color:#22d3ee">MoT adjustment</span> (what Architect-2525 will build). <b>Feedback input is only on NEW items.</b> Everything you reviewed in round 1 is shown <span style="color:#4ade80">✓ resolved</span> (read-only record of your note + the MoT adjustment, queued to build) — if an adjustment is wrong, flag it in <b>General input</b> at the bottom. New items get fresh inputs — plus the few OLD items where I need a clarification from you (see <b>⚠ MoT needs your call</b> near the top). <span class="dim">(Fable's quota is exhausted right now, so these adjustments are on Opus — re-runnable on Fable when it resets.)</span></p>
@@ -289,7 +289,7 @@ against the locked spec, the repository, and executable tests.
   <div id="save-bar"><button id="save-btn">💾 SAVE FEEDBACK</button><span id="save-confirm">✓ Saved — JSON downloaded. Send it to me.</span><span style="color:#64748b;font-family:'Consolas',monospace;font-size:11px">· your verdicts + comments + general input save to one JSON</span></div>
 </div>
 <script>
-(function(){var STAMP="2026.10.24_09.08..32CST";var LS='exel-arch25-'+STAMP;
+(function(){var STAMP="2026.10.24_10.13..09CST";var LS='exel-arch25-'+STAMP;
   document.addEventListener('change',persist);document.addEventListener('input',persist);
   var cp=document.getElementById('copy-ext');
   if(cp)cp.addEventListener('click',function(){var t=document.getElementById('ext-block').innerText;try{navigator.clipboard.writeText(t);cp.textContent='✓ COPIED';setTimeout(function(){cp.textContent='⧉ COPY the external-review block';},2000);}catch(e){var r=document.createRange();r.selectNode(document.getElementById('ext-block'));window.getSelection().removeAllRanges();window.getSelection().addRange(r);}});
