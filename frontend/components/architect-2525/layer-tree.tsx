@@ -118,9 +118,11 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
         <div data-layer-node={node.id} data-layer-hidden={isHidden || undefined} data-layer-locked={isLocked || undefined} data-layer-armed={isArmed || undefined}
           draggable onDragStart={(e) => { e.dataTransfer.setData("text/plain", node.id); e.dataTransfer.effectAllowed = "copy"; }}
           onClick={() => {
-            // Branch → expand. Leaf (a buildable item) → ARM it for tap-to-place on phone (toggle); desktop drag still works.
+            // Branch → expand. A BUILDABLE leaf → ARM it for tap-to-place on phone (toggle); desktop drag still works.
+            // A level3 (Innovation-substrate) leaf is informational — it is filtered out of the house drop, so it only
+            // selects (never arms), matching command-ux1's `!n.level3` placement filter.
             if (hasKids) toggle(node.id);
-            else onArm?.(isArmed ? null : { id: node.id, label: node.label });
+            else if (!node.level3) onArm?.(isArmed ? null : { id: node.id, label: node.label });
             onSelect?.(node.id);
           }}
           className="group flex cursor-pointer items-center gap-1 rounded px-1 py-1 text-[10px] select-none hover:bg-white/5"
