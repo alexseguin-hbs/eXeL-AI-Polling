@@ -146,6 +146,8 @@ const rdSrc = read("../components/architect-2525/room-designer.tsx");
 ok(/pan:\s*false/.test(voxSrc), "the Voxel camera disables panning (pan:false) so a SINGLE finger orbits on a phone (IMG-02 bug 1)");
 ok(/room\.objects \?\? defaultObjectsForRoom\(room\.k\)/.test(rdSrc), "the Room Designer shows a room's DEFAULT furniture when it has no saved objects — it never opens empty (IMG-02 bug 2)");
 ok(/r\.objects \?\? defaultObjectsForRoom\(r\.k\)/.test(voxSrc) && /objects3d\(/.test(voxSrc), "the Voxel renders each room's REAL objects (placed or defaults) — it MIRRORS the 2D plan, not a canned placeholder (IMG-02 bug 3)");
+const tfSrc = read("../components/architect-2525/tiny-floorplan.tsx");
+ok(/defaultObjectsForRoom\(r\.k\)/.test(tfSrc) && /placedContents\(objs/.test(tfSrc), "the whole-house 2D floor plan reads the SAME source (objects ?? defaultObjectsForRoom) as the voxel — both panels on Model mirror, no canned furniture() hint (IMG-02 bug 3, AsM-caught)");
 
 console.log(`\narchitect-product-truth: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
