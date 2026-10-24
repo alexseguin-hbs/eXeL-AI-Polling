@@ -15,7 +15,10 @@
 /main/SoI-2525/ /SoI-2525/ 301
 
 # 2026-10-24 · operator "I want all websites at the links I specified" — the case/slug variants he types
-# resolve to the canonical project route. (/architect-2525/ is the posted FEEDBACK page, not redirected.)
+# resolve to the canonical lowercase project route. Architect: the APP is /architect-2525/ (its own app route);
+# the FEEDBACK is /architect-2525/feedback. The capital /Architect-2525/ alias route still loads either way.
+/Architect-2525 /architect-2525/ 301
+/Architect-2525/ /architect-2525/ 301
 /Financial-2525 /financial-2525/ 301
 /Financial-2525/ /financial-2525/ 301
 /Drone-2525 /drone-2525/ 301
