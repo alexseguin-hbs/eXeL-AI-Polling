@@ -64,7 +64,7 @@ const ux = readFileSync(new URL("../components/architect-2525/command-ux1.tsx", 
 ok(/\bacceptEdit\b/.test(hook) && /\bproposeEdgeEdit\b/.test(hook), "the canonical Design edit path runs the proven acceptEdit / proposeEdgeEdit contract");
 const legacyCalls = (hook.match(/\b(moveRoomInLayout|resizeRoomInLayout)\s*\(/g) || []).length;
 ok(legacyCalls === 0, `the canonical edit path calls the legacy mutators ${legacyCalls} time(s) — must be 0`);
-ok(!/from "\.\/architect-design"/.test(ux), "the public Design no longer mounts the legacy wall/room engine (architect-design.tsx)");
+ok(/from "\.\/architect-design"/.test(ux), "the public Design RE-MOUNTS the Room Designer (architect-design.tsx) as the Model tab — restored (operator 2026-10-24: do not delete working functionality); the canonical edit path rides the Compare governance view");
 
 console.log(`\narchitect-edit: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

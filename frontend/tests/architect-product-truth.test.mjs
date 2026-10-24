@@ -84,9 +84,10 @@ const readOpt = (p) => { try { return readFileSync(new URL(p, import.meta.url), 
 const tree = readOpt("../components/architect-2525/canonical-project-tree.tsx");
 const mr = read("../components/architect-2525/master-readout.tsx");
 
-// ── the Design left rail is the canonical project tree, NOT the LAYER_TREE digital-twin catalog ──
-ok(/leftRail=\{<CanonicalProjectTree/.test(ux), "Design leftRail renders the canonical project tree");
-ok(!/leftRail=\{<LayerTree/.test(ux), "Design leftRail no longer renders the legacy LayerTree");
+// ── RESTORED (operator 2026-10-24): the Design Model left rail is the Room Designer's Layer Tree; the canonical
+//    project tree rides the Compare governance view, not the Model left rail ──
+ok(/leftRail=\{<LayerTree/.test(ux), "Design leftRail renders the Room Designer's Layer Tree (restored)");
+ok(!/leftRail=\{<CanonicalProjectTree/.test(ux), "the canonical project tree is no longer the Model left rail (it rides the Compare governance view)");
 
 // ── the canonical tree is built from canonical Runtime, selectable NOT draggable, no $k·Nd cost badges ──
 ok(/buildProjectFromSeed\(TINY_HOME_V1\)/.test(tree), "the left tree is built from canonical Runtime (buildProjectFromSeed(TINY_HOME_V1))");
@@ -107,9 +108,9 @@ ok(!/room-program|areaSqft|p\.stories/.test(mr), "master readout no longer shows
 //    wall/WALK/3D·MODEL engine. A truthful left beside a false center is not done (unified direction §5/§6):
 //    no WALK, no 2×4 wall authoring, no "3D · MODEL", no "click two grid points" in the public Design. ──
 const vg = readOpt("../components/architect-2525/vector-glass.tsx");
-ok(/<VectorGlass/.test(ux), "the public Design center renders the canonical Vector Glass");
-ok(!/<ArchitectDesign/.test(ux), "the legacy wall/WALK engine is no longer mounted in the public Design");
-ok(!/from "\.\/architect-design"/.test(ux), "ArchitectDesign is not imported into the public composition");
+ok(/<ArchitectDesign/.test(ux), "the Room Designer (ArchitectDesign) is mounted as the Design Model center — restored (operator 2026-10-24)");
+ok(/from "\.\/architect-design"/.test(ux), "ArchitectDesign (the Room Designer) is imported into the public composition — restored");
+ok(/<VectorGlass/.test(ux), "the canonical Vector Glass is present as the Compare governance view (the truth loop records a change, it does not replace the designer)");
 ok(/toWireframe/.test(vg) && /buildProjectFromSeed\(TINY_HOME_V1\)/.test(vg), "Vector Glass projects the canonical Runtime");
 ok(/PLAN/.test(vg) && /VECTOR/.test(vg), "Vector Glass offers PLAN + VECTOR-3D only");
 ok(!/\bWALK\b/.test(vg) && !/click two grid points/i.test(vg) && !/place a .*wall/i.test(vg), "Vector Glass has no WALK / 2×4 wall-authoring");
@@ -118,7 +119,7 @@ ok(!/\bWALK\b/.test(vg) && !/click two grid points/i.test(vg) && !/place a .*wal
 //    AI PROPOSED IMPACT → ACCEPT/HOLD/REJECT → the REAL SPIRAL/SYNC/Reverse (never a hardcoded PASS/SYNCED). ──
 const ae = readOpt("../components/architect-2525/architect-active-elements.tsx");
 const dhook = readOpt("../components/architect-2525/use-canonical-design.ts");
-ok(/rightRail=\{<ArchitectActiveElements/.test(ux), "the Design right rail is the canonical Active Elements");
+ok(/rightRail=\{<RightPanel/.test(ux), "the Design right rail is the Room Designer inspector (RightPanel) — restored; the canonical Active Elements rides the Compare governance view");
 ok(/CANONICAL SPACE/.test(ae), "Active Elements labels the selected canonical Space");
 ok(/ACCEPT/.test(ae) && /HOLD/.test(ae) && /REJECT/.test(ae), "canonical edit offers ACCEPT / HOLD / REJECT");
 ok(/AI Proposed Impact/i.test(ae), "the AI PROPOSED IMPACT preview is shown before any commit");
