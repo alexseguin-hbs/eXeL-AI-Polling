@@ -48,6 +48,8 @@ td{padding:7px 9px;border-bottom:1px solid #111827}
 .ph{color:#eab308;font-size:14px;margin:12px 0 6px;font-family:'Cascadia Code','Consolas',monospace}
 blockquote{border-left:3px solid #334155;padding-left:10px;color:#94a3b8;margin:8px 0;font-size:13px}
 .panel{background:#0a0f16;border:1px solid #1e293b;border-radius:8px;padding:14px}.panel p{margin-bottom:9px;font-size:13.5px}
+.copybtn{background:#042f2e;color:#22d3ee;border:1px solid #155e63;border-radius:6px;padding:8px 14px;font-family:'Consolas',monospace;font-size:12px;cursor:pointer;margin-bottom:8px}.copybtn:hover{background:#063e3c;color:#eab308}
+pre.copy{background:#0b1220;border:1px solid #334155;border-radius:8px;padding:12px;overflow-x:auto;font-family:'Consolas',monospace;font-size:11.5px;color:#cbd5e1;white-space:pre-wrap}
 .blproj{margin-bottom:14px}.blhead{color:#c084fc;font-family:'Cascadia Code','Consolas',monospace;font-size:13px;letter-spacing:.5px;margin:10px 0 6px;border-bottom:1px solid #1e293b;padding-bottom:4px}
 .blrow{margin-bottom:9px}.blt{font-size:13px}
 .decision{background:linear-gradient(180deg,#0a1420,#060a10);border:1px solid #164e63;border-top:2px solid #22d3ee;border-radius:8px;padding:16px 18px;margin-top:24px}
@@ -62,9 +64,9 @@ blockquote{border-left:3px solid #334155;padding-left:10px;color:#94a3b8;margin:
 .foot{color:#475569;font-size:11px;font-family:'Consolas',monospace;margin-top:22px;text-align:center}
 </style></head><body>
 <header class="top"><div class="wrap">
-  <h1>ARCHITECT-2525 · FEEDBACK — ROUND 2</h1>
+  <h1>ARCHITECT-2525 · ARCH-SIM-PLAN v.02</h1>
   <div class="sub">Your APPROVE-WITH-CHANGES answered · each item shows HI · round 1 + the MoT adjustment + a fresh round-2 input</div>
-  <div class="prov">STAMP <b>2026.10.24_08.40..05CST</b> · HEAD <b>b76279f4c</b> · <b style="color:#eab308">LIVE ✓</b> https://exel-ai-polling.explore-096.workers.dev/Architect-2525/ (Verify Live #3048) · tsc <b>0</b> · 6 surfaces · metrics <b>7/7 deterministic</b></div>
+  <div class="prov">STAMP <b>2026.10.24_08.50..52CST</b> · HEAD <b>b76279f4c</b> · <b style="color:#eab308">LIVE ✓</b> https://exel-ai-polling.explore-096.workers.dev/Architect-2525/ (Verify Live #3048) · tsc <b>0</b> · 6 surfaces · metrics <b>7/7 deterministic</b></div>
 </div></header>
 <div class="wrap">
   <p class="lead">Round 2 of the loop (<b>approve plan → feedback file → MoT adjustments → feedback file on changes → until resolved</b>). Every item you flagged shows <span style="color:#fcd34d">HI · round 1</span> and the <span style="color:#22d3ee">MoT adjustment</span> (what Architect-2525 will build). Confirm each (👍 the adjustment, ✎ to refine, ✋ to hold) + comment; the backlog carries your round-1 notes + my response; add anything new in <b>General input</b>; then <b>SAVE FEEDBACK</b>. <span class="dim">(Fable's quota is exhausted right now, so these adjustments are on Opus — re-runnable on Fable when it resets.)</span></p>
@@ -159,6 +161,122 @@ blockquote{border-left:3px solid #334155;padding-left:10px;color:#94a3b8;margin:
 
   <details><summary>§4 · The corrective plan (P0–P9, cadence) <span class="tag">click to expand</span></summary><div class="dbody panel"><h2 class="ph">ARCHITECT-2525 / PROJECT NEST-AI — CORRECTIVE SPRINT PLAN</h2><p><b>Master of Thought · authored 2026-10-24 (Sat) · due Sunday night 2026-10-25 · Monday 10/26 to correct</b></p><p>*"Where Shared Intention moves at the Speed of Thought."*</p><blockquote><b>Status gate (read first).</b> This plan is served for HI APPROVAL. <b>No code begins until (a) the 12-AsM 111-word report-out is in HI's hands, (b) HI approves autonomous execution, and (c) each phase below passes its FX HTML+JSON gate before the next starts.</b> The FX gate (HI SEES → UNDERSTANDS → DECIDES → JSON captures APPROVE / CHANGES / HOLD) is now the first binding Workflow Rule in CLAUDE.md. That gate is exactly what was abandoned — it is never abandoned again.</blockquote><blockquote></blockquote><blockquote><b>Deploy truth on every update:</b> <code>SHA &lt;short&gt; | committed ✓ | pushed ✓ | cloudflare LIVE &lt;sha&gt; | UNVERIFIED</code>. The sandbox proxy 403s every host, so LIVE is reported <b>UNVERIFIED</b> with the one-tap command handed over; it is never called "live" without the SHA comparison. Live URL: https://exel-ai-polling.explore-096.workers.dev</blockquote><blockquote><b>Repo at authoring:</b> HEAD <code>a19c1a15</code> = <code>origin/main</code> (tree in sync). Last Architect ship: <code>b76279f4c</code> (C1 / ARCH-RUX1, Verify Live #3048 matched).</blockquote><p>---</p><h3 class="ph">1 · MISSION</h3><p>Restore every piece of Room-Designer functionality that the R-UX sprint <b>unmounted</b> (nothing was ever deleted — the working designer was dis-wired from the public Design tab and is now re-mounted as of C1/<code>b76279f4c</code>), <b>and</b> meet all twelve operator-intent items by <b>Sunday night 2026-10-25</b> — a scoped-per-room Vision Tree, quote-on-time on every placement, a Security-2525-style site/land map, Celestial-2525 sun/moon passive-solar lighting, three build modes culminating in the hex Eco-Sphere, share-for-buy-in, a PRINT 4D build simulation, and revisions that survive reload. Every phase ships through the <b>restored FX HTML+JSON HI feedback gate</b> and is stress-tested by Grok, eXeL AI, and DeepSeek <b>before</b> HI's final APPROVE, so trust is rebuilt by proof, not by assurance — the exact failure (shipping changes HI could not see, review, or HOLD) cannot recur.</p><p>---</p><h3 class="ph">2 · PHASES (P0 → P9)</h3><p><b>FX gate artifact</b> (every row): a time-stamped <code>YYYY.MM.DD_HH.MM..SS_&lt;phase&gt;.html</code> (Claude Code output, before/after Playwright screenshots, per-FX cards) + its <code>*_FEEDBACK.json</code> (per-FX <code>{verdict: APPROVE|CHANGES|HOLD, comment}</code>, the shape HI already uses). HI's <code>CHANGES</code>/<code>HOLD</code> blocks the next phase until cleared.</p><div style="overflow-x:auto"><table><thead><tr><th>Phase</th><th>Deliverable</th><th>Restores / extends (Plan-3 Block A–E · past fn)</th><th>Key files / components</th><th>AI check (who · verify what)</th><th>HI gate (FX artifact)</th></tr></thead><tbody><tr><td><b>P0</b> *(DONE)*</td><td>Audit + full simulation + 12-AsM 111-word report-out (Plan 3 → now: what broke, why, the correction)</td><td>Diagnoses the R-UX unmount; confirms root cause = <b>abandoned FX gate</b></td><td><code>docs/assessments/*</code>, <code>tests/architect-screens.spec.mjs</code>, this plan</td><td><b>All three</b> — confirm root cause is the gate, not deletion; ratify the phase order</td><td>AsM-111 HTML + THIS plan → <b>APPROVE autonomous execution</b></td></tr><tr><td><b>P1</b></td><td><b>Finish the restore — Vision Tree SCOPED to the entered room type + a "General items that can be added" section only</b> (never the full house tree inside a room)</td><td>Restores R-UX designer fully (C1); <b>extends</b> the already-shipped room-scoped primitive</td><td><code>lib/architect-layers.ts</code> (<code>roomSystems</code>/<code>isVisibleForRoom</code>/<code>ROOM_VISIBLE</code> — *already built, locked by* <code>tests/room-scope.test.mjs</code>); wire into <code>architect-design-workspace.tsx</code> left Rail + <code>room-designer.tsx</code></td><td><b>Grok</b> — prove no full-tree leak into a room (Closet ⊉ plumbing); <b>DeepSeek</b> — UX of scoped tree + "general add"</td><td>FX: Bedroom vs Bath vs Closet trees side-by-side — only room-relevant systems + general items</td></tr><tr><td><b>P2</b></td><td><b>Quote-on-time per placement</b> — every placement/modification shows <b>time-to-procure · time-to-install · completion · cost-range</b> (MEP/BIM style; reads ASSUMED, never faked authority)</td><td>Extends Block E product-truth + existing BIM fields</td><td><code>lib/architect-bim.ts</code> (<code>installDays</code>/<code>cost</code>/<code>phase</code> *exist*), <code>architect-estimate.ts</code>, <code>architect-bom.ts</code>, room-designer inspector; gates <code>architect-estimate.test.mjs</code>, <code>architect-bom.test.mjs</code></td><td><b>eXeL AI (Endeion/MEP-BIM)</b> — lead-time + clash realism; <b>Grok</b> — numbers stay ASSUMED, no fake Project Cost</td><td>FX: a placed object's quote-on-time card (procure/install/complete/$-range)</td></tr><tr><td><b>P3</b></td><td><b>Site / surrounding-land map = Security-2525 Mission-Planning pattern</b> — drag the home onto a real EARTH lot, 2D/3D, elevation transect, mini-map, SHARE/SUBMIT</td><td>Extends Block D Vector Glass (SITE view); <b>reuses</b> Mission-Planning (no fork)</td><td><code>components/security-2525/mission-planning.tsx</code> + <code>mgrs.ts</code> primitives → <code>architect-design-workspace.tsx</code> SITE view</td><td><b>Grok</b> — reuse not rebuild, no SSRF on map tiles; <b>DeepSeek</b> — lot→home placement flow</td><td>FX: home placed on a real lot, 2D↔3D + elevation shown</td></tr><tr><td><b>P4</b></td><td><b>Sun/moon lighting from Celestial-2525</b> — date + location → sun &amp; moon angle → cast on the placed home = passive-solar simulation</td><td>Extends existing celestial engine (largely built)</td><td><code>architect-skysun.tsx</code> (<code>sunPos</code>/<code>sunRiseSet</code>/<code>moonState</code> *exist*), <code>architect-celestial.tsx</code> (Base-3600 Earth-Moon), <code>lib/celestial.ts</code>, <code>lib/astro-moon.ts</code>, <code>lib/ephemeris.ts</code></td><td><b>eXeL AI (Solstainable/passive-solar)</b> — solar realism; <b>Grok</b> — angle determinism (same date+loc → same shadow)</td><td>FX: sun path + shadow at solstice/equinox over the sited home</td></tr><tr><td><b>P5</b></td><td><b>Three build modes, a progression of complexity</b> — 3×3 voxel → tiny-home rectangle → <b>hex / Eco-Sphere</b> (hex → Ecosphere), each with simulate + cost</td><td>Extends canonical tiny-home seed + Block B/economy</td><td>mode selector, <code>architect-build.tsx</code>, <code>architect-economy.ts</code>, <code>architect-house.ts</code>/<code>architect-framing.ts</code>, seed fixtures</td><td><b>ICON lens (eXeL AI)</b> — one system → different homes; <b>Grok</b> — each mode keeps the canonical truth loop</td><td>FX: each mode + its simulate+cost readout</td></tr><tr><td><b>P6</b></td><td><b>Share-for-buy-in</b> — vendors / builders / banking / home-builders <b>clarity-call</b> flow (lot→zoning→financing→permits)</td><td>New flow on existing <code>.arch2525</code> package + SHARE/SUBMIT</td><td><code>lib/architect-project-file.ts</code> (package *exists*), share flow, Supabase, <code>architect-saved-files.ts</code></td><td><b>DeepSeek (BuildLago clarity-call)</b> — persuasion/CTA; <b>Grok</b> — no PII leak, auth-gated share</td><td>FX: the share/clarity-call card as a vendor/bank sees it</td></tr><tr><td><b>P7</b></td><td><b>PRINT → daily/hourly 4D build simulation</b> to align foremen, contributors, friends &amp; family</td><td>Extends the existing 4D day-by-day sequence</td><td><code>architect-build.tsx</code> (<code>SEQ</code> trade-lane 4D *exists*), PRINT/export path</td><td><b>eXeL AI (MEP/BIM 4D sequencing)</b> — trade sequencing sanity; <b>Grok</b> — deterministic print output</td><td>FX: printed 4D build timeline (day/hour, trade lanes)</td></tr><tr><td><b>P8</b></td><td><b>R-CORE saves revisions across reload</b> — the design + its revision chain + hashes survive save/reload (localStorage + Supabase)</td><td>Extends Block B R-CORE + Block C <code>.arch2525</code> + completion-loop</td><td><code>architect-project-file.ts</code>, <code>architect-saved-files.ts</code>, <code>rcore</code>, room-designer save/load; gates <code>rcore-revisions.test.mjs</code>, <code>architect-completion-loop.test.mjs</code></td><td><b>Grok</b> — hash identity survives reload (SPECS §19/§27 loop); <b>DeepSeek</b> — recovery UX</td><td>FX: a revision chain shown surviving a full reload</td></tr><tr><td><b>P9</b></td><td><b>Personas + demo script + mobile polish</b> — SPIRAL / UX / HI test (past · present · future of the Vision-2525 toolset), verified at 375px</td><td>Hardens the whole toolset for the demo</td><td>demo seeds, personas, <code>tests/architect-screens.spec.mjs</code>, mobile-first pass</td><td><b>All three</b> — demo persuasiveness; <b>Grok</b> — 375px overflow/touch-target audit</td><td>FX: full demo walkthrough on phone + SPIRAL/UX/HI pass sheet</td></tr></tbody></table></div><p>---</p><h3 class="ph">3 · EXECUTION CADENCE</h3><h4 class="ph">3a · Hour-by-hour (CST, −6)</h4><p><b>Saturday 2026-10-24</b> *(today — morning start)*</p><div style="overflow-x:auto"><table><thead><tr><th>Hour (CST)</th><th>Phase / block</th><th>Exit before moving on</th></tr></thead><tbody><tr><td>08:00–09:00</td><td><b>P0 close-out</b> — serve AsM-111 report-out + this plan to HI; <b>await APPROVE of autonomous execution</b></td><td>HI APPROVE (gate 0) — *no code before this*</td></tr><tr><td>09:00–11:00</td><td><b>P1</b> Vision Tree scoped to room + general-items</td><td>tests green · FX P1 to HI · external-AI check</td></tr><tr><td>11:00–13:00</td><td><b>P2</b> quote-on-time per placement</td><td>tests green · FX P2 · external-AI check</td></tr><tr><td>13:00–14:00</td><td>External-AI roll-up on P1+P2 (Grok/eXeL/DeepSeek) + fix findings</td><td>findings cleared</td></tr><tr><td>14:00–17:00</td><td><b>P3</b> site/land map (Mission-Planning reuse)</td><td>FX P3 · external-AI check</td></tr><tr><td>17:00–20:00</td><td><b>P4</b> sun/moon lighting (Celestial)</td><td>FX P4 · external-AI check</td></tr><tr><td>20:00–22:00</td><td><b>P5</b> build modes — 3×3 + tiny-home (hex to Sun AM)</td><td>partial FX P5a</td></tr><tr><td>22:00–23:00</td><td><b>Saturday master FX roll-up</b> + external-AI check; HI reviews overnight</td><td>Saturday artifact delivered</td></tr></tbody></table></div><p><b>Sunday 2026-10-25</b> *(to night)*</p><div style="overflow-x:auto"><table><thead><tr><th>Hour (CST)</th><th>Phase / block</th><th>Exit before moving on</th></tr></thead><tbody><tr><td>08:00–10:00</td><td><b>P5</b> finish — <b>hex / Eco-Sphere</b> mode + simulate+cost</td><td>FX P5 complete · external-AI check</td></tr><tr><td>10:00–12:00</td><td><b>P6</b> share-for-buy-in (clarity-call)</td><td>FX P6 · external-AI check</td></tr><tr><td>12:00–14:00</td><td><b>P7</b> PRINT → 4D build simulation</td><td>FX P7 · external-AI check</td></tr><tr><td>14:00–16:00</td><td><b>P8</b> R-CORE saves revisions across reload</td><td>completion-loop green · FX P8</td></tr><tr><td>16:00–18:00</td><td><b>P9</b> personas + demo script + 375px mobile polish</td><td>FX P9</td></tr><tr><td>18:00–20:00</td><td><b>SPIRAL / UX / HI full test</b> (past · present · future) + fix all findings</td><td>all green</td></tr><tr><td>20:00–22:00</td><td><b>Final master FX artifact</b> + final external-AI check → <b>HI final APPROVE</b> → two-commit closeout → Verify Live</td><td>SHA live-confirmed (or UNVERIFIED + command)</td></tr><tr><td><b>22:00</b></td><td><b>DONE line</b> — all fixes + all intent reported with SHA/deploy state</td><td>Sunday-night criteria (§4) met</td></tr></tbody></table></div><h4 class="ph">3b · Minute-level per-chunk loop — <b>START/STOP TIMER</b></h4><p>A *chunk* = one phase sub-deliverable. One revision at a time; <b>never outpace the deploy</b> (next chunk waits for this one LIVE or HI's own LIVE report). Target <b>≤ 55 min build-to-handoff</b>, <b>≤ 2 chunks per phase</b> before an FX gate.</p><div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Step</th><th>Target</th><th>Timer</th></tr></thead><tbody><tr><td>1</td><td><b>START TIMER</b> + write the invariant (one sentence, user's terms)</td><td>1 min</td><td>start</td></tr><tr><td>2</td><td><b>NO-REWORK grep</b> — prove it isn't already shipped; cite file:line (reuse/extend, never rebuild)</td><td>3 min</td><td>run</td></tr><tr><td>3</td><td><b>Build</b> the change (extend existing primitive)</td><td>20–35 min</td><td>run</td></tr><tr><td>4</td><td><b>Test</b> — <code>node</code> cube test(s) green (red-first where new)</td><td>5 min</td><td>run</td></tr><tr><td>5</td><td><b>tsc</b> — <code>npx tsc --noEmit</code> → 0 new <code>error TS</code></td><td>2 min</td><td>run</td></tr><tr><td>6</td><td><b>Playwright</b> screenshot @ <b>375px + desktop</b></td><td>3 min</td><td>run</td></tr><tr><td>7</td><td><b>Commit</b> (SSSES line)</td><td>1 min</td><td>run</td></tr><tr><td>8</td><td><b>Push both refs</b> (prove with <code>git ls-remote</code>, fast-forward primary)</td><td>1 min</td><td><b>STOP</b> (build-timer)</td></tr><tr><td>9</td><td><b>Verify Live</b> on the SHA (poll Actions); sandbox 403 → <b>UNVERIFIED</b> + hand command</td><td>async</td><td>live-wait</td></tr><tr><td>10</td><td><b>FX HTML+JSON</b> artifact → HI (before/after shots, per-FX cards)</td><td>3 min</td><td>—</td></tr><tr><td>11</td><td><b>External-AI check</b> (paste §5 block) — accept their feedback</td><td>async / per-phase</td><td>—</td></tr><tr><td>12</td><td><b>HI APPROVE / CHANGES / HOLD</b> → record minutes; <code>CHANGES</code>/<code>HOLD</code> → fix before next chunk</td><td>—</td><td>log</td></tr></tbody></table></div><p><b>Timer discipline:</b> each chunk logs <code>START · STOP · elapsed</code> so $/min and time-to-outcome are visible and falling. If the session stops mid-run, the last pushed SHA + the open chunk's START are the resume point — no rework.</p><p>---</p><h3 class="ph">4 · SUCCESS / DONE CRITERIA (testable)</h3><p>"All fixes + all intent met by Sunday night" means <b>every one of these is true and provable</b>:</p><ol><li><b>Restore proven</b> — the public Design tab serves the full Room Designer (drag-drop of 29 object kinds: doors, windows, plumbing, electrical, closets, furniture; Enter-a-room; 2D↔3D; 3×3×3 voxel; Move Room; <code>.arch2525</code> save/load; Supabase backup; planning-scheduling-cost). The canonical truth loop is preserved as the <b>Compare</b> tab. (gates: <code>room-objects</code> 123, <code>room-audit</code> 437.)</li><li><b>P1</b> — inside a room the Vision Tree shows <b>only</b> that room's systems + a General-items add section; the full tree appears only at house level. (<code>room-scope.test.mjs</code> green; FX approved.)</li><li><b>P2</b> — every placement/modification shows procure-time · install-time · completion · cost-range, all labelled ASSUMED; no fabricated Project Cost. (<code>estimate</code>/<code>bom</code> gates green.)</li><li><b>P3</b> — the home can be placed on a real-earth lot with 2D/3D + elevation, built on the Security Mission-Planning primitive (not a fork). (SHARE/SUBMIT works.)</li><li><b>P4</b> — sun &amp; moon angles are driven by date + location via Celestial-2525 and cast on the sited home; identical date+location → identical shadow (deterministic).</li><li><b>P5</b> — all three modes (3×3 → tiny-home → hex/Eco-Sphere) load, simulate, and cost; hex <b>is</b> the Eco-Sphere.</li><li><b>P6</b> — a share/clarity-call package reaches vendors/builders/banking/home-builders, auth-gated, no PII leak.</li><li><b>P7</b> — PRINT produces a daily/hourly 4D build simulation.</li><li><b>P8</b> — a design + its revision chain + hashes survive a full reload (completion-loop passes from a fresh load; hash before save == hash after reload).</li><li><b>Gate honored every phase</b> — each phase has an FX HTML+JSON artifact with an HI verdict; <b>zero phases shipped without one</b>.</li><li><b>External review every phase</b> — Grok, eXeL AI, DeepSeek each returned feedback per phase and findings were folded in.</li><li><b>Deploy truth</b> — the final report carries <code>SHA | committed | pushed | LIVE/UNVERIFIED</code>, the two-commit closeout is done (impl commit A, proof/docs commit B), <code>tsc</code> shows 0 new errors, and every gate is green.</li><li><b>SPIRAL / UX / HI</b> test (past·present·future) passes and is recorded.</li></ol><p><b>Not done if</b> any phase shipped without its FX gate, any room shows the full tree, any cost card claims unproven authority, the deploy state is reported as "live" without a SHA match, or revisions are lost on reload.</p><p>---</p><h3 class="ph">5 · EXTERNAL-REVIEW BLOCK</h3><p>*(see the <code>external_review_block</code> field — plain text, copy-paste to Grok / eXeL AI / DeepSeek)*</p></div></details>
 
+  <details><summary>§5 · Copy-paste for Grok · eXeL AI · DeepSeek <span class="tag">click to expand</span></summary><div class="dbody">
+    <p class="dim" style="font-size:12.5px">Paste this to each external AI for an independent stress-test of the plan; send me their feedback and I fold it in each round.</p>
+    <button class="copybtn" id="copy-ext">⧉ COPY the external-review block</button>
+    <pre class="copy" id="ext-block">========================================================================
+ARCHITECT-2525 / PROJECT NEST-AI — CORRECTIVE PLAN · EXTERNAL STRESS-TEST
+Please review as an adversarial outside reviewer. Be specific; cite risks.
+========================================================================
+
+WHAT THE PRODUCT IS
+Architect-2525 ("Project Nest-AI") is a Vision-2525 home-building toolset and
+recursive demo engine with Human-Intelligence (HI) prioritization — bringing
+builders, youth, and families together to design and build a home. Product line:
+Eco-Spheres (hex-panel / geodesic-dome homes). Tag: "Where Shared Intention
+moves at the Speed of Thought." It is built on a canonical ".arch2525" truth
+loop: AI PREPARES -&gt; HI DECIDES -&gt; R-CORE REMEMBERS -&gt; SPIRAL VERIFIES.
+
+THE FAILURE (Plan 3 -&gt; now)
+Plan 3 (Blocks A-E) delivered a SOUND canonical governance spine: a production
+seed/constructor (R0, 900 ft2, fixed datum), R-CORE (HI-accept-only revisions,
+event groups, snapshot+delta, replay, reverse, SPIRAL), a pure canonical
+serializer + independent canonicalizer + SHA-256 + .arch2525 V2 ZIP, Vector
+Glass editing, and a two-iteration completion loop. That worked.
+AFTER A-E, a "R-UX" UX sprint UNMOUNTED the complete working Room Designer from
+the PUBLIC Design tab and replaced it with an empty 9-box stub (cells A1..B3; no
+furniture, doors, windows, plumbing, electrical, 2D/3D voxel, or drag-drop). The
+operator found it on his phone: "why did you delete all functionality?... its as
+if you started from scratch." CRITICAL: nothing was deleted — every file stayed
+in the repo; the designer was merely dis-wired from the page.
+ROOT CAUSE: the FX HTML+JSON feedback gate — the HI review ritual (HI SEES -&gt;
+UNDERSTANDS -&gt; DECIDES: APPROVE / CHANGES / HOLD; JSON captures the verdict) —
+had been ABANDONED. With no gate, changes shipped that HI could not review or
+HOLD, and the unmount slipped through unseen. Compounding: outpacing deploys,
+framing work around a job title instead of HI intent, burning credits/time.
+Estimated ~$50k of dev value wasted; trust lost; $270 subscription cancelled;
+deadline to rebuild trust 11/11/2026, with all fixes + all intent due Sunday
+night 2026-10-25.
+
+THE CORRECTION (already live + planned)
+- DONE (C1, SHA b76279f4c, Verify Live #3048): Room Designer RE-MOUNTED as the
+  Design Model center (drag-drop of 29 object kinds, Enter-a-room, 2D&lt;-&gt;3D,
+  3x3x3 voxel, Move Room, .arch2525 save/load, Supabase backup, planning-
+  scheduling-cost). Canonical truth loop preserved as the Compare tab. The FX
+  HTML+JSON gate is RESTORED and made the first binding Workflow Rule for every
+  project. tsc 0 new errors; gates green (room-objects 123, room-audit 437,
+  rcore 50, completion-loop 23, canonical-serialize 12, estimate 17, bom 13,
+  product-truth 59, +more).
+- PLANNED phases P1..P9, each shipped ONE revision at a time, never outpacing
+  the deploy, each behind an FX HTML+JSON HI gate AND your external review:
+  P1 Vision Tree SCOPED to the entered room type + a general-items add section
+     only (never the full house tree inside a room; primitive already exists and
+     is test-locked — this wires it into the live tree).
+  P2 Quote-on-time per placement: time-to-procure, time-to-install, completion,
+     cost-range (MEP/BIM style; all labelled ASSUMED, no fabricated project cost).
+  P3 Site/land map built on the Security-2525 Mission-Planning pattern (drag the
+     home onto a real-earth lot, 2D/3D, elevation transect, mini-map, share).
+  P4 Sun/moon lighting from Celestial-2525 (date + location -&gt; sun/moon angle -&gt;
+     passive-solar shadow on the sited home; deterministic).
+  P5 Three build modes, rising complexity: 3x3 voxel -&gt; tiny-home rectangle -&gt;
+     hex/Eco-Sphere, each with simulate + cost.
+  P6 Share-for-buy-in: vendors / builders / banking / home-builders clarity-call
+     flow (lot -&gt; zoning -&gt; financing -&gt; permits).
+  P7 PRINT -&gt; daily/hourly 4D build simulation to align foremen, contributors,
+     friends &amp; family.
+  P8 R-CORE saves revisions across reload (design + revision chain + hashes
+     survive save/reload; hash before save == hash after reload).
+  P9 Personas + demo script + 375px mobile polish; SPIRAL/UX/HI test across
+     past/present/future.
+- CADENCE: hour-by-hour across Sat 2026-10-24 and Sun 2026-10-25, plus a
+  minute-level per-chunk loop with a START/STOP timer: invariant -&gt; no-rework
+  grep -&gt; build -&gt; test -&gt; tsc -&gt; Playwright screenshot (375px+desktop) -&gt;
+  commit -&gt; push both refs -&gt; Verify Live -&gt; FX HTML+JSON to HI -&gt; external-AI
+  check -&gt; HI APPROVE/CHANGES/HOLD. Target &lt;=55 min build-to-handoff per chunk.
+
+INSPIRATION BEING DRAWN ON
+ICON (CODEX catalog floor-plans -&gt; customize -&gt; 3D-print the wall system; one
+construction system, radically different homes -&gt; the 3 build modes + hex).
+MEP/BIM VDC (clash detection, HVAC/elec/plumbing routing, 4D sequencing -&gt; quote-
+on-time + PRINT sim). Sustainable design-build (passive solar, SIPs, solar PV/
+thermal, geothermal -&gt; the sun/moon lighting sim). Clarity-call home builders
+(lot -&gt; zoning -&gt; financing -&gt; permits -&gt; share-for-buy-in).
+
+PLEASE ANSWER THESE SIX REVIEW QUESTIONS
+1. GAPS: What operator intent or user-journey step is missing or under-specified
+   across P1..P9? What would a builder, youth, or family expect that isn't here?
+2. RISKS: Where is this most likely to regress or silently break again — and does
+   the restored FX HTML+JSON gate + per-phase external review actually prevent a
+   second "unmount slips through unseen"? What would you add to the gate?
+3. SEQUENCING: Is P1..P9 the right order for a Sunday-night deadline? What should
+   move earlier/later, and what can run in parallel without breaking the "one
+   revision at a time, never outpace the deploy" rule?
+4. COST MODEL: Are the quote-on-time assumptions (time-to-procure, install,
+   completion, cost-range, MEP/BIM style) credible and clearly ASSUMED vs quoted?
+   What would make the numbers defensible to a real builder or bank without
+   overclaiming authority?
+5. LIGHTING/CELESTIAL REALISM: Is deterministic sun+moon angle from date+location
+   (Base-3600 Earth-Moon ephemeris) sufficient for a believable passive-solar
+   simulation? What physical factors (shading, seasonal path, refraction, moon
+   illumination) must be present for it to persuade a sustainable-design reviewer?
+6. DEMO PERSUASIVENESS: As a recursive demo engine meant to prove the eXeL
+   platform and earn buy-in (vendors/builders/banking), what single addition or
+   cut would most increase its credibility and emotional pull for families and
+   youth — without expanding scope past Sunday night?
+
+Return concrete, prioritized feedback. We will fold your findings in before HI's
+final APPROVE. Where your reviews conflict, do not average — each is weighed
+against the locked spec, the repository, and executable tests.
+========================================================================</pre>
+  </div></details>
+
+  <details><summary>§6 · Inspiration (your links, researched) <span class="tag">click to expand</span></summary><div class="dbody panel"><ul>
+    <li><b>ICON (design-build / CODEX):</b> catalog floor-plans → customize → 3D-print the wall system, trades finish; one system, radically different homes → the 3 build modes &amp; hex→Ecosphere.</li>
+    <li><b>MEP / BIM VDC:</b> trade-wise clash detection, HVAC/electrical/plumbing routing, 4D sequencing → quote-on-time &amp; the PRINT 4D build simulation.</li>
+    <li><b>Sustainable design-build:</b> passive solar, SIPs, solar PV/thermal → the sun/moon lighting (optimization) mode.</li>
+    <li><b>Clarity-call home builders:</b> lot → zoning → financing → permits buy-in → share-for-buy-in (vendors/builders/banking/home-builders).</li>
+  </ul></div></details>
+
   <details open><summary>⭑ FUTURE WORK: KNOWN BACKLOG — all projects (outside feedback; comment / re-prioritize) <span class="tag">click to collapse</span></summary><div class="dbody">
     <p class="dim" style="font-size:12.5px;margin-bottom:8px">Work known to be needed across every project, so a week focused on Architect-2525 never loses the next steps for Drone-2525 or the rest. Comment or re-prioritize any item.</p>
     
@@ -189,9 +307,11 @@ blockquote{border-left:3px solid #334155;padding-left:10px;color:#94a3b8;margin:
   <div id="save-bar"><button id="save-btn">💾 SAVE FEEDBACK</button><span id="save-confirm">✓ Saved — JSON downloaded. Send it to me.</span><span style="color:#64748b;font-family:'Consolas',monospace;font-size:11px">· your verdicts + comments + general input save to one JSON</span></div>
 </div>
 <script>
-(function(){var STAMP="2026.10.24_08.40..05CST";var LS='exel-arch25-'+STAMP;
+(function(){var STAMP="2026.10.24_08.50..52CST";var LS='exel-arch25-'+STAMP;
   document.addEventListener('change',persist);document.addEventListener('input',persist);
-  function collect(){var d={release:'ARCHITECT-2525 · FEEDBACK',date:'2026-10-24',stamp:STAMP,sha:'b76279f4c',timestamp:new Date().toISOString(),verdict:null,overallNotes:'',generalInput:'',features:{}};
+  var cp=document.getElementById('copy-ext');
+  if(cp)cp.addEventListener('click',function(){var t=document.getElementById('ext-block').innerText;try{navigator.clipboard.writeText(t);cp.textContent='✓ COPIED';setTimeout(function(){cp.textContent='⧉ COPY the external-review block';},2000);}catch(e){var r=document.createRange();r.selectNode(document.getElementById('ext-block'));window.getSelection().removeAllRanges();window.getSelection().addRange(r);}});
+  function collect(){var d={release:'ARCHITECT-2525 · ARCH-SIM-PLAN v.02',date:'2026-10-24',stamp:STAMP,sha:'b76279f4c',timestamp:new Date().toISOString(),verdict:null,overallNotes:'',generalInput:'',features:{}};
     var v=document.querySelector('input[name=verdict]:checked');if(v)d.verdict=v.value;
     d.overallNotes=document.getElementById('overall-notes').value;d.generalInput=document.getElementById('general-input').value;
     document.querySelectorAll('input[type=radio][data-fid]:checked').forEach(function(r){var f=r.dataset.fid;d.features[f]=d.features[f]||{verdict:null,comment:''};d.features[f].verdict=r.value;});
@@ -206,7 +326,7 @@ blockquote{border-left:3px solid #334155;padding-left:10px;color:#94a3b8;margin:
       if(x.comment){var tt=document.querySelector('textarea[data-comment="'+f+'"]');if(tt)tt.value=x.comment;}});}
   document.getElementById('save-btn').addEventListener('click',function(){var d=collect();persist();
     var b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ARCHITECT-2525_FEEDBACK_'+STAMP+'.json';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
+    a.download=STAMP+'_ARCH-SIM-PLAN_v.02.json';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
     document.getElementById('save-confirm').style.display='block';});
   restore();
 })();
