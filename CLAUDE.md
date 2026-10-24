@@ -1,6 +1,25 @@
 # Claude Code - Project Instructions
 
 ## Workflow Rules
+- **EVERY CHUNK IS DELIVERED AS THE FX HTML + JSON FEEDBACK ARTIFACT — THE HI REVIEW GATE, NO EXCEPTIONS (operator
+  2026-10-24: "This is the standard for all eXeL and Vision-2525. it was a default that you stopped producing. ever
+  since you failed this html input method and json feedback we failed and started making mistakes" · "use feedback
+  method ON ALL FUCKING DEV PROJECTS MOVING FORWARD").** This is Release Process #5, made binding for Architect,
+  Drone, Security, Financial, SoI, Celestial, SensorFusion, Vision-2525 — every surface. Its ABSENCE was the root
+  cause of the mistakes (changes shipped that HI could not review in his format and could not HOLD, culminating in
+  the working Room Designer being unmounted with no gate to stop it). The binding flow: **IMPLEMENT → TEST → COMMIT →
+  PUSH → DEPLOY → VERIFY PUBLIC BUILD → CAPTURE SCREENSHOT → UPDATE HTML REVIEW → H.I. APPROVE / ✎ CHANGES / ✋ HOLD →
+  SAVE FEEDBACK → PRODUCE/UPDATE PAIRED JSON → EXECUTE H.I. DECISION.** The human role is **SEE → UNDERSTAND →
+  DECIDE; technology owns generating the evidence.** The artifact is a standalone HTML file (served via file, not a
+  claude.ai artifact — the SAVE FEEDBACK Blob download must work): header provenance (SHA · LIVE url · tsc · gates ·
+  FX range) · §1 FX INDEX · §2 FIX DETAIL with **real before/after screenshots** + change/proof/risk + a
+  `👍 APPROVE / ✎ CHANGES / ✋ HOLD` row + comment · §3 12 Ascended Masters · §4 MoT synthesis + risks · §5 QUEUED
+  backlog · HI DECISION + SAVE FEEDBACK → `<stamp>_<FX>_FEEDBACK.json` (schema: `{release,date,stamp,sha,timestamp,
+  verdict,overallNotes,features:{FX:{verdict,comment}}}`). **No chunk is "done" without its FX artifact served to HI.**
+  Do NOT make HI reconstruct changes from GitHub, CI logs or chat; do NOT ship a prose-only report. Screenshots are
+  REAL captures (local `next dev` + the Playwright `scripts/architect-screens.mjs`, or the Architect-Screens CI job) —
+  never a drawing. The operator's verbatim vision is persisted at
+  `docs/asks/2026.10.24_03.55..51_architect2525_nest_ai_vision.md`.
 - **THE RANGE'S HUD ROW IS THE OPERATOR'S OWN PICTURES, NEVER DRAWN (operator 2026-10-12: "CORRECT images; burn to your memory" ·
   "These are exact image ton-use; create final raster and use exact proportions" · "WHEN INFIVE YOU AND IMAGE FOLLOW EXACTLY!").** The
   canonical masters are `docs/asks/img/2026.10.11_18.56..53_drone2525_shot34..38` (the five stances with his cyan words) and, for the two
