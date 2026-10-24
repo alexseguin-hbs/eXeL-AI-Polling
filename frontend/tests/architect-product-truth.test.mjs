@@ -127,5 +127,10 @@ ok(/design\.spiralState/.test(ae) && /design\.sync/.test(ae), "SPIRAL/SYNC read 
 ok(/acceptEdit\b/.test(dhook) && /\bspiral\b/.test(dhook) && /syncState\b/.test(dhook) && /\breverse\b/.test(dhook), "the design hook runs the real acceptEdit + spiral + syncState + reverse");
 ok(/proposeEdgeEdit\b/.test(dhook) && /proposeAttrEdit\b/.test(dhook), "the hook proposes edge + attr edits through the canonical contract");
 
+// ── P1/ARCH-RUX5 (operator 2026-10-24, IMG-01 HOLD): the Vision Tree is ONLY house-buildable items, every row draggable ──
+const treeSrc = read("../components/architect-2525/layer-tree.tsx");
+ok(/LAYER_TREE\.filter\(\(scope\) => scope\.id === "physical"\)/.test(treeSrc), "the Vision Tree renders ONLY the buildable physical scope — no Operational Intelligence / Lifecycle (operator IMG-01: nothing that can't be added to the house)");
+ok(/\bdraggable\b[\s\S]{0,80}onDragStart/.test(treeSrc), "every Vision-Tree node is draggable onto the house (drag → onDropComponent adds it)");
+
 console.log(`\narchitect-product-truth: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

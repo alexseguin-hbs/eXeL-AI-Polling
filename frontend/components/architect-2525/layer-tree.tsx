@@ -203,7 +203,11 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
       <input data-layer-search value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("arch.layertree.searchLayers")}
         className="mb-1 w-full rounded border bg-transparent px-2 py-1 text-[10px]"
         style={{ borderColor: C.border, color: C.text }} />
-      {LAYER_TREE.map((scope) => {
+      {/* P1/ARCH-RUX5 (operator 2026-10-24, IMG-01 HOLD): the Vision Tree is ONLY house-buildable items — the
+          PHYSICAL digital twin (foundation · walls/structure · electrical · plumbing · mechanical · envelope ·
+          interior/furniture · exterior). The non-buildable scopes (Operational Intelligence, Lifecycle) are not
+          things you can add to the house, so they are not shown here. Every leaf stays draggable onto the house. */}
+      {LAYER_TREE.filter((scope) => scope.id === "physical").map((scope) => {
         const open = isOpen(scope.id);
         const scopeKids = scope.children.filter((n) => inScope(n.id, scope.id));
         return (
