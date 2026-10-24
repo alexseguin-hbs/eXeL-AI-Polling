@@ -11,8 +11,13 @@
  */
 
 // IMG-04 — the build schedule speaks the Financial-2525 time system: real calendar dates + a $/min accrual rate.
-// Reuse the pure rate law (no re-implementation), the one the financial-mot gate already locks.
-import { perMin, perHour, perDay } from "@/lib/financial-2525/mot";
+// The Financial-2525 rate law (lib/financial-2525/mot.ts perDay/perHour/perMin, locked by financial-mot.test.mjs) is
+// inlined here — NOT re-designed — so this lib stays import-loader-independent: it is consumed by test:guard
+// (ts-ext-loader, no `@/` alias) AND test:estimate, and a cross-lib `@/` import breaks the former. Keep in sync with mot.ts.
+const MIN_PER_DAY = 1440, HOUR_PER_DAY = 24;
+const perDay = (amount: number, days: number): number => (days > 0 ? amount / days : 0);
+const perHour = (amount: number, days: number): number => perDay(amount, days) / HOUR_PER_DAY;
+const perMin = (amount: number, days: number): number => (days > 0 ? amount / (days * MIN_PER_DAY) : 0);
 
 export type AaceClass = 5 | 4 | 3 | 2 | 1;
 
