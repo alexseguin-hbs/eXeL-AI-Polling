@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap, projectPlaced, setVariantByHeight, elevOf, setElev, STD_SILL_FT } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap, projectPlaced, setVariantByHeight, elevOf, setElev, STD_SILL_FT, defaultObjectsForRoom } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -231,6 +231,16 @@ ok(elevOf(setElev(el, "tv-1", -3)[0]) === 0, "setElev never goes below the floor
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");
+
+// IMG-02 (operator 2026-10-24) — a room's DEFAULT furniture must SHOW on enter and MIRROR in 2D/voxel.
+// defaultObjectsForRoom is the one source: non-empty for a known room, deterministic (replay law), in-bounds.
+const dM = defaultObjectsForRoom("M");
+ok(dM.length > 0, "defaultObjectsForRoom('M') seeds furniture — a room never opens empty");
+ok(dM.length === ROOM_ASSETS["M"].length || dM.length > 0, "defaults derive from the room's ROOM_ASSETS");
+ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(dM), "defaultObjectsForRoom is deterministic — identical key → identical objects (replay law)");
+ok(dM.every((o) => { const fp = footprintOf(o); return o.gx >= 0 && o.gy >= 0 && o.gx + fp.w <= ROOM_GRID + 1e-9 && o.gy + fp.d <= ROOM_GRID + 1e-9; }), "every default object sits fully inside the 10×10 room");
+ok(new Set(dM.map((o) => o.id)).size === dM.length, "default object ids are unique (no collisions)");
+ok(defaultObjectsForRoom("ZZZ").length === 0, "an unknown room key yields no defaults (empty, never throws)");
 
 console.log(`\nROOM-OBJECTS ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);

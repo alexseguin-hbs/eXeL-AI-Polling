@@ -27,6 +27,7 @@ import type { HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 import { elevAt, cornerAltitudes, mToFt } from "@/lib/terrain";
 import { TINY_ROOM_LAYOUT, type RoomCell } from "@/lib/room-layout";
+import { OBJECT_SPEC, footprintOf, defaultObjectsForRoom, ROOM_GRID, type PlacedObject } from "@/lib/room-objects";
 
 const C = { dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", text: "#c8d6e5", green: "#22c55e" };
 
@@ -36,7 +37,10 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   walk?: boolean; walkRoomId?: string | null; wallW?: number; hvac?: boolean; showSockets?: boolean;
 }) {
   // Camera = the shared Vision-2525 R-Core interaction model (identical to Mission-Planning + the room voxel).
-  const cam = useRCoreGestures({ initialBearing: 0, initialPitch: 58, initialZoom: 1, touchOrbit: true,
+  // IMG-02 (operator: "voxel single-finger touch works only with two fingers"): the voxel disables PANNING, so a
+  // SINGLE pointer always ORBITS — including a touch some webviews mis-report as a mouse pointer (the failure case).
+  // `pan: false` is the hook author's stated voxel intent; without it a one-finger touch fell to a near-invisible pan.
+  const cam = useRCoreGestures({ initialBearing: 0, initialPitch: 58, initialZoom: 1, touchOrbit: true, pan: false,
     cfg: { minPitch: 18, maxPitch: 82, minZoom: 0.6, maxZoom: 3.2 } });
   const { bearing, pitch, zoom } = cam;
   const [selLocal, setSelLocal] = useState<string | null>(null);
@@ -114,9 +118,23 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
     }
   };
 
+  // IMG-02 — the REAL placed objects of a room, extruded as low-fi boxes at their true grid cell + footprint, so the
+  // 3D voxel MIRRORS the 2D plan (and the entered designer): place/move/delete an object → the voxel reflects it.
+  // Openings/shell (door·window·shell·roof) are drawn by the wall wireframe, not as furniture boxes here.
+  const SKIP3D = new Set<string>(["door", "window", "shell", "roof"]);
+  const objects3d = (objects: PlacedObject[] | undefined, s: number) =>
+    (objects ?? []).filter((o) => !SKIP3D.has(o.kind)).map((o) => {
+      const fp = footprintOf(o), sp = OBJECT_SPEC[o.kind];
+      const w = Math.max(2, (fp.w / ROOM_GRID) * s), d = Math.max(2, (fp.d / ROOM_GRID) * s);
+      const dx = ((o.gx + fp.w / 2) / ROOM_GRID) * s - s / 2;   // grid cell → room-local px (room centred at 0,0)
+      const dy = ((o.gy + fp.d / 2) / ROOM_GRID) * s - s / 2;
+      const hgt = Math.max(2, (Math.min(sp.h, 8) / ROOM_GRID) * s);
+      return furnBox(dx, dy, w, d, hgt, sp.color, `o${o.id}`);
+    });
+
   // A room/house cube at grid index, of edge `size`, laid out on a `size`-pitch 3×3 (so 3 rooms span 3·size).
   // 4 violet walls + a clickable top face carrying the label. `cx/cy` shift the whole 3×3 into a parent cell.
-  const roomCube = (id: string, label: string, key: string, size: number, row: number, col: number, cx = 0, cy = 0, opts: { color?: string; font?: number; furn?: boolean } = {}) => {
+  const roomCube = (id: string, label: string, key: string, size: number, row: number, col: number, cx = 0, cy = 0, opts: { color?: string; font?: number; furn?: boolean; objects?: PlacedObject[] } = {}) => {
     const x = cx + (col - 1) * size, y = cy + (row - 1) * size, h = size;
     const selected = selId === id;
     const color = selected ? C.gold : (opts.color ?? C.violet);
@@ -126,7 +144,9 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
         <div style={face(`translate3d(0px,${size / 2}px,${h / 2}px) rotateX(90deg)`, size, h, color, false, wallW)} />
         <div style={face(`translate3d(${-size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false, wallW)} />
         <div style={face(`translate3d(${size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false, wallW)} />
-        {opts.furn && furn3d(key, size)}
+        {/* IMG-02 — draw the room's REAL objects when it has any (placed or defaults → mirrors the 2D plan);
+            fall back to the low-fi canned furn3d only when there are none (e.g. the full-home single cube). */}
+        {opts.objects?.length ? objects3d(opts.objects, size) : (opts.furn && furn3d(key, size))}
         <button
           data-arch-voxel-cell={key}
           onClick={(e) => { e.stopPropagation(); selectRoom(id); }}
@@ -214,8 +234,8 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
 
   const beds = program?.bedrooms;
   const caption = tiny
-    ? "Tiny Home · house = centre cube of the 3×3 land base · surrounding land shows elevation · L-drag pan · R-drag rotate/tilt · pinch/scroll zoom"
-    : `3×3 land base · house at centre · surrounding land shows elevation${beds ? ` · ${beds} bed` : ""} · L-drag pan · R-drag rotate/tilt · pinch/scroll zoom`;
+    ? "Tiny Home · house = centre cube of the 3×3 land base · surrounding land shows elevation · drag (one finger) rotate/tilt · pinch/scroll zoom"
+    : `3×3 land base · house at centre · surrounding land shows elevation${beds ? ` · ${beds} bed` : ""} · drag (one finger) rotate/tilt · pinch/scroll zoom`;
 
   return (
     <div data-arch-voxel className="relative w-full cursor-grab touch-none overflow-hidden rounded active:cursor-grabbing"
@@ -228,7 +248,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
           {terrain}
           {fullLattice}
           {tiny
-            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture }))}{porch}{ducts}{sockets}{cubeFrame}</div>
+            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture, objects: r.objects ?? defaultObjectsForRoom(r.k) }))}{porch}{ducts}{sockets}{cubeFrame}</div>
             : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube("house", "House", "H", cell, 1, 1)}</div>}
         </div>
       </div>

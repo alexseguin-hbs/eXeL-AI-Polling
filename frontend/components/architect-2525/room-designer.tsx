@@ -24,6 +24,7 @@ import {
   OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
   footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette,
   nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setVariantByHeight, setGap, elevOf, setElev,
+  defaultObjectsForRoom,
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
@@ -68,7 +69,9 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   topView?: "2D" | "3D"; onTopView?: (v: "2D" | "3D") => void; // engine 2D/3D toggle drives the TOP pane (one source)
 }) {
   const { t } = useLexicon(); // ONE master lexicon (vision.* shared UX — used by Security-2525 + Architect-2525)
-  const objects = room.objects ?? [];
+  // IMG-02 — a room with no saved objects shows its DEFAULT furniture (it was opening empty). Same source the 2D plan
+  // and the 3D voxel use, so all three mirror; the first edit commits the full set (onChange) so it persists.
+  const objects = room.objects ?? defaultObjectsForRoom(room.k);
   const [tool, setTool] = useState<ObjectKind | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);

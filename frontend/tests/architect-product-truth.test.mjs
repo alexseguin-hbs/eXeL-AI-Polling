@@ -140,5 +140,12 @@ ok(/onArm\?\.\(/.test(treeSrc) && /data-arch-tree-armed/.test(treeSrc), "a Visio
 ok(/data-arch-dropzone-armed/.test(designSrc) && /onPlaceArmed\?\.\(\)/.test(designSrc), "the Model dropzone has a tap-to-place target (data-arch-dropzone-armed → onPlaceArmed) so an armed item can be added by tapping on a phone");
 ok(/armed=\{armedComp\}/.test(cmdSrc) && /onPlaceArmed=\{/.test(cmdSrc) && /addComponentToHouse\(/.test(cmdSrc), "command-ux1 lifts ONE armed component and routes BOTH drag (onDropComponent) and tap (onPlaceArmed) through the same addComponentToHouse — one source of truth");
 
+// ── IMG-02 (operator 2026-10-24): voxel single-finger touch · defaults persist on enter · 2D⇄voxel mirror ──
+const voxSrc = read("../components/architect-2525/voxel-house.tsx");
+const rdSrc = read("../components/architect-2525/room-designer.tsx");
+ok(/pan:\s*false/.test(voxSrc), "the Voxel camera disables panning (pan:false) so a SINGLE finger orbits on a phone (IMG-02 bug 1)");
+ok(/room\.objects \?\? defaultObjectsForRoom\(room\.k\)/.test(rdSrc), "the Room Designer shows a room's DEFAULT furniture when it has no saved objects — it never opens empty (IMG-02 bug 2)");
+ok(/r\.objects \?\? defaultObjectsForRoom\(r\.k\)/.test(voxSrc) && /objects3d\(/.test(voxSrc), "the Voxel renders each room's REAL objects (placed or defaults) — it MIRRORS the 2D plan, not a canned placeholder (IMG-02 bug 3)");
+
 console.log(`\narchitect-product-truth: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

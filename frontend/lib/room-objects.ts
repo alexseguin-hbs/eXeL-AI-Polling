@@ -408,6 +408,28 @@ export function paletteForRoom(roomKey: string): ObjectKind[] {
 }
 
 /**
+ * IMG-02 (operator 2026-10-24): a room's DEFAULT furniture must SHOW when you enter it (it was vanishing) and the
+ * 2D plan ⇄ 3D voxel must MIRROR. The fix is one source: a room with no saved objects falls back to THIS deterministic
+ * default layout — its ROOM_ASSETS laid out left→right, top→bottom on the 10×10 grid with 1-ft gaps. Pure, no
+ * Math.random (replay law): identical room key → identical objects, so the 2D plan, the 3D voxel, and the entered
+ * designer all render the same furniture. On the first edit the designer commits the full set, so it persists.
+ */
+export function defaultObjectsForRoom(roomKey: string): PlacedObject[] {
+  const kinds = ROOM_ASSETS[roomKey] ?? [];
+  let objs: PlacedObject[] = [];
+  let cx = 0, cy = 0, rowD = 0;                                  // grid cursor (ft), current row's max depth
+  for (const kind of kinds) {
+    const sp = OBJECT_SPEC[kind];
+    const w = Math.max(1, Math.ceil(sp.w)), d = Math.max(1, Math.ceil(sp.d));
+    if (cx + w > ROOM_GRID) { cx = 0; cy += rowD + 1; rowD = 0; } // wrap to the next row
+    if (cy + d > ROOM_GRID) break;                               // floor full — stop (room can't hold more)
+    objs = placeObject(objs, kind, cx, cy);
+    cx += w + 1; rowD = Math.max(rowD, d);
+  }
+  return objs;
+}
+
+/**
  * S7 — palette GROUPING by building system, so the context palette reads as tidy sections (Sleep · Living · Kitchen ·
  * Bath · Openings · Shell) instead of a flat row. Pure + deterministic; the palette render just maps over the result.
  */
