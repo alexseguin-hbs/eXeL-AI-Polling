@@ -2,7 +2,7 @@
 // estimates cone chart, confidence %, and gate advancement. Pins the AACE class/confidence/band model + rollup so a
 // refactor can't silently loosen or shift the estimate cone. Run:
 // node --experimental-strip-types tests/architect-estimate.test.mjs
-import { GATES, LAST_GATE, classForGate, confidenceForGate, bandPctForGate, bandFor, DEFAULT_SECTIONS, rollupProject, advanceGate } from "../lib/architect-estimate.ts";
+import { GATES, LAST_GATE, classForGate, confidenceForGate, bandPctForGate, bandFor, DEFAULT_SECTIONS, rollupProject, advanceGate, buildSchedule } from "../lib/architect-estimate.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; } else { fail++; console.log("FAIL", m); } };
@@ -39,6 +39,16 @@ ok(JSON.stringify(rollupProject(DEFAULT_SECTIONS, 3)) === JSON.stringify(r), "ro
 
 // ── advanceGate — clamps at the last gate ──
 ok(advanceGate(0) === 1 && advanceGate(13) === 13, "advanceGate steps up, clamps at LAST_GATE");
+
+// ── IMG-04 — buildSchedule: a start-date + months + cost → real Start/Finish dates + the $/day·$/hr·$/min accrual ──
+const bs = buildSchedule("2026-03-01", 6, 440000);
+ok(bs.startISO === "2026-03-01" && bs.endISO === "2026-09-01", "buildSchedule: Finish = Start + the calendar months");
+ok(bs.totalDays === 184, `buildSchedule: totalDays = the real span (got ${bs.totalDays})`);
+ok(Math.abs(bs.perDayUsd - 440000 / 184) < 1e-6, "buildSchedule: $/day = cost / totalDays");
+ok(Math.abs(bs.perMinUsd - 440000 / (184 * 1440)) < 1e-9, "buildSchedule: $/min = cost / (totalDays × 1440) — the mot.ts rate law");
+ok(Math.abs(bs.perHourUsd - bs.perDayUsd / 24) < 1e-6, "buildSchedule: $/hr = $/day ÷ 24");
+ok(JSON.stringify(buildSchedule("2026-03-01", 6, 440000)) === JSON.stringify(bs), "buildSchedule is deterministic (replay law)");
+ok(buildSchedule("not-a-date", 6, 440000).totalDays > 0, "buildSchedule falls back on a bad start-date — never NaN/throws");
 
 console.log(`\nARCHITECT-ESTIMATE ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);

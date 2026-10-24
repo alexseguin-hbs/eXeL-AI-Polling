@@ -10,6 +10,10 @@
  * with gate progress. Pure + deterministic (mirrors architect-economy.ts) → replayable, 2525-core candidate.
  */
 
+// IMG-04 — the build schedule speaks the Financial-2525 time system: real calendar dates + a $/min accrual rate.
+// Reuse the pure rate law (no re-implementation), the one the financial-mot gate already locks.
+import { perMin, perHour, perDay } from "@/lib/financial-2525/mot";
+
 export type AaceClass = 5 | 4 | 3 | 2 | 1;
 
 // AACE class → typical ± accuracy band + a nominal confidence + a plain label.
@@ -160,4 +164,17 @@ export function monthlyForecast(scheduled: ScheduledSection[]): { months: number
     for (let m = s.startMo; m < s.startMo + s.durMo; m++) { perMonth[m].cost += c; perMonth[m].hours += h; }
   }
   return { months, perMonth };
+}
+
+// IMG-04 — a build START-DATE + a duration (calendar months) + the total cost → real Start/Finish DATES and the
+// Financial-2525 accrual rate ($/day · $/hr · $/min). Pure + deterministic: the Finish date is the Start plus the
+// calendar months, totalDays is the real span between them, and the rates come from the mot.ts law (days × 1440 min).
+export interface BuildSchedule { startISO: string; endISO: string; totalDays: number; perDayUsd: number; perHourUsd: number; perMinUsd: number; }
+export function buildSchedule(startISO: string, months: number, totalCostUsd: number): BuildSchedule {
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  const start = new Date(startISO + "T00:00:00Z");
+  if (Number.isNaN(start.getTime())) { const now = new Date("2026-03-01T00:00:00Z"); return buildSchedule(iso(now), months, totalCostUsd); }
+  const end = new Date(start); end.setUTCMonth(end.getUTCMonth() + Math.max(0, Math.round(months)));
+  const totalDays = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86400000));
+  return { startISO: iso(start), endISO: iso(end), totalDays, perDayUsd: perDay(totalCostUsd, totalDays), perHourUsd: perHour(totalCostUsd, totalDays), perMinUsd: perMin(totalCostUsd, totalDays) };
 }

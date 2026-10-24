@@ -151,5 +151,10 @@ ok(/r\.objects \?\? defaultObjectsForRoom\(r\.k\)/.test(voxSrc) && /objects3d\(/
 const tfSrc = read("../components/architect-2525/tiny-floorplan.tsx");
 ok(/defaultObjectsForRoom\(r\.k\)/.test(tfSrc) && /placedContents\(objs/.test(tfSrc), "the whole-house 2D floor plan reads the SAME source (objects ?? defaultObjectsForRoom) as the voxel — both panels on Model mirror, no canned furniture() hint (IMG-02 bug 3, AsM-caught)");
 
+// ── IMG-04 (operator 2026-10-24): the build schedule gains real DATES + the Financial-2525 $/min time system ──
+const fcSrc = read("../components/architect-2525/architect-forecast.tsx");
+ok(/buildSchedule\(/.test(fcSrc) && /data-arch-build-rate/.test(fcSrc), "the Build → Forecast shows real Start/Finish DATES + a read-only Financial-2525 $/day·$/hr·$/min accrual (IMG-04)");
+ok(/arch2525\.startDate/.test(fcSrc) && /data-arch-build-startdate/.test(fcSrc), "the build start-date is persisted per project (arch2525.startDate) so the schedule survives reload (IMG-04)");
+
 console.log(`\narchitect-product-truth: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
