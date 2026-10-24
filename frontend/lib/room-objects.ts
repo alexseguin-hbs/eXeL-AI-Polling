@@ -416,20 +416,32 @@ export function paletteForRoom(roomKey: string): ObjectKind[] {
  */
 export function defaultObjectsForRoom(roomKey: string): PlacedObject[] {
   const kinds = ROOM_ASSETS[roomKey] ?? [];
+  // AsM-caught (Thoth BLOCKER): a row packer dropped the Master Bedroom's small items after the 6'-deep bed, which
+  // re-triggered the "defaults vanish" HOLD. Use a greedy OCCUPANCY-GRID packer instead: place the biggest footprints
+  // first, first-fit (top-left) on a 1-ft cell grid, so the small pieces (mirror, lamp, tv…) GAP-FILL the space around
+  // the bed. Deterministic (stable sort: largest area, ties by ROOM_ASSETS order) — no Math.random (replay law).
+  const N = ROOM_GRID;
+  const occ: boolean[][] = Array.from({ length: N }, () => new Array(N).fill(false));
+  const freeAt = (x: number, y: number, w: number, dd: number): boolean => {
+    if (x + w > N || y + dd > N) return false;
+    for (let j = y; j < y + dd; j++) for (let i = x; i < x + w; i++) if (occ[j][i]) return false;
+    return true;
+  };
+  const items = kinds.map((kind, idx) => { const sp = OBJECT_SPEC[kind]; return { kind, idx, w: Math.max(1, Math.ceil(sp.w)), d: Math.max(1, Math.ceil(sp.d)), fw: sp.w, fd: sp.d }; })
+    .filter((it) => it.w <= N && it.d <= N)
+    .sort((a, b) => (b.w * b.d - a.w * a.d) || (a.idx - b.idx));   // biggest first; stable tie-break = deterministic
   let objs: PlacedObject[] = [];
-  let cx = 0, cy = 0, rowD = 0;                                  // cursor = the LEFT/TOP edge (ft) of the next footprint
-  const GAP = 1;                                                 // 1-ft aisle between footprints and rows
-  for (const kind of kinds) {
-    const sp = OBJECT_SPEC[kind];
-    const w = sp.w, d = sp.d;                                    // ACTUAL footprint (ft) — the packer must reserve the real size
-    if (w > ROOM_GRID || d > ROOM_GRID) continue;                // never fits a 10' room (defensive) — skip
-    if (cx + w > ROOM_GRID) { cx = 0; cy += rowD + GAP; rowD = 0; } // wrap to the next row
-    // AsM-caught (a528): don't break on the first overflow — skip the tall item, a thinner later one may still fit.
-    if (cy + d > ROOM_GRID) continue;
-    // AsM-caught (a528): clampFootprint centres on g+0.5, so place at the cell whose CENTRE left-aligns the footprint
-    // to (cx,cy) — the footprint then spans [cx,cx+w] inside its reserved ceil-block and never overlaps the neighbour.
-    objs = placeObject(objs, kind, Math.round(cx + w / 2 - 0.5), Math.round(cy + d / 2 - 0.5));
-    cx += Math.ceil(w) + GAP; rowD = Math.max(rowD, Math.ceil(d));
+  for (const it of items) {
+    let done = false;
+    for (let y = 0; y <= N - it.d && !done; y++) for (let x = 0; x <= N - it.w && !done; x++) {
+      if (!freeAt(x, y, it.w, it.d)) continue;
+      // Place the footprint TOP-LEFT-aligned to the free cell (projectPlaced / objects3d render a footprint as
+      // [gx, gx+fw]×[gy, gy+fd]), so it sits exactly inside its reserved ceil-cell block and can NEVER poke into a
+      // neighbour. All items fit with zero overlap (verified over all nine rooms, top-left geometry).
+      objs = [...objs, { id: nextId(objs, it.kind), kind: it.kind, gx: x, gy: y, rot: 0 }];
+      for (let j = y; j < y + it.d; j++) for (let i = x; i < x + it.w; i++) occ[j][i] = true;
+      done = true;
+    }
   }
   return objs;
 }

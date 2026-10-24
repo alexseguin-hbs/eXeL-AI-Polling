@@ -236,13 +236,16 @@ ok(a.length === 1, "place did not mutate the source array");
 // defaultObjectsForRoom is the one source: non-empty for a known room, deterministic (replay law), in-bounds.
 const dM = defaultObjectsForRoom("M");
 ok(dM.length > 0, "defaultObjectsForRoom('M') seeds furniture — a room never opens empty");
-ok(dM.length === ROOM_ASSETS["M"].length || dM.length > 0, "defaults derive from the room's ROOM_ASSETS");
+// AsM-caught (Thoth BLOCKER): the packer MUST place EVERY one of a room's ROOM_ASSETS — a dropped item re-triggers
+// the operator's exact HOLD ("default items vanish on enter"). (The old `|| dM.length > 0` made this tautological.)
+ok(Object.keys(ROOM_ASSETS).every((rk) => defaultObjectsForRoom(rk).length === ROOM_ASSETS[rk].length), "EVERY room places ALL its ROOM_ASSETS — nothing is dropped (the 'defaults vanish' HOLD, incl. the Master Bedroom's 9)");
 ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(dM), "defaultObjectsForRoom is deterministic — identical key → identical objects (replay law)");
 ok(dM.every((o) => { const fp = footprintOf(o); return o.gx >= 0 && o.gy >= 0 && o.gx + fp.w <= ROOM_GRID + 1e-9 && o.gy + fp.d <= ROOM_GRID + 1e-9; }), "every default object sits fully inside the 10×10 room");
 ok(new Set(dM.map((o) => o.id)).size === dM.length, "default object ids are unique (no collisions)");
 ok(defaultObjectsForRoom("ZZZ").length === 0, "an unknown room key yields no defaults (empty, never throws)");
-// IMG-02 AsM-caught (a528): the default layout must NOT overlap — a pile of furniture would re-trigger the HOLD.
-const fpSpan = (o) => { const f = footprintOf(o); return { x1: o.gx + 0.5 - f.w / 2, x2: o.gx + 0.5 + f.w / 2, y1: o.gy + 0.5 - f.d / 2, y2: o.gy + 0.5 + f.d / 2 }; };
+// IMG-02 AsM-caught (a528/Thoth): the default layout must NOT overlap — a pile of furniture would re-trigger the HOLD.
+// TOP-LEFT geometry, matching the renderers (projectPlaced / voxel objects3d): a footprint spans [gx,gx+w]×[gy,gy+d].
+const fpSpan = (o) => { const f = footprintOf(o); return { x1: o.gx, x2: o.gx + f.w, y1: o.gy, y2: o.gy + f.d }; };
 const areaOverlap = (a, b) => { const A = fpSpan(a), B = fpSpan(b); return Math.max(0, Math.min(A.x2, B.x2) - Math.max(A.x1, B.x1)) * Math.max(0, Math.min(A.y2, B.y2) - Math.max(A.y1, B.y1)); };
 let worstOverlap = 0;
 for (const rk of Object.keys(ROOM_ASSETS)) { const objs = defaultObjectsForRoom(rk); for (let i = 0; i < objs.length; i++) for (let j = i + 1; j < objs.length; j++) worstOverlap = Math.max(worstOverlap, areaOverlap(objs[i], objs[j])); }
