@@ -132,5 +132,13 @@ const treeSrc = read("../components/architect-2525/layer-tree.tsx");
 ok(/LAYER_TREE\.filter\(\(scope\) => scope\.id === "physical"\)/.test(treeSrc), "the Vision Tree renders ONLY the buildable physical scope — no Operational Intelligence / Lifecycle (operator IMG-01: nothing that can't be added to the house)");
 ok(/\bdraggable\b[\s\S]{0,80}onDragStart/.test(treeSrc), "every Vision-Tree node is draggable onto the house (drag → onDropComponent adds it)");
 
+// ── IMG-05 (operator 2026-10-24, "drag drop on phone + computer"): HTML5 drag is dead on touch, so the Vision Tree
+//    ALSO arms a leaf on tap (Security-2525 / room-designer standard) and the Model dropzone places it on a tap.
+const designSrc = read("../components/architect-2525/architect-design.tsx");
+const cmdSrc = read("../components/architect-2525/command-ux1.tsx");
+ok(/onArm\?\.\(/.test(treeSrc) && /data-arch-tree-armed/.test(treeSrc), "a Vision-Tree leaf ARMS on tap (onArm) and shows the armed banner — the phone path, since HTML5 drag never fires on touch");
+ok(/data-arch-dropzone-armed/.test(designSrc) && /onPlaceArmed\?\.\(\)/.test(designSrc), "the Model dropzone has a tap-to-place target (data-arch-dropzone-armed → onPlaceArmed) so an armed item can be added by tapping on a phone");
+ok(/armed=\{armedComp\}/.test(cmdSrc) && /onPlaceArmed=\{/.test(cmdSrc) && /addComponentToHouse\(/.test(cmdSrc), "command-ux1 lifts ONE armed component and routes BOTH drag (onDropComponent) and tap (onPlaceArmed) through the same addComponentToHouse — one source of truth");
+
 console.log(`\narchitect-product-truth: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

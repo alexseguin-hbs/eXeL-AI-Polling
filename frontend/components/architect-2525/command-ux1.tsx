@@ -201,6 +201,17 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const canonBath = bathCount(canonical);                          // 1
   const BUDGET_TARGET_USD = 66_800;                                // ASSUMED (§16 ASSUMPTION_REGISTER)
   const [focusRoom, setFocusRoom] = useState<{ k: string; label: string } | null>(null); // entered room → context-scopes the Vision Tree (room designer)
+  // IMG-05 (operator "drag drop on phone + computer") — HTML5 drag never fires on touch, so a Vision-Tree row
+  // could not be added to the house on a phone. Mirror the Security-2525 / room-designer standard: TAP a tree leaf
+  // to ARM it, then TAP the house to place (desktop drag stays). One armed id, lifted here so the tree (arms) and
+  // the Model dropzone (places) share one source of truth.
+  const [armedComp, setArmedComp] = useState<{ id: string; label: string } | null>(null);
+  // Add a Vision-Tree component's buildable leaves to the house — the ONE path shared by drag-drop AND tap-to-place.
+  const addComponentToHouse = (id: string) => {
+    const found = findLayer(id); if (!found) return;
+    const leaves = flattenLayers([found.node]).filter((n) => !n.children?.length && !n.level3);
+    if (leaves.length) { layerState.addSpecIds(leaves.map((n) => n.id)); layerState.logReplay("house.drop", `${id} → +${leaves.length}`); }
+  };
 
   const goHome = () => { if (directLink) router.push("/"); else { exitSimulationMode(); setVisionView("launcher"); } };
 
@@ -306,7 +317,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         <div data-arch-tab={activeTab === "Design" ? "Design" : undefined} style={activeTab === "Design" ? undefined : { display: "none" }}>
           <DesignWorkspace
             selectedId={selectedLayerId}
-            leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} onHomeType={setHomeType} focusRoom={focusRoom} />}
+            leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} onHomeType={setHomeType} focusRoom={focusRoom}
+              armed={armedComp} onArm={setArmedComp} />}
             rightRail={<RightPanel selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} />}
             metricStrip={<MetricStrip state={layerState} overlay homeType={homeType} />}
             bottomPanel={<HouseSpec state={layerState} homeType={homeType} selectedId={selectedLayerId} onSelect={setSelectedLayerId} onLoadArchitect={loadProjectFile} />}
@@ -319,11 +331,11 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               <ArchitectDesign header={<MasterReadout inline />}
                 homeType={homeType} program={layerState.program} selectedId={selectedLayerId} onFocusRoom={setFocusRoom}
                 onRoomLayoutChange={setDesignRooms} importLayout={importLayout}
+                armed={armedComp}
+                onPlaceArmed={() => { if (armedComp) { addComponentToHouse(armedComp.id); setArmedComp(null); } }}
                 onDropComponent={(id) => {
-                  // Drag-drop a Vision-Tree item onto the building → add its buildable leaves to the house (operator).
-                  const found = findLayer(id); if (!found) return;
-                  const leaves = flattenLayers([found.node]).filter((n) => !n.children?.length && !n.level3);
-                  if (leaves.length) { layerState.addSpecIds(leaves.map((n) => n.id)); layerState.logReplay("house.drop", `drag-drop ${id} → +${leaves.length}`); }
+                  // Drag-drop (desktop) a Vision-Tree item onto the building → add its buildable leaves to the house.
+                  addComponentToHouse(id); setArmedComp(null);
                 }} />
               {/* Design Files — save/upload the full .arch2525 project (all elements) + saved-designs library (like MP missions) */}
               <div className="mt-2">

@@ -17,6 +17,10 @@ const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 // re-staged AND its 32 now-stale translations are removed from lib/i18n-app/*, so t() falls back to the corrected
 // English rather than returning the old, wrong translation ("listed never silent" — an orphaned fill is a silent lie).
 const AFTER_FILL = new Set([
+  // Architect-2525 IMG-05 (operator 2026-10-24, "drag drop on phone + computer"): the armed-banner line for the
+  // tap-to-place path. ENGLISH ONLY until the operator says the Architect UI/UX is final — staged, never filled early.
+  'arch.layertree.tapHouseToAdd',
+  'arch.design.tapToAddToHouse',
   // R-CORE </> Code mode (operator 2026-10-15, DD-61/DD-65). ENGLISH ONLY: DD-60 of the same day holds ALL
   // translation work until he says the UX is complete — "dont worry anlut translations until Ux is complete".
   // Listed here, never silent; no fill is dispatched for it.

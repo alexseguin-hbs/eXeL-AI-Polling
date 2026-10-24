@@ -37,10 +37,13 @@ const SYSTEM_META: Record<string, { Icon: typeof Eye; color: string }> = {
 
 // `state` (visibility + lock Sets) is lifted to the shell so the RIGHT Context inspector shares it (R2).
 // `homeType` limits which physical components are offered — a Tiny Home has fewer decisions (R3).
-export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHomeType, focusRoom = null }: {
+export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHomeType, focusRoom = null, armed = null, onArm }: {
   selectedId?: string | null; onSelect?: (id: string) => void; state: LayerState;
   homeType?: HomeType; onHomeType?: (t: HomeType) => void;
   focusRoom?: { k: string; label: string } | null;  // context-scope: when a room is entered, narrow the physical tree
+  // IMG-05 (operator "drag drop on phone + computer") — HTML5 drag is dead on touch, so a leaf also ARMS on tap
+  // (Security-2525 / room-designer standard: tap to arm → tap the house to place). Desktop drag is unchanged.
+  armed?: { id: string; label: string } | null; onArm?: (v: { id: string; label: string } | null) => void;
 }) {
   const { t } = useLexicon();
   const { hidden, locked, toggleHidden, toggleLocked, isolate: isolateNode, revealAll } = state;
@@ -109,13 +112,19 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
     const selected = selectedId === node.id;
     const isHidden = hidden.has(node.id);
     const isLocked = locked.has(node.id);
+    const isArmed = armed?.id === node.id;   // IMG-05 — this buildable leaf is armed to tap-place onto the house
     return (
       <div key={node.id}>
-        <div data-layer-node={node.id} data-layer-hidden={isHidden || undefined} data-layer-locked={isLocked || undefined}
+        <div data-layer-node={node.id} data-layer-hidden={isHidden || undefined} data-layer-locked={isLocked || undefined} data-layer-armed={isArmed || undefined}
           draggable onDragStart={(e) => { e.dataTransfer.setData("text/plain", node.id); e.dataTransfer.effectAllowed = "copy"; }}
-          onClick={() => { if (hasKids) toggle(node.id); onSelect?.(node.id); }}
+          onClick={() => {
+            // Branch → expand. Leaf (a buildable item) → ARM it for tap-to-place on phone (toggle); desktop drag still works.
+            if (hasKids) toggle(node.id);
+            else onArm?.(isArmed ? null : { id: node.id, label: node.label });
+            onSelect?.(node.id);
+          }}
           className="group flex cursor-pointer items-center gap-1 rounded px-1 py-1 text-[10px] select-none hover:bg-white/5"
-          style={{ marginLeft: depth * 12, background: selected ? "#221833" : "transparent", color: node.level3 ? C.cyan : C.text, opacity: isHidden ? 0.4 : 1 }}>
+          style={{ marginLeft: depth * 12, background: isArmed ? "#0e2233" : selected ? "#221833" : "transparent", outline: isArmed ? `1px solid ${C.cyan}` : undefined, color: node.level3 ? C.cyan : C.text, opacity: isHidden ? 0.4 : 1 }}>
           {hasKids
             ? <ChevronRight className="h-3 w-3 shrink-0 transition-transform" style={{ transform: open ? "rotate(90deg)" : "none", color: C.dim }} />
             : <span className="inline-block h-3 w-3 shrink-0" />}
@@ -153,6 +162,17 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
 
   return (
     <div data-arch-layer-tree className="flex flex-col gap-1">
+      {/* IMG-05 — ARMED banner: once a leaf is tapped it is armed; tap the house (center) to add it, or ✕ to cancel.
+          This is the phone path (HTML5 drag never fires on touch); on desktop you can still drag the row. */}
+      {armed && (
+        <div data-arch-tree-armed className="mb-1 flex items-center gap-1.5 rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.cyan, background: "#0e2233" }}>
+          <span className="shrink-0" style={{ color: C.cyan }}>✋</span>
+          <span className="min-w-0 flex-1 truncate" style={{ color: C.cyan }}>
+            <b>{armed.label}</b> — {t("arch.layertree.tapHouseToAdd")}
+          </span>
+          <button data-arch-tree-disarm onClick={() => onArm?.(null)} className="shrink-0 rounded px-1 hover:bg-white/10" style={{ color: C.dim }} aria-label="cancel">✕</button>
+        </div>
+      )}
       {/* Context-scope banner — shown only when a room is entered; the Target-Market box stays below (operator choice). */}
       {focusRoom && (
         <div data-arch-tree-focus className="mb-1 flex items-center gap-1.5 rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.gold, background: "#0c1420" }}>

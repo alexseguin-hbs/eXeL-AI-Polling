@@ -45,7 +45,11 @@ const iso = (x: number, y: number, z: number): Pt => {
 
 export interface DesignMetrics { walls: number; linearFt: number; studs: number; openings: number; }
 
-export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, program, selectedId, onFocusRoom, onRoomLayoutChange, importLayout }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void; homeType?: HomeType; program?: RoomProgram; selectedId?: string | null; onFocusRoom?: (room: { k: string; label: string } | null) => void; onRoomLayoutChange?: (rooms: RoomCell[]) => void; importLayout?: RoomCell[] | null }) {
+export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, program, selectedId, onFocusRoom, onRoomLayoutChange, importLayout, armed = null, onPlaceArmed }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void; homeType?: HomeType; program?: RoomProgram; selectedId?: string | null; onFocusRoom?: (room: { k: string; label: string } | null) => void; onRoomLayoutChange?: (rooms: RoomCell[]) => void; importLayout?: RoomCell[] | null;
+  // IMG-05 — a Vision-Tree leaf armed on the left (tap-to-place path for touch). `armed` = the armed component;
+  // `onPlaceArmed` adds it to the house. A dedicated tap banner (below) is the drop target so it never collides
+  // with the room designer's own pointer handlers; HTML5 drag (onDrop) stays the desktop path.
+  armed?: { id: string; label: string } | null; onPlaceArmed?: () => void }) {
   const { t } = useLexicon();
   const selectedLabel = selectedId ? (findLayer(selectedId)?.node.label ?? null) : null;
   const svgRef = useRef<SVGSVGElement>(null);
@@ -218,7 +222,17 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
         onDragOver={(e) => { if (onDropComponent) { e.preventDefault(); setDragOver(true); } }}
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => { e.preventDefault(); setDragOver(false); const id = e.dataTransfer.getData("text/plain"); if (id) onDropComponent?.(id); }}
-        style={{ borderColor: dragOver ? C.cyan : C.border, background: dragOver ? "#0e2233" : C.panel }}>
+        style={{ borderColor: dragOver || armed ? C.cyan : C.border, background: dragOver ? "#0e2233" : C.panel }}>
+        {/* IMG-05 — ARMED tap target: a Vision-Tree leaf tapped on the left arms it; tapping this banner adds it to
+            the house (the touch path — HTML5 drag never fires on a phone). A dedicated banner, not the whole canvas,
+            so it never collides with the room designer's own pointer/drag handlers. Desktop can still drag OR tap. */}
+        {armed && (
+          <button data-arch-dropzone-armed onClick={() => onPlaceArmed?.()}
+            className="mb-2 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed px-3 py-3 text-[12px] font-semibold"
+            style={{ borderColor: C.cyan, color: C.cyan, background: "#0e2233" }}>
+            <span>＋</span><span>{t("arch.design.tapToAddToHouse").replace("{item}", armed.label)}</span>
+          </button>
+        )}
         {/* Scrolling map header (Security-2525 R-CORE pattern): the Project·Master key rides the SAME horizontally-
             scrollable header as the map tools, so dimensions/cost/time sit on the map, not in a separate bar. */}
         <div data-arch-map-header className="mb-1 flex items-center gap-3 overflow-x-auto text-[10px]">
