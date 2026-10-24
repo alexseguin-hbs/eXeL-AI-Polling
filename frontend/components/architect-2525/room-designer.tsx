@@ -115,10 +115,11 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     zoomAt2d((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height, e.deltaY < 0 ? 1.15 : 1 / 1.15);
   };
 
-  // ── 3D CAMERA — the shared Vision-2525 R-Core interaction model (identical to Mission-Planning): LEFT-drag /
-  // one-finger = PAN · RIGHT-drag = rotate+tilt · two fingers = pinch-zoom + twist-bearing + vertical-tilt · wheel
-  // = zoom. One hook, no local re-implementation (operator: "R-Core for all areas of interaction").
-  const CAM_OPTS = { initialBearing: -Math.PI / 4, initialPitch: 34, initialZoom: 1, touchOrbit: true,
+  // ── 3D CAMERA — the shared Vision-2525 R-Core interaction model. IMG-02 (AsM fix-the-class): `pan:false` like the
+  // Voxel, so a SINGLE finger ORBITS here too (rotate+tilt) — entering a room + flipping to 3D no longer hits the
+  // original one-finger bug on a webview that mis-reports touch as a mouse pointer. Two fingers = pinch-zoom + twist +
+  // tilt · wheel = zoom. One hook, no local re-implementation (operator: "R-Core for all areas of interaction").
+  const CAM_OPTS = { initialBearing: -Math.PI / 4, initialPitch: 34, initialZoom: 1, touchOrbit: true, pan: false,
     cfg: { minPitch: 6, maxPitch: 90, minZoom: 0.6, maxZoom: 3.2 } } as const;
   const cam = useRCoreGestures(CAM_OPTS);   // TOP pane 3D camera (also the FLOATING main)
   const camB = useRCoreGestures(CAM_OPTS);  // BOTTOM pane 3D camera — independent angle (stacked mode)

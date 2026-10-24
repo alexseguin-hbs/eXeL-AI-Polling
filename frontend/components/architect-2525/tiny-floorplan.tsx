@@ -70,7 +70,7 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
               // IMG-02 — the whole-house 2D plan reads the SAME source as the 3D voxel + the entered designer:
               // a room's real objects, or its deterministic defaults when untouched. So the 2D plan and the voxel
               // (shown together on Model) always MIRROR — the canned furniture() hint is retired for this one source.
-              const objs = r.objects && r.objects.length > 0 ? r.objects : defaultObjectsForRoom(r.k);
+              const objs = r.objects ?? defaultObjectsForRoom(r.k);   // SAME predicate as voxel + designer — an emptied room ([]) stays empty in all three (AsM-caught divergence)
               return (<>
                 {Array.from({ length: r.windows }).map((_, wi) => { const wxp = rx + (rw * (wi + 1)) / (r.windows + 1); return <line key={`win${wi}`} x1={wxp - 2.6} y1={ry} x2={wxp + 2.6} y2={ry} stroke={C.cyan} strokeWidth="1.4" />; })}
                 {showFurniture && placedContents(objs, rx, ry, rw, rh)}

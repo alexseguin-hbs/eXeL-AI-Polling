@@ -417,14 +417,19 @@ export function paletteForRoom(roomKey: string): ObjectKind[] {
 export function defaultObjectsForRoom(roomKey: string): PlacedObject[] {
   const kinds = ROOM_ASSETS[roomKey] ?? [];
   let objs: PlacedObject[] = [];
-  let cx = 0, cy = 0, rowD = 0;                                  // grid cursor (ft), current row's max depth
+  let cx = 0, cy = 0, rowD = 0;                                  // cursor = the LEFT/TOP edge (ft) of the next footprint
+  const GAP = 1;                                                 // 1-ft aisle between footprints and rows
   for (const kind of kinds) {
     const sp = OBJECT_SPEC[kind];
-    const w = Math.max(1, Math.ceil(sp.w)), d = Math.max(1, Math.ceil(sp.d));
-    if (cx + w > ROOM_GRID) { cx = 0; cy += rowD + 1; rowD = 0; } // wrap to the next row
-    if (cy + d > ROOM_GRID) break;                               // floor full — stop (room can't hold more)
-    objs = placeObject(objs, kind, cx, cy);
-    cx += w + 1; rowD = Math.max(rowD, d);
+    const w = sp.w, d = sp.d;                                    // ACTUAL footprint (ft) — the packer must reserve the real size
+    if (w > ROOM_GRID || d > ROOM_GRID) continue;                // never fits a 10' room (defensive) — skip
+    if (cx + w > ROOM_GRID) { cx = 0; cy += rowD + GAP; rowD = 0; } // wrap to the next row
+    // AsM-caught (a528): don't break on the first overflow — skip the tall item, a thinner later one may still fit.
+    if (cy + d > ROOM_GRID) continue;
+    // AsM-caught (a528): clampFootprint centres on g+0.5, so place at the cell whose CENTRE left-aligns the footprint
+    // to (cx,cy) — the footprint then spans [cx,cx+w] inside its reserved ceil-block and never overlaps the neighbour.
+    objs = placeObject(objs, kind, Math.round(cx + w / 2 - 0.5), Math.round(cy + d / 2 - 0.5));
+    cx += Math.ceil(w) + GAP; rowD = Math.max(rowD, Math.ceil(d));
   }
   return objs;
 }

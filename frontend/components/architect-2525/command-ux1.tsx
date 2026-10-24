@@ -9,7 +9,7 @@
  * gear settings popover (FPS), R-CORE badges, "wiring pending" placeholders.
  * Spec: docs/architecture-2525/MASTER_SPEC.md · "Innovation at the Speed of Thought".
  */
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 // Canonical truth-loop state (§27/§08): the Architect surface reads from the canonical R0 project, never from
 // fixtures/economy, so every visible claim traces to canonical Runtime state or an ASSUMED declaration.
 import { buildProjectFromSeed, netProgramAreaUm2, spaceCount, wetCount, bathCount } from "@/lib/architect-2525/canonical/runtime";
@@ -206,17 +206,32 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   // to ARM it, then TAP the house to place (desktop drag stays). One armed id, lifted here so the tree (arms) and
   // the Model dropzone (places) share one source of truth.
   const [armedComp, setArmedComp] = useState<{ id: string; label: string } | null>(null);
+  // IMG-05 (AsM-caught): adding a system to the house updates the SPEC (tree dot + Active-Elements count), but the
+  // drawn house doesn't visibly change for most systems, and on a phone the tree dot is scrolled away — so the tap
+  // looked like it did nothing. A brief toast confirms the add at the point of action.
+  const [addToast, setAddToast] = useState<string | null>(null);
+  const addToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Add a Vision-Tree component's buildable leaves to the house — the ONE path shared by drag-drop AND tap-to-place.
   const addComponentToHouse = (id: string) => {
     const found = findLayer(id); if (!found) return;
     const leaves = flattenLayers([found.node]).filter((n) => !n.children?.length && !n.level3);
-    if (leaves.length) { layerState.addSpecIds(leaves.map((n) => n.id)); layerState.logReplay("house.drop", `${id} → +${leaves.length}`); }
+    if (leaves.length) {
+      layerState.addSpecIds(leaves.map((n) => n.id)); layerState.logReplay("house.drop", `${id} → +${leaves.length}`);
+      setAddToast(`✓ Added ${found.node.label} to the house (+${leaves.length})`);
+      if (addToastTimer.current) clearTimeout(addToastTimer.current);
+      addToastTimer.current = setTimeout(() => setAddToast(null), 2600);
+    }
   };
 
   const goHome = () => { if (directLink) router.push("/"); else { exitSimulationMode(); setVisionView("launcher"); } };
 
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
+      {/* IMG-05 — add-to-house confirmation toast (the tap/drag feedback the AsM fleet found missing). */}
+      {addToast && (
+        <div data-arch-add-toast className="fixed left-1/2 top-16 z-[90] -translate-x-1/2 rounded-lg border px-3 py-1.5 text-[12px] font-semibold shadow-xl"
+          style={{ borderColor: "#16a34a", background: "#07140c", color: "#86efac" }}>{addToast}</div>
+      )}
       <div className="sticky top-0 z-40" style={{ background: C.bg }}>
         {/* TOP BAR */}
         <div className="flex items-center gap-2 border-b px-3 py-2" style={{ borderColor: C.border }}>

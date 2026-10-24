@@ -241,6 +241,12 @@ ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(dM), "defaultOb
 ok(dM.every((o) => { const fp = footprintOf(o); return o.gx >= 0 && o.gy >= 0 && o.gx + fp.w <= ROOM_GRID + 1e-9 && o.gy + fp.d <= ROOM_GRID + 1e-9; }), "every default object sits fully inside the 10×10 room");
 ok(new Set(dM.map((o) => o.id)).size === dM.length, "default object ids are unique (no collisions)");
 ok(defaultObjectsForRoom("ZZZ").length === 0, "an unknown room key yields no defaults (empty, never throws)");
+// IMG-02 AsM-caught (a528): the default layout must NOT overlap — a pile of furniture would re-trigger the HOLD.
+const fpSpan = (o) => { const f = footprintOf(o); return { x1: o.gx + 0.5 - f.w / 2, x2: o.gx + 0.5 + f.w / 2, y1: o.gy + 0.5 - f.d / 2, y2: o.gy + 0.5 + f.d / 2 }; };
+const areaOverlap = (a, b) => { const A = fpSpan(a), B = fpSpan(b); return Math.max(0, Math.min(A.x2, B.x2) - Math.max(A.x1, B.x1)) * Math.max(0, Math.min(A.y2, B.y2) - Math.max(A.y1, B.y1)); };
+let worstOverlap = 0;
+for (const rk of Object.keys(ROOM_ASSETS)) { const objs = defaultObjectsForRoom(rk); for (let i = 0; i < objs.length; i++) for (let j = i + 1; j < objs.length; j++) worstOverlap = Math.max(worstOverlap, areaOverlap(objs[i], objs[j])); }
+ok(worstOverlap < 0.01, `default room furniture never overlaps across all rooms (worst ${worstOverlap.toFixed(3)} ft² — no pile)`);
 
 console.log(`\nROOM-OBJECTS ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);

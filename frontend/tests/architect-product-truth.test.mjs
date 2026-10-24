@@ -145,6 +145,8 @@ const voxSrc = read("../components/architect-2525/voxel-house.tsx");
 const rdSrc = read("../components/architect-2525/room-designer.tsx");
 ok(/pan:\s*false/.test(voxSrc), "the Voxel camera disables panning (pan:false) so a SINGLE finger orbits on a phone (IMG-02 bug 1)");
 ok(/room\.objects \?\? defaultObjectsForRoom\(room\.k\)/.test(rdSrc), "the Room Designer shows a room's DEFAULT furniture when it has no saved objects — it never opens empty (IMG-02 bug 2)");
+ok(/pan:\s*false/.test(rdSrc), "the Room Designer's own 3D camera ALSO disables panning (pan:false) — one finger orbits on BOTH 3D surfaces, not just the Voxel (IMG-02 fix-the-class, AsM-caught)");
+ok(/data-arch-add-toast/.test(cmdSrc) && /setAddToast\(/.test(cmdSrc), "adding a system to the house shows a confirmation toast — the tap/drag feedback that was missing on a phone (IMG-05, AsM-caught)");
 ok(/r\.objects \?\? defaultObjectsForRoom\(r\.k\)/.test(voxSrc) && /objects3d\(/.test(voxSrc), "the Voxel renders each room's REAL objects (placed or defaults) — it MIRRORS the 2D plan, not a canned placeholder (IMG-02 bug 3)");
 const tfSrc = read("../components/architect-2525/tiny-floorplan.tsx");
 ok(/defaultObjectsForRoom\(r\.k\)/.test(tfSrc) && /placedContents\(objs/.test(tfSrc), "the whole-house 2D floor plan reads the SAME source (objects ?? defaultObjectsForRoom) as the voxel — both panels on Model mirror, no canned furniture() hint (IMG-02 bug 3, AsM-caught)");
