@@ -1,6 +1,16 @@
 # Claude Code - Project Instructions
 
 ## Workflow Rules
+- **"SIMULATE" ALWAYS ALSO MEANS "COME UP WITH OPTIONS" (operator 2026-10-25: "any time I say simulate, I also mean
+  come up with some options. you must figure out when I mean the simulate menu vs others").** When the operator says
+  "simulate", produce 2–4 real, distinct alternatives — never a single answer, never a forced menu he must pick from
+  first. Disambiguate by context: at or about the **Architect-2525 Simulate tab** it means that menu's feature (pick +
+  simulate alternative DESIGN options across the models, run the 13-sim battery per model, compare); anywhere else
+  ("simulate a pricing model", "simulate the user flow") it means generate the options yourself and present them for
+  his decision. When unsure which he means, offer options rather than ask. The Simulate feature itself: every design
+  option runs the SAME original 13-sim battery — Structural · Wind · Flood · Fire · Earthquake · Thermal · Solar ·
+  Water Flow · HVAC · Evacuation · Accessibility · Carbon · Lifecycle (operator 2026-10-25: "3 options have tests to
+  run like original").
 - **EVERY CHUNK IS DELIVERED AS THE FX HTML + JSON FEEDBACK ARTIFACT — THE HI REVIEW GATE, NO EXCEPTIONS (operator
   2026-10-24: "This is the standard for all eXeL and Vision-2525. it was a default that you stopped producing. ever
   since you failed this html input method and json feedback we failed and started making mistakes" · "use feedback
