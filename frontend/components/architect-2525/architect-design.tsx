@@ -17,6 +17,8 @@ import type { RoomProgram } from "@/lib/room-program";
 import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, setRoomObjects, toggleRoomFurniture, ROOM_FT, type RoomCell, type ElementKind } from "@/lib/room-layout";
 import { RoomDesigner } from "./room-designer";
 import type { PlacedObject } from "@/lib/room-objects";
+import { PhaseBar } from "./phase-bar";
+import { phaseById } from "@/lib/architect-phases";
 import { Frame, Wind, Zap, Droplets, Settings } from "lucide-react"; // our own iconology (no emojis) for Design Settings
 import { sanitizeRoomLayout } from "@/lib/architect-guard";
 import { cloudEnabled, saveRoomLayout, loadRoomLayout } from "@/lib/architect-saved-files";
@@ -175,6 +177,22 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
     setShowSewer(localStorage.getItem("arch2525.sewer") === "1");
     setShowWiring(localStorage.getItem("arch2525.wiring") === "1");
   } catch {} }, []);
+  // PHASE MODE (operator 2026-10-25: "there needs to be modes of phases of development") — the eight build phases as a
+  // selectable mode row. A phase is single-select: it drives WHICH system layer the model shows (reusing the MEP
+  // toggles) and names the phase + its specs (see lib/architect-phases.ts + phase-bar.tsx). Persisted per project.
+  const [phaseId, setPhaseId] = useState<string | null>(null);
+  useEffect(() => { try { const v = localStorage.getItem("arch2525.phase"); if (v) setPhaseId(v); } catch {} }, []);
+  const selectPhase = (id: string | null) => {
+    setPhaseId(id);
+    const shows = phaseById(id)?.shows ?? null;   // framing→structure (always drawn); wiring/water/sewer drive the MEP layer
+    setShowWiring(shows === "wiring"); setShowWater(shows === "water"); setShowSewer(shows === "sewer");
+    try {
+      localStorage.setItem("arch2525.phase", id ?? "");
+      localStorage.setItem("arch2525.wiring", shows === "wiring" ? "1" : "0");
+      localStorage.setItem("arch2525.water", shows === "water" ? "1" : "0");
+      localStorage.setItem("arch2525.sewer", shows === "sewer" ? "1" : "0");
+    } catch {}
+  };
   const persistFlag = (k: string, v: boolean) => { try { localStorage.setItem(k, v ? "1" : "0"); } catch {} };
   const toggleWater = () => setShowWater((v) => { const n = !v; persistFlag("arch2525.water", n); return n; });
   const toggleSewer = () => setShowSewer((v) => { const n = !v; persistFlag("arch2525.sewer", n); return n; });
@@ -269,6 +287,8 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             )}
           </div>
         </div>
+        {/* PHASE MODE — the eight development phases (operator 2026-10-25); tap one to show its system + specs. */}
+        {designable && <PhaseBar phase={phaseId} onSelect={selectPhase} />}
         {/* DESIGN SETTINGS panel (Mission-Planning parity, operator IMG_7488) — grouped by system, iconology,
             pill toggles. Opened by the ⚙ gear; declutters the toolbar. */}
         {settingsOpen && designable && (
