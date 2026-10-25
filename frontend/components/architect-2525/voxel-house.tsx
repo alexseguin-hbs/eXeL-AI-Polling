@@ -20,7 +20,7 @@
  * (grass-shaded slabs + skirts), the four outer corners carry visible altitude labels, and a
  * North-default compass rides the corner (F1 · #136; terrain math + determinism lock in lib/terrain.ts).
  */
-import { useState, type CSSProperties } from "react";
+import { useState, useMemo, type CSSProperties } from "react";
 import { useRCoreGestures } from "./use-rcore-gestures";
 import { Compass2525 } from "./compass-2525";
 import type { HomeType } from "@/lib/architect-layers";
@@ -69,7 +69,11 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   const ELEV_SCALE = 5;                    // px per metre of elevation
   const datum = elevAt(lat, lon, 0, 0);
   const slab = (t: string, w: number, h: number, fill: string): CSSProperties => ({ ...at(t), width: w, height: h, background: fill, border: `1px solid ${fill}` });
-  const terrain = [0, 1, 2, 3, 5, 6, 7, 8].map((i) => {
+  // SINGLE-FINGER SMOOTHNESS (operator 2026-10-25: "the 3D map needs a single finger enhancement like room … not
+  // smooth for 1 finger"). The elevation slabs are a function of lat/lon ONLY, so memoize them: a camera orbit then
+  // re-renders the transform wrappers, never these 8 cells — the heavy scene no longer re-lays-out on every pointermove.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const terrain = useMemo(() => [0, 1, 2, 3, 5, 6, 7, 8].map((i) => {
     const col = i % 3, row = (i / 3) | 0, gx = col - 1, gy = row - 1;
     const em = Math.round((elevAt(lat, lon, gx, gy) - datum) * 10) / 10;   // metres relative to the pad
     const ePx = em * ELEV_SCALE;
@@ -87,7 +91,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
         </>)}
       </div>
     );
-  });
+  }), [lat, lon]);
   const ca = cornerAltitudes(lat, lon);
 
   // Low-fi 3D furniture — a SOLID-reading cuboid (top brightest → sides darker) so furniture HIGHLIGHTS against the
@@ -165,6 +169,12 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   // its 9 rooms are a 3×3 sub-grid nested inside the centre cell (roomSize = cell/3), so the surrounding 8
   // cells stay as LAND (elevation surfaces land next). Zoom in (scroll) to read the room labels.
   const roomSize = cell / 3;
+  // SINGLE-FINGER SMOOTHNESS (operator 2026-10-25) — the 9 room cubes are the heaviest subtree (~60 CSS-3D faces +
+  // furniture). Memoize them on the data that actually shapes them (layout · selection · wall width) so a camera
+  // orbit re-renders ONLY the transform wrappers, not the rooms — the one-finger orbit is then as smooth as the
+  // room designer's. Not keyed on bearing/pitch/zoom, which is exactly why the orbit stops re-laying-out the house.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const roomCubes = useMemo(() => layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture, objects: r.objects ?? defaultObjectsForRoom(r.k) })), [layout, selId, wallW, roomSize]);
   // WALK MODE (operator: "wireframe low-fidelity walkthrough must be possible") — drop to near eye-level,
   // zoom in, and centre the scene on the current room so you step through the wireframe room by room.
   const walkRoom = walk && tiny ? layout.find((r) => r.id === walkRoomId) : undefined;
@@ -208,33 +218,31 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
     </div>
   ) : null;
 
-  // FULL-home fallback: the original 3×3×3 land base + one house cube at the centre cell.
-  const fullLattice = !tiny ? [0, 1, 2, 3].map((k) => {
-    const outer = k === 0 || k === 3;
-    return <div key={`f${k}`} style={{ ...at(`translateZ(${k * cell}px)`), width: box, height: box,
-      border: `${outer ? 2 : 1}px solid ${C.cyan}${outer ? "cc" : "33"}`,
-      backgroundImage: `repeating-linear-gradient(to right, ${C.cyan}22 0 1px, transparent 1px ${cell}px), repeating-linear-gradient(to bottom, ${C.cyan}22 0 1px, transparent 1px ${cell}px)` }} />;
-  }) : null;
-
-  // 3×3×3 CUBE FRAME (operator: "voxel = first level of a 3×3×3 cube") — the 9-room ground floor is LEVEL 1; two
-  // more wireframe levels (violet 3×3 grids at the room-height pitch) + corner posts stack above the house's
-  // centre cell, so the home reads as the first level of a 27-cell cube (Vision-2525 cube · room to grow up).
-  const cubeFrame = tiny ? (
+  // 3×3×3 CUBE — A TRUE CUBE, EQUAL IN ALL THREE AXES (operator 2026-10-25: "voxel needs to be cube where 3x3x3
+  // shape is same pixels tall, wide, and long"). The land base is 3 cells wide × 3 deep = `box` px; the cube now
+  // rises the SAME `box` px tall. landFloor is level 1 (z=0, the ground the house sits on); three more cyan grids
+  // stack at the CELL pitch (z = cell · 2·cell · 3·cell = box) and four vertical corner posts close the edges, so
+  // the whole voxel reads as a cube — box × box × box — with the two levels above the house as room-to-grow-up.
+  // Applies to BOTH unlocked markets (Tiny + Home); the surrounding 8 ground cells stay as the elevation parcel.
+  const cube3 = (
     <div data-arch-voxel-cube style={{ transformStyle: "preserve-3d" }}>
-      {[1, 2, 3].map((lvl) => (
-        <div key={`cl${lvl}`} style={{ ...at(`translateZ(${lvl * roomSize}px)`), width: cell, height: cell,
-          border: `1px solid ${C.violet}${lvl === 3 ? "88" : "44"}`,
-          backgroundImage: `repeating-linear-gradient(to right, ${C.violet}22 0 1px, transparent 1px ${roomSize}px), repeating-linear-gradient(to bottom, ${C.violet}22 0 1px, transparent 1px ${roomSize}px)` }} />
+      {[1, 2, 3].map((k) => (
+        <div key={`cg${k}`} style={{ ...at(`translateZ(${k * cell}px)`), width: box, height: box,
+          border: `${k === 3 ? 2 : 1}px solid ${C.cyan}${k === 3 ? "aa" : "33"}`,
+          backgroundImage: `repeating-linear-gradient(to right, ${C.cyan}22 0 1px, transparent 1px ${cell}px), repeating-linear-gradient(to bottom, ${C.cyan}22 0 1px, transparent 1px ${cell}px)` }} />
       ))}
       {([[-1, -1], [1, -1], [-1, 1], [1, 1]] as const).map(([sx, sy], i) => (
-        <div key={`post${i}`} style={{ ...at(`translate3d(${sx * cell / 2}px,${sy * cell / 2}px,${1.5 * roomSize}px) rotateX(90deg)`), width: 1.4, height: 3 * roomSize, background: `${C.violet}66` }} />
+        <div key={`cp${i}`} style={{ ...at(`translate3d(${sx * box / 2}px,${sy * box / 2}px,${box / 2}px) rotateX(90deg)`), width: 1.6, height: box, background: `${C.cyan}66` }} />
       ))}
     </div>
-  ) : null;
+  );
+
+  // (The old 66³ violet "cube frame over the centre cell" is superseded by `cube3` above — a TRUE box³ cube that
+  //  matches the 3-cell-wide land, per the operator's 2026-10-25 cube ask.)
 
   const beds = program?.bedrooms;
   const caption = tiny
-    ? "Tiny Home · house = centre cube of the 3×3 land base · surrounding land shows elevation · drag (one finger) rotate/tilt · pinch/scroll zoom"
+    ? "Tiny Home · house = level 1 of the 3×3×3 cube · surrounding land shows elevation · drag (one finger) rotate/tilt · pinch/scroll zoom"
     : `3×3 land base · house at centre · surrounding land shows elevation${beds ? ` · ${beds} bed` : ""} · drag (one finger) rotate/tilt · pinch/scroll zoom`;
 
   return (
@@ -246,9 +254,9 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
         <div className="absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d", transform: `rotateZ(${bearing}rad) translate3d(${-wx}px,${-wy}px,0px)` }}>
           {landFloor}
           {terrain}
-          {fullLattice}
+          {cube3}
           {tiny
-            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture, objects: r.objects ?? defaultObjectsForRoom(r.k) }))}{porch}{ducts}{sockets}{cubeFrame}</div>
+            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCubes}{porch}{ducts}{sockets}</div>
             : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube("house", "House", "H", cell, 1, 1)}</div>}
         </div>
       </div>
