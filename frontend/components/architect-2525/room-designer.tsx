@@ -333,11 +333,14 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                     </g>
                   );
                 })()}
+                {/* center ICON when unselected; when SELECTED the NAME BADGE below names it instead (operator 2026-10-25). */}
+                {!on && (
                 <foreignObject x={cx - 4} y={cy - 4} width={8} height={8} style={{ pointerEvents: "none" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 8, height: 8 }}>
-                    <Icon style={{ width: 6, height: 6, color: on ? C.gold : s.color }} />
+                    <Icon style={{ width: 6, height: 6, color: s.color }} />
                   </div>
                 </foreignObject>
+                )}
               </g>
             );
           })}
@@ -402,6 +405,23 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                       onClick={ne ? (e) => applyEdit(e, ne, fp.w, primary.axis) : undefined}>{n.text}{ne === "size" ? " ✎" : ""}</text>
                   );
                 })}
+                {/* NAME BADGE — the moment an element is clicked, say WHAT IT IS right on it (operator 2026-10-25:
+                    "when I click on active element, i should be able to easily see what it is"). Centered on the object,
+                    clamped on-canvas, shown in place of the tiny icon. */}
+                {(() => {
+                  const vlab = VARIANTS[sel.kind]?.find((v) => v.id === sel.variant)?.label;
+                  const name = `${vlab ? vlab + " " : ""}${OBJECT_SPEC[sel.kind].label}`;
+                  const cxN = sel.gx * 10 + 5, cyN = sel.gy * 10 + 5;
+                  const halfW = name.length * 0.98 + 2;
+                  const bx = Math.max(1 + halfW, Math.min(99 - halfW, cxN));
+                  const by = Math.max(6, Math.min(94, cyN));
+                  return (
+                    <g data-arch-roomobj-name style={{ pointerEvents: "none" }}>
+                      <rect x={bx - halfW} y={by - 3} width={halfW * 2} height={5.6} rx={1.3} fill="#0a0f16f2" stroke={C.gold} strokeWidth={0.5} />
+                      <text x={bx} y={by + 1} fontSize={3.5} fontWeight={700} fill={C.gold} textAnchor="middle" stroke="#070b12" strokeWidth={0.6} style={{ paintOrder: "stroke" }}>{name}</text>
+                    </g>
+                  );
+                })()}
               </g>
             );
           })()}
