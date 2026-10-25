@@ -36,6 +36,7 @@ import { VectorGlass } from "./vector-glass";
 import { ArchitectDesign } from "./architect-design";
 import { DesignWorkspace } from "./architect-design-workspace";
 import { LayerTree } from "./layer-tree";
+import { phaseById } from "@/lib/architect-phases";
 import { RightPanel } from "./right-panel";
 import { ArchitectActiveElements } from "./architect-active-elements";
 import { useCanonicalDesign } from "./use-canonical-design";
@@ -206,6 +207,13 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   // to ARM it, then TAP the house to place (desktop drag stays). One armed id, lifted here so the tree (arms) and
   // the Model dropzone (places) share one source of truth.
   const [armedComp, setArmedComp] = useState<{ id: string; label: string } | null>(null);
+  // PHASE MODE (operator 2026-10-25: "align to existing menu … modes only allow modifying those") — lifted to the
+  // shell so the Design center's PhaseBar and the LEFT-RAIL Vision Tree share ONE source: a selected development
+  // phase scopes the tree to its discipline group (physical/…), so only that layer is shown + modifiable. Persisted.
+  const [phaseId, setPhaseId] = useState<string | null>(null);
+  useEffect(() => { try { const v = localStorage.getItem("arch2525.phase"); if (v) setPhaseId(v); } catch {} }, []);
+  const setPhase = (id: string | null) => { setPhaseId(id); try { localStorage.setItem("arch2525.phase", id ?? ""); } catch {} };
+  const phaseGroup = phaseById(phaseId)?.treeGroup ?? null;
   // IMG-05 (AsM-caught): adding a system to the house updates the SPEC (tree dot + Active-Elements count), but the
   // drawn house doesn't visibly change for most systems, and on a phone the tree dot is scrolled away — so the tap
   // looked like it did nothing. A brief toast confirms the add at the point of action.
@@ -333,7 +341,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           <DesignWorkspace
             selectedId={selectedLayerId}
             leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} onHomeType={setHomeType} focusRoom={focusRoom}
-              armed={armedComp} onArm={(v) => { setArmedComp(v); if (v) setSub("Design", "Model"); }} />}
+              armed={armedComp} onArm={(v) => { setArmedComp(v); if (v) setSub("Design", "Model"); }} phaseGroup={phaseGroup} />}
             rightRail={<RightPanel selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} />}
             metricStrip={<MetricStrip state={layerState} overlay homeType={homeType} />}
             bottomPanel={<HouseSpec state={layerState} homeType={homeType} selectedId={selectedLayerId} onSelect={setSelectedLayerId} onLoadArchitect={loadProjectFile} />}
@@ -345,7 +353,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
                   "place project master key in same scrolling header as map" · Security R-CORE reuse). */}
               <ArchitectDesign header={<MasterReadout inline />}
                 homeType={homeType} program={layerState.program} selectedId={selectedLayerId} onFocusRoom={setFocusRoom}
-                onRoomLayoutChange={setDesignRooms} importLayout={importLayout}
+                onRoomLayoutChange={setDesignRooms} importLayout={importLayout} phase={phaseId} onPhase={setPhase}
                 armed={armedComp}
                 onPlaceArmed={() => { if (armedComp) { addComponentToHouse(armedComp.id); setArmedComp(null); } }}
                 onDropComponent={(id) => {

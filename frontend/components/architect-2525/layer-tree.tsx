@@ -37,21 +37,27 @@ const SYSTEM_META: Record<string, { Icon: typeof Eye; color: string }> = {
 
 // `state` (visibility + lock Sets) is lifted to the shell so the RIGHT Context inspector shares it (R2).
 // `homeType` limits which physical components are offered — a Tiny Home has fewer decisions (R3).
-export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHomeType, focusRoom = null, armed = null, onArm }: {
+export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHomeType, focusRoom = null, armed = null, onArm, phaseGroup = null }: {
   selectedId?: string | null; onSelect?: (id: string) => void; state: LayerState;
   homeType?: HomeType; onHomeType?: (t: HomeType) => void;
   focusRoom?: { k: string; label: string } | null;  // context-scope: when a room is entered, narrow the physical tree
   // IMG-05 (operator "drag drop on phone + computer") — HTML5 drag is dead on touch, so a leaf also ARMS on tap
   // (Security-2525 / room-designer standard: tap to arm → tap the house to place). Desktop drag is unchanged.
   armed?: { id: string; label: string } | null; onArm?: (v: { id: string; label: string } | null) => void;
+  // PHASE MODE (operator 2026-10-25 "align to existing menu … modes only allow modifying those") — a selected
+  // development phase maps to one Vision-Tree discipline group id; the physical tree then scopes to that group only.
+  phaseGroup?: string | null;
 }) {
   const { t } = useLexicon();
   const { hidden, locked, toggleHidden, toggleLocked, isolate: isolateNode, revealAll } = state;
   const roomKey = focusRoom?.k ?? null;
   const tinyOK = (id: string, scopeId: string) => isVisibleForType(id, scopeId, homeType);
   const roomOK = (id: string, scopeId: string) => isVisibleForRoom(id, scopeId, roomKey);
-  // A node shows only if it passes BOTH the market gate AND the room gate (room = null → whole-house, unchanged).
-  const inScope = (id: string, scopeId: string) => tinyOK(id, scopeId) && roomOK(id, scopeId);
+  // PHASE MODE — when a phase is active, the physical tree scopes to just that discipline group (+ its children),
+  // so only that layer's items are visible and editable ("only allow modifying those"); other scopes are untouched.
+  const phaseOK = (id: string, scopeId: string) => !phaseGroup || scopeId !== "physical" || id === phaseGroup || id.startsWith(phaseGroup + "/");
+  // A node shows only if it passes the market gate AND the room gate AND the phase gate (all null → whole-house, unchanged).
+  const inScope = (id: string, scopeId: string) => tinyOK(id, scopeId) && roomOK(id, scopeId) && phaseOK(id, scopeId);
   const essentialIds = roomKey ? new Set(roomSystems(roomKey).essential) : null; // bold the room's essential systems
   // Scopes open by default; systems collapsed (matches Security's "start collapsed" density).
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set(["physical", "operational", "lifecycle"]));
@@ -60,6 +66,8 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
     if (!roomKey) return;
     setOpenIds((s) => { const n = new Set(s); n.add("physical"); roomSystems(roomKey).essential.forEach((id) => n.add(id)); return n; });
   }, [roomKey]);
+  // A selected phase opens its group so its buildable items are visible at once (it is the only physical group in scope).
+  useEffect(() => { if (phaseGroup) setOpenIds((s) => { const n = new Set(s); n.add("physical"); n.add(phaseGroup); return n; }); }, [phaseGroup]);
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
   const [menuId, setMenuId] = useState<string | null>(null);
@@ -181,6 +189,14 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
           <DoorOpen className="h-3 w-3 shrink-0" style={{ color: C.gold }} />
           <span className="font-bold" style={{ color: C.gold }}>{focusRoom.k} · {focusRoom.label}</span>
           <span className="min-w-0 flex-1 truncate" style={{ color: C.dim }}>{t("arch.layertree.itsSystemsBack")}</span>
+        </div>
+      )}
+      {/* PHASE scope banner — when a development phase is active the tree shows ONLY that discipline group, so you
+          modify that layer alone (operator 2026-10-25). Clearing the phase in the center restores the full tree. */}
+      {phaseGroup && (
+        <div data-arch-tree-phase className="mb-1 flex items-center gap-1.5 rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.cyan, background: "#0c1420" }}>
+          <span className="shrink-0" style={{ color: C.cyan }}>◆</span>
+          <span className="min-w-0 flex-1 truncate" style={{ color: C.cyan }}>Phase mode — this layer only</span>
         </div>
       )}
       {/* FURNITURE — when a room is entered, list ITS furniture with the SAME mini icons as the room designer palette

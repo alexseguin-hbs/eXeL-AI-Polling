@@ -30,6 +30,15 @@ ok(/sensorfusion|sensor fusion/i.test(phaseById("security").specs.join(" ")), "S
 ok(/cement|slab|concrete|base/i.test(phaseById("foundation").blurb + phaseById("foundation").specs.join(" ")), "Foundation = cement + base");
 ok(/waste|toilet|drain|dwv/i.test(phaseById("sewer").blurb + phaseById("sewer").specs.join(" ")), "Sewer = waste / sink / shower / toilet");
 ok(phaseById("nope") === null, "an unknown phase id resolves to null");
+// ALIGN TO THE EXISTING MENU (operator 2026-10-25) — each phase maps to a real Vision-Tree discipline group id, so
+// selecting a phase scopes that menu to its layer (only-modify-those). The four new phases reuse the right group too.
+const GROUPS = {
+  foundation: "physical/foundation", framing: "physical/structure", electrical: "physical/electrical",
+  plumbing: "physical/plumbing", sewer: "physical/plumbing", internet: "physical/communications-low-voltage",
+  security: "physical/communications-low-voltage", roofing: "physical/building-envelope",
+};
+for (const [id, g] of Object.entries(GROUPS)) ok(phaseById(id).treeGroup === g, `${id} aligns to the Vision-Tree group ${g}`);
+for (const p of DEV_PHASES) ok(typeof p.treeGroup === "string" && p.treeGroup.startsWith("physical/"), `${p.id} treeGroup is a physical discipline group`);
 
 console.log(`\narchitect-phases: ${pass} passed, ${fail} failed · 8 development phase modes`);
 process.exit(fail ? 1 : 0);

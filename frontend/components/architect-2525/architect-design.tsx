@@ -47,11 +47,13 @@ const iso = (x: number, y: number, z: number): Pt => {
 
 export interface DesignMetrics { walls: number; linearFt: number; studs: number; openings: number; }
 
-export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, program, selectedId, onFocusRoom, onRoomLayoutChange, importLayout, armed = null, onPlaceArmed }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void; homeType?: HomeType; program?: RoomProgram; selectedId?: string | null; onFocusRoom?: (room: { k: string; label: string } | null) => void; onRoomLayoutChange?: (rooms: RoomCell[]) => void; importLayout?: RoomCell[] | null;
+export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, program, selectedId, onFocusRoom, onRoomLayoutChange, importLayout, armed = null, onPlaceArmed, phase = null, onPhase }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void; homeType?: HomeType; program?: RoomProgram; selectedId?: string | null; onFocusRoom?: (room: { k: string; label: string } | null) => void; onRoomLayoutChange?: (rooms: RoomCell[]) => void; importLayout?: RoomCell[] | null;
   // IMG-05 — a Vision-Tree leaf armed on the left (tap-to-place path for touch). `armed` = the armed component;
   // `onPlaceArmed` adds it to the house. A dedicated tap banner (below) is the drop target so it never collides
   // with the room designer's own pointer handlers; HTML5 drag (onDrop) stays the desktop path.
-  armed?: { id: string; label: string } | null; onPlaceArmed?: () => void }) {
+  armed?: { id: string; label: string } | null; onPlaceArmed?: () => void;
+  // PHASE MODE — the selected phase id is lifted to the shell so the Vision Tree (left rail) scopes to the same phase.
+  phase?: string | null; onPhase?: (id: string | null) => void }) {
   const { t } = useLexicon();
   const selectedLabel = selectedId ? (findLayer(selectedId)?.node.label ?? null) : null;
   const svgRef = useRef<SVGSVGElement>(null);
@@ -177,17 +179,15 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
     setShowSewer(localStorage.getItem("arch2525.sewer") === "1");
     setShowWiring(localStorage.getItem("arch2525.wiring") === "1");
   } catch {} }, []);
-  // PHASE MODE (operator 2026-10-25: "there needs to be modes of phases of development") — the eight build phases as a
-  // selectable mode row. A phase is single-select: it drives WHICH system layer the model shows (reusing the MEP
-  // toggles) and names the phase + its specs (see lib/architect-phases.ts + phase-bar.tsx). Persisted per project.
-  const [phaseId, setPhaseId] = useState<string | null>(null);
-  useEffect(() => { try { const v = localStorage.getItem("arch2525.phase"); if (v) setPhaseId(v); } catch {} }, []);
+  // PHASE MODE (operator 2026-10-25: "modes of phases of development" + "align to existing menu … only allow modifying
+  // those") — the selected phase is LIFTED to the shell (command-ux1 owns `phase`/`onPhase`) so the LEFT-RAIL Vision
+  // Tree scopes to the phase's discipline group (physical/…) at the same time. Here we drive the MEP layer for the four
+  // systems that already have one (single-select) + persist those toggles; the tree scoping + spec live elsewhere.
   const selectPhase = (id: string | null) => {
-    setPhaseId(id);
+    onPhase?.(id);
     const shows = phaseById(id)?.shows ?? null;   // framing→structure (always drawn); wiring/water/sewer drive the MEP layer
     setShowWiring(shows === "wiring"); setShowWater(shows === "water"); setShowSewer(shows === "sewer");
     try {
-      localStorage.setItem("arch2525.phase", id ?? "");
       localStorage.setItem("arch2525.wiring", shows === "wiring" ? "1" : "0");
       localStorage.setItem("arch2525.water", shows === "water" ? "1" : "0");
       localStorage.setItem("arch2525.sewer", shows === "sewer" ? "1" : "0");
@@ -288,7 +288,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
           </div>
         </div>
         {/* PHASE MODE — the eight development phases (operator 2026-10-25); tap one to show its system + specs. */}
-        {designable && <PhaseBar phase={phaseId} onSelect={selectPhase} />}
+        {designable && <PhaseBar phase={phase} onSelect={selectPhase} />}
         {/* DESIGN SETTINGS panel (Mission-Planning parity, operator IMG_7488) — grouped by system, iconology,
             pill toggles. Opened by the ⚙ gear; declutters the toolbar. */}
         {settingsOpen && designable && (

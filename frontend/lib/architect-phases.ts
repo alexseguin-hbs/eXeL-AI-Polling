@@ -21,12 +21,16 @@ export interface DevPhase {
   specs: string[];   // concrete, buildable specs a vendor could price
   /** the existing wireframe layer this phase turns ON in the model; null = spec-only until its layer ships. */
   shows: PhaseLayer;
+  /** the EXISTING Vision-Tree discipline group this phase maps to (operator 2026-10-25: "align to existing menu").
+   *  Selecting the phase scopes the tree to this group so you only see/modify that discipline's buildable items. */
+  treeGroup: string;
 }
 
 export const DEV_PHASES: DevPhase[] = [
   {
     id: "foundation", label: "Foundation", order: 1, icon: "layers", color: "#9ca3af",
     blurb: "Cement and base — the slab and footings the whole home stands on.",
+    treeGroup: "physical/foundation",
     specs: [
       "Slab-on-grade, 4\" concrete at 3,000 psi over a 10-mil vapor barrier",
       "Perimeter footings below the frost line; #4 rebar grid at 16\" o.c.",
@@ -38,6 +42,7 @@ export const DEV_PHASES: DevPhase[] = [
   {
     id: "framing", label: "Framing", order: 2, icon: "frame", color: "#c084fc",
     blurb: "Walls and structural integrity — the stud skeleton and the load path.",
+    treeGroup: "physical/structure",
     specs: [
       "2×4 / 2×6 studs at 16\" o.c., doubled top plate, single bottom plate",
       "Headers over every opening; king + jack studs carry the load down",
@@ -49,6 +54,7 @@ export const DEV_PHASES: DevPhase[] = [
   {
     id: "electrical", label: "Electrical", order: 3, icon: "zap", color: "#ffd400",
     blurb: "Wiring and seeing where the lines will be — panel to every outlet.",
+    treeGroup: "physical/electrical",
     specs: [
       "200 A main service panel; home-run circuits to each room",
       "Outlets to code (NEC): kitchen/bath on GFCI, bedrooms on AFCI",
@@ -60,6 +66,7 @@ export const DEV_PHASES: DevPhase[] = [
   {
     id: "plumbing", label: "Plumbing", order: 4, icon: "droplets", color: "#19c8cf",
     blurb: "Water-system distribution and specs — supply to every fixture.",
+    treeGroup: "physical/plumbing",
     specs: [
       "½\" PEX supply off a manifold; ¾\" trunk from the meter/well",
       "Water heater sized to the fixture count; 40–60 psi working pressure",
@@ -71,6 +78,7 @@ export const DEV_PHASES: DevPhase[] = [
   {
     id: "sewer", label: "Sewer", order: 5, icon: "waves", color: "#22c55e",
     blurb: "Waste — sink, shower water and toilet — out to the main.",
+    treeGroup: "physical/plumbing",
     specs: [
       "DWV: a trap at every fixture, vented through the roof",
       "Drain slope ¼\" per foot to the 3–4\" main stack",
@@ -82,6 +90,7 @@ export const DEV_PHASES: DevPhase[] = [
   {
     id: "internet", label: "Internet", order: 6, icon: "wifi", color: "#38bdf8",
     blurb: "Optimized for Starlink and LAN — dish, backbone and drops.",
+    treeGroup: "physical/communications-low-voltage",
     specs: [
       "Starlink dish on a clear-sky roof/mast mount; PoE to the router",
       "Cat6 LAN drops to every room; switch + patch in the utility closet",
@@ -93,6 +102,7 @@ export const DEV_PHASES: DevPhase[] = [
   {
     id: "security", label: "Security", order: 7, icon: "camera", color: "#f87171",
     blurb: "Camera-system network — sensor fusion across the home.",
+    treeGroup: "physical/communications-low-voltage",
     specs: [
       "IP cameras at entries + corners; PoE back to an NVR",
       "Door/window + motion sensors fused (SensorFusion-2525)",
@@ -104,6 +114,7 @@ export const DEV_PHASES: DevPhase[] = [
   {
     id: "roofing", label: "Roofing", order: 8, icon: "triangle", color: "#fb923c",
     blurb: "Roof structure — trusses, pitch and the weather shell.",
+    treeGroup: "physical/building-envelope",
     specs: [
       "Engineered trusses / rafters at 24\" o.c.; ridge + eave defined",
       "Pitch sized for the climate (snow + wind load)",
