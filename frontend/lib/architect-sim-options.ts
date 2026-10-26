@@ -31,8 +31,8 @@ export interface SimModel {
   rooms: number;
   costUsd: number;
   buildMonths: number;
-  energyScore: number;     // 1..5 (higher = more efficient envelope) — a DESIGN ASSUMPTION
-  carbonScore: number;     // 1..5 (higher = lower embodied + operating carbon) — a DESIGN ASSUMPTION
+  energyScore: number;     // 1..5 (higher = more efficient envelope) — a DESIGN ASSUMPTION, not derived (shown as "assumed" in the UI)
+  carbonScore: number;     // 1..5 (higher = lower embodied + operating carbon) — a DESIGN ASSUMPTION, not derived
   basis: Basis;            // DERIVED = from the estimate engine; ASSUMED = parametric variant
   note: string;
 }
@@ -42,10 +42,15 @@ const BASE_COST = DEFAULT_SECTIONS.reduce((s, w) => s + w.costUsd, 0);          
 const BASE_MONTHS = monthlyForecast(scheduleSections(DEFAULT_SECTIONS)).months;        // 7
 const BASE_AREA = 900;
 
-// A parametric variant: scale cost sub-linearly with area (fixed costs don't shrink 1:1) + a form cost factor.
+// A parametric variant: scale cost sub-linearly with area (fixed costs don't shrink 1:1) + a form cost factor, and scale
+// the build time with area so a smaller home reads as faster (an intuitive, honest ESTIMATE). 35% of cost is roughly
+// fixed (permits, hookups, crew mobilization). NOTE: unlike the Cube's cost+time (DERIVED from DEFAULT_SECTIONS +
+// scheduleSections), these are parametric assumptions — routing the variants through scheduleSections() flattens all
+// three to the canonical 7 months, because that engine's month count is phase-sequence-driven, not hours-driven; so
+// unifying the schedule engine for scaled homes (Krishna) waits until the engine models scaled durations (QUEUED).
 const variant = (areaFt2: number, formCostFactor: number): { costUsd: number; buildMonths: number } => {
   const areaScale = areaFt2 / BASE_AREA;
-  const costScale = 0.35 + 0.65 * areaScale;          // 35% of cost is roughly fixed (permits, hookups, crew mobilization)
+  const costScale = 0.35 + 0.65 * areaScale;
   return {
     costUsd: Math.round((BASE_COST * costScale * formCostFactor) / 1000) * 1000,
     buildMonths: Math.max(1, Math.round(BASE_MONTHS * (0.5 + 0.5 * areaScale))),
@@ -62,7 +67,7 @@ export const SIM_MODELS: SimModel[] = [
   {
     id: "tiny", label: "Tiny Home", form: "compact single-volume", areaFt2: 400, rooms: 5,
     ...variant(400, 0.98), energyScore: 4, carbonScore: 4, basis: "ASSUMED",
-    note: "Parametric variant of the canonical baseline (scaled to 400 ft²) — ASSUMED, editable.",
+    note: "Parametric variant of the canonical baseline (scaled to 400 ft²) — ASSUMED (a declared assumption, not a quote); envelope scores are design assumptions.",
   },
   {
     id: "eco-sphere", label: "Eco-Sphere", form: "hex-panel geodesic dome", areaFt2: 700, rooms: 6,
@@ -90,15 +95,18 @@ export function compareModels(models: SimModel[] = SIM_MODELS): MetricRank[] {
 }
 
 // ── the per-sim 0–5 scoring (deterministic, principled — a DESIGN PREVIEW, not an engineering result) ────────────
+// No hash, no nudge: the score is a pure weighted blend of the model's own attribute drivers, so a build winner is
+// decided only by design merit (an exact tie is a legitimate co-result, never broken by a hash — Sofia's law).
 const clamp = (n: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, n));
-const fnv = (s: string): number => { let h = 0x811c9dc5 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h; };
 
 // Named 1–5 "drivers" derived from a model's own attributes — every score is a weighted blend of these.
+// env/carb come from the model's ASSUMED envelope scores (declared assumptions, surfaced as "assumed" in the UI, not
+// derived — deriving them from geometry/materials is a declared follow-on); the rest are computed from real geometry.
 type DriverKey = "env" | "carb" | "compact" | "spacious" | "conv" | "curved" | "afford";
 function drivers(m: SimModel): Record<DriverKey, number> {
   return {
-    env: m.energyScore,                                  // envelope efficiency 1..5
-    carb: m.carbonScore,                                 // carbon performance 1..5
+    env: m.energyScore,                                  // envelope efficiency 1..5 (ASSUMED)
+    carb: m.carbonScore,                                 // carbon performance 1..5 (ASSUMED)
     compact: clamp(6 - m.areaFt2 / 200, 1, 5),           // smaller footprint → higher (fast egress, less material)
     spacious: clamp(m.areaFt2 / 200, 1, 5),              // more area → higher (ADA clearances)
     conv: m.id === "3x3-grid" ? 5 : m.id === "tiny" ? 4 : 2,   // rectilinear/stick-framed = most code-conventional
@@ -129,46 +137,31 @@ function rawScore(m: SimModel, sim: SimName): number {
   const w = SIM_WEIGHTS[sim];
   let s = 0;
   (Object.keys(w) as DriverKey[]).forEach((k) => { s += d[k] * (w[k] as number); });
-  const nudge = ((fnv(`${m.id}::${sim}`) % 5) - 2) * 0.05;   // -0.1..+0.1 deterministic texture (ties stay rare)
-  return clamp(s + nudge, 0, 5);
+  return clamp(s, 0, 5);
 }
 
 // ── detailed per-sim metrics (2 each, deterministic, labelled ESTIMATE) ─────────────────────────────────────────
+// A Record<SimName, …> (not a switch with a default) so a future sim CANNOT ship a 0–5 score with no backing metrics —
+// adding to SIMS without adding a metrics entry fails to compile (Odin's scaling-trap fix).
 export interface SimMetric { label: string; value: string; }
 const num = (x: number, digits = 0): string => x.toLocaleString("en-US", { maximumFractionDigits: digits });
 
-function simMetrics(m: SimModel, sim: SimName): SimMetric[] {
-  const d = drivers(m);
-  switch (sim) {
-    case "Structural":    return [{ label: "Load margin", value: `${num(20 + d.conv * 8 + d.curved * 4)}%` }, { label: "Max clear span", value: `${num(10 + d.conv * 2)} ft` }];
-    case "Wind":          return [{ label: "Design wind", value: `${num(100 + d.curved * 8)} mph` }, { label: "Uplift margin", value: `${num(10 + d.curved * 10)}%` }];
-    case "Flood":         return [{ label: "Freeboard", value: `${num(1 + d.compact * 0.4, 1)} ft` }, { label: "FFE margin", value: `${num(d.compact * 0.3, 1)} ft` }];
-    case "Fire":          return [{ label: "Egress time", value: `${num(120 - d.compact * 10 - d.conv * 5)} s` }, { label: "Compartment", value: `${num(20 + d.conv * 8)} min` }];
-    case "Earthquake":    return [{ label: "Drift ratio", value: `${num(2.4 - d.curved * 0.25, 2)}%` }, { label: "Ductility", value: `${num(d.curved, 1)}/5` }];
-    case "Thermal":       return [{ label: "Envelope", value: `R-${num(13 + m.energyScore * 6)}` }, { label: "Env. grade", value: `${m.energyScore}/5` }];
-    case "Solar": {
-      const roof = Math.round(m.areaFt2 * (m.id === "eco-sphere" ? 0.6 : m.id === "tiny" ? 0.4 : 0.5));
-      return [{ label: "Roof solar area", value: `${num(roof)} ft²` }, { label: "Annual yield", value: `${num(roof * 15)} kWh` }];
-    }
-    case "Water Flow":    return [{ label: "Peak demand", value: `${num(m.rooms * 2.5, 1)} GPM` }, { label: "Pressure margin", value: `${num(10 + d.conv * 4)} psi` }];
-    case "HVAC": {
-      const tons = m.areaFt2 / (400 + m.energyScore * 60);
-      return [{ label: "Cooling load", value: `${num(tons, 1)} tons` }, { label: "Design SEER", value: `${num(13 + m.energyScore * 1.5, 1)}` }];
-    }
-    case "Evacuation":    return [{ label: "Egress travel", value: `${num(20 + m.areaFt2 * 0.03)} ft` }, { label: "Clear time", value: `${num(90 - d.compact * 8 - d.conv * 4)} s` }];
-    case "Accessibility": return [{ label: "Turning radius", value: `${num(48 + d.spacious * 3)} in` }, { label: "Clear door", value: `${num(32 + d.spacious)} in` }];
-    case "Carbon": {
-      const embodied = m.areaFt2 * (0.09 - m.carbonScore * 0.008);
-      const operating = m.areaFt2 * (12 - m.energyScore * 1.5);
-      return [{ label: "Embodied", value: `${num(embodied, 1)} tCO₂e` }, { label: "Operating", value: `${num(operating)} kg/yr` }];
-    }
-    case "Lifecycle": {
-      const life = m.costUsd * (1 + (6 - m.energyScore) * 0.08);
-      return [{ label: "30-yr cost", value: `$${num(life)}` }, { label: "Maint. index", value: `${num(5 - m.energyScore * 0.6, 1)}/5` }];
-    }
-    default: return [];
-  }
-}
+const METRICS: Record<SimName, (m: SimModel, d: Record<DriverKey, number>) => SimMetric[]> = {
+  "Structural":    (m, d) => [{ label: "Load margin", value: `${num(20 + d.conv * 8 + d.curved * 4)}%` }, { label: "Max clear span", value: `${num(10 + d.conv * 2)} ft` }],
+  "Wind":          (m, d) => [{ label: "Design wind", value: `${num(100 + d.curved * 8)} mph` }, { label: "Uplift margin", value: `${num(10 + d.curved * 10)}%` }],
+  "Flood":         (m, d) => [{ label: "Freeboard", value: `${num(1 + d.compact * 0.4, 1)} ft` }, { label: "FFE margin", value: `${num(d.compact * 0.3, 1)} ft` }],
+  "Fire":          (m, d) => [{ label: "Egress time", value: `${num(120 - d.compact * 10 - d.conv * 5)} s` }, { label: "Compartment", value: `${num(20 + d.conv * 8)} min` }],
+  "Earthquake":    (m, d) => [{ label: "Drift ratio", value: `${num(2.4 - d.curved * 0.25, 2)}%` }, { label: "Ductility", value: `${num(d.curved, 1)}/5` }],
+  "Thermal":       (m) => [{ label: "Envelope", value: `R-${num(13 + m.energyScore * 6)}` }, { label: "Env. grade", value: `${m.energyScore}/5 (assumed)` }],
+  "Solar":         (m) => { const roof = Math.round(m.areaFt2 * (m.id === "eco-sphere" ? 0.6 : m.id === "tiny" ? 0.4 : 0.5)); return [{ label: "Roof solar area", value: `${num(roof)} ft²` }, { label: "Annual yield", value: `${num(roof * 15)} kWh` }]; },
+  "Water Flow":    (m, d) => [{ label: "Peak demand", value: `${num(m.rooms * 2.5, 1)} GPM` }, { label: "Pressure margin", value: `${num(10 + d.conv * 4)} psi` }],
+  "HVAC":          (m) => { const tons = m.areaFt2 / (400 + m.energyScore * 60); return [{ label: "Cooling load", value: `${num(tons, 1)} tons` }, { label: "Design SEER", value: `${num(13 + m.energyScore * 1.5, 1)}` }]; },
+  "Evacuation":    (m, d) => [{ label: "Egress travel", value: `${num(20 + m.areaFt2 * 0.03)} ft` }, { label: "Clear time", value: `${num(90 - d.compact * 8 - d.conv * 4)} s` }],
+  "Accessibility": (m, d) => [{ label: "Turning radius", value: `${num(48 + d.spacious * 3)} in` }, { label: "Clear door", value: `${num(32 + d.spacious)} in` }],
+  "Carbon":        (m) => { const embodied = m.areaFt2 * (0.09 - m.carbonScore * 0.008); const operating = m.areaFt2 * (12 - m.energyScore * 1.5); return [{ label: "Embodied (assumed)", value: `${num(embodied, 1)} tCO₂e` }, { label: "Operating", value: `${num(operating)} kg/yr` }]; },
+  "Lifecycle":     (m) => { const life = m.costUsd * (1 + (6 - m.energyScore) * 0.08); return [{ label: "30-yr cost", value: `$${num(life)}` }, { label: "Maint. index", value: `${num(5 - m.energyScore * 0.6, 1)}/5` }]; },
+};
+function simMetrics(m: SimModel, sim: SimName): SimMetric[] { return METRICS[sim](m, drivers(m)); }
 
 export type SimStatus = "PASS" | "WATCH";
 /** A per-sim ESTIMATE on one model: a 0–5 initial score (+ star rounding), a status, and detailed metrics. */
@@ -202,4 +195,14 @@ export function simMatrix(models: SimModel[] = SIM_MODELS): SimMatrixRow[] {
     const winner = cells.reduce((a, b) => (b.score > a.score ? b : a));
     return { sim, cells, winnerId: winner.modelId };
   });
+}
+
+// ── one reconciled recommendation, not a per-axis scoreboard (Asar) — the balanced all-rounder across the 13 sims ──
+export interface Recommendation { modelId: string; label: string; avg: number; reason: string; }
+export function recommendation(models: SimModel[] = SIM_MODELS): Recommendation {
+  const best = models.reduce((a, b) => (overallScore(b.id) > overallScore(a.id) ? b : a));
+  return {
+    modelId: best.id, label: best.label, avg: overallScore(best.id),
+    reason: `highest 13-sim average (${overallScore(best.id).toFixed(1)}/5) — the balanced all-rounder across the whole battery (an estimate-based suggestion, not a quote)`,
+  };
 }

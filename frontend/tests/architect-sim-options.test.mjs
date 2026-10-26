@@ -2,7 +2,7 @@
 // tests to run like original" + "tests should give 0-5 score initial score and other more detailed metrics" + "Cube vs
 // Tiny Home vs Eco Sphere can be scored and viewed Side by aside with mini version of those designs in the tests").
 // Holds the 3 design models + the shared ORIGINAL 13-sim battery scored 0–5 with detailed metrics + the side-by-side matrix.
-import { SIMS, SIM_MODELS, compareModels, runBattery, simResult, simMatrix, overallScore, modelById } from "@/lib/architect-sim-options";
+import { SIMS, SIM_MODELS, compareModels, runBattery, simResult, simMatrix, overallScore, recommendation, modelById } from "@/lib/architect-sim-options";
 import { DEFAULT_SECTIONS } from "@/lib/architect-estimate";
 
 let pass = 0, fail = 0;
@@ -69,6 +69,14 @@ ok(ranks.find((r) => r.metric === "Energy").winnerId === "eco-sphere", "best ene
 ok(ranks.find((r) => r.metric === "Carbon").winnerId === "eco-sphere", "best carbon = Eco-Sphere");
 ok(modelById("nope") === null, "unknown model id resolves to null");
 ok(overallScore("nope") === 0, "overallScore of an unknown model is 0 (no crash)");
+
+// ONE reconciled recommendation (Asar) — a real model, its 0–5 average, a reason; = the highest sim-average model
+const rec = recommendation();
+ok(ids.includes(rec.modelId) && typeof rec.label === "string" && rec.label.length > 0, "recommendation names a real model");
+ok(typeof rec.avg === "number" && rec.avg >= 0 && rec.avg <= 5, "recommendation carries the model's 0–5 average");
+ok(typeof rec.reason === "string" && rec.reason.length > 10, "recommendation carries a reason");
+const bestAvgId = SIM_MODELS.map((m) => m.id).reduce((a, b) => (overallScore(b) > overallScore(a) ? b : a));
+ok(rec.modelId === bestAvgId, "recommendation = the highest 13-sim-average model (one pick, not a per-axis scoreboard)");
 
 console.log(`\narchitect-sim-options: ${pass} passed, ${fail} failed · 3 models × the original 13-sim battery (0–5 + metrics) + side-by-side matrix + compare`);
 process.exit(fail ? 1 : 0);
