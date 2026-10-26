@@ -30,6 +30,15 @@
   REAL captures (local `next dev` + the Playwright `scripts/architect-screens.mjs`, or the Architect-Screens CI job) —
   never a drawing. The operator's verbatim vision is persisted at
   `docs/asks/2026.10.24_03.55..51_architect2525_nest_ai_vision.md`.
+- **OFFICIAL HI DECISIONS ARE PRESENTED AS HTML OPTIONS, NEVER CHAT PROSE (operator 2026-10-26: "use html format for 3
+  options when presenting options for official HI decisions").** When a decision is genuinely the operator's to make —
+  a gate/process choice, an architecture fork, a prioritization — do NOT lay the alternatives out as text in chat. Render
+  them in the HTML feedback/decision format (the ARCH-SIM-PLAN style — `#070b12` ground, cyan heads, gold labels; one card
+  per option with a PICK control + comment; a sticky SAVE FEEDBACK → paired JSON `{release,date,stamp,sha,timestamp,
+  decision,options:{<id>:{pick,comment}},notes}`) and serve it via file (`SendUserFile`, so the Blob download works), so
+  he can SEE → UNDERSTAND → DECIDE in his own format. Default to **three** real, distinct options (consistent with the
+  "simulate = come up with options" rule); offer fewer only when a third is not genuine, and say so. This extends Release
+  Process #5 (the FX artifact is the HI gate) from chunk delivery to every decision point.
 - **THE RANGE'S HUD ROW IS THE OPERATOR'S OWN PICTURES, NEVER DRAWN (operator 2026-10-12: "CORRECT images; burn to your memory" ·
   "These are exact image ton-use; create final raster and use exact proportions" · "WHEN INFIVE YOU AND IMAGE FOLLOW EXACTLY!").** The
   canonical masters are `docs/asks/img/2026.10.11_18.56..53_drone2525_shot34..38` (the five stances with his cyan words) and, for the two
