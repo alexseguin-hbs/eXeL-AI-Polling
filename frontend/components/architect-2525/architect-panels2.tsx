@@ -12,32 +12,17 @@
  *  - TwinPanel     — the 5 digital twins, each NOT STARTED (no twin exists).
  *  - ReplayPanel   — no decisions recorded for replay + Knowledge-Graph teaser (future).
  */
-import { useState } from "react";
 import { useLexicon } from "@/lib/lexicon-context";
+import { SimulateOptions } from "./simulate-options";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b" };
 
+// SIMULATE tab (operator 2026-10-25: "show me a mock up; simulate options" + "3 options have tests to run like
+// original" + the standing rule "simulate = come up with options"). The flat 13-engine catalog is superseded by the
+// 3-model alternative-design chooser: each design option runs the SAME original 13-sim battery; COMPARE ALL ranks them.
+// Product-truth (NOT_RUN until run; DERIVED vs ASSUMED; estimates not quotes) lives in SimulateOptions.
 export function SimulatePanel() {
-  const { t } = useLexicon();
-  // The simulation catalog — the capability set, not results. No engine has run, so every entry reads NOT_RUN.
-  const sims = ["Structural", "Wind", "Flood", "Fire", "Earthquake", "Thermal", "Solar", "Water Flow", "HVAC", "Evacuation", "Accessibility", "Carbon", "Lifecycle"];
-  const [sel, setSel] = useState(0);
-  return (
-    <div className="space-y-3">
-      <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>SIMULATION ENGINE <span style={{ color: C.dim }}>· NOT_RUN</span></div>
-      <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 lg:grid-cols-7">
-        {sims.map((k, i) => (
-          <button key={k} data-sim onClick={() => setSel(i)} className="rounded border px-2 py-1 text-[10px]"
-            style={{ borderColor: i === sel ? C.violet : C.border, color: C.dim, background: i === sel ? "#221833" : C.panel }}>{k}</button>
-        ))}
-      </div>
-      <div className="rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel }}>
-        <div className="font-bold" style={{ color: C.cyan }}>{sims[sel]}</div>
-        <div style={{ color: C.dim }}>NOT_RUN · no simulation has been run against the canonical project</div>
-        <div className="mt-1 text-[9px]" style={{ color: C.dim }}>{t("arch.panels2.sim_deterministic_note")}</div>
-      </div>
-    </div>
-  );
+  return <SimulateOptions />;
 }
 
 export function ReviewPanel() {
