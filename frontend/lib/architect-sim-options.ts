@@ -263,13 +263,16 @@ export function phaseSchedule(modelId: string, framing?: Framing): PhaseTime[] {
 export interface Recommendation { modelId: string; label: string; avg: number; reason: string; }
 export function recommendation(models: SimModel[] = SIM_MODELS, framingBy?: Record<string, Framing>): Recommendation {
   const fr = (m: SimModel): Framing => framingBy?.[m.id] ?? m.framing;
-  const best = models.reduce((a, b) => (overallScore(b.id, fr(b)) > overallScore(a.id, fr(a)) ? b : a));
-  const avg = overallScore(best.id, fr(best));
-  // DISCLOSE BASIS in the verdict (Asar): the winner may be an ASSUMED/parametric form, while the only engine-DERIVED
-  // cost is the Cube — the buyer must know which number to trust, not just see the badge on the card.
+  // sorted so we can disclose the runner-up MARGIN (how thin the win is — Athena) and the winner's BASIS (Asar)
+  const scored = models.map((m) => ({ m, s: overallScore(m.id, fr(m)) })).sort((a, b) => b.s - a.s);
+  const best = scored[0].m, avg = scored[0].s;
+  const runner = scored[1];
+  const margin = runner ? Math.round((avg - runner.s) * 10) / 10 : avg;
   const basisNote = best.basis === "DERIVED" ? "engine-derived cost" : "ASSUMED · parametric (only the Cube's cost is engine-derived)";
+  const marginNote = runner ? ` · +${margin.toFixed(1)} over ${runner.m.label}${margin <= 0.1 ? " — a near-tie" : ""}` : "";
   return {
     modelId: best.id, label: best.label, avg,
-    reason: `highest 13-sim average (${avg.toFixed(1)}/5) · basis ${best.basis} — ${basisNote}. A balanced estimate, not a quote.`,
+    // "top sim-average", NOT "balanced" — it ranks on the 13-sim mean only; cost/time are the separate metric rows (Asar)
+    reason: `top 13-sim average (${avg.toFixed(1)}/5${marginNote}) · basis ${best.basis} — ${basisNote}. An estimate, not a quote.`,
   };
 }

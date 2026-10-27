@@ -88,6 +88,7 @@ const rec = recommendation();
 ok(ids.includes(rec.modelId) && rec.avg >= 0 && rec.avg <= 5 && rec.reason.length > 10, "recommendation names a real model + avg + reason");
 const bestAvgId = ids.reduce((a, b) => (overallScore(b) > overallScore(a) ? b : a));
 ok(rec.modelId === bestAvgId, "recommendation = the highest 13-sim-average model");
+ok(/basis (DERIVED|ASSUMED)/.test(rec.reason) && /top 13-sim average/.test(rec.reason) && /over /.test(rec.reason), "recommendation discloses basis + runner-up margin, named 'top sim-average' not 'balanced' (Asar/Athena)");
 ok(modelById("nope") === null && overallScore("nope") === 0, "unknown model → null / 0 (no crash)");
 
 // TIME TO BUILD, BY PHASE (operator: "understand time to build framing electrical plumbing etc")

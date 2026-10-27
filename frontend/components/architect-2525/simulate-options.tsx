@@ -60,6 +60,8 @@ export function SimulateOptions() {
   const [openRows, setOpenRows] = useState<Set<string>>(new Set());
 
   const allSimulated = SIM_MODELS.every((m) => simulated.has(m.id));
+  const allCement = SIM_MODELS.every((m) => framingBy[m.id] === "3d-printed-cement");   // the "all 3D cement" compare mode
+  const applyFramingMode = (mode: "native" | "cement") => setFramingBy(Object.fromEntries(SIM_MODELS.map((m) => [m.id, mode === "cement" ? "3d-printed-cement" : m.framing])) as Record<string, Framing>);
   const ranks = useMemo(() => compareModels(SIM_MODELS, framingBy), [framingBy]);
   const rec = useMemo(() => recommendation(SIM_MODELS, framingBy), [framingBy]);
   const winnerOf = (metric: string) => ranks.find((r) => r.metric === metric)?.winnerId;
@@ -85,6 +87,19 @@ export function SimulateOptions() {
         {!allSimulated && (
           <button data-arch-sim-all onClick={simulateAll} className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.violet, color: C.violet, background: "#1a1030" }}>◉ SIMULATE ALL</button>
         )}
+      </div>
+
+      {/* master framing mode — compare at each form's NATIVE method, or ALL as 3D cement print (Christo: flag mixed framing) */}
+      <div className="flex flex-wrap items-center gap-1.5 text-[9px]">
+        <span style={{ color: C.dim }}>Compare at</span>
+        {([["native", "NATIVE methods"], ["cement", "ALL 3D cement print"]] as const).map(([mode, lbl]) => {
+          const on = mode === "cement" ? allCement : !allCement;
+          return (
+            <button key={mode} data-arch-sim-framing-mode={mode} onClick={() => applyFramingMode(mode)} className="rounded border px-1.5 py-0.5 font-semibold"
+              style={{ borderColor: on ? (mode === "cement" ? C.cement : C.cyan) : C.border, color: on ? (mode === "cement" ? C.cement : C.cyan) : C.dim, background: on ? "#0b1220" : "transparent" }}>{lbl}</button>
+          );
+        })}
+        <span style={{ color: C.dim }}>{allCement ? "· all three printed in cement" : "· Eco-Sphere prints in cement; Cube + Tiny stick-framed (their native methods)"}</span>
       </div>
 
       {/* 3 model cards — press SIMULATE to CREATE the environment + run the battery */}
@@ -122,7 +137,7 @@ export function SimulateOptions() {
                 {row("Carbon", stars(carbonFor(m, fr)), "Carbon")}
               </div>
               <div className="mt-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: basisCol }}>
-                <span>{m.basis === "DERIVED" ? "cost · derived · engine" : "cost · assumed · parametric"}</span>
+                <span>{fr !== m.framing ? `cost · est. (${FRAMING[fr].short.toLowerCase()})` : m.basis === "DERIVED" ? "cost · derived · engine" : "cost · assumed · parametric"}</span>
                 <span style={{ color: C.dim }}>envelope: assumed</span>
               </div>
 
@@ -138,7 +153,7 @@ export function SimulateOptions() {
                   {/* framing toggle — convert to 3D-printed cement (the ICON hook) */}
                   <div className="flex items-center gap-1 text-[9px]">
                     <span style={{ color: C.dim }}>Framing</span>
-                    {(["stick-framed", "3d-printed-cement"] as Framing[]).map((f) => (
+                    {(["stick-framed", "3d-printed-cement"] as Framing[]).filter((f) => !(m.cementNative && f === "stick-framed")).map((f) => (
                       <button key={f} data-arch-sim-framing={`${m.id}:${f}`} onClick={() => setFraming(m.id, f)}
                         className="rounded border px-1.5 py-0.5 font-semibold"
                         style={{ borderColor: fr === f ? (f === "3d-printed-cement" ? C.cement : C.cyan) : C.border, color: fr === f ? (f === "3d-printed-cement" ? C.cement : C.cyan) : C.dim, background: fr === f ? "#0b1220" : "transparent" }}>
@@ -203,6 +218,7 @@ export function SimulateOptions() {
         <span><span style={{ color: "#c084fc" }}>■</span> <span style={{ color: C.dim }}>furniture</span></span>
         <span><span style={{ color: "#19c8cf" }}>■</span> <span style={{ color: C.dim }}>appliance · plumbing</span></span>
         <span><span style={{ color: "#22c55e" }}>■</span> <span style={{ color: C.dim }}>door</span></span>
+        <span><span style={{ color: "#ffd400" }}>■</span> <span style={{ color: C.dim }}>table</span></span>
       </div>
 
       {/* SIDE-BY-SIDE TEST MATRIX — the 13 sims, 0–5, under each form's mini glyph; "—" until a form is simulated */}
@@ -262,7 +278,8 @@ export function SimulateOptions() {
         </div>
         <div className="mt-1.5 space-y-0.5">
           <div className="text-[10px]" style={{ color: C.dim }}>Initial 0–5 score + detailed metrics · deterministic estimate (a design preview, not an engineering analysis).</div>
-          <div className="text-[10px]" style={{ color: C.amber }}>⚠ Energy/Carbon — and the sims they weight — are DESIGN ASSUMPTIONS. Only the Cube's cost is engine-derived. 3D-printed cement is modelled honestly (faster/stronger, higher embodied carbon).</div>
+          <div className="text-[10px]" style={{ color: C.amber }}>⚠ Energy/Carbon — and the sims they weight — are DESIGN ASSUMPTIONS. Only the Cube's cost is engine-derived. 3D cement print is modelled honestly (faster/stronger, higher embodied carbon).</div>
+          <div className="text-[10px]" style={{ color: C.dim }}>Scores reflect the FORM + construction method (not furniture placement or a printer toolpath — those are declared follow-ons). The card's Carbon stars are the envelope rating; the Carbon sim adds embodied carbon.</div>
         </div>
       </div>
 
@@ -284,7 +301,7 @@ export function SimulateOptions() {
       {compare && allSimulated && (
         <div className="rounded-lg border p-2 text-[10px]" style={{ borderColor: `${C.gold}55`, background: C.panel }}>
           <div className="mb-1 rounded px-2 py-1.5 text-[11px]" style={{ background: C.ground, border: `1px solid ${C.gold}55` }}>
-            <span style={{ color: C.dim }}>Balanced pick → </span>
+            <span style={{ color: C.dim }}>Top sim-average → </span>
             <span style={{ color: C.gold, fontWeight: 700 }}>✦ {rec.label}</span>
             <div className="mt-0.5 text-[9px]" style={{ color: C.dim }}>{rec.reason}</div>
           </div>
