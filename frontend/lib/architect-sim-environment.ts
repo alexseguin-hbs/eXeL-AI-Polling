@@ -16,7 +16,7 @@ import { defaultObjectsForRoom, type PlacedObject } from "@/lib/room-objects";
 
 export type FormId = "3x3-grid" | "tiny" | "eco-sphere";
 export interface Rect { x: number; y: number; w: number; h: number; }
-export interface RoomPlacement { roomKey: string; label: string; rect: Rect; }
+export interface RoomPlacement { roomKey: string; label: string; rect: Rect; open?: boolean; }   // open = part of the open great room (no interior divider)
 export interface EnvHex { cx: number; cy: number; r: number; roomKeys: string[]; }
 export interface SimEnvironment {
   formId: FormId;
@@ -32,8 +32,8 @@ const ROOMS = TINY_ROOM_LAYOUT.map((r) => ({ key: r.k, label: r.label, row: r.ro
 export const ALL_ROOM_KEYS: string[] = ROOMS.map((r) => r.key);
 const labelOf = (k: string): string => ROOMS.find((r) => r.key === k)?.label ?? k;
 
-const VIEW = 120;
-const MARGIN = 6;
+export const VIEW = 120;   // exported so the renderer shares the layout constants, never re-derives them (Krishna)
+export const MARGIN = 6;
 
 // ── Cube — the nine rooms on a 3×3 grid (the standard) ─────────────────────────────────────────────────────────
 export function gridEnvironment(): SimEnvironment {
@@ -51,7 +51,7 @@ export function gridEnvironment(): SimEnvironment {
 export function openEnvironment(): SimEnvironment {
   const side = VIEW - 2 * MARGIN;
   const third = side / 3, topH = side * 0.42, half = (side - topH) / 2;
-  const great = ["L", "K", "D"].map((k, i) => ({ roomKey: k, label: labelOf(k), rect: { x: MARGIN + i * third, y: MARGIN, w: third, h: topH } }));
+  const great = ["L", "K", "D"].map((k, i) => ({ roomKey: k, label: labelOf(k), open: true, rect: { x: MARGIN + i * third, y: MARGIN, w: third, h: topH } }));
   const bot = ["M", "B", "C", "O", "S", "E"].map((k, i) => ({ roomKey: k, label: labelOf(k), rect: { x: MARGIN + (i % 3) * third, y: MARGIN + topH + Math.floor(i / 3) * half, w: third, h: half } }));
   return { formId: "tiny", view: VIEW, shell: "open", placements: [...great, ...bot] };
 }

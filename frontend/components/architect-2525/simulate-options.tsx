@@ -12,7 +12,7 @@
  * DERIVED; Tiny + Eco ASSUMED; every result is a deterministic ESTIMATE/preview, not an engineering analysis.
  */
 import { useMemo, useState } from "react";
-import { SIM_MODELS, SIMS, FRAMING, carbonFor, compareModels, costFor, monthsFor, overallScore, phaseSchedule, recommendation, simResult, type Framing } from "@/lib/architect-sim-options";
+import { SIM_MODELS, SIMS, FRAMING, carbonFor, compareModels, costFor, monthsFor, overallScore, phaseSchedule, recommendation, simMatrix, simResult, type Framing } from "@/lib/architect-sim-options";
 import { SimEnvironmentView } from "./sim-environment-view";
 import { type FormId } from "@/lib/architect-sim-environment";
 import { TINY_ROOM_LAYOUT } from "@/lib/room-layout";
@@ -68,11 +68,8 @@ export function SimulateOptions() {
   // matrix: scores per model at its CURRENT framing; a cell reads "—" until that model is simulated (one honest story)
   const matrix = useMemo(() => {
     const allSim = SIM_MODELS.every((m) => simulated.has(m.id));   // the decision (✦) waits until all three exist (Athena)
-    return SIMS.map((sim) => {
-      const cells = SIM_MODELS.map((m) => { const r = simResult(m.id, sim, framingBy[m.id]); return { modelId: m.id, label: m.label, score: r.score, stars: r.stars, status: r.status, metrics: r.metrics }; });
-      const winnerId = allSim ? cells.reduce((a, b) => (b.score > a.score ? b : a)).modelId : null;
-      return { sim, cells, winnerId };
-    });
+    // ONE matrix path — consume the exported + gated simMatrix (no inline re-implementation to drift — Sofia)
+    return simMatrix(SIM_MODELS, framingBy).map((rw) => ({ ...rw, winnerId: allSim ? rw.winnerId : null }));
   }, [framingBy, simulated]);
 
   const simulate = (id: string) => setSimulated((s) => new Set(s).add(id));
@@ -202,6 +199,10 @@ export function SimulateOptions() {
         {ROOM_LEGEND.map((r) => (
           <span key={r.k}><b style={{ color: C.cyan }}>{r.k}</b> <span style={{ color: C.dim }}>{r.label}</span></span>
         ))}
+        <span className="uppercase tracking-wider" style={{ color: C.dim, borderLeft: `1px solid ${C.border}`, paddingLeft: 8 }}>Furniture</span>
+        <span><span style={{ color: "#c084fc" }}>■</span> <span style={{ color: C.dim }}>furniture</span></span>
+        <span><span style={{ color: "#19c8cf" }}>■</span> <span style={{ color: C.dim }}>appliance · plumbing</span></span>
+        <span><span style={{ color: "#22c55e" }}>■</span> <span style={{ color: C.dim }}>door</span></span>
       </div>
 
       {/* SIDE-BY-SIDE TEST MATRIX — the 13 sims, 0–5, under each form's mini glyph; "—" until a form is simulated */}
@@ -241,7 +242,7 @@ export function SimulateOptions() {
                   </button>
                   {isOpen && (
                     <div className="grid gap-1 pb-1.5" style={{ gridTemplateColumns: cols }}>
-                      <span className="self-start text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>metrics</span>
+                      <span className="self-start text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>metrics <span style={{ color: C.amber }}>· est.</span></span>
                       {rw.cells.map((c) => (
                         <div key={c.modelId} className="space-y-0.5">
                           {simulated.has(c.modelId) ? c.metrics.map((mt) => (

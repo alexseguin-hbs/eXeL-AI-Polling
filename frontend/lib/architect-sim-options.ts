@@ -177,7 +177,7 @@ const METRICS: Record<SimName, (m: SimModel, d: Record<DriverKey, number>, cemen
   "Earthquake":    (m, d, c) => [{ label: "Drift ratio", value: `${num(2.4 - d.curved * 0.25, 2)}%` }, { label: "System", value: c ? "mass (ductility ↓)" : `ductility ${num(d.curved, 1)}/5` }],
   "Thermal":       (m, _d, c) => [{ label: "Envelope", value: `R-${num(13 + m.energyScore * 6 + (c ? 4 : 0))}` }, { label: "Mass", value: c ? "high (cement)" : `${m.energyScore}/5 (assumed)` }],
   "Solar":         (m) => { const roof = Math.round(m.areaFt2 * (m.id === "eco-sphere" ? 0.6 : m.id === "tiny" ? 0.4 : 0.5)); return [{ label: "Roof solar area", value: `${num(roof)} ft²` }, { label: "Annual yield", value: `${num(roof * 15)} kWh` }]; },
-  "Water Flow":    (m, d) => [{ label: "Peak demand", value: `${num(m.rooms * 2.5, 1)} GPM` }, { label: "Pressure margin", value: `${num(10 + d.conv * 4)} psi` }],
+  "Water Flow":    (m, d) => [{ label: "Peak demand", value: `${num(9 * 2.5, 1)} GPM` }, { label: "Pressure margin", value: `${num(10 + d.conv * 4)} psi` }],   // fixtures are CONSERVED (same 9-room home), so peak demand is identical across forms — count rooms (9), not hexes (Aset)
   "HVAC":          (m) => { const tons = m.areaFt2 / (400 + m.energyScore * 60); return [{ label: "Cooling load", value: `${num(tons, 1)} tons` }, { label: "Design SEER", value: `${num(13 + m.energyScore * 1.5, 1)}` }]; },
   "Evacuation":    (m, d) => [{ label: "Egress travel", value: `${num(20 + m.areaFt2 * 0.03)} ft` }, { label: "Clear time", value: `${num(90 - d.compact * 8 - d.conv * 4)} s` }],
   "Accessibility": (m, d) => [{ label: "Turning radius", value: `${num(48 + d.spacious * 3)} in` }, { label: "Clear door", value: `${num(32 + d.spacious)} in` }],
@@ -212,10 +212,12 @@ export function overallScore(modelId: string, framing?: Framing): number {
 // ── the SIDE-BY-SIDE matrix: 13 rows × 3 models (each at its own native framing unless one is forced), per-row winner ──
 export interface SimMatrixCell { modelId: string; label: string; score: number; stars: number; status: SimStatus; metrics: SimMetric[]; }
 export interface SimMatrixRow { sim: SimName; cells: SimMatrixCell[]; winnerId: string; }
-export function simMatrix(models: SimModel[] = SIM_MODELS, framing?: Framing): SimMatrixRow[] {
+export function simMatrix(models: SimModel[] = SIM_MODELS, framingBy?: Record<string, Framing>): SimMatrixRow[] {
+  // ONE matrix path — the component consumes this (no inline re-implementation to drift from the gated one — Sofia).
+  // framingBy maps each model to its toggled framing; absent → each model at its native framing.
   return SIMS.map((sim) => {
     const cells: SimMatrixCell[] = models.map((m) => {
-      const r = simResult(m.id, sim, framing);   // framing undefined → each model uses its native framing
+      const r = simResult(m.id, sim, framingBy?.[m.id]);
       return { modelId: m.id, label: m.label, score: r.score, stars: r.stars, status: r.status, metrics: r.metrics };
     });
     const winner = cells.reduce((a, b) => (b.score > a.score ? b : a));
@@ -263,8 +265,11 @@ export function recommendation(models: SimModel[] = SIM_MODELS, framingBy?: Reco
   const fr = (m: SimModel): Framing => framingBy?.[m.id] ?? m.framing;
   const best = models.reduce((a, b) => (overallScore(b.id, fr(b)) > overallScore(a.id, fr(a)) ? b : a));
   const avg = overallScore(best.id, fr(best));
+  // DISCLOSE BASIS in the verdict (Asar): the winner may be an ASSUMED/parametric form, while the only engine-DERIVED
+  // cost is the Cube — the buyer must know which number to trust, not just see the badge on the card.
+  const basisNote = best.basis === "DERIVED" ? "engine-derived cost" : "ASSUMED · parametric (only the Cube's cost is engine-derived)";
   return {
     modelId: best.id, label: best.label, avg,
-    reason: `highest 13-sim average (${avg.toFixed(1)}/5) — the balanced all-rounder across the whole battery (an estimate-based suggestion, not a quote)`,
+    reason: `highest 13-sim average (${avg.toFixed(1)}/5) · basis ${best.basis} — ${basisNote}. A balanced estimate, not a quote.`,
   };
 }

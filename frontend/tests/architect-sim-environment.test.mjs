@@ -2,8 +2,8 @@
 // The LAW: "all rooms furniture of 3x3 should be placed somewhere in Tiny home and Hex Ecosphere." So every form places
 // all nine real room keys (furniture conserved), the Eco-Sphere is 7 hexagons (1 centre + 6), and the generators are
 // deterministic (replay-safe). Furniture is the REAL set from defaultObjectsForRoom — nothing invented.
-import { environmentFor, gridEnvironment, openEnvironment, hexEnvironment, conservedKeys, totalObjectCount, hexPoints, ALL_ROOM_KEYS } from "@/lib/architect-sim-environment";
-import { defaultObjectsForRoom } from "@/lib/room-objects";
+import { environmentFor, gridEnvironment, openEnvironment, hexEnvironment, conservedKeys, totalObjectCount, environmentObjects, hexPoints, ALL_ROOM_KEYS, VIEW, MARGIN } from "@/lib/architect-sim-environment";
+import { defaultObjectsForRoom, projectPlaced } from "@/lib/room-objects";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -44,6 +44,24 @@ ok(hex.hexes[0].roomKeys.length === 1, "the centre hex is a single room (the Liv
 for (const env of [grid, open, hex]) {
   ok(env.placements.every((p) => p.rect.w > 0 && p.rect.h > 0), `${env.formId} rects are positive`);
   ok(env.placements.every((p) => p.rect.x >= 0 && p.rect.y >= 0 && p.rect.x + p.rect.w <= env.view + 0.01 && p.rect.y + p.rect.h <= env.view + 0.01), `${env.formId} rects fit the view`);
+}
+
+// ── the PICTURE contract (Enlil) — the furniture the SVG actually draws stays inside its room rect AND the view box,
+//    so a mis-projection / overflow / dropped placement fails the gate, not just a count. Gates pixels, not only lib counts. ──
+ok(VIEW === 120 && MARGIN === 6, "the view constants are exported (the renderer shares them, no re-derivation)");
+for (const env of [grid, open, hex]) {
+  let total = 0, inBounds = true, inRoom = true;
+  for (const { rect, objects } of environmentObjects(env)) {
+    for (const o of objects) {
+      total++;
+      const p = projectPlaced(o, rect.x, rect.y, rect.w, rect.h);
+      if (p.x < -0.01 || p.y < -0.01 || p.x + p.w > env.view + 0.5 || p.y + p.h > env.view + 0.5) inBounds = false;
+      if (p.x < rect.x - 0.01 || p.y < rect.y - 0.01 || p.x + p.w > rect.x + rect.w + 0.5 || p.y + p.h > rect.y + rect.h + 0.5) inRoom = false;
+    }
+  }
+  ok(total === 46, `${env.formId} SVG draws all 46 furniture footprints`);
+  ok(inBounds, `${env.formId} every footprint stays inside the view box (no overflow)`);
+  ok(inRoom, `${env.formId} every footprint stays inside its room rect (no spill into neighbours)`);
 }
 
 // hex geometry

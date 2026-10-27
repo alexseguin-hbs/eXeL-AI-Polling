@@ -11,7 +11,7 @@
  * construction method. Pure inline SVG, deterministic, legible at 375px and in a PNG screenshot.
  */
 import { useMemo } from "react";
-import { environmentFor, environmentObjects, hexPoints, type FormId } from "@/lib/architect-sim-environment";
+import { environmentFor, environmentObjects, hexPoints, VIEW, MARGIN, type FormId } from "@/lib/architect-sim-environment";
 import { projectPlaced, OBJECT_SPEC } from "@/lib/room-objects";
 import type { Framing } from "@/lib/architect-sim-options";
 
@@ -24,9 +24,7 @@ export function SimEnvironmentView({ formId, framing, size = 220 }: { formId: Fo
   const wall = cement ? C.cement : C.cyan;
   const wallW = cement ? 2.4 : 1.1;
   const V = env.view;
-  const S = V - 12;            // inner side for the grid/open shell
-  const cell = S / 3;
-  const ox = 6, oy = 6;        // shell origin (matches MARGIN in the generator)
+  const ox = MARGIN, oy = MARGIN, S = V - 2 * MARGIN, cell = S / 3;   // shared layout constants (no re-derivation — Krishna)
 
   return (
     <svg viewBox={`0 0 ${V} ${V}`} style={{ display: "block", width: "100%", maxWidth: size, aspectRatio: "1 / 1", background: C.ground, borderRadius: 6 }}
@@ -44,17 +42,38 @@ export function SimEnvironmentView({ formId, framing, size = 220 }: { formId: Fo
       )}
       {env.shell === "open" && (
         <g fill="none" vectorEffect="non-scaling-stroke">
-          {/* one open shell (solid wall) + dashed ZONE hints per room (no solid interior walls) — adapts to the layout */}
           <rect x={ox} y={oy} width={S} height={S} rx={1} stroke={wall} strokeWidth={wallW} />
-          {env.placements.map((pl, i) => (
+          {/* the OPEN GREAT ROOM — one zone, NO interior dividers (genuinely open — Enki) */}
+          {(() => {
+            const g = env.placements.filter((p) => p.open);
+            if (!g.length) return null;
+            const x0 = Math.min(...g.map((p) => p.rect.x)), y0 = Math.min(...g.map((p) => p.rect.y));
+            const x1 = Math.max(...g.map((p) => p.rect.x + p.rect.w)), y1 = Math.max(...g.map((p) => p.rect.y + p.rect.h));
+            return (
+              <g>
+                <rect x={x0} y={y0} width={x1 - x0} height={y1 - y0} stroke={C.violet} strokeOpacity={0.55} strokeWidth={0.6} strokeDasharray="3 2" />
+                <text x={x0 + 1.5} y={y1 - 1.5} fontSize={2.8} fill={C.violet} style={{ fontFamily: "ui-monospace, monospace" }}>OPEN GREAT ROOM</text>
+              </g>
+            );
+          })()}
+          {/* the private + utility rooms — dashed zone hints */}
+          {env.placements.filter((p) => !p.open).map((pl, i) => (
             <rect key={`z-${i}`} x={pl.rect.x} y={pl.rect.y} width={pl.rect.w} height={pl.rect.h} stroke={C.dim} strokeWidth={0.5} strokeDasharray="2 2" opacity={0.55} />
           ))}
         </g>
       )}
       {env.shell === "hex" && env.hexes && (
         <g fill="none" vectorEffect="non-scaling-stroke">
-          {/* hex dome halo */}
-          {env.dome && <circle cx={V / 2} cy={V / 2} r={V / 2 - 4} stroke={`${C.violet}55`} strokeWidth={0.8} strokeDasharray="3 3" />}
+          {/* the HEX DOME as a printed 3D volume cue (Athena/Pangu): a flat-top hexagon shell enclosing the cluster + a
+              dome section arc + a thin inner hex, so the picture reads as the hex dome being printed, not a flat circle */}
+          {env.dome && (
+            <g>
+              <polygon points={hexPoints(V / 2, V / 2, V / 2 - 4).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ")} stroke={`${C.violet}66`} strokeWidth={0.9} />
+              <polygon points={hexPoints(V / 2, V / 2, V / 2 - 9).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ")} stroke={`${C.violet}33`} strokeWidth={0.5} strokeDasharray="2 2" />
+              <path d={`M ${8} ${V / 2} A ${V / 2 - 8} ${(V / 2 - 8) * 0.62} 0 0 1 ${V - 8} ${V / 2}`} stroke={`${C.violet}55`} strokeWidth={0.6} strokeDasharray="2 2" />
+              <text x={V / 2} y={11} fontSize={2.8} textAnchor="middle" fill={C.violet} style={{ fontFamily: "ui-monospace, monospace" }}>HEX DOME</text>
+            </g>
+          )}
           {env.hexes.map((hx, i) => (
             <polygon key={i} points={hexPoints(hx.cx, hx.cy, hx.r).map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" ")}
               stroke={wall} strokeWidth={wallW} fill={i === 0 ? `${C.cyan}0f` : "none"} />
