@@ -16,6 +16,7 @@
  * analysis. Energy/Carbon are DESIGN ASSUMPTIONS, not derived.
  */
 import { DEFAULT_SECTIONS } from "@/lib/architect-estimate";
+import { DEV_PHASES } from "@/lib/architect-phases";
 
 // The ORIGINAL 13-sim battery (exact list) — the single source; every model runs all of it.
 export const SIMS = [
@@ -28,7 +29,7 @@ export type SimName = (typeof SIMS)[number];
 export type Framing = "stick-framed" | "3d-printed-cement";
 export const FRAMING: Record<Framing, { label: string; short: string; blurb: string }> = {
   "stick-framed": { label: "Stick-framed", short: "STICK", blurb: "Conventional dimensional-lumber framing." },
-  "3d-printed-cement": { label: "3D-printed cement", short: "CEMENT", blurb: "ICON-style printed monolithic cement walls — fast, non-combustible, durable; higher embodied carbon." },
+  "3d-printed-cement": { label: "3D cement print", short: "CEMENT", blurb: "Printed monolithic cement walls — fast framing, non-combustible, durable; higher embodied carbon." },
 };
 const CEMENT_COST_FACTOR = 0.85;    // ICON: ~15% less (labor + speed) — illustrative ESTIMATE
 const CEMENT_MONTHS_FACTOR = 0.6;   // the printed shell goes up far faster
@@ -98,15 +99,16 @@ export function monthsFor(m: SimModel, framing: Framing): number { return applyF
 
 // ── COMPARE ALL — rank by each headline metric at each form's NATIVE framing; flag the winner ──────────────────
 export interface MetricRank { metric: string; unit: string; lowerIsBetter: boolean; winnerId: string; values: { id: string; value: number }[]; }
-export function compareModels(models: SimModel[] = SIM_MODELS): MetricRank[] {
+export function compareModels(models: SimModel[] = SIM_MODELS, framingBy?: Record<string, Framing>): MetricRank[] {
+  const fr = (m: SimModel): Framing => framingBy?.[m.id] ?? m.framing;   // FRAMING-AWARE — the cement toggle reaches COMPARE
   const metric = (name: string, unit: string, lowerIsBetter: boolean, pick: (m: SimModel) => number): MetricRank => {
     const values = models.map((m) => ({ id: m.id, value: pick(m) }));
     const best = values.reduce((a, b) => (lowerIsBetter ? (b.value < a.value ? b : a) : (b.value > a.value ? b : a)));
     return { metric: name, unit, lowerIsBetter, winnerId: best.id, values };
   };
   return [
-    metric("Cost", "USD", true, (m) => m.costUsd),
-    metric("Build time", "months", true, (m) => m.buildMonths),
+    metric("Cost", "USD", true, (m) => costFor(m, fr(m))),
+    metric("Build time", "months", true, (m) => monthsFor(m, fr(m))),
     metric("Energy", "score", false, (m) => m.energyScore),
     metric("Carbon", "score", false, (m) => m.carbonScore),
   ];
@@ -118,7 +120,7 @@ export function compareModels(models: SimModel[] = SIM_MODELS): MetricRank[] {
 const clamp = (n: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, n));
 
 type DriverKey = "env" | "carb" | "compact" | "spacious" | "conv" | "curved" | "afford";
-function drivers(m: SimModel): Record<DriverKey, number> {
+function drivers(m: SimModel, fr: Framing): Record<DriverKey, number> {
   return {
     env: m.energyScore,                                  // envelope efficiency 1..5 (ASSUMED)
     carb: m.carbonScore,                                 // operating-carbon performance 1..5 (ASSUMED)
@@ -126,7 +128,7 @@ function drivers(m: SimModel): Record<DriverKey, number> {
     spacious: clamp(m.areaFt2 / 200, 1, 5),              // more area → higher (ADA clearances)
     conv: m.id === "3x3-grid" ? 5 : m.id === "tiny" ? 4 : 2,   // rectilinear/stick-framed = most code-conventional
     curved: m.id === "eco-sphere" ? 5 : m.id === "tiny" ? 3 : 2, // aerodynamic/curved dome resilience
-    afford: clamp(6 - m.costUsd / 110000, 1, 5),         // cheaper → higher
+    afford: clamp(6 - costFor(m, fr) / 110000, 1, 5),    // cheaper → higher — FRAMING-AWARE (cement's cost saving reaches the scores)
   };
 }
 
@@ -146,8 +148,8 @@ const SIM_WEIGHTS: Record<SimName, Partial<Record<DriverKey, number>>> = {
   "Lifecycle":     { afford: 0.4, env: 0.3, carb: 0.3 },
 };
 
-function rawScore(m: SimModel, sim: SimName): number {
-  const d = drivers(m);
+function rawScore(m: SimModel, sim: SimName, fr: Framing): number {
+  const d = drivers(m, fr);
   const w = SIM_WEIGHTS[sim];
   let s = 0;
   (Object.keys(w) as DriverKey[]).forEach((k) => { s += d[k] * (w[k] as number); });
@@ -159,7 +161,7 @@ function rawScore(m: SimModel, sim: SimName): number {
 export interface SimMetric { label: string; value: string; }
 const num = (x: number, digits = 0): string => x.toLocaleString("en-US", { maximumFractionDigits: digits });
 
-const METRICS: Record<SimName, (m: SimModel, d: Record<DriverKey, number>, cement: boolean) => SimMetric[]> = {
+const METRICS: Record<SimName, (m: SimModel, d: Record<DriverKey, number>, cement: boolean, fr: Framing) => SimMetric[]> = {
   "Structural":    (m, d, c) => [{ label: "Load margin", value: `${num(20 + d.conv * 8 + d.curved * 4 + (c ? 15 : 0))}%` }, { label: "Wall system", value: c ? "cement (monolithic)" : "stick-framed" }],
   "Wind":          (m, d, c) => [{ label: "Design wind", value: `${num(100 + d.curved * 8 + (c ? 15 : 0))} mph` }, { label: "Uplift margin", value: `${num(10 + d.curved * 10)}%` }],
   "Flood":         (m, d) => [{ label: "Freeboard", value: `${num(1 + d.compact * 0.4, 1)} ft` }, { label: "FFE margin", value: `${num(d.compact * 0.3, 1)} ft` }],
@@ -172,9 +174,9 @@ const METRICS: Record<SimName, (m: SimModel, d: Record<DriverKey, number>, cemen
   "Evacuation":    (m, d) => [{ label: "Egress travel", value: `${num(20 + m.areaFt2 * 0.03)} ft` }, { label: "Clear time", value: `${num(90 - d.compact * 8 - d.conv * 4)} s` }],
   "Accessibility": (m, d) => [{ label: "Turning radius", value: `${num(48 + d.spacious * 3)} in` }, { label: "Clear door", value: `${num(32 + d.spacious)} in` }],
   "Carbon":        (m, _d, c) => { const operating = m.areaFt2 * (12 - m.energyScore * 1.5); const embodied = m.areaFt2 * (0.09 - m.carbonScore * 0.008) + (c ? m.areaFt2 * 0.03 : 0); return [{ label: "Embodied" + (c ? " (cement↑)" : " (assumed)"), value: `${num(embodied, 1)} tCO₂e` }, { label: "Operating", value: `${num(operating)} kg/yr` }]; },
-  "Lifecycle":     (m, _d, c) => { const life = m.costUsd * (1 + (6 - m.energyScore) * 0.08); return [{ label: "30-yr cost", value: `$${num(life)}` }, { label: "Durability", value: c ? "high (cement)" : `${num(5 - m.energyScore * 0.6, 1)}/5` }]; },
+  "Lifecycle":     (m, _d, c, fr) => { const life = costFor(m, fr) * (1 + (6 - m.energyScore) * 0.08); return [{ label: "30-yr cost", value: `$${num(life)}` }, { label: "Durability", value: c ? "high (cement)" : `${num(5 - m.energyScore * 0.6, 1)}/5` }]; },
 };
-function simMetrics(m: SimModel, sim: SimName, cement: boolean): SimMetric[] { return METRICS[sim](m, drivers(m), cement); }
+function simMetrics(m: SimModel, sim: SimName, cement: boolean, fr: Framing): SimMetric[] { return METRICS[sim](m, drivers(m, fr), cement, fr); }
 
 export type SimStatus = "PASS" | "WATCH";
 /** A per-sim ESTIMATE on one model at a framing: a 0–5 initial score (+ star rounding), a status, and detailed metrics. */
@@ -184,9 +186,9 @@ export function simResult(modelId: string, sim: SimName, framing?: Framing): Sim
   if (!m) return { sim, score: 0, stars: 0, status: "WATCH", metrics: [] };
   const fr = framing ?? m.framing;
   const cement = fr === "3d-printed-cement";
-  const raw = rawScore(m, sim) + (cement ? (CEMENT_DELTA[sim] ?? 0) : 0);
+  const raw = rawScore(m, sim, fr) + (cement ? (CEMENT_DELTA[sim] ?? 0) : 0);
   const score = Math.round(clamp(raw, 0, 5) * 10) / 10;       // 0.0 .. 5.0, one decimal, deterministic
-  return { sim, score, stars: Math.round(score), status: score >= 3 ? "PASS" : "WATCH", metrics: simMetrics(m, sim, cement) };
+  return { sim, score, stars: Math.round(score), status: score >= 3 ? "PASS" : "WATCH", metrics: simMetrics(m, sim, cement, fr) };
 }
 
 /** Run the WHOLE original battery on a model at a framing (defaults to the model's native framing). */
@@ -213,12 +215,34 @@ export function simMatrix(models: SimModel[] = SIM_MODELS, framing?: Framing): S
   });
 }
 
+// ── TIME TO BUILD, BY PHASE (operator 2026-10-27: "so others can plug and play to our demo for design work to
+//    understand time to build framing electrical plumbing etc"). The build time split across the eight construction
+//    phases (DEV_PHASES, in build order). 3D cement print collapses the Framing phase (the printed shell goes up fast)
+//    and speeds Roofing, shifting the share to the MEP + finish phases — the visible payoff of printing a home. ──
+const PHASE_WEIGHTS: Record<Framing, Record<string, number>> = {
+  // each framing's share of the total build, summing to 1 across the eight phases
+  "stick-framed":      { foundation: 0.15, framing: 0.24, electrical: 0.14, plumbing: 0.12, sewer: 0.07, internet: 0.05, security: 0.05, roofing: 0.18 },
+  "3d-printed-cement": { foundation: 0.18, framing: 0.10, electrical: 0.16, plumbing: 0.14, sewer: 0.08, internet: 0.06, security: 0.06, roofing: 0.22 },
+};
+export interface PhaseTime { id: string; label: string; color: string; weeks: number; }
+/** The build time split across the eight construction phases for a model at a framing (weeks per phase, summing ≈ build). */
+export function phaseSchedule(modelId: string, framing?: Framing): PhaseTime[] {
+  const m = modelById(modelId);
+  if (!m) return [];
+  const fr = framing ?? m.framing;
+  const totalWeeks = monthsFor(m, fr) * 4.345;
+  const w = PHASE_WEIGHTS[fr];
+  return DEV_PHASES.map((p) => ({ id: p.id, label: p.label, color: p.color, weeks: Math.round(totalWeeks * (w[p.id] ?? 0) * 2) / 2 }));
+}
+
 // ── one reconciled recommendation, not a per-axis scoreboard (Asar) — the balanced all-rounder across the 13 sims ──
 export interface Recommendation { modelId: string; label: string; avg: number; reason: string; }
-export function recommendation(models: SimModel[] = SIM_MODELS): Recommendation {
-  const best = models.reduce((a, b) => (overallScore(b.id) > overallScore(a.id) ? b : a));
+export function recommendation(models: SimModel[] = SIM_MODELS, framingBy?: Record<string, Framing>): Recommendation {
+  const fr = (m: SimModel): Framing => framingBy?.[m.id] ?? m.framing;
+  const best = models.reduce((a, b) => (overallScore(b.id, fr(b)) > overallScore(a.id, fr(a)) ? b : a));
+  const avg = overallScore(best.id, fr(best));
   return {
-    modelId: best.id, label: best.label, avg: overallScore(best.id),
-    reason: `highest 13-sim average (${overallScore(best.id).toFixed(1)}/5) — the balanced all-rounder across the whole battery (an estimate-based suggestion, not a quote)`,
+    modelId: best.id, label: best.label, avg,
+    reason: `highest 13-sim average (${avg.toFixed(1)}/5) — the balanced all-rounder across the whole battery (an estimate-based suggestion, not a quote)`,
   };
 }

@@ -1,7 +1,7 @@
 // ARCHITECT-2525 · SIMULATE OPTIONS gate (operator 2026-10-25/27): the SAME 900 ft² home three ways (Cube · Tiny Home ·
 // Eco-Sphere), the 13-sim battery scored 0–5 with detailed metrics, a side-by-side matrix, and the 3D-printed-cement
 // framing dimension (the ICON hook) shifting scores + cost/time honestly.
-import { SIMS, SIM_MODELS, FRAMING, compareModels, costFor, monthsFor, runBattery, simResult, simMatrix, overallScore, recommendation, modelById } from "@/lib/architect-sim-options";
+import { SIMS, SIM_MODELS, FRAMING, compareModels, costFor, monthsFor, phaseSchedule, runBattery, simResult, simMatrix, overallScore, recommendation, modelById } from "@/lib/architect-sim-options";
 import { DEFAULT_SECTIONS } from "@/lib/architect-estimate";
 
 let pass = 0, fail = 0;
@@ -70,12 +70,39 @@ ok(ranks.find((r) => r.metric === "Build time").winnerId === "eco-sphere", "fast
 ok(ranks.find((r) => r.metric === "Energy").winnerId === "eco-sphere", "best energy = Eco-Sphere");
 ok(ranks.find((r) => r.metric === "Carbon").winnerId === "eco-sphere", "best operating carbon = Eco-Sphere");
 
+// COMPARE is FRAMING-AWARE (AsM consensus): converting to cement reaches the decision step, not just the cards
+const allCement = Object.fromEntries(ids.map((id) => [id, "3d-printed-cement"]));
+const ranksCement = compareModels(SIM_MODELS, allCement);
+const cubeNativeCost = ranks.find((r) => r.metric === "Cost").values.find((v) => v.id === "3x3-grid").value;
+const cubeCementCost = ranksCement.find((r) => r.metric === "Cost").values.find((v) => v.id === "3x3-grid").value;
+ok(cubeCementCost === costFor(grid, "3d-printed-cement") && cubeCementCost < cubeNativeCost, "COMPARE Cost reflects the framing toggle (cement reaches the decision)");
+const recNative = recommendation();
+const recCement = recommendation(SIM_MODELS, allCement);
+ok(recCement.avg !== recNative.avg || recCement.modelId !== recNative.modelId, "recommendation changes with the framing toggle (not frozen at native)");
+
 // ONE reconciled recommendation (Asar)
 const rec = recommendation();
 ok(ids.includes(rec.modelId) && rec.avg >= 0 && rec.avg <= 5 && rec.reason.length > 10, "recommendation names a real model + avg + reason");
 const bestAvgId = ids.reduce((a, b) => (overallScore(b) > overallScore(a) ? b : a));
 ok(rec.modelId === bestAvgId, "recommendation = the highest 13-sim-average model");
 ok(modelById("nope") === null && overallScore("nope") === 0, "unknown model → null / 0 (no crash)");
+
+// TIME TO BUILD, BY PHASE (operator: "understand time to build framing electrical plumbing etc")
+const PHASE_ORDER = ["foundation", "framing", "electrical", "plumbing", "sewer", "internet", "security", "roofing"];
+for (const m of SIM_MODELS) {
+  const sched = phaseSchedule(m.id);
+  ok(sched.length === 8 && JSON.stringify(sched.map((p) => p.id)) === JSON.stringify(PHASE_ORDER), `${m.id} schedule = 8 phases in build order`);
+  ok(sched.every((p) => p.weeks >= 0 && p.label && p.color), `${m.id} every phase has weeks + label + color`);
+  const totalW = sched.reduce((s, p) => s + p.weeks, 0);
+  ok(Math.abs(totalW - monthsFor(m, m.framing) * 4.345) <= 2.5, `${m.id} phase weeks ≈ the build time`);
+  // 3D cement print collapses the FRAMING phase vs stick
+  const stickFraming = phaseSchedule(m.id, "stick-framed").find((p) => p.id === "framing").weeks;
+  const cementFraming = phaseSchedule(m.id, "3d-printed-cement").find((p) => p.id === "framing").weeks;
+  ok(cementFraming < stickFraming, `${m.id} 3D cement print shortens the Framing phase (${cementFraming}w < ${stickFraming}w)`);
+}
+ok(phaseSchedule("nope").length === 0, "unknown model → empty schedule (no crash)");
+// naming: the method reads "3D cement print", never a brand, in the user-facing label
+ok(FRAMING["3d-printed-cement"].label === "3D cement print" && !/ICON/i.test(FRAMING["3d-printed-cement"].label + FRAMING["3d-printed-cement"].blurb), "the cement method is named '3D cement print' (no brand)");
 
 console.log(`\narchitect-sim-options: ${pass} passed, ${fail} failed · same-900ft² home ×3 · 0–5 battery + metrics + matrix + cement framing`);
 process.exit(fail ? 1 : 0);

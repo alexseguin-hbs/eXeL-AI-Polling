@@ -46,10 +46,14 @@ export function gridEnvironment(): SimEnvironment {
   return { formId: "3x3-grid", view: VIEW, shell: "grid", placements };
 }
 
-// ── Tiny Home — the same nine rooms' furniture in ONE open 900 ft² volume (same zones, no interior walls) ───────
+// ── Tiny Home — the same nine rooms in ONE open 900 ft² volume: an open GREAT ROOM (Living·Kitchen·Dining, no
+//    dividers) across the top, the private + utility rooms below. Genuinely open — not the Cube's uniform 3×3. ──────
 export function openEnvironment(): SimEnvironment {
-  const g = gridEnvironment();
-  return { formId: "tiny", view: VIEW, shell: "open", placements: g.placements.map((p) => ({ ...p })) };
+  const side = VIEW - 2 * MARGIN;
+  const third = side / 3, topH = side * 0.42, half = (side - topH) / 2;
+  const great = ["L", "K", "D"].map((k, i) => ({ roomKey: k, label: labelOf(k), rect: { x: MARGIN + i * third, y: MARGIN, w: third, h: topH } }));
+  const bot = ["M", "B", "C", "O", "S", "E"].map((k, i) => ({ roomKey: k, label: labelOf(k), rect: { x: MARGIN + (i % 3) * third, y: MARGIN + topH + Math.floor(i / 3) * half, w: third, h: half } }));
+  return { formId: "tiny", view: VIEW, shell: "open", placements: [...great, ...bot] };
 }
 
 // ── Eco-Sphere — 7 hexagons (1 centre + 6), the nine rooms merged into seven, under a hex dome ─────────────────
@@ -63,9 +67,10 @@ const HEX_ROOMS: string[][] = [
   ["O"],        // 5
   ["S"],        // 6
 ];
-/** Largest useful axis-aligned box inside a flat-top hexagon of circumradius R, centred on the hex. */
+/** An axis-aligned box that stays INSIDE a flat-top hexagon of circumradius R (so furniture never spills past the
+ *  hexagon outline — Krishna/Odin). Conservative w×h fits within the hex's narrowing walls. */
 function hexBox(cx: number, cy: number, R: number): Rect {
-  const w = R * 1.4, h = R * 1.25;
+  const w = R * 1.3, h = R * 0.9;
   return { x: cx - w / 2, y: cy - h / 2, w, h };
 }
 export function hexEnvironment(): SimEnvironment {
@@ -84,11 +89,12 @@ export function hexEnvironment(): SimEnvironment {
     if (hx.roomKeys.length === 1) {
       placements.push({ roomKey: hx.roomKeys[0], label: labelOf(hx.roomKeys[0]), rect: box });
     } else {
-      // merged hex — split the box top/bottom, one room each (both rooms' furniture conserved)
-      const half = (box.h - 1) / 2;
+      // merged hex — split the box LEFT/RIGHT (the hexagon is widest at its middle, so side-by-side rooms stay inside
+      // the outline and the furniture isn't vertically squished — Krishna/Odin). Both rooms' furniture conserved.
+      const w = (box.w - 1) / 2;
       hx.roomKeys.forEach((k, j) => placements.push({
         roomKey: k, label: labelOf(k),
-        rect: { x: box.x, y: box.y + j * (half + 1), w: box.w, h: half },
+        rect: { x: box.x + j * (w + 1), y: box.y, w, h: box.h },
       }));
     }
   }

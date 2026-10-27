@@ -12,7 +12,7 @@
  * DERIVED; Tiny + Eco ASSUMED; every result is a deterministic ESTIMATE/preview, not an engineering analysis.
  */
 import { useMemo, useState } from "react";
-import { SIM_MODELS, SIMS, FRAMING, compareModels, costFor, monthsFor, overallScore, recommendation, simResult, type Framing } from "@/lib/architect-sim-options";
+import { SIM_MODELS, SIMS, FRAMING, compareModels, costFor, monthsFor, overallScore, phaseSchedule, recommendation, simResult, type Framing } from "@/lib/architect-sim-options";
 import { SimEnvironmentView } from "./sim-environment-view";
 import type { FormId } from "@/lib/architect-sim-environment";
 
@@ -57,8 +57,8 @@ export function SimulateOptions() {
   const [openRows, setOpenRows] = useState<Set<string>>(new Set());
 
   const allSimulated = SIM_MODELS.every((m) => simulated.has(m.id));
-  const ranks = useMemo(() => compareModels(), []);
-  const rec = useMemo(() => recommendation(), []);
+  const ranks = useMemo(() => compareModels(SIM_MODELS, framingBy), [framingBy]);
+  const rec = useMemo(() => recommendation(SIM_MODELS, framingBy), [framingBy]);
   const winnerOf = (metric: string) => ranks.find((r) => r.metric === metric)?.winnerId;
   const cols = `minmax(66px,1.1fr) repeat(${SIM_MODELS.length}, minmax(70px,1fr))`;
 
@@ -144,6 +144,28 @@ export function SimulateOptions() {
                       </button>
                     ))}
                   </div>
+                  {/* TIME TO BUILD, BY PHASE — framing · electrical · plumbing · … (operator: understand time to build) */}
+                  {(() => {
+                    const sched = phaseSchedule(m.id, fr);
+                    const maxW = Math.max(1, ...sched.map((p) => p.weeks));
+                    return (
+                      <div data-arch-sim-phases className="rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
+                        <div className="mb-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>
+                          <span>Time to build · by phase</span><span>{monthsFor(m, fr)} mo total</span>
+                        </div>
+                        <div className="space-y-0.5">
+                          {sched.map((p) => (
+                            <div key={p.id} className="flex items-center gap-1.5 text-[8px]">
+                              <span style={{ color: C.dim, width: 50, flexShrink: 0 }}>{p.label}</span>
+                              <span className="h-2 rounded-sm" style={{ background: p.color, width: `${Math.max(3, (p.weeks / maxW) * 100)}%`, opacity: 0.85 }} />
+                              <span style={{ color: p.color, flexShrink: 0 }}>{p.weeks}w</span>
+                            </div>
+                          ))}
+                        </div>
+                        {cement && <div className="mt-0.5 text-[8px]" style={{ color: C.cement }}>↳ 3D cement print collapses the Framing phase (the shell prints fast).</div>}
+                      </div>
+                    );
+                  })()}
                   <div className="flex items-center justify-between rounded px-1.5 py-1 text-[10px]" style={{ background: C.ground }}>
                     <span style={{ color: C.dim }}>13-sim avg</span>
                     <span style={{ color: C.cyan, fontWeight: 700 }}>{avg.toFixed(1)}/5 · {passed}/13 pass</span>

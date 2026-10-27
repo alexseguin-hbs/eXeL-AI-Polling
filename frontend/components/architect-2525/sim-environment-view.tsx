@@ -44,14 +44,11 @@ export function SimEnvironmentView({ formId, framing, size = 220 }: { formId: Fo
       )}
       {env.shell === "open" && (
         <g fill="none" vectorEffect="non-scaling-stroke">
-          {/* one open shell + faint dashed zone hints (no solid interior walls) */}
+          {/* one open shell (solid wall) + dashed ZONE hints per room (no solid interior walls) — adapts to the layout */}
           <rect x={ox} y={oy} width={S} height={S} rx={1} stroke={wall} strokeWidth={wallW} />
-          <g stroke={C.dim} strokeWidth={0.5} strokeDasharray="2 2" opacity={0.6}>
-            <line x1={ox + cell} y1={oy} x2={ox + cell} y2={oy + S} />
-            <line x1={ox + 2 * cell} y1={oy} x2={ox + 2 * cell} y2={oy + S} />
-            <line x1={ox} y1={oy + cell} x2={ox + S} y2={oy + cell} />
-            <line x1={ox} y1={oy + 2 * cell} x2={ox + S} y2={oy + 2 * cell} />
-          </g>
+          {env.placements.map((pl, i) => (
+            <rect key={`z-${i}`} x={pl.rect.x} y={pl.rect.y} width={pl.rect.w} height={pl.rect.h} stroke={C.dim} strokeWidth={0.5} strokeDasharray="2 2" opacity={0.55} />
+          ))}
         </g>
       )}
       {env.shell === "hex" && env.hexes && (
@@ -79,10 +76,10 @@ export function SimEnvironmentView({ formId, framing, size = 220 }: { formId: Fo
         })
       )}
 
-      {/* ── room-key labels ── */}
+      {/* ── room-key labels (bright enough to read at 375px and in a PNG — Enki) ── */}
       {env.placements.map((pl, i) => (
-        <text key={`lbl-${pl.roomKey}-${i}`} x={pl.rect.x + 1.5} y={pl.rect.y + 4.5} fontSize={3.2} fontWeight={700}
-          fill={C.dim} style={{ fontFamily: "ui-monospace, monospace" }}>{pl.roomKey}</text>
+        <text key={`lbl-${pl.roomKey}-${i}`} x={pl.rect.x + 1.5} y={pl.rect.y + 5} fontSize={3.8} fontWeight={700}
+          fill="#aebccb" style={{ fontFamily: "ui-monospace, monospace", paintOrder: "stroke", stroke: "#070b12", strokeWidth: 0.6 }}>{pl.roomKey}</text>
       ))}
     </svg>
   );

@@ -31,6 +31,11 @@ ok(totalObjectCount(grid) === totalObjectCount(open) && totalObjectCount(open) =
 
 // Eco-Sphere merges nine rooms into seven hexagons (two merges) and still places all nine
 ok(hex.placements.length === 9, "Eco-Sphere still places all 9 rooms (across 7 hexes)");
+
+// the OPEN Tiny Home is GENUINELY open — not the Cube's identical 3×3 cells (Enki)
+const gridRects = JSON.stringify(grid.placements.map((p) => [p.roomKey, p.rect]).sort());
+const openRects = JSON.stringify(open.placements.map((p) => [p.roomKey, p.rect]).sort());
+ok(gridRects !== openRects, "Tiny Home's open plan differs from the Cube's 3×3 (genuinely open, not a clone)");
 const mergedHexes = hex.hexes.filter((h) => h.roomKeys.length > 1).length;
 ok(mergedHexes === 2, "exactly two hexes hold a merged pair (9 rooms → 7 hexes)");
 ok(hex.hexes[0].roomKeys.length === 1, "the centre hex is a single room (the Living hub)");
