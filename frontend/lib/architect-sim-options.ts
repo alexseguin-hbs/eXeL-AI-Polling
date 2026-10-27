@@ -50,7 +50,8 @@ export interface SimModel {
   label: string;
   form: string;            // the build form (how it is put together)
   areaFt2: number;         // all three = 900 (same home, three forms)
-  rooms: number;           // display: 3×3 = 9 grid rooms · Tiny = 9 open zones · Eco = 7 hex rooms
+  rooms: number;           // the form's room/hex count (Cube/Tiny 9, Eco 7 hexes)
+  layoutLabel: string;     // the honest room voice for the card so card ⇄ environment agree (Aset): e.g. "7 hex · 9 rooms"
   framing: Framing;        // the NATIVE construction method
   cementNative: boolean;   // the hex is natively cement-printable
   stickCostUsd: number;    // cost at stick framing (the baseline the cement factor applies to)
@@ -75,17 +76,17 @@ const mk = (stickCost: number, stickMonths: number, framing: Framing): Pick<SimM
 export const SIM_MODELS: SimModel[] = [
   {
     // operator's word for the 3×3 Grid is "Cube" — the standard, all nine rooms on a 3×3
-    id: "3x3-grid", label: "Cube", form: "3×3 grid · 9 rooms · stick-framed", areaFt2: BASE_AREA, rooms: 9,
+    id: "3x3-grid", label: "Cube", form: "3×3 grid · 9 rooms · stick-framed", areaFt2: BASE_AREA, rooms: 9, layoutLabel: "9 rooms",
     cementNative: false, ...mk(BASE_COST, 7, "stick-framed"), energyScore: 3, carbonScore: 3, basis: "DERIVED",
     note: "The standard home — the nine rooms on a 3×3 grid; cost DERIVED from the estimate engine (DEFAULT_SECTIONS).",
   },
   {
-    id: "tiny", label: "Tiny Home", form: "open single-volume · same 900 ft²", areaFt2: BASE_AREA, rooms: 9,
+    id: "tiny", label: "Tiny Home", form: "open single-volume · same 900 ft²", areaFt2: BASE_AREA, rooms: 9, layoutLabel: "9 rooms · open",
     cementNative: false, ...mk(388000, 5, "stick-framed"), energyScore: 4, carbonScore: 4, basis: "ASSUMED",
     note: "The same nine rooms' furniture in an OPEN 900 ft² plan (fewer interior walls → faster) — ASSUMED, parametric.",
   },
   {
-    id: "eco-sphere", label: "Eco-Sphere", form: "7 hexagons · hex dome · 3D-printed cement", areaFt2: BASE_AREA, rooms: 7,
+    id: "eco-sphere", label: "Eco-Sphere", form: "7 hexagons · hex dome · 3D cement print", areaFt2: BASE_AREA, rooms: 7, layoutLabel: "7 hex · 9 rooms",
     cementNative: true, ...mk(492000, 7, "3d-printed-cement"), energyScore: 5, carbonScore: 5, basis: "ASSUMED",
     note: "The same furniture across 7 hexagons (1 centre + 6) under a hex dome, natively 3D-printed cement — ASSUMED, parametric.",
   },
@@ -116,7 +117,8 @@ export function compareModels(models: SimModel[] = SIM_MODELS, framingBy?: Recor
 
 // ── the per-sim 0–5 scoring (deterministic, principled — a DESIGN PREVIEW, not an engineering result) ────────────
 // No hash, no nudge: a pure weighted blend of the model's attribute drivers (+ an honest cement shift), so a build
-// winner is decided only by design merit (an exact tie is a legitimate co-result, never broken by a hash — Sofia's law).
+// winner is decided only by design merit — no hash and no random ever decides a winner (Sofia's law). An exact tie
+// (rare, with one-decimal scores) resolves deterministically to the first-listed form; the winner is a preview, not a quote.
 const clamp = (n: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, n));
 
 type DriverKey = "env" | "carb" | "compact" | "spacious" | "conv" | "curved" | "afford";

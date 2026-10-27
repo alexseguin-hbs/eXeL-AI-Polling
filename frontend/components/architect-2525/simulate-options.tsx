@@ -14,7 +14,10 @@
 import { useMemo, useState } from "react";
 import { SIM_MODELS, SIMS, FRAMING, compareModels, costFor, monthsFor, overallScore, phaseSchedule, recommendation, simResult, type Framing } from "@/lib/architect-sim-options";
 import { SimEnvironmentView } from "./sim-environment-view";
-import type { FormId } from "@/lib/architect-sim-environment";
+import { type FormId } from "@/lib/architect-sim-environment";
+import { TINY_ROOM_LAYOUT } from "@/lib/room-layout";
+
+const ROOM_LEGEND = TINY_ROOM_LAYOUT.map((r) => ({ k: r.k, label: r.label }));
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b", red: "#f87171", ground: "#070b12", cement: "#9aa7b4" };
 const usd = (n: number) => "$" + n.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -63,12 +66,14 @@ export function SimulateOptions() {
   const cols = `minmax(66px,1.1fr) repeat(${SIM_MODELS.length}, minmax(70px,1fr))`;
 
   // matrix: scores per model at its CURRENT framing; a cell reads "—" until that model is simulated (one honest story)
-  const matrix = useMemo(() => SIMS.map((sim) => {
-    const cells = SIM_MODELS.map((m) => { const r = simResult(m.id, sim, framingBy[m.id]); return { modelId: m.id, label: m.label, score: r.score, stars: r.stars, status: r.status, metrics: r.metrics }; });
-    const simd = cells.filter((c) => simulated.has(c.modelId));
-    const winnerId = simd.length >= 2 ? simd.reduce((a, b) => (b.score > a.score ? b : a)).modelId : null;
-    return { sim, cells, winnerId };
-  }), [framingBy, simulated]);
+  const matrix = useMemo(() => {
+    const allSim = SIM_MODELS.every((m) => simulated.has(m.id));   // the decision (✦) waits until all three exist (Athena)
+    return SIMS.map((sim) => {
+      const cells = SIM_MODELS.map((m) => { const r = simResult(m.id, sim, framingBy[m.id]); return { modelId: m.id, label: m.label, score: r.score, stars: r.stars, status: r.status, metrics: r.metrics }; });
+      const winnerId = allSim ? cells.reduce((a, b) => (b.score > a.score ? b : a)).modelId : null;
+      return { sim, cells, winnerId };
+    });
+  }, [framingBy, simulated]);
 
   const simulate = (id: string) => setSimulated((s) => new Set(s).add(id));
   const simulateAll = () => setSimulated(new Set(SIM_MODELS.map((m) => m.id)));
@@ -113,7 +118,7 @@ export function SimulateOptions() {
               </div>
               <div className="mt-0.5 text-[9px]" style={{ color: C.dim }}>{m.form}</div>
               <div className="mt-1.5 space-y-0.5">
-                {row("Area", `${m.areaFt2.toLocaleString()} ft² · ${m.rooms} rm`)}
+                {row("Area", `${m.areaFt2.toLocaleString()} ft² · ${m.layoutLabel}`)}
                 {row("Cost", usd(costFor(m, fr)), "Cost")}
                 {row("Build", `${monthsFor(m, fr)} mo`, "Build time")}
                 {row("Energy", stars(m.energyScore), "Energy")}
@@ -189,6 +194,14 @@ export function SimulateOptions() {
             </div>
           );
         })}
+      </div>
+
+      {/* room-key legend — so a non-expert ICON viewer can decode the floor plans (Christo) */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded-lg border px-2 py-1.5 text-[9px]" style={{ borderColor: C.border, background: C.panel }} data-arch-sim-legend>
+        <span className="uppercase tracking-wider" style={{ color: C.dim }}>Room keys</span>
+        {ROOM_LEGEND.map((r) => (
+          <span key={r.k}><b style={{ color: C.cyan }}>{r.k}</b> <span style={{ color: C.dim }}>{r.label}</span></span>
+        ))}
       </div>
 
       {/* SIDE-BY-SIDE TEST MATRIX — the 13 sims, 0–5, under each form's mini glyph; "—" until a form is simulated */}
@@ -283,6 +296,17 @@ export function SimulateOptions() {
               </div>
             );
           })}
+          {/* the ICON payoff in the decision view: time to FRAME each form (3D cement print collapses it) — Asar */}
+          {(() => {
+            const fw = SIM_MODELS.map((m) => ({ m, w: phaseSchedule(m.id, framingBy[m.id]).find((p) => p.id === "framing")?.weeks ?? 0 }));
+            const best = fw.reduce((a, b) => (b.w < a.w ? b : a));
+            return (
+              <div className="flex items-center justify-between border-b py-0.5" style={{ borderColor: "#111827" }}>
+                <span style={{ color: C.dim }}>Framing phase</span>
+                <span className="text-[9px]"><span style={{ color: C.dim }}>{fw.map((x) => `${x.m.label.split(" ")[0]} ${x.w}w`).join(" · ")} </span><span style={{ color: C.gold }}>✦ {best.m.label}</span></span>
+              </div>
+            );
+          })()}
           <div className="flex items-center justify-between py-0.5">
             <span style={{ color: C.dim }}>Sim average (13 sims)</span>
             <span style={{ color: C.gold }}>✦ {rec.label} · {rec.avg.toFixed(1)}</span>

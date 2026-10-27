@@ -25,6 +25,7 @@ ok(grid.basis === "DERIVED" && grid.costUsd === baseCost, `Cube cost DERIVED (= 
 ok(grid.rooms === 9 && grid.framing === "stick-framed", "Cube = 9 rooms, stick-framed");
 ok(tiny.basis === "ASSUMED" && tiny.rooms === 9 && tiny.framing === "stick-framed", "Tiny = 9 rooms (open), ASSUMED, stick");
 ok(eco.basis === "ASSUMED" && eco.rooms === 7 && eco.framing === "3d-printed-cement" && eco.cementNative === true, "Eco = 7 hex rooms, native 3D-printed cement");
+ok(grid.layoutLabel === "9 rooms" && tiny.layoutLabel === "9 rooms · open" && /7 hex · 9 rooms/.test(eco.layoutLabel), "layoutLabel reconciles card ⇄ environment (Eco = 7 hex · 9 rooms)");
 ok(tiny.costUsd < grid.costUsd && tiny.buildMonths <= grid.buildMonths, "Tiny is cheaper + not slower than Cube");
 for (const m of SIM_MODELS) ok(m.energyScore >= 1 && m.energyScore <= 5 && m.carbonScore >= 1 && m.carbonScore <= 5, `${m.id} energy/carbon in 1..5`);
 
