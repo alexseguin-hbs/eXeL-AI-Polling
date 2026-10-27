@@ -35,7 +35,8 @@ const CEMENT_COST_FACTOR = 0.85;    // ICON: ~15% less (labor + speed) — illus
 const CEMENT_MONTHS_FACTOR = 0.6;   // the printed shell goes up far faster
 /** Per-sim 0–5 shift when built 3D-printed cement — honest, both-sided (ESTIMATE). */
 const CEMENT_DELTA: Partial<Record<SimName, number>> = {
-  Structural: +0.7, Wind: +0.5, Fire: +1.0, Thermal: +0.4, Lifecycle: +0.5,
+  Structural: +0.7, Wind: +0.5, Fire: +1.0, Thermal: +0.4,
+  Lifecycle: +0.2,    // DURABILITY only — cement's cost saving already reaches Lifecycle via the framing-aware `afford` driver (no double-count — Thoth)
   Earthquake: -0.3,   // more mass, less ductility
   Carbon: -0.9,       // cement's EMBODIED carbon is high (the real trade-off, shown not hidden)
 };
@@ -97,6 +98,11 @@ export const modelById = (id: string | null | undefined): SimModel | null => SIM
 /** Cost / build-time of a model at a given framing (the toggle recomputes from the stick baseline). */
 export function costFor(m: SimModel, framing: Framing): number { return applyFraming(m.stickCostUsd, m.stickMonths, framing).costUsd; }
 export function monthsFor(m: SimModel, framing: Framing): number { return applyFraming(m.stickCostUsd, m.stickMonths, framing).buildMonths; }
+/** Headline (envelope + embodied) carbon score 1..5 at a framing — 3D cement print costs a star for embodied carbon, so
+ *  the card stars + COMPARE Carbon move when you convert to cement (the number a carbon interviewer scrutinises — Thor). */
+export function carbonFor(m: SimModel, framing: Framing): number {
+  return framing === "3d-printed-cement" ? Math.max(1, Math.min(5, m.carbonScore - 1)) : m.carbonScore;
+}
 
 // ── COMPARE ALL — rank by each headline metric at each form's NATIVE framing; flag the winner ──────────────────
 export interface MetricRank { metric: string; unit: string; lowerIsBetter: boolean; winnerId: string; values: { id: string; value: number }[]; }
@@ -111,7 +117,7 @@ export function compareModels(models: SimModel[] = SIM_MODELS, framingBy?: Recor
     metric("Cost", "USD", true, (m) => costFor(m, fr(m))),
     metric("Build time", "months", true, (m) => monthsFor(m, fr(m))),
     metric("Energy", "score", false, (m) => m.energyScore),
-    metric("Carbon", "score", false, (m) => m.carbonScore),
+    metric("Carbon", "score", false, (m) => carbonFor(m, fr(m))),   // FRAMING-AWARE — cement's embodied-carbon penalty reaches the headline (Thor)
   ];
 }
 
@@ -226,15 +232,29 @@ const PHASE_WEIGHTS: Record<Framing, Record<string, number>> = {
   "stick-framed":      { foundation: 0.15, framing: 0.24, electrical: 0.14, plumbing: 0.12, sewer: 0.07, internet: 0.05, security: 0.05, roofing: 0.18 },
   "3d-printed-cement": { foundation: 0.18, framing: 0.10, electrical: 0.16, plumbing: 0.14, sewer: 0.08, internet: 0.06, security: 0.06, roofing: 0.22 },
 };
+// per-FORM tweak so the hex dome's schedule reads differently from the rectilinear Cube (Pangu): the dome IS the
+// roof+wall (roofing heavier, framing lighter); the open plan frames fast. Added to the framing weights, then renormalized.
+const FORM_PHASE_TWEAK: Record<string, Record<string, number>> = {
+  "eco-sphere": { roofing: +0.06, framing: -0.03, foundation: -0.03 },
+  "tiny":       { framing: -0.04, electrical: +0.02, plumbing: +0.02 },
+  "3x3-grid":   {},
+};
 export interface PhaseTime { id: string; label: string; color: string; weeks: number; }
-/** The build time split across the eight construction phases for a model at a framing (weeks per phase, summing ≈ build). */
+/** The build time split across the eight construction phases for a model at a framing (weeks per phase; the eight sum
+ *  EXACTLY to the rounded total — Sofia). Per-form weighting differentiates the hex dome from the Cube (Pangu). */
 export function phaseSchedule(modelId: string, framing?: Framing): PhaseTime[] {
   const m = modelById(modelId);
   if (!m) return [];
   const fr = framing ?? m.framing;
-  const totalWeeks = monthsFor(m, fr) * 4.345;
-  const w = PHASE_WEIGHTS[fr];
-  return DEV_PHASES.map((p) => ({ id: p.id, label: p.label, color: p.color, weeks: Math.round(totalWeeks * (w[p.id] ?? 0) * 2) / 2 }));
+  const totalWeeks = Math.round(monthsFor(m, fr) * 4.345 * 2) / 2;   // the total the bars must sum to (0.5-wk resolution)
+  const tweak = FORM_PHASE_TWEAK[m.id] ?? {};
+  const raw = DEV_PHASES.map((p) => Math.max(0, (PHASE_WEIGHTS[fr][p.id] ?? 0) + (tweak[p.id] ?? 0)));
+  const sumW = raw.reduce((s, x) => s + x, 0) || 1;
+  const weeks = raw.map((x) => Math.round((totalWeeks * x / sumW) * 2) / 2);
+  // normalize the LAST phase to the remainder so the eight weeks sum EXACTLY to the shown total (Sofia)
+  const drift = Math.round((totalWeeks - weeks.reduce((s, x) => s + x, 0)) * 2) / 2;
+  weeks[weeks.length - 1] = Math.max(0, weeks[weeks.length - 1] + drift);
+  return DEV_PHASES.map((p, i) => ({ id: p.id, label: p.label, color: p.color, weeks: weeks[i] }));
 }
 
 // ── one reconciled recommendation, not a per-axis scoreboard (Asar) — the balanced all-rounder across the 13 sims ──

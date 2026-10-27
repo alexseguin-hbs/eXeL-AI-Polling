@@ -89,12 +89,13 @@ export function hexEnvironment(): SimEnvironment {
     if (hx.roomKeys.length === 1) {
       placements.push({ roomKey: hx.roomKeys[0], label: labelOf(hx.roomKeys[0]), rect: box });
     } else {
-      // merged hex — split the box LEFT/RIGHT (the hexagon is widest at its middle, so side-by-side rooms stay inside
-      // the outline and the furniture isn't vertically squished — Krishna/Odin). Both rooms' furniture conserved.
-      const w = (box.w - 1) / 2;
+      // merged hex — split the box into N side-by-side columns (generalizes beyond 2 rooms — Odin). The hexagon is
+      // widest at its middle, so side-by-side rooms stay inside the outline and aren't vertically squished (Krishna).
+      const n = hx.roomKeys.length, gap = 1;
+      const w = (box.w - gap * (n - 1)) / n;
       hx.roomKeys.forEach((k, j) => placements.push({
         roomKey: k, label: labelOf(k),
-        rect: { x: box.x + j * (w + 1), y: box.y, w, h: box.h },
+        rect: { x: box.x + j * (w + gap), y: box.y, w, h: box.h },
       }));
     }
   }

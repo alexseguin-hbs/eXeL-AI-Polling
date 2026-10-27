@@ -12,7 +12,7 @@
  * DERIVED; Tiny + Eco ASSUMED; every result is a deterministic ESTIMATE/preview, not an engineering analysis.
  */
 import { useMemo, useState } from "react";
-import { SIM_MODELS, SIMS, FRAMING, compareModels, costFor, monthsFor, overallScore, phaseSchedule, recommendation, simResult, type Framing } from "@/lib/architect-sim-options";
+import { SIM_MODELS, SIMS, FRAMING, carbonFor, compareModels, costFor, monthsFor, overallScore, phaseSchedule, recommendation, simResult, type Framing } from "@/lib/architect-sim-options";
 import { SimEnvironmentView } from "./sim-environment-view";
 import { type FormId } from "@/lib/architect-sim-environment";
 import { TINY_ROOM_LAYOUT } from "@/lib/room-layout";
@@ -122,7 +122,7 @@ export function SimulateOptions() {
                 {row("Cost", usd(costFor(m, fr)), "Cost")}
                 {row("Build", `${monthsFor(m, fr)} mo`, "Build time")}
                 {row("Energy", stars(m.energyScore), "Energy")}
-                {row("Carbon", stars(m.carbonScore), "Carbon")}
+                {row("Carbon", stars(carbonFor(m, fr)), "Carbon")}
               </div>
               <div className="mt-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: basisCol }}>
                 <span>{m.basis === "DERIVED" ? "cost · derived · engine" : "cost · assumed · parametric"}</span>

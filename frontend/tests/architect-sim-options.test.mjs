@@ -1,7 +1,7 @@
 // ARCHITECT-2525 · SIMULATE OPTIONS gate (operator 2026-10-25/27): the SAME 900 ft² home three ways (Cube · Tiny Home ·
 // Eco-Sphere), the 13-sim battery scored 0–5 with detailed metrics, a side-by-side matrix, and the 3D-printed-cement
 // framing dimension (the ICON hook) shifting scores + cost/time honestly.
-import { SIMS, SIM_MODELS, FRAMING, compareModels, costFor, monthsFor, phaseSchedule, runBattery, simResult, simMatrix, overallScore, recommendation, modelById } from "@/lib/architect-sim-options";
+import { SIMS, SIM_MODELS, FRAMING, carbonFor, compareModels, costFor, monthsFor, phaseSchedule, runBattery, simResult, simMatrix, overallScore, recommendation, modelById } from "@/lib/architect-sim-options";
 import { DEFAULT_SECTIONS } from "@/lib/architect-estimate";
 
 let pass = 0, fail = 0;
@@ -69,7 +69,9 @@ const ranks = compareModels();
 ok(ranks.find((r) => r.metric === "Cost").winnerId === "tiny", "cheapest = Tiny");
 ok(ranks.find((r) => r.metric === "Build time").winnerId === "eco-sphere", "fastest = Eco-Sphere (cement)");
 ok(ranks.find((r) => r.metric === "Energy").winnerId === "eco-sphere", "best energy = Eco-Sphere");
-ok(ranks.find((r) => r.metric === "Carbon").winnerId === "eco-sphere", "best operating carbon = Eco-Sphere");
+// headline Carbon at NATIVE framing: Eco-Sphere's cement embodied-carbon penalty drops it to a tie with Tiny, so Tiny
+// takes the carbon metric — the honest cement trade-off a carbon interviewer must see (Thor), not a hidden Eco win.
+ok(ranks.find((r) => r.metric === "Carbon").winnerId === "tiny", "best headline carbon = Tiny (cement costs Eco its carbon lead)");
 
 // COMPARE is FRAMING-AWARE (AsM consensus): converting to cement reaches the decision step, not just the cards
 const allCement = Object.fromEntries(ids.map((id) => [id, "3d-printed-cement"]));
@@ -95,13 +97,23 @@ for (const m of SIM_MODELS) {
   ok(sched.length === 8 && JSON.stringify(sched.map((p) => p.id)) === JSON.stringify(PHASE_ORDER), `${m.id} schedule = 8 phases in build order`);
   ok(sched.every((p) => p.weeks >= 0 && p.label && p.color), `${m.id} every phase has weeks + label + color`);
   const totalW = sched.reduce((s, p) => s + p.weeks, 0);
-  ok(Math.abs(totalW - monthsFor(m, m.framing) * 4.345) <= 2.5, `${m.id} phase weeks ≈ the build time`);
+  const target = Math.round(monthsFor(m, m.framing) * 4.345 * 2) / 2;
+  ok(Math.abs(totalW - target) < 0.01, `${m.id} phase weeks sum EXACTLY to the total (${totalW} == ${target}) — Sofia`);
   // 3D cement print collapses the FRAMING phase vs stick
   const stickFraming = phaseSchedule(m.id, "stick-framed").find((p) => p.id === "framing").weeks;
   const cementFraming = phaseSchedule(m.id, "3d-printed-cement").find((p) => p.id === "framing").weeks;
   ok(cementFraming < stickFraming, `${m.id} 3D cement print shortens the Framing phase (${cementFraming}w < ${stickFraming}w)`);
 }
 ok(phaseSchedule("nope").length === 0, "unknown model → empty schedule (no crash)");
+// per-FORM phase weighting — the hex dome's roofing share exceeds the Cube's (Pangu)
+const ecoRoofFrac = (() => { const s = phaseSchedule("eco-sphere", "stick-framed"); const t = s.reduce((a, p) => a + p.weeks, 0) || 1; return s.find((p) => p.id === "roofing").weeks / t; })();
+const cubeRoofFrac = (() => { const s = phaseSchedule("3x3-grid", "stick-framed"); const t = s.reduce((a, p) => a + p.weeks, 0) || 1; return s.find((p) => p.id === "roofing").weeks / t; })();
+ok(ecoRoofFrac > cubeRoofFrac, "the hex dome spends a larger share on roofing than the Cube (per-form schedule)");
+// headline Carbon is FRAMING-AWARE — converting to cement costs a carbon star (Thor)
+for (const m of SIM_MODELS) ok(carbonFor(m, "3d-printed-cement") <= carbonFor(m, "stick-framed"), `${m.id} cement lowers the headline carbon (embodied penalty)`);
+ok(carbonFor(eco, "3d-printed-cement") < eco.carbonScore, "Eco-Sphere's cement embodied-carbon penalty reaches its headline carbon");
+const ranksAllCement = compareModels(SIM_MODELS, Object.fromEntries(ids.map((id) => [id, "3d-printed-cement"])));
+ok(ranksAllCement.find((r) => r.metric === "Carbon").values.every((v) => v.value === carbonFor(modelById(v.id), "3d-printed-cement")), "COMPARE Carbon is framing-aware (uses carbonFor)");
 // naming: the method reads "3D cement print", never a brand, in the user-facing label
 ok(FRAMING["3d-printed-cement"].label === "3D cement print" && !/ICON/i.test(FRAMING["3d-printed-cement"].label + FRAMING["3d-printed-cement"].blurb), "the cement method is named '3D cement print' (no brand)");
 
