@@ -1,22 +1,25 @@
 /**
- * ARCHITECT-2525 · SIMULATE — ALTERNATIVE DESIGN OPTIONS (operator 2026-10-25/27).
+ * ARCHITECT-2525 · SIMULATE — ALTERNATIVE DESIGN OPTIONS (operator 2026-10-25/27/28).
  * ============================================================================================================
- * THREE ways to build the SAME 900 ft² home — Cube (3×3 grid) · Tiny Home (open) · Eco-Sphere (7-hex dome) —
- * each carrying the SAME nine rooms + their furniture (conserved; see architect-sim-environment.ts). Pressing a
- * form's SIMULATE generates that environment AND runs the SAME original 13-sim battery, scored 0–5 with detailed
- * metrics; the matrix scores all three side by side; COMPARE gives one balanced pick.
+ * THREE ways to build a home — Cube (3×3 grid, 900 ft²) · Tiny Home (a real standard 8.5×40 ft THOW ≈340 ft²) ·
+ * Eco-Sphere (7-hex dome, 900 ft²). Pressing a form's SIMULATE generates its environment AND runs the SAME original
+ * 13-sim battery, scored 0–5 with detailed metrics; the matrix scores them side by side; COMPARE gives one pick.
  *
- * ICON-INTERVIEW HOOK (operator 2026-10-27: "must be able to be converted to 3D printed cement version for framing"):
- * every form carries a construction-method dimension — stick-framed vs 3D-PRINTED CEMENT. The Eco-Sphere hex is
- * natively cement-printable. Cement shifts the sims HONESTLY both ways (Structural/Fire/Wind/Lifecycle ↑ — monolithic,
- * non-combustible, durable; Cost/Build ↑ — ICON speed/less labor; Carbon ↓ — cement's embodied carbon is high).
+ * Each form carries a BUILD OPTION with four dimensions the buyer can change (operator 2026-10-27 SAVE-FEEDBACK):
+ *   • method        — Stick-framed · 3D Print (the ICON hook; the Eco-Sphere prints natively).
+ *   • printMaterial — Cement · Composite ("more coming") — strength / cost / carbon differ (only when 3D Print).
+ *   • frameMaterial — Wood · Steel · Aluminum — cost / strength / carbon differ (only when Stick-framed).
+ *   • roof          — Gable · Hip · Flat (rectilinear) · Hex-panel dome (Eco-Sphere) — cost + Wind/Thermal differ.
  *
- * PRODUCT TRUTH: the Cube's cost is DERIVED from the real estimate engine (DEFAULT_SECTIONS). The Tiny Home + Eco-Sphere
- * are DECLARED PARAMETRIC/ASSUMED. Scores are a deterministic design PREVIEW (no Date.now/Math.random), not an engineering
- * analysis. Energy/Carbon are DESIGN ASSUMPTIONS, not derived.
+ * PRODUCT TRUTH — ONE ENGINE: every cost DERIVES from the real estimate engine (DEFAULT_SECTIONS), area-scaled and
+ * adjusted by the chosen option, so the per-element breakdown always reconciles EXACTLY to the card total (no blanket
+ * fudge factor). The Cube at its native option = the engine's $440,000 unchanged. Tiny + Eco are DECLARED PARAMETRIC
+ * (ASSUMED area/months/envelope). Scores are a deterministic design PREVIEW (no Date.now/Math.random), not an
+ * engineering analysis. Energy/Carbon are DESIGN ASSUMPTIONS. Material strength/carbon figures are vendor ESTIMATES.
  */
 import { DEFAULT_SECTIONS } from "@/lib/architect-estimate";
 import { DEV_PHASES } from "@/lib/architect-phases";
+import type { FormId } from "@/lib/architect-sim-environment";
 
 // The ORIGINAL 13-sim battery (exact list) — the single source; every model runs all of it.
 export const SIMS = [
@@ -25,118 +28,189 @@ export const SIMS = [
 ] as const;
 export type SimName = (typeof SIMS)[number];
 
-// ── construction method (the ICON dimension) ────────────────────────────────────────────────────────────────────
-export type Framing = "stick-framed" | "3d-printed-cement";
-export const FRAMING: Record<Framing, { label: string; short: string; blurb: string }> = {
-  "stick-framed": { label: "Stick-framed", short: "STICK", blurb: "Conventional dimensional-lumber framing." },
-  "3d-printed-cement": { label: "3D cement print", short: "CEMENT", blurb: "Printed monolithic cement walls — fast framing, non-combustible, durable; higher embodied carbon." },
+// ── the four build dimensions ─────────────────────────────────────────────────────────────────────────────────────
+export type Method = "stick-framed" | "3d-print" | "hex-panel";
+export type PrintMaterial = "cement" | "composite";
+export type FrameMaterial = "wood" | "steel" | "aluminum";
+export type RoofType = "gable" | "hip" | "flat" | "hex-dome";
+
+export interface BuildOption { method: Method; printMaterial: PrintMaterial; frameMaterial: FrameMaterial; roof: RoofType; }
+
+export const METHODS: Record<Method, { label: string; short: string; blurb: string }> = {
+  "stick-framed": { label: "Stick-framed", short: "STICK", blurb: "Conventional dimensional-lumber (or metal) framing." },
+  "3d-print":     { label: "3D Print",     short: "3D PRINT", blurb: "Printed monolithic walls — fast shell, non-combustible, durable; material sets the strength/carbon." },
+  "hex-panel":    { label: "Hex-panel shell", short: "HEX PANEL", blurb: "Prefab geodesic hex panels bolted at hubs — the Eco-Sphere's native shell; fast dry assembly, aerodynamic (operator: \"Hex Panels for Shell of Eco-Sphere\")." },
 };
-const CEMENT_COST_FACTOR = 0.85;    // ICON: ~15% less (labor + speed) — illustrative ESTIMATE
-const CEMENT_MONTHS_FACTOR = 0.6;   // the printed shell goes up far faster
-/** Per-sim 0–5 shift when built 3D-printed cement — honest, both-sided (ESTIMATE). */
-const CEMENT_DELTA: Partial<Record<SimName, number>> = {
-  Structural: +0.7, Wind: +0.5, Fire: +1.0, Thermal: +0.4,
-  Lifecycle: +0.2,    // DURABILITY only — cement's cost saving already reaches Lifecycle via the framing-aware `afford` driver (no double-count — Thoth)
-  Earthquake: -0.3,   // more mass, less ductility
-  Carbon: -0.9,       // cement's EMBODIED carbon is high (the real trade-off, shown not hidden)
+/** Which construction methods each form offers — the Eco-Sphere dome is built with hex panels or printed cement (never
+ *  stick-framed); the rectilinear forms are stick-framed or printed. */
+export const METHODS_FOR: Record<FormId, Method[]> = {
+  "3x3-grid": ["stick-framed", "3d-print"],
+  "tiny":     ["stick-framed", "3d-print"],
+  "eco-sphere": ["hex-panel", "3d-print"],
 };
-const applyFraming = (stickCost: number, stickMonths: number, f: Framing) =>
-  f === "3d-printed-cement"
-    ? { costUsd: Math.round((stickCost * CEMENT_COST_FACTOR) / 1000) * 1000, buildMonths: Math.max(1, Math.round(stickMonths * CEMENT_MONTHS_FACTOR)) }
-    : { costUsd: stickCost, buildMonths: stickMonths };
+/** The hex-panel shell's FRAMING-element cost multiplier (prefab panels — a modest saving over stick). */
+const HEX_PANEL_COST_FACTOR = 0.90;
+/** 3D-Print materials (operator: "Cement, composite, and future selections of varying strengths"). costFactor applies
+ *  to the FRAMING element only (printing replaces framing labour); carbonStar shifts the headline carbon. ESTIMATE. */
+export const PRINT_MATERIALS: Record<PrintMaterial, { label: string; short: string; blurb: string; costFactor: number; carbonStar: number; strength: string }> = {
+  cement:    { label: "Cement",    short: "CEMENT",    blurb: "Monolithic printed cement — very strong, non-combustible; high embodied carbon.", costFactor: 0.70, carbonStar: -1, strength: "~6 ksi compressive (vendor) vs 2–3.5 ksi standard" },
+  composite: { label: "Composite", short: "COMPOSITE", blurb: "Printed polymer-mineral composite — ~5× stronger, ~30% lighter, ~50% less embodied carbon than cement (vendor).", costFactor: 0.85, carbonStar: 0, strength: "~5× stronger, ~30% lighter than cement (vendor)" },
+};
+/** Future print materials — shown DISABLED in the dropdown so the "more coming" the operator asked for is visible. */
+export const FUTURE_PRINT_MATERIALS: { label: string; note: string }[] = [
+  { label: "Geopolymer", note: "low-carbon cement alternative — coming" },
+  { label: "Hempcrete", note: "carbon-negative infill — coming" },
+];
+/** Stick-frame materials (operator: "Framing wood vs steel and other aluminum and other frame options"). costFactor
+ *  applies to the FRAMING element; the frame also nudges a few sims (strength / seismic / corrosion / carbon). */
+export const FRAME_MATERIALS: Record<FrameMaterial, { label: string; short: string; blurb: string; costFactor: number; spec: string }> = {
+  wood:     { label: "Wood",     short: "WOOD",  blurb: "Dimensional lumber — lowest cost, ductile, fast to raise; the default.", costFactor: 1.0,  spec: "2×4 / 2×6 studs @16\" o.c., double top plate" },
+  steel:    { label: "Steel",    short: "STEEL", blurb: "Light-gauge steel — 30–50% lighter & stronger, non-combustible; pricier, needs thermal breaks.", costFactor: 1.15, spec: "16–18 ga steel studs @16\" o.c." },
+  aluminum: { label: "Aluminum", short: "ALUM",  blurb: "Aluminum frame — corrosion-resistant, lightest; highest cost, specialty crews.", costFactor: 1.45, spec: "aluminium extrusions, bolted connections" },
+};
+/** Roof types (operator: "different roof options for Cube, Tiny Home, 3D Print" + "show HEX roof"). costFactor applies
+ *  to the ROOFING element; windDelta/thermalDelta nudge those two sims. */
+export const ROOFS: Record<RoofType, { label: string; short: string; blurb: string; costFactor: number; windDelta: number; thermalDelta: number }> = {
+  gable:      { label: "Gable",          short: "GABLE", blurb: "Pitched twin-slope — sheds water, simple, vented attic.", costFactor: 1.0,  windDelta: 0,    thermalDelta: 0 },
+  hip:        { label: "Hip",            short: "HIP",   blurb: "Four-slope — best wind resistance of the pitched roofs; more framing.", costFactor: 1.12, windDelta: +0.4, thermalDelta: 0 },
+  flat:       { label: "Flat / shed",    short: "FLAT",  blurb: "Low-slope membrane (TPO/EPDM) — cheapest, roof-deck ready; needs good drainage.", costFactor: 0.9, windDelta: -0.2, thermalDelta: -0.1 },
+  "hex-dome": { label: "Hex-panel dome", short: "HEX DOME", blurb: "Geodesic hex panels — aerodynamic, self-draining dome shell; waterproofing is the key risk.", costFactor: 1.25, windDelta: +0.6, thermalDelta: +0.3 },
+};
+/** Which roofs each form offers (the hex dome is the Eco-Sphere's integral roof). */
+export const ROOFS_FOR: Record<FormId, RoofType[]> = {
+  "3x3-grid": ["gable", "hip", "flat"],
+  "tiny":     ["gable", "flat"],
+  "eco-sphere": ["hex-dome"],
+};
 
 export type Basis = "DERIVED" | "ASSUMED";
 export interface SimModel {
-  id: string;
+  id: FormId;
   label: string;
   form: string;            // the build form (how it is put together)
-  areaFt2: number;         // all three = 900 (same home, three forms)
-  rooms: number;           // the form's room/hex count (Cube/Tiny 9, Eco 7 hexes)
-  layoutLabel: string;     // the honest room voice for the card so card ⇄ environment agree (Aset): e.g. "7 hex · 9 rooms"
-  framing: Framing;        // the NATIVE construction method
-  cementNative: boolean;   // the hex is natively cement-printable
-  stickCostUsd: number;    // cost at stick framing (the baseline the cement factor applies to)
-  stickMonths: number;     // build time at stick framing
-  costUsd: number;         // cost at the NATIVE framing (what the card shows)
-  buildMonths: number;     // build time at the NATIVE framing
-  energyScore: number;     // 1..5 (higher = more efficient envelope) — a DESIGN ASSUMPTION, not derived
-  carbonScore: number;     // 1..5 (higher = lower OPERATING carbon) — a DESIGN ASSUMPTION, not derived
-  basis: Basis;            // DERIVED = from the estimate engine; ASSUMED = parametric
+  areaFt2: number;         // Cube/Eco 900; Tiny a real standard 340
+  rooms: number;           // the form's room/zone count
+  layoutLabel: string;     // the honest room voice for the card so card ⇄ environment agree (Aset)
+  native: BuildOption;     // the option the card opens with
+  stickMonths: number;     // base build months at stick framing (the total the method/area factors apply to)
+  energyScore: number;     // 1..5 (higher = more efficient envelope) — a DESIGN ASSUMPTION
+  carbonScore: number;     // 1..5 (higher = lower OPERATING carbon) — a DESIGN ASSUMPTION
+  basis: Basis;            // DERIVED = engine; ASSUMED = parametric
   note: string;
 }
 
-// ── the canonical baseline, DERIVED from the estimate engine (one source of truth) ──────────────────────────────
-const BASE_COST = DEFAULT_SECTIONS.reduce((s, w) => s + w.costUsd, 0);                 // $440,000 (the Cube, DERIVED)
-const BASE_AREA = 900;                                                                 // every form = the same 900 ft²
-
-const mk = (stickCost: number, stickMonths: number, framing: Framing): Pick<SimModel, "stickCostUsd" | "stickMonths" | "framing" | "costUsd" | "buildMonths"> => {
-  const nat = applyFraming(stickCost, stickMonths, framing);
-  return { stickCostUsd: stickCost, stickMonths, framing, costUsd: nat.costUsd, buildMonths: nat.buildMonths };
-};
-
 export const SIM_MODELS: SimModel[] = [
   {
-    // operator's word for the 3×3 Grid is "Cube" — the standard, all nine rooms on a 3×3
-    id: "3x3-grid", label: "Cube", form: "3×3 grid · 9 rooms · stick-framed", areaFt2: BASE_AREA, rooms: 9, layoutLabel: "9 rooms",
-    cementNative: false, ...mk(BASE_COST, 7, "stick-framed"), energyScore: 3, carbonScore: 3, basis: "DERIVED",
-    note: "The standard home — the nine rooms on a 3×3 grid; cost DERIVED from the estimate engine (DEFAULT_SECTIONS).",
+    id: "3x3-grid", label: "Cube", form: "3×3 grid · 9 rooms · 900 ft²", areaFt2: 900, rooms: 9, layoutLabel: "9 rooms",
+    native: { method: "stick-framed", printMaterial: "cement", frameMaterial: "wood", roof: "gable" },
+    stickMonths: 7, energyScore: 3, carbonScore: 3, basis: "DERIVED",
+    note: "The standard home — nine rooms on a 3×3 grid; cost DERIVED from the estimate engine (DEFAULT_SECTIONS).",
   },
   {
-    id: "tiny", label: "Tiny Home", form: "open single-volume · same 900 ft²", areaFt2: BASE_AREA, rooms: 9, layoutLabel: "9 rooms · open",
-    cementNative: false, ...mk(388000, 5, "stick-framed"), energyScore: 4, carbonScore: 4, basis: "ASSUMED",
-    note: "The same nine rooms' furniture in an OPEN 900 ft² plan (fewer interior walls → faster) — ASSUMED, parametric.",
+    id: "tiny", label: "Tiny Home", form: "8.5 × 40 ft · standard THOW", areaFt2: 340, rooms: 5, layoutLabel: "8.5×40 ft · ~340 ft²",
+    native: { method: "stick-framed", printMaterial: "cement", frameMaterial: "wood", roof: "gable" },
+    stickMonths: 3, energyScore: 4, carbonScore: 4, basis: "ASSUMED",
+    note: "A real standard tiny home on a trailer — 8.5×40 ft (~340 ft²) with a realistic THOW layout; ASSUMED, parametric.",
   },
   {
-    id: "eco-sphere", label: "Eco-Sphere", form: "7 hexagons · hex dome · 3D cement print", areaFt2: BASE_AREA, rooms: 7, layoutLabel: "7 hex · 9 rooms",
-    cementNative: true, ...mk(492000, 7, "3d-printed-cement"), energyScore: 5, carbonScore: 5, basis: "ASSUMED",
-    note: "The same furniture across 7 hexagons (1 centre + 6) under a hex dome, natively 3D-printed cement — ASSUMED, parametric.",
+    id: "eco-sphere", label: "Eco-Sphere", form: "7 hexagons · hex-panel dome · 900 ft²", areaFt2: 900, rooms: 7, layoutLabel: "7 hex · 9 rooms",
+    native: { method: "hex-panel", printMaterial: "cement", frameMaterial: "wood", roof: "hex-dome" },
+    stickMonths: 7, energyScore: 5, carbonScore: 5, basis: "ASSUMED",
+    note: "Nine rooms' furniture across 7 hexagons (1 centre + 6) under a hex-panel dome; convertible to a 3D-printed cement shell — ASSUMED, parametric.",
   },
 ];
 
 export const modelById = (id: string | null | undefined): SimModel | null => SIM_MODELS.find((m) => m.id === id) ?? null;
+/** The build option for a model, with optional overrides merged over its native option. */
+export function optFor(m: SimModel, override?: Partial<BuildOption>): BuildOption { return { ...m.native, ...(override ?? {}) }; }
 
-/** Cost / build-time of a model at a given framing (the toggle recomputes from the stick baseline). */
-export function costFor(m: SimModel, framing: Framing): number { return applyFraming(m.stickCostUsd, m.stickMonths, framing).costUsd; }
-export function monthsFor(m: SimModel, framing: Framing): number { return applyFraming(m.stickCostUsd, m.stickMonths, framing).buildMonths; }
-/** Headline (envelope + embodied) carbon score 1..5 at a framing — 3D cement print costs a star for embodied carbon, so
- *  the card stars + COMPARE Carbon move when you convert to cement (the number a carbon interviewer scrutinises — Thor). */
-export function carbonFor(m: SimModel, framing: Framing): number {
-  return framing === "3d-printed-cement" ? Math.max(1, Math.min(5, m.carbonScore - 1)) : m.carbonScore;
+// ── the ONE cost engine — every cost derives from DEFAULT_SECTIONS, area-scaled + option-adjusted ───────────────────
+const SECTION = (id: string): number => DEFAULT_SECTIONS.find((s) => s.id === id)?.costUsd ?? 0;
+const ALL_SECTION_IDS = DEFAULT_SECTIONS.map((s) => s.id);
+const BASE_COST = DEFAULT_SECTIONS.reduce((s, w) => s + w.costUsd, 0);   // $440,000 (the Cube at native option)
+
+// the six MAJOR elements the operator asked to compare, mapped 1:1 to the engine's work sections
+export const ELEMENTS = ["Foundation", "Framing", "Electrical", "Plumbing", "HVAC", "Roofing"] as const;
+export type ElementName = (typeof ELEMENTS)[number];
+const ELEMENT_SECTION: Record<ElementName, string> = { Foundation: "found", Framing: "frame", Electrical: "elec", Plumbing: "plumb", HVAC: "hvac", Roofing: "roof" };
+
+/** Area scale with a fixed-cost floor (a small home never costs zero to build): 0.30 + 0.70 × (ft²/900). Cube = 1.0. */
+const areaFactor = (m: SimModel): number => 0.30 + 0.70 * (m.areaFt2 / 900);
+/** The FRAMING-element cost multiplier for an option: the print material (3D Print), the hex-panel factor, or the frame material (stick). */
+export function framingFactor(opt: BuildOption): number {
+  if (opt.method === "3d-print") return PRINT_MATERIALS[opt.printMaterial].costFactor;
+  if (opt.method === "hex-panel") return HEX_PANEL_COST_FACTOR;
+  return FRAME_MATERIALS[opt.frameMaterial].costFactor;
+}
+/** One engine section's cost for a model at an option — area-scaled, Framing × the method factor, Roofing × the roof factor. */
+function sectionCostRaw(m: SimModel, sectionId: string, opt: BuildOption): number {
+  let c = SECTION(sectionId) * areaFactor(m);
+  if (sectionId === "frame") c *= framingFactor(opt);
+  if (sectionId === "roof") c *= ROOFS[opt.roof].costFactor;
+  return c;
+}
+/** The full-build cost for a model at an option (all ten engine sections). Cube @ native = exactly $440,000. */
+export function costFor(m: SimModel, opt: BuildOption): number {
+  const total = ALL_SECTION_IDS.reduce((s, id) => s + sectionCostRaw(m, id, opt), 0);
+  return Math.round(total / 1000) * 1000;
+}
+/** Build time (months) for a model at an option — 3D Print collapses the shell (cement ×0.6, composite ×0.55); the
+ *  prefab hex-panel shell assembles fast too (×0.7); stick framing is the ×1.0 baseline. */
+function methodMonthsFactor(opt: BuildOption): number {
+  if (opt.method === "3d-print") return opt.printMaterial === "composite" ? 0.55 : 0.6;
+  if (opt.method === "hex-panel") return 0.7;
+  return 1.0;
+}
+export function monthsFor(m: SimModel, opt: BuildOption): number { return Math.max(1, Math.round(m.stickMonths * methodMonthsFactor(opt))); }
+
+// ── cost BY ELEMENT (operator: "Show cost of key elements: Foundation, Electrical, Plumbing, Framing, HVAC, Roofing") ─
+export interface ElementCost { element: ElementName; usd: number; }
+/** The six major elements priced from the SAME engine sections as the card cost (so they reconcile). */
+export function elementCosts(m: SimModel, opt: BuildOption): ElementCost[] {
+  return ELEMENTS.map((el) => ({ element: el, usd: Math.round(sectionCostRaw(m, ELEMENT_SECTION[el], opt) / 100) * 100 }));
+}
+export function elementSubtotal(m: SimModel, opt: BuildOption): number { return elementCosts(m, opt).reduce((s, e) => s + e.usd, 0); }
+
+/** Headline (envelope + embodied) carbon score 1..5 at an option — 3D-Print cement & aluminium frame cost a star for
+ *  embodied carbon (the trade-off a carbon interviewer scrutinises — Thor); composite / steel / wood do not. */
+export function carbonFor(m: SimModel, opt: BuildOption): number {
+  const penalty = opt.method === "3d-print"
+    ? PRINT_MATERIALS[opt.printMaterial].carbonStar
+    : opt.method === "hex-panel" ? 0                 // prefab hex panels — no embodied-carbon penalty
+    : opt.frameMaterial === "aluminum" ? -1 : 0;     // aluminium = high embodied carbon
+  return Math.max(1, Math.min(5, Math.round(m.carbonScore + penalty)));
 }
 
-// ── COMPARE ALL — rank by each headline metric at each form's NATIVE framing; flag the winner ──────────────────
+// ── COMPARE ALL — rank by each headline metric at each form's CURRENT option; flag the winner ──────────────────────
 export interface MetricRank { metric: string; unit: string; lowerIsBetter: boolean; winnerId: string; values: { id: string; value: number }[]; }
-export function compareModels(models: SimModel[] = SIM_MODELS, framingBy?: Record<string, Framing>): MetricRank[] {
-  const fr = (m: SimModel): Framing => framingBy?.[m.id] ?? m.framing;   // FRAMING-AWARE — the cement toggle reaches COMPARE
+export function compareModels(models: SimModel[] = SIM_MODELS, optsBy?: Record<string, BuildOption>): MetricRank[] {
+  const op = (m: SimModel): BuildOption => optsBy?.[m.id] ?? m.native;   // OPTION-AWARE — the dropdowns reach COMPARE
   const metric = (name: string, unit: string, lowerIsBetter: boolean, pick: (m: SimModel) => number): MetricRank => {
     const values = models.map((m) => ({ id: m.id, value: pick(m) }));
     const best = values.reduce((a, b) => (lowerIsBetter ? (b.value < a.value ? b : a) : (b.value > a.value ? b : a)));
     return { metric: name, unit, lowerIsBetter, winnerId: best.id, values };
   };
   return [
-    metric("Cost", "USD", true, (m) => costFor(m, fr(m))),
-    metric("Build time", "months", true, (m) => monthsFor(m, fr(m))),
+    metric("Cost", "USD", true, (m) => costFor(m, op(m))),
+    metric("Build time", "months", true, (m) => monthsFor(m, op(m))),
     metric("Energy", "score", false, (m) => m.energyScore),
-    metric("Carbon", "score", false, (m) => carbonFor(m, fr(m))),   // FRAMING-AWARE — cement's embodied-carbon penalty reaches the headline (Thor)
+    metric("Carbon", "score", false, (m) => carbonFor(m, op(m))),
   ];
 }
 
 // ── the per-sim 0–5 scoring (deterministic, principled — a DESIGN PREVIEW, not an engineering result) ────────────
-// No hash, no nudge: a pure weighted blend of the model's attribute drivers (+ an honest cement shift), so a build
-// winner is decided only by design merit — no hash and no random ever decides a winner (Sofia's law). An exact tie
-// (rare, with one-decimal scores) resolves deterministically to the first-listed form; the winner is a preview, not a quote.
 const clamp = (n: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, n));
 
 type DriverKey = "env" | "carb" | "compact" | "spacious" | "conv" | "curved" | "afford";
-function drivers(m: SimModel, fr: Framing): Record<DriverKey, number> {
+function drivers(m: SimModel, opt: BuildOption): Record<DriverKey, number> {
   return {
-    env: m.energyScore,                                  // envelope efficiency 1..5 (ASSUMED)
-    carb: m.carbonScore,                                 // operating-carbon performance 1..5 (ASSUMED)
-    compact: clamp(6 - m.areaFt2 / 200, 1, 5),           // smaller footprint → higher (all 900 here → same)
+    env: m.energyScore,
+    carb: m.carbonScore,
+    compact: clamp(6 - m.areaFt2 / 200, 1, 5),           // smaller footprint → higher (Tiny leads)
     spacious: clamp(m.areaFt2 / 200, 1, 5),              // more area → higher (ADA clearances)
-    conv: m.id === "3x3-grid" ? 5 : m.id === "tiny" ? 4 : 2,   // rectilinear/stick-framed = most code-conventional
+    conv: m.id === "3x3-grid" ? 5 : m.id === "tiny" ? 4 : 2,   // rectilinear = most code-conventional
     curved: m.id === "eco-sphere" ? 5 : m.id === "tiny" ? 3 : 2, // aerodynamic/curved dome resilience
-    afford: clamp(6 - costFor(m, fr) / 110000, 1, 5),    // cheaper → higher — FRAMING-AWARE (cement's cost saving reaches the scores)
+    afford: clamp(6 - costFor(m, opt) / 110000, 1, 5),   // cheaper → higher — OPTION-AWARE
   };
 }
 
@@ -156,68 +230,106 @@ const SIM_WEIGHTS: Record<SimName, Partial<Record<DriverKey, number>>> = {
   "Lifecycle":     { afford: 0.4, env: 0.3, carb: 0.3 },
 };
 
-function rawScore(m: SimModel, sim: SimName, fr: Framing): number {
-  const d = drivers(m, fr);
+function rawScore(m: SimModel, sim: SimName, opt: BuildOption): number {
+  const d = drivers(m, opt);
   const w = SIM_WEIGHTS[sim];
   let s = 0;
   (Object.keys(w) as DriverKey[]).forEach((k) => { s += d[k] * (w[k] as number); });
-  return s;   // unclamped; the cement shift + clamp happen in simResult
+  return s;
 }
 
-// ── detailed per-sim metrics (2 each, deterministic, labelled ESTIMATE) — exhaustive Record so a new sim can't ship
-//    a score with no backing metrics (Odin) ──────────────────────────────────────────────────────────────────────
+/** The method + material per-sim shift (honest, both-sided). 3D Print: cement = strength/fire/durability ↑, mass → seismic
+ *  ↓, embodied carbon ↓↓; composite = stronger + lighter (seismic ↑), far less carbon penalty. Stick: steel/aluminium add
+ *  structural/seismic/corrosion but cost embodied carbon. DURABILITY only on Lifecycle (cost already reaches it via `afford`). */
+function methodDelta(sim: SimName, opt: BuildOption): number {
+  if (opt.method === "3d-print") {
+    const cement = opt.printMaterial === "cement";
+    const d: Partial<Record<SimName, number>> = {
+      Structural: cement ? +0.7 : +0.9,
+      Wind: +0.5,
+      Fire: cement ? +1.0 : +0.7,
+      Thermal: cement ? +0.4 : +0.5,
+      Lifecycle: cement ? +0.2 : +0.3,
+      Earthquake: cement ? -0.3 : +0.2,
+      Carbon: cement ? -0.9 : -0.2,
+    };
+    return d[sim] ?? 0;
+  }
+  if (opt.method === "hex-panel") {
+    // prefab geodesic hex-panel shell — aerodynamic, light, well-sealed; honest both-sided (good wind/thermal, light seismic)
+    const d: Partial<Record<SimName, number>> = {
+      Structural: +0.5, Wind: +0.6, Thermal: +0.4, Earthquake: +0.3, Lifecycle: +0.2, Carbon: -0.1,
+    };
+    return d[sim] ?? 0;
+  }
+  const steel = opt.frameMaterial === "steel", alum = opt.frameMaterial === "aluminum";
+  const d: Partial<Record<SimName, number>> = {
+    Structural: steel ? +0.4 : alum ? +0.3 : 0,
+    Earthquake: alum ? +0.4 : steel ? +0.2 : 0,   // lighter frame → better seismic
+    Fire: steel ? +0.3 : alum ? +0.1 : 0,          // steel non-combustible
+    Flood: alum ? +0.3 : 0,                        // aluminium corrosion-resistant
+    Lifecycle: alum ? +0.3 : steel ? +0.1 : 0,
+    Carbon: alum ? -0.4 : steel ? -0.2 : 0,        // higher embodied carbon
+  };
+  return d[sim] ?? 0;
+}
+/** The roof's per-sim shift — Wind + Thermal only (the hex dome is aerodynamic + well-insulated; flat roofs lose a little). */
+function roofDelta(sim: SimName, opt: BuildOption): number {
+  if (sim === "Wind") return ROOFS[opt.roof].windDelta;
+  if (sim === "Thermal") return ROOFS[opt.roof].thermalDelta;
+  return 0;
+}
+
+// ── detailed per-sim metrics (2 each, deterministic, labelled ESTIMATE) — exhaustive Record (Odin) ──────────────────
 export interface SimMetric { label: string; value: string; }
 const num = (x: number, digits = 0): string => x.toLocaleString("en-US", { maximumFractionDigits: digits });
 
-const METRICS: Record<SimName, (m: SimModel, d: Record<DriverKey, number>, cement: boolean, fr: Framing) => SimMetric[]> = {
-  "Structural":    (m, d, c) => [{ label: "Load margin", value: `${num(20 + d.conv * 8 + d.curved * 4 + (c ? 15 : 0))}%` }, { label: "Wall system", value: c ? "cement (monolithic)" : "stick-framed" }],
-  "Wind":          (m, d, c) => [{ label: "Design wind", value: `${num(100 + d.curved * 8 + (c ? 15 : 0))} mph` }, { label: "Uplift margin", value: `${num(10 + d.curved * 10)}%` }],
-  "Flood":         (m, d) => [{ label: "Freeboard", value: `${num(1 + d.compact * 0.4, 1)} ft` }, { label: "FFE margin", value: `${num(d.compact * 0.3, 1)} ft` }],
-  "Fire":          (m, d, c) => [{ label: "Egress time", value: `${num(120 - d.compact * 10 - d.conv * 5)} s` }, { label: "Wall rating", value: c ? "non-combustible" : `${num(20 + d.conv * 8)} min` }],
-  "Earthquake":    (m, d, c) => [{ label: "Drift ratio", value: `${num(2.4 - d.curved * 0.25, 2)}%` }, { label: "System", value: c ? "mass (ductility ↓)" : `ductility ${num(d.curved, 1)}/5` }],
-  "Thermal":       (m, _d, c) => [{ label: "Envelope", value: `R-${num(13 + m.energyScore * 6 + (c ? 4 : 0))}` }, { label: "Mass", value: c ? "high (cement)" : `${m.energyScore}/5 (assumed)` }],
-  "Solar":         (m) => { const roof = Math.round(m.areaFt2 * (m.id === "eco-sphere" ? 0.6 : m.id === "tiny" ? 0.4 : 0.5)); return [{ label: "Roof solar area", value: `${num(roof)} ft²` }, { label: "Annual yield", value: `${num(roof * 15)} kWh` }]; },
-  "Water Flow":    (m, d) => [{ label: "Peak demand", value: `${num(9 * 2.5, 1)} GPM` }, { label: "Pressure margin", value: `${num(10 + d.conv * 4)} psi` }],   // fixtures are CONSERVED (same 9-room home), so peak demand is identical across forms — count rooms (9), not hexes (Aset)
-  "HVAC":          (m) => { const tons = m.areaFt2 / (400 + m.energyScore * 60); return [{ label: "Cooling load", value: `${num(tons, 1)} tons` }, { label: "Design SEER", value: `${num(13 + m.energyScore * 1.5, 1)}` }]; },
+const METRICS: Record<SimName, (m: SimModel, d: Record<DriverKey, number>, opt: BuildOption) => SimMetric[]> = {
+  "Structural":    (m, d, o) => { const printed = o.method === "3d-print"; return [{ label: "Load margin", value: `${num(20 + d.conv * 8 + d.curved * 4 + (printed ? 15 : o.frameMaterial === "steel" ? 8 : 0))}%` }, { label: "Wall system", value: printed ? `printed ${PRINT_MATERIALS[o.printMaterial].label.toLowerCase()}` : `stick · ${FRAME_MATERIALS[o.frameMaterial].label.toLowerCase()}` }]; },
+  "Wind":          (m, d, o) => [{ label: "Design wind", value: `${num(100 + d.curved * 8 + (o.method === "3d-print" ? 15 : 0) + ROOFS[o.roof].windDelta * 10)} mph` }, { label: "Roof", value: ROOFS[o.roof].label }],
+  "Flood":         (m, d, o) => [{ label: "Freeboard", value: `${num(1 + d.compact * 0.4, 1)} ft` }, { label: "Frame", value: o.method === "3d-print" ? "printed (no stud rot)" : o.frameMaterial === "aluminum" ? "aluminium (corrosion ✓)" : o.frameMaterial } ],
+  "Fire":          (m, d, o) => [{ label: "Egress time", value: `${num(120 - d.compact * 10 - d.conv * 5)} s` }, { label: "Wall rating", value: o.method === "3d-print" ? "non-combustible" : o.frameMaterial === "steel" ? "non-combustible (steel)" : `${num(20 + d.conv * 8)} min` }],
+  "Earthquake":    (m, d, o) => { const heavy = o.method === "3d-print" && o.printMaterial === "cement"; return [{ label: "Drift ratio", value: `${num(2.4 - d.curved * 0.25, 2)}%` }, { label: "System", value: heavy ? "mass (ductility ↓)" : o.method === "3d-print" ? "composite (light)" : `ductility ${num(d.curved, 1)}/5` }]; },
+  "Thermal":       (m, _d, o) => [{ label: "Envelope", value: `R-${num(13 + m.energyScore * 6 + (o.method === "3d-print" ? 4 : 0) + ROOFS[o.roof].thermalDelta * 6)}` }, { label: "Mass", value: o.method === "3d-print" ? (o.printMaterial === "cement" ? "high (cement)" : "medium (composite)") : `${m.energyScore}/5 (assumed)` }],
+  "Solar":         (m, _d, o) => { const roof = Math.round(m.areaFt2 * (m.id === "eco-sphere" ? 0.6 : m.id === "tiny" ? 0.4 : 0.5)); return [{ label: "Roof solar area", value: `${num(roof)} ft²` }, { label: "Annual yield", value: `${num(roof * 15)} kWh` }]; },
+  "Water Flow":    (m, d) => [{ label: "Peak demand", value: `${num((m.id === "tiny" ? 5 : 9) * 2.5, 1)} GPM` }, { label: "Pressure margin", value: `${num(10 + d.conv * 4)} psi` }],
+  "HVAC":          (m) => { const tons = m.areaFt2 / (400 + m.energyScore * 60); return [{ label: "Cooling load", value: `${num(tons, 1)} tons` }, { label: "System", value: m.id === "tiny" ? "ductless mini-split" : "ducted (Manual J)" }]; },
   "Evacuation":    (m, d) => [{ label: "Egress travel", value: `${num(20 + m.areaFt2 * 0.03)} ft` }, { label: "Clear time", value: `${num(90 - d.compact * 8 - d.conv * 4)} s` }],
   "Accessibility": (m, d) => [{ label: "Turning radius", value: `${num(48 + d.spacious * 3)} in` }, { label: "Clear door", value: `${num(32 + d.spacious)} in` }],
-  "Carbon":        (m, _d, c) => { const operating = m.areaFt2 * (12 - m.energyScore * 1.5); const embodied = m.areaFt2 * (0.09 - m.carbonScore * 0.008) + (c ? m.areaFt2 * 0.03 : 0); return [{ label: "Embodied" + (c ? " (cement↑)" : " (assumed)"), value: `${num(embodied, 1)} tCO₂e` }, { label: "Operating", value: `${num(operating)} kg/yr` }]; },
-  "Lifecycle":     (m, _d, c, fr) => { const life = costFor(m, fr) * (1 + (6 - m.energyScore) * 0.08); return [{ label: "30-yr cost", value: `$${num(life)}` }, { label: "Durability", value: c ? "high (cement)" : `${num(5 - m.energyScore * 0.6, 1)}/5` }]; },
+  "Carbon":        (m, _d, o) => { const operating = m.areaFt2 * (12 - m.energyScore * 1.5); const embPenalty = o.method === "3d-print" ? (o.printMaterial === "cement" ? 0.03 : 0.012) : o.frameMaterial === "aluminum" ? 0.02 : 0; const embodied = m.areaFt2 * (0.09 - m.carbonScore * 0.008) + m.areaFt2 * embPenalty; const tag = o.method === "3d-print" ? (o.printMaterial === "cement" ? " (cement↑)" : " (composite)") : o.frameMaterial === "aluminum" ? " (alum↑)" : " (assumed)"; return [{ label: "Embodied" + tag, value: `${num(embodied, 1)} tCO₂e` }, { label: "Operating", value: `${num(operating)} kg/yr` }]; },
+  "Lifecycle":     (m, _d, o) => { const life = costFor(m, o) * (1 + (6 - m.energyScore) * 0.08); const dur = o.method === "3d-print" ? "high (printed)" : o.frameMaterial === "aluminum" ? "high (alum)" : o.frameMaterial === "steel" ? "high (steel)" : `${num(5 - m.energyScore * 0.6, 1)}/5`; return [{ label: "30-yr cost", value: `$${num(life)}` }, { label: "Durability", value: dur }]; },
 };
-function simMetrics(m: SimModel, sim: SimName, cement: boolean, fr: Framing): SimMetric[] { return METRICS[sim](m, drivers(m, fr), cement, fr); }
+function simMetrics(m: SimModel, sim: SimName, opt: BuildOption): SimMetric[] { return METRICS[sim](m, drivers(m, opt), opt); }
 
 export type SimStatus = "PASS" | "WATCH";
-/** A per-sim ESTIMATE on one model at a framing: a 0–5 initial score (+ star rounding), a status, and detailed metrics. */
+/** A per-sim ESTIMATE on one model at an option: a 0–5 initial score (+ star rounding), a status, and detailed metrics. */
 export interface SimResult { sim: SimName; score: number; stars: number; status: SimStatus; metrics: SimMetric[]; }
-export function simResult(modelId: string, sim: SimName, framing?: Framing): SimResult {
+export function simResult(modelId: string, sim: SimName, opt?: BuildOption): SimResult {
   const m = modelById(modelId);
   if (!m) return { sim, score: 0, stars: 0, status: "WATCH", metrics: [] };
-  const fr = framing ?? m.framing;
-  const cement = fr === "3d-printed-cement";
-  const raw = rawScore(m, sim, fr) + (cement ? (CEMENT_DELTA[sim] ?? 0) : 0);
-  const score = Math.round(clamp(raw, 0, 5) * 10) / 10;       // 0.0 .. 5.0, one decimal, deterministic
-  return { sim, score, stars: Math.round(score), status: score >= 3 ? "PASS" : "WATCH", metrics: simMetrics(m, sim, cement, fr) };
+  const o = opt ?? m.native;
+  const raw = rawScore(m, sim, o) + methodDelta(sim, o) + roofDelta(sim, o);
+  const score = Math.round(clamp(raw, 0, 5) * 10) / 10;
+  return { sim, score, stars: Math.round(score), status: score >= 3 ? "PASS" : "WATCH", metrics: simMetrics(m, sim, o) };
 }
 
-/** Run the WHOLE original battery on a model at a framing (defaults to the model's native framing). */
-export function runBattery(modelId: string, framing?: Framing): SimResult[] { return SIMS.map((s) => simResult(modelId, s, framing)); }
+/** Run the WHOLE original battery on a model at an option (defaults to the model's native option). */
+export function runBattery(modelId: string, opt?: BuildOption): SimResult[] { return SIMS.map((s) => simResult(modelId, s, opt)); }
 
 /** A model's average 0–5 across the 13 sims — the single-number "simulation readiness" for the summary ranking. */
-export function overallScore(modelId: string, framing?: Framing): number {
-  const b = runBattery(modelId, framing);
+export function overallScore(modelId: string, opt?: BuildOption): number {
+  const b = runBattery(modelId, opt);
   if (!b.length) return 0;
   return Math.round((b.reduce((s, r) => s + r.score, 0) / b.length) * 10) / 10;
 }
 
-// ── the SIDE-BY-SIDE matrix: 13 rows × 3 models (each at its own native framing unless one is forced), per-row winner ──
+// ── the SIDE-BY-SIDE matrix: 13 rows × 3 models (each at its own current option), per-row winner ────────────────────
 export interface SimMatrixCell { modelId: string; label: string; score: number; stars: number; status: SimStatus; metrics: SimMetric[]; }
 export interface SimMatrixRow { sim: SimName; cells: SimMatrixCell[]; winnerId: string; }
-export function simMatrix(models: SimModel[] = SIM_MODELS, framingBy?: Record<string, Framing>): SimMatrixRow[] {
-  // ONE matrix path — the component consumes this (no inline re-implementation to drift from the gated one — Sofia).
-  // framingBy maps each model to its toggled framing; absent → each model at its native framing.
+export function simMatrix(models: SimModel[] = SIM_MODELS, optsBy?: Record<string, BuildOption>): SimMatrixRow[] {
   return SIMS.map((sim) => {
     const cells: SimMatrixCell[] = models.map((m) => {
-      const r = simResult(m.id, sim, framingBy?.[m.id]);
+      const r = simResult(m.id, sim, optsBy?.[m.id]);
       return { modelId: m.id, label: m.label, score: r.score, stars: r.stars, status: r.status, metrics: r.metrics };
     });
     const winner = cells.reduce((a, b) => (b.score > a.score ? b : a));
@@ -225,46 +337,40 @@ export function simMatrix(models: SimModel[] = SIM_MODELS, framingBy?: Record<st
   });
 }
 
-// ── TIME TO BUILD, BY PHASE (operator 2026-10-27: "so others can plug and play to our demo for design work to
-//    understand time to build framing electrical plumbing etc"). The build time split across the eight construction
-//    phases (DEV_PHASES, in build order). 3D cement print collapses the Framing phase (the printed shell goes up fast)
-//    and speeds Roofing, shifting the share to the MEP + finish phases — the visible payoff of printing a home. ──
-const PHASE_WEIGHTS: Record<Framing, Record<string, number>> = {
-  // each framing's share of the total build, summing to 1 across the eight phases
-  "stick-framed":      { foundation: 0.15, framing: 0.24, electrical: 0.14, plumbing: 0.12, sewer: 0.07, internet: 0.05, security: 0.05, roofing: 0.18 },
-  "3d-printed-cement": { foundation: 0.18, framing: 0.10, electrical: 0.16, plumbing: 0.14, sewer: 0.08, internet: 0.06, security: 0.06, roofing: 0.22 },
+// ── TIME TO BUILD, BY PHASE — the build split across the eight DEV_PHASES (in build order). 3D Print collapses the
+//    Framing phase (the printed shell goes up fast) and speeds Roofing, shifting share to MEP + finish. ──────────────
+const PHASE_WEIGHTS: Record<Method, Record<string, number>> = {
+  "stick-framed": { foundation: 0.15, framing: 0.24, electrical: 0.14, plumbing: 0.12, sewer: 0.07, internet: 0.05, security: 0.05, roofing: 0.18 },
+  "3d-print":     { foundation: 0.18, framing: 0.10, electrical: 0.16, plumbing: 0.14, sewer: 0.08, internet: 0.06, security: 0.06, roofing: 0.22 },
+  "hex-panel":    { foundation: 0.16, framing: 0.14, electrical: 0.15, plumbing: 0.13, sewer: 0.07, internet: 0.05, security: 0.05, roofing: 0.25 },
 };
-// per-FORM tweak so the hex dome's schedule reads differently from the rectilinear Cube (Pangu): the dome IS the
-// roof+wall (roofing heavier, framing lighter); the open plan frames fast. Added to the framing weights, then renormalized.
 const FORM_PHASE_TWEAK: Record<string, Record<string, number>> = {
   "eco-sphere": { roofing: +0.06, framing: -0.03, foundation: -0.03 },
   "tiny":       { framing: -0.04, electrical: +0.02, plumbing: +0.02 },
   "3x3-grid":   {},
 };
 export interface PhaseTime { id: string; label: string; color: string; weeks: number; }
-/** The build time split across the eight construction phases for a model at a framing (weeks per phase; the eight sum
+/** The build time split across the eight construction phases for a model at an option (weeks per phase; the eight sum
  *  EXACTLY to the rounded total — Sofia). Per-form weighting differentiates the hex dome from the Cube (Pangu). */
-export function phaseSchedule(modelId: string, framing?: Framing): PhaseTime[] {
+export function phaseSchedule(modelId: string, opt?: BuildOption): PhaseTime[] {
   const m = modelById(modelId);
   if (!m) return [];
-  const fr = framing ?? m.framing;
-  const totalWeeks = Math.round(monthsFor(m, fr) * 4.345 * 2) / 2;   // the total the bars must sum to (0.5-wk resolution)
+  const o = opt ?? m.native;
+  const totalWeeks = Math.round(monthsFor(m, o) * 4.345 * 2) / 2;
   const tweak = FORM_PHASE_TWEAK[m.id] ?? {};
-  const raw = DEV_PHASES.map((p) => Math.max(0, (PHASE_WEIGHTS[fr][p.id] ?? 0) + (tweak[p.id] ?? 0)));
+  const raw = DEV_PHASES.map((p) => Math.max(0, (PHASE_WEIGHTS[o.method][p.id] ?? 0) + (tweak[p.id] ?? 0)));
   const sumW = raw.reduce((s, x) => s + x, 0) || 1;
   const weeks = raw.map((x) => Math.round((totalWeeks * x / sumW) * 2) / 2);
-  // normalize the LAST phase to the remainder so the eight weeks sum EXACTLY to the shown total (Sofia)
   const drift = Math.round((totalWeeks - weeks.reduce((s, x) => s + x, 0)) * 2) / 2;
   weeks[weeks.length - 1] = Math.max(0, weeks[weeks.length - 1] + drift);
   return DEV_PHASES.map((p, i) => ({ id: p.id, label: p.label, color: p.color, weeks: weeks[i] }));
 }
 
-// ── one reconciled recommendation, not a per-axis scoreboard (Asar) — the balanced all-rounder across the 13 sims ──
+// ── one reconciled recommendation, not a per-axis scoreboard (Asar) — the top 13-sim average across the forms ────────
 export interface Recommendation { modelId: string; label: string; avg: number; reason: string; }
-export function recommendation(models: SimModel[] = SIM_MODELS, framingBy?: Record<string, Framing>): Recommendation {
-  const fr = (m: SimModel): Framing => framingBy?.[m.id] ?? m.framing;
-  // sorted so we can disclose the runner-up MARGIN (how thin the win is — Athena) and the winner's BASIS (Asar)
-  const scored = models.map((m) => ({ m, s: overallScore(m.id, fr(m)) })).sort((a, b) => b.s - a.s);
+export function recommendation(models: SimModel[] = SIM_MODELS, optsBy?: Record<string, BuildOption>): Recommendation {
+  const op = (m: SimModel): BuildOption => optsBy?.[m.id] ?? m.native;
+  const scored = models.map((m) => ({ m, s: overallScore(m.id, op(m)) })).sort((a, b) => b.s - a.s);
   const best = scored[0].m, avg = scored[0].s;
   const runner = scored[1];
   const margin = runner ? Math.round((avg - runner.s) * 10) / 10 : avg;
@@ -272,7 +378,6 @@ export function recommendation(models: SimModel[] = SIM_MODELS, framingBy?: Reco
   const marginNote = runner ? ` · +${margin.toFixed(1)} over ${runner.m.label}${margin <= 0.1 ? " — a near-tie" : ""}` : "";
   return {
     modelId: best.id, label: best.label, avg,
-    // "top sim-average", NOT "balanced" — it ranks on the 13-sim mean only; cost/time are the separate metric rows (Asar)
     reason: `top 13-sim average (${avg.toFixed(1)}/5${marginNote}) · basis ${best.basis} — ${basisNote}. An estimate, not a quote.`,
   };
 }

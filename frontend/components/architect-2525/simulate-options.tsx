@@ -1,37 +1,46 @@
 "use client";
 
 /**
- * ARCHITECT-2525 · SIMULATE — ALTERNATIVE DESIGN OPTIONS (operator 2026-10-25/27).
- * The SAME 900 ft² home, three ways — Cube (3×3) · Tiny Home (open) · Eco-Sphere (7-hex dome) — all carrying the same
- * nine rooms + conserved furniture. Pressing a form's SIMULATE **creates that environment** (renders the real furnished
- * floor-plan mockup) AND runs the original 13-sim battery (0–5 + metrics). A framing toggle converts each form to
- * 3D-PRINTED CEMENT (the ICON hook; hex is native), re-costing + re-scoring honestly. The TEST MATRIX scores the
- * simulated forms side by side; COMPARE (once all three are simulated) gives one balanced pick.
+ * ARCHITECT-2525 · SIMULATE — ALTERNATIVE DESIGN OPTIONS (operator 2026-10-25/27/28).
+ * Three ways to build — Cube (3×3, 900 ft²) · Tiny Home (real 8.5×40 THOW ≈340 ft²) · Eco-Sphere (7-hex dome, 900 ft²).
+ * Pressing a form's SIMULATE **creates that environment** (the real furnished floor-plan mockup) AND runs the original
+ * 13-sim battery (0–5 + metrics). Each card carries the four build dimensions the operator asked for:
+ *   • method dropdown — Stick-framed / 3D Print / Hex-panel (the Eco's shell) — the ICON hook.
+ *   • material dropdown — 3D Print → Cement · Composite ("more coming"); Stick → Wood · Steel · Aluminum.
+ *   • roof dropdown — Gable · Hip · Flat (rectilinear) · Hex-panel dome (Eco).
+ *   • cost BY ELEMENT — Foundation · Framing · Electrical · Plumbing · HVAC · Roofing (the six major elements).
+ * Plus a per-form BUILD-INSTRUCTIONS plan and a four-path PROJECT TIMELINE (Cube · Tiny · Eco hex-panel · Eco 3D-print).
  *
- * ONE honest story: nothing is scored until you SIMULATE it (the button is the generator, not decorative). Cube cost is
- * DERIVED; Tiny + Eco ASSUMED; every result is a deterministic ESTIMATE/preview, not an engineering analysis.
+ * ONE honest story: nothing is scored until you SIMULATE it; every cost DERIVES from one engine so the element
+ * breakdown reconciles to the card total; Cube cost is engine-DERIVED, Tiny + Eco ASSUMED; all results are ESTIMATES.
  */
 import { useMemo, useState } from "react";
-import { SIM_MODELS, SIMS, FRAMING, carbonFor, compareModels, costFor, monthsFor, overallScore, phaseSchedule, recommendation, simMatrix, simResult, type Framing } from "@/lib/architect-sim-options";
+import {
+  SIM_MODELS, SIMS, METHODS, METHODS_FOR, PRINT_MATERIALS, FUTURE_PRINT_MATERIALS, FRAME_MATERIALS, ROOFS, ROOFS_FOR,
+  carbonFor, compareModels, costFor, elementCosts, elementSubtotal, monthsFor, optFor, overallScore, phaseSchedule,
+  recommendation, simMatrix, simResult, type BuildOption, type Method, type PrintMaterial, type FrameMaterial, type RoofType,
+} from "@/lib/architect-sim-options";
 import { SimEnvironmentView } from "./sim-environment-view";
+import { BuildInstructionsPanel, BuildTimelineCompare } from "./build-instructions";
 import { type FormId } from "@/lib/architect-sim-environment";
 import { TINY_ROOM_LAYOUT } from "@/lib/room-layout";
 
 const ROOM_LEGEND = TINY_ROOM_LAYOUT.map((r) => ({ k: r.k, label: r.label }));
 
-const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b", red: "#f87171", ground: "#070b12", cement: "#9aa7b4" };
+const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b", red: "#f87171", ground: "#070b12", cement: "#9aa7b4", composite: "#7fd4a8" };
 const usd = (n: number) => "$" + n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 const stars = (n: number) => "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
+const selectStyle = { background: C.ground, color: C.text, border: `1px solid ${C.border}`, borderRadius: 4, padding: "1px 4px", fontSize: 9 } as const;
 
-/** The tiny form glyph for the 70px matrix column heads (the big furnished mockups live in the cards). */
+/** The tiny form glyph for the matrix column heads (the big furnished mockups live in the cards). */
 function FormGlyph({ id, size = 26 }: { id: string; size?: number }) {
   const st = { width: size, height: size, display: "block" } as const;
   if (id === "tiny") {
     return (
       <svg viewBox="0 0 32 32" style={st} fill="none" stroke={C.cyan} strokeWidth={1.5} aria-hidden>
-        <path d="M6 15 L16 6 L26 15" vectorEffect="non-scaling-stroke" />
-        <rect x="8" y="15" width="16" height="12" vectorEffect="non-scaling-stroke" />
-        <rect x="13" y="19" width="6" height="8" stroke={C.violet} vectorEffect="non-scaling-stroke" />
+        <path d="M3 14 L9 9 L29 9 L29 23 L3 23 Z" vectorEffect="non-scaling-stroke" />
+        <line x1="3" y1="14" x2="29" y2="14" vectorEffect="non-scaling-stroke" />
+        <rect x="19" y="16" width="5" height="7" stroke={C.violet} vectorEffect="non-scaling-stroke" />
       </svg>
     );
   }
@@ -55,64 +64,67 @@ function FormGlyph({ id, size = 26 }: { id: string; size?: number }) {
 
 export function SimulateOptions() {
   const [simulated, setSimulated] = useState<Set<string>>(new Set());
-  const [framingBy, setFramingBy] = useState<Record<string, Framing>>(() => Object.fromEntries(SIM_MODELS.map((m) => [m.id, m.framing])) as Record<string, Framing>);
+  const [optsBy, setOptsBy] = useState<Record<string, BuildOption>>(() => Object.fromEntries(SIM_MODELS.map((m) => [m.id, optFor(m)])));
   const [compare, setCompare] = useState(false);
   const [openRows, setOpenRows] = useState<Set<string>>(new Set());
 
   const allSimulated = SIM_MODELS.every((m) => simulated.has(m.id));
-  const allCement = SIM_MODELS.every((m) => framingBy[m.id] === "3d-printed-cement");   // the "all 3D cement" compare mode
-  const applyFramingMode = (mode: "native" | "cement") => setFramingBy(Object.fromEntries(SIM_MODELS.map((m) => [m.id, mode === "cement" ? "3d-printed-cement" : m.framing])) as Record<string, Framing>);
-  const ranks = useMemo(() => compareModels(SIM_MODELS, framingBy), [framingBy]);
-  const rec = useMemo(() => recommendation(SIM_MODELS, framingBy), [framingBy]);
+  const allPrintedCement = SIM_MODELS.every((m) => optsBy[m.id]?.method === "3d-print" && optsBy[m.id]?.printMaterial === "cement");
+  const applyMode = (mode: "native" | "cement") => setOptsBy(Object.fromEntries(SIM_MODELS.map((m) =>
+    [m.id, mode === "cement" ? { ...optsBy[m.id], method: "3d-print" as Method, printMaterial: "cement" as PrintMaterial } : optFor(m)]
+  )));
+  const ranks = useMemo(() => compareModels(SIM_MODELS, optsBy), [optsBy]);
+  const rec = useMemo(() => recommendation(SIM_MODELS, optsBy), [optsBy]);
   const winnerOf = (metric: string) => ranks.find((r) => r.metric === metric)?.winnerId;
   const cols = `minmax(66px,1.1fr) repeat(${SIM_MODELS.length}, minmax(70px,1fr))`;
 
-  // matrix: scores per model at its CURRENT framing; a cell reads "—" until that model is simulated (one honest story)
   const matrix = useMemo(() => {
-    const allSim = SIM_MODELS.every((m) => simulated.has(m.id));   // the decision (✦) waits until all three exist (Athena)
-    // ONE matrix path — consume the exported + gated simMatrix (no inline re-implementation to drift — Sofia)
-    return simMatrix(SIM_MODELS, framingBy).map((rw) => ({ ...rw, winnerId: allSim ? rw.winnerId : null }));
-  }, [framingBy, simulated]);
+    const allSim = SIM_MODELS.every((m) => simulated.has(m.id));
+    return simMatrix(SIM_MODELS, optsBy).map((rw) => ({ ...rw, winnerId: allSim ? rw.winnerId : null }));
+  }, [optsBy, simulated]);
 
   const simulate = (id: string) => setSimulated((s) => new Set(s).add(id));
   const simulateAll = () => setSimulated(new Set(SIM_MODELS.map((m) => m.id)));
-  const setFraming = (id: string, f: Framing) => setFramingBy((s) => ({ ...s, [id]: f }));
+  const setOpt = (id: string, patch: Partial<BuildOption>) => setOptsBy((s) => ({ ...s, [id]: { ...s[id], ...patch } }));
   const toggleRow = (s: string) => setOpenRows((prev) => { const n = new Set(prev); if (n.has(s)) n.delete(s); else n.add(s); return n; });
 
   return (
     <div className="space-y-3" data-arch-sim-options>
       <div className="flex flex-wrap items-center gap-2">
         <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>SIMULATE · ALTERNATIVE DESIGN OPTIONS</div>
-        <span className="text-[9px]" style={{ color: C.dim }}>· the same 900 ft² home, three ways — press SIMULATE to build each environment + score it</span>
+        <span className="text-[9px]" style={{ color: C.dim }}>· Cube · Tiny Home · Eco-Sphere — press SIMULATE to build each environment + score it</span>
         {!allSimulated && (
           <button data-arch-sim-all onClick={simulateAll} className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.violet, color: C.violet, background: "#1a1030" }}>◉ SIMULATE ALL</button>
         )}
       </div>
 
-      {/* master framing mode — compare at each form's NATIVE method, or ALL as 3D cement print (Christo: flag mixed framing) */}
+      {/* master compare mode — each form's native method, or ALL as 3D-printed cement (Christo: flag mixed methods) */}
       <div className="flex flex-wrap items-center gap-1.5 text-[9px]">
         <span style={{ color: C.dim }}>Compare at</span>
-        {([["native", "NATIVE methods"], ["cement", "ALL 3D cement print"]] as const).map(([mode, lbl]) => {
-          const on = mode === "cement" ? allCement : !allCement;
+        {([["native", "NATIVE methods"], ["cement", "ALL 3D Print · cement"]] as const).map(([mode, lbl]) => {
+          const on = mode === "cement" ? allPrintedCement : !allPrintedCement;
           return (
-            <button key={mode} data-arch-sim-framing-mode={mode} onClick={() => applyFramingMode(mode)} className="rounded border px-1.5 py-0.5 font-semibold"
+            <button key={mode} data-arch-sim-method-mode={mode} onClick={() => applyMode(mode)} className="rounded border px-1.5 py-0.5 font-semibold"
               style={{ borderColor: on ? (mode === "cement" ? C.cement : C.cyan) : C.border, color: on ? (mode === "cement" ? C.cement : C.cyan) : C.dim, background: on ? "#0b1220" : "transparent" }}>{lbl}</button>
           );
         })}
-        <span style={{ color: C.dim }}>{allCement ? "· all three printed in cement" : "· Eco-Sphere prints in cement; Cube + Tiny stick-framed (their native methods)"}</span>
+        <span style={{ color: C.dim }}>{allPrintedCement ? "· all three printed in cement" : "· Eco-Sphere = hex-panel dome; Cube + Tiny stick-framed (native methods)"}</span>
       </div>
 
-      {/* 3 model cards — press SIMULATE to CREATE the environment + run the battery */}
+      {/* 3 model cards */}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         {SIM_MODELS.map((m) => {
-          const fr = framingBy[m.id];
+          const opt = optsBy[m.id];
           const isSim = simulated.has(m.id);
-          const cement = fr === "3d-printed-cement";
-          const results = isSim ? SIMS.map((s) => simResult(m.id, s, fr)) : [];
+          const printed = opt.method === "3d-print";
+          const results = isSim ? SIMS.map((s) => simResult(m.id, s, opt)) : [];
           const passed = results.filter((r) => r.status === "PASS").length;
-          const avg = overallScore(m.id, fr);
+          const avg = overallScore(m.id, opt);
           const basisCol = m.basis === "DERIVED" ? C.green : C.amber;
-          const open = openRows.has("card:" + m.id);
+          const cardTotal = costFor(m, opt);
+          const elems = elementCosts(m, opt);
+          const elemMax = Math.max(...elems.map((e) => e.usd));
+          const elemSub = elementSubtotal(m, opt);
           const row = (label: string, value: string, metric?: string) => {
             const win = !!metric && compare && allSimulated && winnerOf(metric) === m.id;
             return (
@@ -131,13 +143,13 @@ export function SimulateOptions() {
               <div className="mt-0.5 text-[9px]" style={{ color: C.dim }}>{m.form}</div>
               <div className="mt-1.5 space-y-0.5">
                 {row("Area", `${m.areaFt2.toLocaleString()} ft² · ${m.layoutLabel}`)}
-                {row("Cost", usd(costFor(m, fr)), "Cost")}
-                {row("Build", `${monthsFor(m, fr)} mo`, "Build time")}
+                {row("Cost", usd(cardTotal), "Cost")}
+                {row("Build", `${monthsFor(m, opt)} mo`, "Build time")}
                 {row("Energy", stars(m.energyScore), "Energy")}
-                {row("Carbon", stars(carbonFor(m, fr)), "Carbon")}
+                {row("Carbon", stars(carbonFor(m, opt)), "Carbon")}
               </div>
               <div className="mt-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: basisCol }}>
-                <span>{fr !== m.framing ? `cost · est. (${FRAMING[fr].short.toLowerCase()})` : m.basis === "DERIVED" ? "cost · derived · engine" : "cost · assumed · parametric"}</span>
+                <span>{m.basis === "DERIVED" ? "cost · derived · engine" : "cost · assumed · parametric"}</span>
                 <span style={{ color: C.dim }}>envelope: assumed</span>
               </div>
 
@@ -148,27 +160,83 @@ export function SimulateOptions() {
                 </button>
               ) : (
                 <div className="mt-2 space-y-1.5" data-arch-sim-generated={m.id}>
-                  {/* the GENERATED environment — the home's furniture placed in this form */}
-                  <SimEnvironmentView formId={m.id as FormId} framing={fr} size={240} />
-                  {/* framing toggle — convert to 3D-printed cement (the ICON hook) */}
-                  <div className="flex items-center gap-1 text-[9px]">
-                    <span style={{ color: C.dim }}>Framing</span>
-                    {(["stick-framed", "3d-printed-cement"] as Framing[]).filter((f) => !(m.cementNative && f === "stick-framed")).map((f) => (
-                      <button key={f} data-arch-sim-framing={`${m.id}:${f}`} onClick={() => setFraming(m.id, f)}
-                        className="rounded border px-1.5 py-0.5 font-semibold"
-                        style={{ borderColor: fr === f ? (f === "3d-printed-cement" ? C.cement : C.cyan) : C.border, color: fr === f ? (f === "3d-printed-cement" ? C.cement : C.cyan) : C.dim, background: fr === f ? "#0b1220" : "transparent" }}>
-                        {FRAMING[f].short}{f === "3d-printed-cement" && m.cementNative ? "·native" : ""}
-                      </button>
-                    ))}
+                  {/* the GENERATED environment */}
+                  <SimEnvironmentView formId={m.id as FormId} opt={opt} size={240} />
+
+                  {/* ── build option: method · material/frame · roof ── */}
+                  <div className="space-y-1 rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
+                    <div className="flex flex-wrap items-center gap-1 text-[9px]">
+                      <span style={{ color: C.dim, width: 44 }}>Method</span>
+                      {METHODS_FOR[m.id as FormId].map((mth) => (
+                        <button key={mth} data-arch-sim-method={`${m.id}:${mth}`} onClick={() => setOpt(m.id, { method: mth })}
+                          className="rounded border px-1.5 py-0.5 font-semibold"
+                          style={{ borderColor: opt.method === mth ? C.cyan : C.border, color: opt.method === mth ? C.cyan : C.dim, background: opt.method === mth ? "#0b1220" : "transparent" }}>
+                          {METHODS[mth].short}
+                        </button>
+                      ))}
+                    </div>
+                    {/* material dropdown — 3D Print: cement/composite + "more coming"; Stick: wood/steel/aluminum; Hex-panel: fixed */}
+                    {printed ? (
+                      <div className="flex items-center gap-1 text-[9px]">
+                        <span style={{ color: C.dim, width: 44 }}>Material</span>
+                        <select data-arch-sim-material={m.id} value={opt.printMaterial} style={selectStyle}
+                          onChange={(e) => setOpt(m.id, { printMaterial: e.target.value as PrintMaterial })}>
+                          {(Object.keys(PRINT_MATERIALS) as PrintMaterial[]).map((pm) => (
+                            <option key={pm} value={pm}>{PRINT_MATERIALS[pm].label} · est.</option>
+                          ))}
+                          {FUTURE_PRINT_MATERIALS.map((f) => <option key={f.label} disabled>{f.label} — {f.note}</option>)}
+                        </select>
+                      </div>
+                    ) : opt.method === "stick-framed" ? (
+                      <div className="flex items-center gap-1 text-[9px]">
+                        <span style={{ color: C.dim, width: 44 }}>Frame</span>
+                        <select data-arch-sim-frame={m.id} value={opt.frameMaterial} style={selectStyle}
+                          onChange={(e) => setOpt(m.id, { frameMaterial: e.target.value as FrameMaterial })}>
+                          {(Object.keys(FRAME_MATERIALS) as FrameMaterial[]).map((fm) => (
+                            <option key={fm} value={fm}>{FRAME_MATERIALS[fm].label} · est.</option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      <div className="text-[8px]" style={{ color: C.dim }}>Prefab geodesic hex panels — bolted hub-to-hub.</div>
+                    )}
+                    <div className="flex items-center gap-1 text-[9px]">
+                      <span style={{ color: C.dim, width: 44 }}>Roof</span>
+                      {ROOFS_FOR[m.id as FormId].length > 1 ? (
+                        <select data-arch-sim-roof={m.id} value={opt.roof} style={selectStyle} onChange={(e) => setOpt(m.id, { roof: e.target.value as RoofType })}>
+                          {ROOFS_FOR[m.id as FormId].map((rf) => <option key={rf} value={rf}>{ROOFS[rf].label}</option>)}
+                        </select>
+                      ) : (
+                        <span style={{ color: C.violet }}>{ROOFS[opt.roof].label} <span style={{ color: C.dim }}>· integral</span></span>
+                      )}
+                    </div>
                   </div>
-                  {/* TIME TO BUILD, BY PHASE — framing · electrical · plumbing · … (operator: understand time to build) */}
+
+                  {/* ── COST BY ELEMENT (operator: "Show cost of key elements…") ── */}
+                  <div data-arch-sim-elements className="rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
+                    <div className="mb-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>
+                      <span>Cost by element</span><span>{usd(elemSub)} <span style={{ color: C.dim }}>of {usd(cardTotal)}</span></span>
+                    </div>
+                    <div className="space-y-0.5">
+                      {elems.map((e) => (
+                        <div key={e.element} className="flex items-center gap-1.5 text-[8px]">
+                          <span style={{ color: C.dim, width: 56, flexShrink: 0 }}>{e.element}</span>
+                          <span className="h-2 rounded-sm" style={{ background: C.cyan, width: `${Math.max(4, (e.usd / elemMax) * 100)}%`, opacity: 0.8 }} />
+                          <span style={{ color: C.text, flexShrink: 0 }}>{usd(e.usd)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-0.5 text-[8px]" style={{ color: C.dim }}>Six major elements of the full {usd(cardTotal)} build · derived from the estimate engine · est.</div>
+                  </div>
+
+                  {/* TIME TO BUILD, BY PHASE (calendar months) */}
                   {(() => {
-                    const sched = phaseSchedule(m.id, fr);
+                    const sched = phaseSchedule(m.id, opt);
                     const maxW = Math.max(1, ...sched.map((p) => p.weeks));
                     return (
                       <div data-arch-sim-phases className="rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
                         <div className="mb-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>
-                          <span>Time to build · by phase</span><span>{monthsFor(m, fr)} mo total</span>
+                          <span>Time to build · by phase</span><span>{monthsFor(m, opt)} mo total</span>
                         </div>
                         <div className="space-y-0.5">
                           {sched.map((p) => (
@@ -179,18 +247,20 @@ export function SimulateOptions() {
                             </div>
                           ))}
                         </div>
-                        {cement && <div className="mt-0.5 text-[8px]" style={{ color: C.cement }}>↳ 3D cement print collapses the Framing phase (the shell prints fast).</div>}
+                        {printed && <div className="mt-0.5 text-[8px]" style={{ color: C.cement }}>↳ 3D Print collapses the Framing phase (the shell prints fast).</div>}
+                        {opt.method === "hex-panel" && <div className="mt-0.5 text-[8px]" style={{ color: C.composite }}>↳ hex panels assemble dry — the shell goes up fast.</div>}
                       </div>
                     );
                   })()}
+
                   <div className="flex items-center justify-between rounded px-1.5 py-1 text-[10px]" style={{ background: C.ground }}>
                     <span style={{ color: C.dim }}>13-sim avg</span>
                     <span style={{ color: C.cyan, fontWeight: 700 }}>{avg.toFixed(1)}/5 · {passed}/13 pass</span>
                   </div>
                   <button onClick={() => toggleRow("card:" + m.id)} className="w-full rounded border px-2 py-1 text-[10px] font-semibold" style={{ borderColor: C.green, color: C.green, background: "#0a1f14" }}>
-                    {open ? "▴ HIDE 13-SIM DETAIL" : "▾ 13-SIM DETAIL · per-sim scores"}
+                    {openRows.has("card:" + m.id) ? "▴ HIDE 13-SIM DETAIL" : "▾ 13-SIM DETAIL · per-sim scores"}
                   </button>
-                  {open && (
+                  {openRows.has("card:" + m.id) && (
                     <div data-arch-sim-strip className="grid grid-cols-2 gap-x-2 gap-y-0.5">
                       {results.map((r) => (
                         <div key={r.sim} className="flex items-center justify-between text-[9px]">
@@ -198,9 +268,15 @@ export function SimulateOptions() {
                           <span style={{ color: r.status === "PASS" ? C.green : C.amber }}>{r.score.toFixed(1)} {stars(r.stars)}</span>
                         </div>
                       ))}
-                      <div className="col-span-2 mt-0.5 text-[10px]" style={{ color: C.dim }}>deterministic estimate (a design preview, not an engineering result){cement ? " · 3D-printed cement" : ""}</div>
+                      <div className="col-span-2 mt-0.5 text-[10px]" style={{ color: C.dim }}>deterministic estimate (a design preview, not an engineering result)</div>
                     </div>
                   )}
+
+                  {/* BUILD INSTRUCTIONS for this form + option */}
+                  <button onClick={() => toggleRow("build:" + m.id)} className="w-full rounded border px-2 py-1 text-[10px] font-semibold" style={{ borderColor: C.violet, color: C.violet, background: "#1a1030" }}>
+                    {openRows.has("build:" + m.id) ? "▴ HIDE BUILD INSTRUCTIONS" : "▾ BUILD INSTRUCTIONS · measured steps + crew-days"}
+                  </button>
+                  {openRows.has("build:" + m.id) && <BuildInstructionsPanel formId={m.id as FormId} option={opt} />}
                 </div>
               )}
             </div>
@@ -208,7 +284,7 @@ export function SimulateOptions() {
         })}
       </div>
 
-      {/* room-key legend — so a non-expert ICON viewer can decode the floor plans (Christo) */}
+      {/* room-key + furniture legend */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded-lg border px-2 py-1.5 text-[9px]" style={{ borderColor: C.border, background: C.panel }} data-arch-sim-legend>
         <span className="uppercase tracking-wider" style={{ color: C.dim }}>Room keys</span>
         {ROOM_LEGEND.map((r) => (
@@ -220,7 +296,7 @@ export function SimulateOptions() {
         <span><span style={{ color: "#ffd400" }}>■</span> <span style={{ color: C.dim }}>table</span></span>
       </div>
 
-      {/* SIDE-BY-SIDE TEST MATRIX — the 13 sims, 0–5, under each form's mini glyph; "—" until a form is simulated */}
+      {/* SIDE-BY-SIDE TEST MATRIX */}
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         <div className="mb-1.5 flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-bold tracking-wider" style={{ color: C.cyan }}>TEST MATRIX · the 13 sims, side by side</span>
@@ -234,7 +310,7 @@ export function SimulateOptions() {
                 <div key={m.id} className="flex flex-col items-center gap-0.5">
                   <span className="rounded border p-1" style={{ borderColor: C.border, background: C.ground }}><FormGlyph id={m.id} size={26} /></span>
                   <span className="text-center text-[9px] font-bold leading-tight" style={{ color: C.cyan }}>{m.label}</span>
-                  <span className="text-[8px]" style={{ color: simulated.has(m.id) ? C.dim : C.amber }}>{simulated.has(m.id) ? `avg ${overallScore(m.id, framingBy[m.id]).toFixed(1)}` : "NOT_RUN"}</span>
+                  <span className="text-[8px]" style={{ color: simulated.has(m.id) ? C.dim : C.amber }}>{simulated.has(m.id) ? `avg ${overallScore(m.id, optsBy[m.id]).toFixed(1)}` : "NOT_RUN"}</span>
                 </div>
               ))}
             </div>
@@ -277,10 +353,12 @@ export function SimulateOptions() {
         </div>
         <div className="mt-1.5 space-y-0.5">
           <div className="text-[10px]" style={{ color: C.dim }}>Initial 0–5 score + detailed metrics · deterministic estimate (a design preview, not an engineering analysis).</div>
-          <div className="text-[10px]" style={{ color: C.amber }}>⚠ Energy/Carbon — and the sims they weight — are DESIGN ASSUMPTIONS. Only the Cube's cost is engine-derived. 3D cement print is modelled honestly (faster/stronger, higher embodied carbon).</div>
-          <div className="text-[10px]" style={{ color: C.dim }}>Scores reflect the FORM + construction method (not furniture placement or a printer toolpath — those are declared follow-ons). The card's Carbon stars are the envelope rating; the Carbon sim adds embodied carbon.</div>
+          <div className="text-[10px]" style={{ color: C.amber }}>⚠ Energy/Carbon — and the sims they weight — are DESIGN ASSUMPTIONS. Only the Cube's cost is engine-derived. Materials are modelled honestly (cement: stronger/non-combustible, higher embodied carbon; composite: stronger/lighter/less carbon; steel/aluminum: stronger, higher carbon).</div>
         </div>
       </div>
+
+      {/* BUILD INSTRUCTIONS · four-path project timeline (the operator's headline compare) */}
+      <BuildTimelineCompare />
 
       {/* the original 13-sim battery — run on EVERY model */}
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
@@ -313,13 +391,13 @@ export function SimulateOptions() {
               </div>
             );
           })}
-          {/* the ICON payoff in the decision view: time to FRAME each form (3D cement print collapses it) — Asar */}
+          {/* the ICON payoff: time to FRAME/raise each shell (3D Print + hex panels collapse it) — Asar */}
           {(() => {
-            const fw = SIM_MODELS.map((m) => ({ m, w: phaseSchedule(m.id, framingBy[m.id]).find((p) => p.id === "framing")?.weeks ?? 0 }));
+            const fw = SIM_MODELS.map((m) => ({ m, w: phaseSchedule(m.id, optsBy[m.id]).find((p) => p.id === "framing")?.weeks ?? 0 }));
             const best = fw.reduce((a, b) => (b.w < a.w ? b : a));
             return (
               <div className="flex items-center justify-between border-b py-0.5" style={{ borderColor: "#111827" }}>
-                <span style={{ color: C.dim }}>Framing phase</span>
+                <span style={{ color: C.dim }}>Framing / shell phase</span>
                 <span className="text-[9px]"><span style={{ color: C.dim }}>{fw.map((x) => `${x.m.label.split(" ")[0]} ${x.w}w`).join(" · ")} </span><span style={{ color: C.gold }}>✦ {best.m.label}</span></span>
               </div>
             );
