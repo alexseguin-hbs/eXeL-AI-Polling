@@ -15,7 +15,7 @@ import { buildInstructions, compareTimeline, BUILD_ORDER, type InstructionStep }
 import type { BuildOption, ElementName } from "@/lib/architect-sim-options";
 import type { FormId } from "@/lib/architect-sim-environment";
 
-const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b", ground: "#070b12" };
+const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", measure: "#9fb3c8", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b", ground: "#070b12" };
 const ELEMENT_COLOR: Record<ElementName, string> = {
   Foundation: "#9ca3af", Framing: "#c084fc", Roofing: "#f59e0b", Plumbing: "#19c8cf", Electrical: "#ffd400", HVAC: "#22c55e",
 };
@@ -25,9 +25,9 @@ function StepRow({ step, color }: { step: InstructionStep; color: string }) {
     <div className="flex gap-1.5 py-0.5">
       <span className="flex-shrink-0 rounded px-1 text-[9px] font-bold" style={{ background: C.ground, color, minWidth: 14, textAlign: "center" }}>{step.n}</span>
       <div className="min-w-0">
-        <div className="text-[10px] font-semibold" style={{ color: C.text }}>{step.title} <span className="font-normal" style={{ color }}>· {step.crewDays} crew-day{step.crewDays === 1 ? "" : "s"}</span></div>
-        <div className="text-[9px] leading-snug" style={{ color: C.dim }}>{step.measure}</div>
-        {step.codeFlag && <div className="text-[8px]" style={{ color: C.amber }}>⚑ verify local code · {step.codeFlag}</div>}
+        <div className="text-[10px] font-semibold" style={{ color: C.text }}>{step.title} <span className="font-normal" style={{ color }}>· {step.crewDays} crew-day{step.crewDays === 1 ? "" : "s"} labor</span></div>
+        <div className="text-[10px] leading-snug" style={{ color: C.measure }}>{step.measure}</div>
+        {step.codeFlag && <div className="text-[9px]" style={{ color: C.amber }}>⚑ verify local code · {step.codeFlag}</div>}
       </div>
     </div>
   );
@@ -40,7 +40,7 @@ export function BuildInstructionsPanel({ formId, option }: { formId: FormId; opt
     <div data-arch-build-instructions={formId} className="rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
       <div className="mb-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>
         <span>Build instructions · by phase</span>
-        <span style={{ color: C.cyan }}>{bi.totalCrewDays} crew-days · ~{bi.weeks} wk</span>
+        <span style={{ color: C.cyan }}>{bi.totalCrewDays} crew-days labor · ~{bi.weeks} crew-wk</span>
       </div>
       <div className="space-y-1">
         {bi.phases.map((ph) => (
@@ -69,7 +69,7 @@ export function BuildTimelineCompare() {
     <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }} data-arch-build-timeline>
       <div className="mb-1.5 flex flex-wrap items-center gap-2">
         <span className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>BUILD INSTRUCTIONS · PROJECT TIMELINE — 4 WAYS</span>
-        <span className="text-[9px]" style={{ color: C.dim }}>· crew-days per phase (4-person crew) · tap a path for the measured steps</span>
+        <span className="text-[9px]" style={{ color: C.dim }}>· hands-on LABOR crew-days per phase (4-person crew; not calendar time) · tap a path for the measured steps</span>
       </div>
       {/* phase legend */}
       <div className="mb-1.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[8px]">
@@ -83,7 +83,7 @@ export function BuildTimelineCompare() {
             <button onClick={() => setOpenId(openId === p.id ? null : p.id)} className="w-full text-left" data-arch-timeline-path={p.id}>
               <div className="flex items-center justify-between text-[10px]">
                 <span style={{ color: C.text, fontWeight: 600 }}>{openId === p.id ? "▾ " : "▸ "}{p.label}</span>
-                <span style={{ color: C.cyan }}>{p.totalCrewDays} crew-days · ~{p.weeks} wk</span>
+                <span style={{ color: C.cyan }}>{p.totalCrewDays} crew-days labor · ~{p.weeks} crew-wk</span>
               </div>
               {/* stacked crew-day bar */}
               <div className="mt-0.5 flex h-3 w-full overflow-hidden rounded-sm" style={{ background: C.ground, width: `${Math.max(20, (p.totalCrewDays / maxCd) * 100)}%` }}>
@@ -100,7 +100,7 @@ export function BuildTimelineCompare() {
           </div>
         ))}
       </div>
-      <div className="mt-1.5 text-[9px]" style={{ color: C.amber }}>⚠ Planning estimate — crew-days are rules of thumb at a 4-person crew. The hex-panel &amp; 3D-print shells assemble fastest; a tiny home is the shortest overall because it is the smallest. Buildable time = your crew size × local code + inspections.</div>
+      <div className="mt-1.5 text-[9px]" style={{ color: C.amber }}>⚠ Planning estimate — these are hands-on LABOR crew-days (rules of thumb at a 4-person crew), NOT calendar time. The 3D-printed shell is the fewest crew-days (printing is machine time — the crew sets up and finishes); the hex-panel shell assembles dry in about the same few days. A tiny home is shortest overall because it is the smallest; MEP + finish dominate the rest. Calendar time (with the 28-day slab cure + inspections) is the months shown on each card's "Time to build".</div>
     </div>
   );
 }

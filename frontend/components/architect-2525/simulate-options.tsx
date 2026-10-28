@@ -70,6 +70,7 @@ export function SimulateOptions() {
 
   const allSimulated = SIM_MODELS.every((m) => simulated.has(m.id));
   const allPrintedCement = SIM_MODELS.every((m) => optsBy[m.id]?.method === "3d-print" && optsBy[m.id]?.printMaterial === "cement");
+  const allNative = SIM_MODELS.every((m) => JSON.stringify(optsBy[m.id]) === JSON.stringify(optFor(m)));   // every card at its native option
   const applyMode = (mode: "native" | "cement") => setOptsBy(Object.fromEntries(SIM_MODELS.map((m) =>
     [m.id, mode === "cement" ? { ...optsBy[m.id], method: "3d-print" as Method, printMaterial: "cement" as PrintMaterial } : optFor(m)]
   )));
@@ -102,13 +103,13 @@ export function SimulateOptions() {
       <div className="flex flex-wrap items-center gap-1.5 text-[9px]">
         <span style={{ color: C.dim }}>Compare at</span>
         {([["native", "NATIVE methods"], ["cement", "ALL 3D Print · cement"]] as const).map(([mode, lbl]) => {
-          const on = mode === "cement" ? allPrintedCement : !allPrintedCement;
+          const on = mode === "cement" ? allPrintedCement : allNative;
           return (
             <button key={mode} data-arch-sim-method-mode={mode} onClick={() => applyMode(mode)} className="rounded border px-1.5 py-0.5 font-semibold"
               style={{ borderColor: on ? (mode === "cement" ? C.cement : C.cyan) : C.border, color: on ? (mode === "cement" ? C.cement : C.cyan) : C.dim, background: on ? "#0b1220" : "transparent" }}>{lbl}</button>
           );
         })}
-        <span style={{ color: C.dim }}>{allPrintedCement ? "· all three printed in cement" : "· Eco-Sphere = hex-panel dome; Cube + Tiny stick-framed (native methods)"}</span>
+        <span style={{ color: C.dim }}>{allPrintedCement ? "· all three printed in cement" : allNative ? "· native: Eco-Sphere hex-panel dome; Cube + Tiny stick-framed" : "· custom — options edited per card (neither preset)"}</span>
       </div>
 
       {/* 3 model cards */}
@@ -226,22 +227,28 @@ export function SimulateOptions() {
                         </div>
                       ))}
                     </div>
-                    <div className="mt-0.5 text-[8px]" style={{ color: C.dim }}>Six major elements of the full {usd(cardTotal)} build · derived from the estimate engine · est.</div>
+                    <div className="mt-0.5 text-[8px]" style={{ color: C.dim }}>Six major elements of the full {usd(cardTotal)} build · {m.basis === "DERIVED" ? "derived from the estimate engine" : "split across the engine's six elements from an ASSUMED area · parametric"} · est.</div>
                   </div>
 
                   {/* TIME TO BUILD, BY PHASE (calendar months) */}
                   {(() => {
                     const sched = phaseSchedule(m.id, opt);
                     const maxW = Math.max(1, ...sched.map((p) => p.weeks));
+                    // option-aware labels so the Framing + Roofing rows name the ACTUAL shell/roof, matching the Build
+                    // Instructions panel below (no "Framing" vs "Shell · hex panels" drift on one card — Aset).
+                    const phaseName = (id: string, label: string) =>
+                      id === "framing" ? (opt.method === "3d-print" ? "Shell·3D-print" : opt.method === "hex-panel" ? "Shell·hex" : `Framing·${opt.frameMaterial}`)
+                      : id === "roofing" ? `Roof·${ROOFS[opt.roof].short.toLowerCase()}`
+                      : label;
                     return (
                       <div data-arch-sim-phases className="rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
                         <div className="mb-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>
-                          <span>Time to build · by phase</span><span>{monthsFor(m, opt)} mo total</span>
+                          <span>Time to build · by phase · calendar</span><span>{monthsFor(m, opt)} mo total</span>
                         </div>
                         <div className="space-y-0.5">
                           {sched.map((p) => (
                             <div key={p.id} className="flex items-center gap-1.5 text-[8px]">
-                              <span style={{ color: C.dim, width: 50, flexShrink: 0 }}>{p.label}</span>
+                              <span style={{ color: C.dim, width: 62, flexShrink: 0 }}>{phaseName(p.id, p.label)}</span>
                               <span className="h-2 rounded-sm" style={{ background: p.color, width: `${Math.max(3, (p.weeks / maxW) * 100)}%`, opacity: 0.85 }} />
                               <span style={{ color: p.color, flexShrink: 0 }}>{p.weeks}w</span>
                             </div>

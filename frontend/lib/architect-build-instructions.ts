@@ -63,7 +63,9 @@ function framingSteps(m: SimModel, opt: BuildOption): Omit<InstructionStep, "n">
     const pm = PRINT_MATERIALS[opt.printMaterial];
     return [
       { title: "Set printer & slice file", measure: `Gantry over the slab; slice the print file with MEP chases, sleeves & box block-outs PRE-PLANNED (routing is fixed before slicing — no coring cured walls)`, crewDays: 2, codeFlag: "printed-wall approval (AHJ)" },
-      { title: `Print the walls (${pm.label.toLowerCase()})`, measure: `Bead ~25×50 mm @125–180 mm/s; ~500 ft² of wall per 24 h; cure 12–24 h between lifts; crew 4–6. ${pm.strength}`, crewDays: opt.printMaterial === "composite" ? 2 : 3 },
+      // printing is MACHINE time — the printer runs ~500 ft²/24h while a small crew monitors; that is why the printed
+      // shell is the fewest CREW-days of the three shell methods (the ICON speed hook) even though wall-clock cure is long.
+      { title: `Print the walls (${pm.label.toLowerCase()})`, measure: `Printer runs ~500 ft² of wall per 24 h (machine time; crew monitors) — bead ~25×50 mm @125–180 mm/s; cure 12–24 h between lifts; crew 4–6. ${pm.strength}`, crewDays: 1 },
       { title: "Reinforce & lintels", measure: "Rebar / 9-ga wire every other layer; cast-in lintels over each opening", crewDays: 1, codeFlag: "structural engineer" },
     ];
   }
@@ -85,10 +87,17 @@ function framingSteps(m: SimModel, opt: BuildOption): Omit<InstructionStep, "n">
 
 // ── ROOFING (roof-aware; the dome shell IS its own roof) ────────────────────────────────────────────────────────────
 function roofingSteps(m: SimModel, opt: BuildOption): Omit<InstructionStep, "n">[] {
-  if (opt.roof === "hex-dome") return [
-    { title: "Apex cap & ridge vents", measure: "Cap the apex hub; ridge/soffit venting through the facets; the dome sheds water by shape", crewDays: 2, codeFlag: "dome uplift calc" },
-    { title: "Final weatherproofing", measure: "Seal every panel seam; inspect for ponding at the base ring", crewDays: 1 },
-  ];
+  if (opt.roof === "hex-dome") {
+    // a PRINTED dome is monolithic — no panels or panel seams — so its roofing steps differ from the hex-panel dome's.
+    if (opt.method === "3d-print") return [
+      { title: "Printed crown & oculus", measure: "Close the printed shell at the crown / oculus ring; the monolithic dome sheds water by shape (no panel joints)", crewDays: 2, codeFlag: "dome uplift calc" },
+      { title: "Continuous membrane", measure: "One continuous elastomeric membrane over the cured shell; flash the oculus; inspect for ponding at the base ring", crewDays: 1 },
+    ];
+    return [
+      { title: "Apex cap & ridge vents", measure: "Cap the apex hub; ridge/soffit venting through the facets; the dome sheds water by shape", crewDays: 2, codeFlag: "dome uplift calc" },
+      { title: "Final weatherproofing", measure: "Seal every panel seam; inspect for ponding at the base ring", crewDays: 1 },
+    ];
+  }
   if (opt.roof === "flat") return [
     { title: "Tapered insulation & deck", measure: "Taper to ¼\" per ft slope to interior drains; cover board over deck", crewDays: 1, codeFlag: "drainage + R-value" },
     { title: "Membrane & flashing", measure: "Fully-adhered TPO/EPDM membrane; flash all penetrations & parapets", crewDays: 1 },
@@ -158,7 +167,7 @@ export function phaseLabel(element: ElementName, m: SimModel, opt: BuildOption):
     if (opt.method === "hex-panel") return "Shell · hex panels";
     return `Framing · ${FRAME_MATERIALS[opt.frameMaterial].label.toLowerCase()}`;
   }
-  if (element === "Roofing") return `Roofing · ${ROOFS[opt.roof].label.toLowerCase()}`;
+  if (element === "Roofing") return opt.roof === "hex-dome" && opt.method === "3d-print" ? "Roofing · printed crown" : `Roofing · ${ROOFS[opt.roof].label.toLowerCase()}`;
   return element;
 }
 
@@ -176,7 +185,7 @@ export function buildInstructions(formId: FormId, opt?: BuildOption): BuildInstr
   return {
     formId, label: m.label, option: o, methodLabel: METHODS[o.method].label,
     phases, totalCrewDays, weeks,
-    note: `Crew-days at a ${CREW}-person crew — a PLANNING ESTIMATE (rules of thumb). Buildable values come from Manual J/S/D, IPC/UPC fixture-unit sizing, NEC, and your adopted local code edition; each phase flags where.`,
+    note: `Crew-days are HANDS-ON LABOR content at a ${CREW}-person crew — NOT calendar time. The calendar duration (incl. the 28-day slab cure, inspections and trade sequencing) is the months shown in "Time to build · by phase" above. A PLANNING ESTIMATE (rules of thumb); buildable values come from Manual J/S/D, IPC/UPC fixture-unit sizing, NEC, and your adopted local code edition — each phase flags where.`,
   };
 }
 

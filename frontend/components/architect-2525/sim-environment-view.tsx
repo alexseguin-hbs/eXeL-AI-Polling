@@ -16,7 +16,7 @@ import { environmentFor, environmentObjects, hexPoints, VIEW, MARGIN, type FormI
 import { projectPlaced, OBJECT_SPEC } from "@/lib/room-objects";
 import { ROOFS, type BuildOption, type RoofType } from "@/lib/architect-sim-options";
 
-const C = { ground: "#070b12", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", dim: "#5f7186", cement: "#9aa7b4", composite: "#7fd4a8" };
+const C = { ground: "#070b12", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", dim: "#5f7186", cement: "#9aa7b4", composite: "#7fd4a8", hexpanel: "#8aa0b8" };
 
 /** A plan-view roof cue over a rectilinear shell — a dashed ridge/hip notation + a corner label, so the roof CHOICE
  *  is visible on the mockup without obscuring the plan (Christo: legible; Enlil: honest notation). */
@@ -58,13 +58,16 @@ export function SimEnvironmentView({ formId, opt, size = 220 }: { formId: FormId
   const env = useMemo(() => environmentFor(formId), [formId]);
   const placed = useMemo(() => environmentObjects(env), [env]);
   const printed = opt.method === "3d-print";
+  const hexp = opt.method === "hex-panel";
   const cement = printed && opt.printMaterial === "cement";
-  const wall = printed ? (cement ? C.cement : C.composite) : C.cyan;
-  const wallW = printed ? 2.4 : 1.1;
+  // three-way wall treatment by construction method (stick / 3D-print / hex-panel) — the Eco default is hex-panel, so it
+  // must NOT fall through to the stick branch (Enki): each method gets its own wall tint, weight, and aria label.
+  const wall = printed ? (cement ? C.cement : C.composite) : hexp ? C.hexpanel : C.cyan;
+  const wallW = printed ? 2.4 : hexp ? 1.8 : 1.1;
   const V = env.view;
   const ox = MARGIN, oy = MARGIN, S = V - 2 * MARGIN, cell = S / 3;
   const shellRect: Rect = env.shellRect ?? { x: ox, y: oy, w: S, h: S };
-  const methodLabel = printed ? `3D Print · ${opt.printMaterial}` : `stick · ${opt.frameMaterial}`;
+  const methodLabel = printed ? `3D Print · ${opt.printMaterial}` : hexp ? "hex-panel shell" : `stick · ${opt.frameMaterial}`;
 
   return (
     <svg viewBox={`0 0 ${V} ${V}`} style={{ display: "block", width: "100%", maxWidth: size, aspectRatio: "1 / 1", background: C.ground, borderRadius: 6 }}
