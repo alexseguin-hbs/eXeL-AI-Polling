@@ -55,6 +55,7 @@ import { SkyCelestialEmbed } from "./sky-celestial-embed";
 import { ArchitectSoI } from "./architect-soi";
 import { ArchitectEstimate } from "./architect-estimate";
 import { ArchitectForecast } from "./architect-forecast";
+import { ArchitectPipelineView } from "./architect-pipeline-view";
 import { ArchitectFraming } from "./architect-framing";
 import { IteratePanel, SharePanel, QualifyPanel } from "./architect-panels";
 import { SimulatePanel, ReviewPanel, TwinPanel, ReplayPanel } from "./architect-panels2";
@@ -85,7 +86,7 @@ const NAV: [string, React.ComponentType<{ className?: string }>][] = [
 const SUBNAV: Record<string, string[]> = {
   Design: ["Model", "Site", "Sky", "Compare"], // 4-tab visualization engine (Sky = celestial map + Moon-over-window)
   Review: ["Reviews", "Qualification", "Contributions"],
-  Build: ["Build 4D", "Framing", "Estimate", "Forecast", "Cost·Time"],
+  Build: ["Build 4D", "Framing", "Estimate", "Forecast", "Cost·Time", "Pipeline"],
   Lifecycle: ["Twin", "Replay"],
 };
 // Per-tab "•••" advanced menu (Security-2525 "•••" method) — a persisted expander on every major tab.
@@ -102,7 +103,7 @@ const TAB_ALIAS: Record<string, [string, string?]> = {
   OVERVIEW: ["Overview"], DESIGN: ["Design", "Model"], "SUN·SKY": ["Design", "Site"],
   ITERATE: ["Design", "Compare"], SIMULATE: ["Simulate"], REVIEW: ["Review", "Reviews"],
   QUALIFY: ["Review", "Qualification"], SHARE: ["Review", "Contributions"],
-  BUILD: ["Build", "Build 4D"], "COST·TIME": ["Build", "Cost·Time"],
+  BUILD: ["Build", "Build 4D"], "COST·TIME": ["Build", "Cost·Time"], PIPELINE: ["Build", "Pipeline"],
   TWIN: ["Lifecycle", "Twin"], REPLAY: ["Lifecycle", "Replay"], MORE: ["More"],
 };
 const resolveTab = (init: string): [string, string | undefined] => {
@@ -466,6 +467,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           <ArchitectForecast />
         ) : activeTab === "Build" && sub("Build") === "Build 4D" ? (
           <ArchitectBuild />
+        ) : activeTab === "Build" && sub("Build") === "Pipeline" ? (
+          <ArchitectPipelineView />
         ) : activeTab === "Review" && sub("Review") === "Contributions" ? (
           <SharePanel />
         ) : activeTab === "Review" && sub("Review") === "Qualification" ? (
