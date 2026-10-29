@@ -17,7 +17,7 @@
 import { useMemo, useState } from "react";
 import {
   SIM_MODELS, SIMS, METHODS, METHODS_FOR, PRINT_MATERIALS, FUTURE_PRINT_MATERIALS, FRAME_MATERIALS, ROOFS, ROOFS_FOR,
-  LABOR_MODES, DEFAULT_COST, carbonFor, compareModels, costFor, costRollup, elementCosts, elementSubtotal, monthsFor, optFor,
+  LABOR_MODES, DEFAULT_COST, carbonFor, compareModels, costBreakdown, costFor, defaultMarkupFor, monthsFor, optFor,
   overallScore, phaseSchedule, recommendation, simMatrix, simResult,
   type BuildOption, type Method, type PrintMaterial, type FrameMaterial, type RoofType, type CostParams, type LaborMode,
 } from "@/lib/architect-sim-options";
@@ -139,11 +139,14 @@ export function SimulateOptions() {
           const avg = overallScore(m.id, opt);
           const basisCol = m.basis === "DERIVED" ? C.green : C.amber;
           const cv = costBy[m.id];
-          const cardTotal = costFor(m, opt, cv);
-          const elems = elementCosts(m, opt, cv);
-          const elemMax = Math.max(...elems.map((e) => e.usd), 1);
-          const elemSub = elementSubtotal(m, opt, cv);
-          const roll = costRollup(m, opt, cv);
+          const bd = costBreakdown(m, opt, cv);
+          const roll = bd.total;              // Material / Labor / Markup / Total — the authoritative headline
+          const cardTotal = roll.total;
+          const elems = bd.elements;
+          const rem = bd.remainder;           // the four un-itemised sections as one honest reconciling row
+          // the always-visible bars include the remainder so they visibly sum to the headline (no hidden $159k)
+          const barRows = [...elems.map((e) => ({ label: e.element as string, usd: e.usd })), { label: "Other*", usd: rem.usd }];
+          const elemMax = Math.max(...barRows.map((b) => b.usd), 1);
           const assumeOpen = openRows.has("assume:" + m.id);
           const row = (label: string, value: string, metric?: string) => {
             const win = !!metric && compare && allSimulated && winnerOf(metric) === m.id;
@@ -241,7 +244,7 @@ export function SimulateOptions() {
                     <div className="flex flex-wrap items-center gap-1 text-[8px]">
                       <span style={{ color: C.dim, width: 38, flexShrink: 0 }}>Labor</span>
                       {(Object.keys(LABOR_MODES) as LaborMode[]).map((lm) => (
-                        <button key={lm} data-arch-sim-labor={`${m.id}:${lm}`} title={LABOR_MODES[lm].blurb} onClick={() => setCost(m.id, { laborMode: lm })}
+                        <button key={lm} data-arch-sim-labor={`${m.id}:${lm}`} title={LABOR_MODES[lm].blurb} onClick={() => setCost(m.id, { laborMode: lm, markup: defaultMarkupFor(lm) })}
                           className="rounded border px-1 py-0.5 font-semibold" style={{ borderColor: cv.laborMode === lm ? C.green : C.border, color: cv.laborMode === lm ? C.green : C.dim, background: cv.laborMode === lm ? "#0a1f14" : "transparent" }}>{LABOR_MODES[lm].short}</button>
                       ))}
                     </div>
@@ -288,16 +291,32 @@ export function SimulateOptions() {
                             <span style={{ color: C.text, textAlign: "right" }}>{usd(e.usd)}</span>
                           </div>
                         ))}
-                        <div className="text-[8px]" style={{ color: C.dim }}>Six major elements · {m.basis === "DERIVED" ? "derived from the estimate engine" : "ASSUMED area · parametric"} · labour {LABOR_MODES[cv.laborMode].label.toLowerCase()} · markup {Math.round(cv.markup * 100)}% · est. Switch to <b style={{ color: C.green }}>Volunteer + 0% markup</b> for the friends/family/veterans build cost.</div>
+                        {/* the four un-itemised sections as one honest remainder row — so the rows reconcile EXACTLY to the total */}
+                        <div className="grid items-center gap-1 text-[8px]" style={{ gridTemplateColumns: "54px 1fr 1fr 1fr 46px", borderTop: `1px dashed ${C.border}`, paddingTop: 2 }} title="site · permits · drywall · insulation · interior finish · landscaping">
+                          <span style={{ color: C.dim }}>Other*</span>
+                          <span style={{ color: C.cyan }}>M {usd(rem.material)}</span>
+                          <span style={{ color: C.violet }}>L {usd(rem.labor)}</span>
+                          <span style={{ color: C.gold }}>+{usd(rem.markup)}</span>
+                          <span style={{ color: C.text, textAlign: "right" }}>{usd(rem.usd)}</span>
+                        </div>
+                        {/* the reconciling subtotal — column sums tie to the waterfall bars and the headline (fleet's top fix) */}
+                        <div data-arch-sim-reconcile className="grid items-center gap-1 text-[8px] font-bold" style={{ gridTemplateColumns: "54px 1fr 1fr 1fr 46px", borderTop: `1px solid ${C.border}`, paddingTop: 2 }}>
+                          <span style={{ color: C.text }}>Total</span>
+                          <span style={{ color: C.cyan }}>M {usd(roll.material)}</span>
+                          <span style={{ color: C.violet }}>L {usd(roll.labor)}</span>
+                          <span style={{ color: C.gold }}>+{usd(roll.markup)}</span>
+                          <span style={{ color: C.text, textAlign: "right" }}>{usd(roll.total)}</span>
+                        </div>
+                        <div className="text-[8px]" style={{ color: C.dim }}>Six major elements + <b style={{ color: C.text }}>Other*</b> (site · permits · drywall · insulation · interior finish · landscaping) reconcile EXACTLY to the {usd(roll.total)} total · {m.basis === "DERIVED" ? "derived from the estimate engine" : "ASSUMED area · parametric"} · labour {LABOR_MODES[cv.laborMode].label.toLowerCase()} · markup {Math.round(cv.markup * 100)}%. Tap <b style={{ color: C.green }}>VOLUNTEER</b> (labour ≈ $0, markup snaps to 0%) for the friends/family/veterans build cost.</div>
                       </div>
                     )}
-                    {/* element bars (always visible) */}
+                    {/* element bars (always visible) — the six elements + the Other* remainder sum to the headline */}
                     <div className="mt-1 space-y-0.5">
-                      {elems.map((e) => (
-                        <div key={e.element} className="flex items-center gap-1.5 text-[8px]">
-                          <span style={{ color: C.dim, width: 56, flexShrink: 0 }}>{e.element}</span>
-                          <span className="h-2 rounded-sm" style={{ background: C.cyan, width: `${Math.max(4, (e.usd / elemMax) * 100)}%`, opacity: 0.8 }} />
-                          <span style={{ color: C.text, flexShrink: 0 }}>{usd(e.usd)}</span>
+                      {barRows.map((b) => (
+                        <div key={b.label} className="flex items-center gap-1.5 text-[8px]">
+                          <span style={{ color: b.label === "Other*" ? C.dim : C.dim, width: 56, flexShrink: 0, fontStyle: b.label === "Other*" ? "italic" : "normal" }}>{b.label}</span>
+                          <span className="h-2 rounded-sm" style={{ background: b.label === "Other*" ? C.dim : C.cyan, width: `${Math.max(4, (b.usd / elemMax) * 100)}%`, opacity: 0.8 }} />
+                          <span style={{ color: C.text, flexShrink: 0 }}>{usd(b.usd)}</span>
                         </div>
                       ))}
                     </div>

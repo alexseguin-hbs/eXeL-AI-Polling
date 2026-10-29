@@ -4,7 +4,8 @@
 // BY ELEMENT — all derived from ONE engine (DEFAULT_SECTIONS) so the element breakdown reconciles to the card cost.
 import {
   SIMS, SIM_MODELS, METHODS, METHODS_FOR, PRINT_MATERIALS, FUTURE_PRINT_MATERIALS, FRAME_MATERIALS, ROOFS, ROOFS_FOR,
-  LABOR_MODES, DEFAULT_COST, ELEMENTS, carbonFor, compareModels, costFor, costRollup, elementCosts, elementSubtotal,
+  LABOR_MODES, DEFAULT_COST, ELEMENTS, REMAINDER_LABEL, carbonFor, compareModels, costBreakdown, costFor, costRollup,
+  defaultMarkupFor, elementCosts, elementSubtotal,
   monthsFor, optFor, framingFactor, phaseSchedule, runBattery, simResult, simMatrix, overallScore, recommendation, modelById,
 } from "@/lib/architect-sim-options";
 import { DEFAULT_SECTIONS } from "@/lib/architect-estimate";
@@ -27,7 +28,10 @@ ok(grid.label === "Cube" && tiny.label === "Tiny Home" && eco.label === "Eco-Sph
 ok(grid.areaFt2 === 900 && eco.areaFt2 === 900, "Cube + Eco are 900 ft²");
 ok(tiny.areaFt2 === 204, `Tiny Home is the data-chosen standard 204 ft² (got ${tiny.areaFt2})`);
 ok(/24 ft/.test(tiny.form) && /THOW/.test(tiny.form), "Tiny Home form names the 8.5×24 standard THOW");
-ok(grid.layoutLabel === "9 rooms" && /204/.test(tiny.layoutLabel) && /7 hex/.test(eco.layoutLabel), "layoutLabel reconciles card ⇄ environment");
+// layoutLabel is the room/zone VOICE for the card (Area row = "<ft²> · <layoutLabel>"); the Tiny no longer repeats its
+// dimensions/area (the form line already carries "8.5 × 24 ft") — the v4 fix for the "204 ft² · 8.5×24 ft · ~204 ft²" triple.
+ok(grid.layoutLabel === "9 rooms" && tiny.layoutLabel === "5 zones" && /7 hex/.test(eco.layoutLabel), "layoutLabel is the room/zone voice (Tiny no longer repeats area/dims)");
+ok(!/ft|204|8\.5|×24/.test(tiny.layoutLabel), "the Tiny layoutLabel carries no area/dimension (no redundant repeat in the Area row)");
 
 // ONE engine: Cube @ native = the estimate engine's exact total; every cost derives from DEFAULT_SECTIONS
 const baseCost = DEFAULT_SECTIONS.reduce((s, w) => s + w.costUsd, 0);
@@ -62,6 +66,30 @@ ok(tinyVol >= 25000 && tinyVol <= 60000, `a volunteer-built, zero-markup tiny ho
 ok(overallScore("3x3-grid", optFor(grid)) === overallScore("3x3-grid", optFor(grid)), "scores are stable (deterministic, cost-view-independent)");
 // elementCosts carries the per-element Material / Labor / Markup split
 ok(elementCosts(grid, optFor(grid)).every((e) => typeof e.material === "number" && typeof e.labor === "number" && typeof e.markup === "number"), "each element carries Material / Labor / Markup");
+
+// ── v4 FLEET FIX: the six elements + an honest "Other" remainder reconcile EXACTLY to the headline + waterfall ──────────
+// (the 48-AsM fleet's top finding was a $159k / 36% unexplained gap between the six-element table and the $440k headline).
+for (const m of SIM_MODELS) {
+  for (const cv of [DEFAULT_COST, { laborMode: "volunteer", markup: 0 }, { laborMode: "mixed", markup: 0.25 }]) {
+    const bd = costBreakdown(m, optFor(m), cv);
+    const colSum = (k) => bd.elements.reduce((s, e) => s + e[k], 0) + bd.remainder[k];
+    ok(colSum("material") === bd.total.material, `${m.id} @ ${cv.laborMode}: element+remainder MATERIAL = waterfall material`);
+    ok(colSum("labor") === bd.total.labor, `${m.id} @ ${cv.laborMode}: element+remainder LABOR = waterfall labor`);
+    ok(colSum("markup") === bd.total.markup, `${m.id} @ ${cv.laborMode}: element+remainder MARKUP = waterfall markup`);
+    ok(bd.elements.reduce((s, e) => s + e.usd, 0) + bd.remainder.usd === bd.total.total, `${m.id} @ ${cv.laborMode}: six elements + Other = ${bd.total.total} headline (no unexplained gap)`);
+    ok(costFor(m, optFor(m), cv) === bd.total.total, `${m.id} @ ${cv.laborMode}: costFor === breakdown total (card = waterfall = reconcile)`);
+  }
+}
+// the remainder is the four un-itemised engine sections (site · drywall · finish · landscaping) and is labelled honestly
+const gridBd = costBreakdown(grid, optFor(grid), DEFAULT_COST);
+ok(gridBd.remainder.usd === 159000, `Cube @ native: the Other remainder = $159,000 (site 42 + drywall 26 + finish 72 + land 19; got $${gridBd.remainder.usd})`);
+ok(gridBd.remainder.material === 31800 && gridBd.remainder.labor === 74100 && gridBd.remainder.markup === 53100, "the remainder splits M $31,800 / L $74,100 / Markup $53,100 (reconciles the fleet's numbers)");
+ok(/site/i.test(REMAINDER_LABEL) && /finish/i.test(REMAINDER_LABEL), "the remainder row names what it covers (site · drywall · finish · landscaping)");
+
+// ── v4 FLEET FIX: tapping VOLUNTEER snaps markup to 0% so the ~$40k friends/family/veterans headline is one tap ──────────
+ok(defaultMarkupFor("pro") === 0.5 && defaultMarkupFor("mixed") === 0.25 && defaultMarkupFor("volunteer") === 0, "defaultMarkupFor: pro 50% · mixed 25% · VOLUNTEER 0% (one-tap community build)");
+const tinyVolDefault = costFor(tiny, optFor(tiny), { laborMode: "volunteer", markup: defaultMarkupFor("volunteer") });
+ok(tinyVolDefault >= 35000 && tinyVolDefault <= 45000, `one tap on VOLUNTEER puts the Tiny at the operator's ~$40k (got $${tinyVolDefault})`);
 
 // ── method dimension (the ICON hook) + per-form gating ──
 ok(Object.keys(METHODS).length === 3 && METHODS["3d-print"].label === "3D Print" && /Hex-panel/.test(METHODS["hex-panel"].label), "methods: Stick · 3D Print · Hex-panel");

@@ -115,7 +115,7 @@ export const SIM_MODELS: SimModel[] = [
     note: "The standard home — nine rooms on a 3×3 grid; cost DERIVED from the estimate engine (DEFAULT_SECTIONS).",
   },
   {
-    id: "tiny", label: "Tiny Home", form: "8.5 × 24 ft · standard THOW", areaFt2: 204, rooms: 5, layoutLabel: "8.5×24 ft · ~204 ft²",
+    id: "tiny", label: "Tiny Home", form: "8.5 × 24 ft · standard THOW", areaFt2: 204, rooms: 5, layoutLabel: "5 zones",
     native: { method: "stick-framed", printMaterial: "cement", frameMaterial: "wood", roof: "gable" },
     stickMonths: 3, energyScore: 4, carbonScore: 4, basis: "ASSUMED",
     note: "A real standard tiny home on a trailer — 8.5×24 ft (~204 ft²). Size chosen from the industry consensus across ~30 THOW builds: road-legal 8.5 ft wide, length 24 ± ~5 ft (common 20–30 ft). ASSUMED, parametric.",
@@ -153,6 +153,10 @@ export const LABOR_MODES: Record<LaborMode, { label: string; short: string; blur
 };
 export interface CostParams { laborMode: LaborMode; markup: number; }
 export const DEFAULT_COST: CostParams = { laborMode: "pro", markup: BAKED_MARKUP };
+/** The markup a cost view opens with for each labour mode — a Pro contractor build carries the full 50% margin; a mixed
+ *  build half; a VOLUNTEER build (friends · family · veterans) opens at 0% so the one-tap headline is the true cost of the
+ *  materials (operator 2026-10-28: the ~$40k friends/family/veterans Tiny). The buyer can still drag the markup back up. */
+export function defaultMarkupFor(mode: LaborMode): number { return mode === "volunteer" ? 0 : mode === "mixed" ? 0.25 : BAKED_MARKUP; }
 
 // the six MAJOR elements the operator asked to compare, mapped 1:1 to the engine's work sections
 export const ELEMENTS = ["Foundation", "Framing", "Electrical", "Plumbing", "HVAC", "Roofing"] as const;
@@ -222,9 +226,30 @@ export interface ElementCost { element: ElementName; material: number; labor: nu
  *  Material / Labor / Markup at the chosen cost view. */
 export function elementCosts(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): ElementCost[] {
   return ELEMENTS.map((el) => { const p = sectionPrice(m, ELEMENT_SECTION[el], opt, cost);
-    return { element: el, material: r100(p.material), labor: r100(p.labor), markup: r100(p.markup), usd: r100(p.total) }; });
+    const material = r100(p.material), labor = r100(p.labor), markup = r100(p.markup);
+    // usd is the SUM of the $100-rounded parts (not r100(total)) so each row's total equals its shown M+L+Markup AND the
+    // six elements + the Other remainder reconcile exactly to the whole-build rollup at EVERY cost view (fleet fix).
+    return { element: el, material, labor, markup, usd: material + labor + markup }; });
 }
 export function elementSubtotal(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): number { return elementCosts(m, opt, cost).reduce((s, e) => s + e.usd, 0); }
+
+// The engine has ten work sections; the six MAJOR elements above are what the buyer compares + builds. The other four
+// (site·permits · drywall·insulation · interior finish · landscaping) are real cost too — so we surface them as ONE honest
+// "Other" remainder row whose channels are the whole-build rollup MINUS the six elements. Six elements + remainder then
+// reconcile EXACTLY to the card total and the Material/Labor/Markup waterfall — closing the "$159k unexplained" gap the
+// 48-AsM fleet flagged as the demo's top defect (an ICON estimator must see every dollar land).
+export const REMAINDER_LABEL = "Site · drywall · finish · landscaping";
+export interface RemainderCost { label: string; material: number; labor: number; markup: number; usd: number; }
+export interface CostBreakdown { elements: ElementCost[]; remainder: RemainderCost; total: CostSplit; }
+export function costBreakdown(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): CostBreakdown {
+  const elements = elementCosts(m, opt, cost);
+  const total = costRollup(m, opt, cost);
+  const sum = (k: "material" | "labor" | "markup") => elements.reduce((s, e) => s + e[k], 0);
+  const material = total.material - sum("material");
+  const labor = total.labor - sum("labor");
+  const markup = total.markup - sum("markup");
+  return { elements, remainder: { label: REMAINDER_LABEL, material, labor, markup, usd: material + labor + markup }, total };
+}
 
 /** Headline (envelope + embodied) carbon score 1..5 at an option — 3D-Print cement & aluminium frame cost a star for
  *  embodied carbon (the trade-off a carbon interviewer scrutinises — Thor); composite / steel / wood do not. */
