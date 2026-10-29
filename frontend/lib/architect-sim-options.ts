@@ -194,16 +194,18 @@ function sectionPrice(m: SimModel, sectionId: string, opt: BuildOption, cost: Co
   const markup = sub * cost.markup;
   return { material, labor, markup, total: sub + markup };
 }
-/** The full-build cost for a model at an option + cost view (all ten sections). Cube @ native + DEFAULT_COST = $440,000. */
-export function costFor(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): number {
-  const total = ALL_SECTION_IDS.reduce((s, id) => s + sectionPrice(m, id, opt, cost).total, 0);
-  return Math.round(total / 1000) * 1000;
-}
-/** Whole-build Material / Labor / Markup rollup (for the waterfall: Material → +Labor → +Markup → Total). */
+/** Whole-build Material / Labor / Markup rollup (for the waterfall: Material → +Labor → +Markup → Total). The total is the
+ *  SUM of the $100-rounded parts so the card total, the waterfall total, and the three bars always reconcile exactly (Aset). */
 export function costRollup(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): CostSplit {
   let material = 0, labor = 0, markup = 0;
   for (const id of ALL_SECTION_IDS) { const p = sectionPrice(m, id, opt, cost); material += p.material; labor += p.labor; markup += p.markup; }
-  return { material: r100(material), labor: r100(labor), markup: r100(markup), total: r100(material + labor + markup) };
+  const M = r100(material), L = r100(labor), K = r100(markup);
+  return { material: M, labor: L, markup: K, total: M + L + K };
+}
+/** The full-build cost for a model at an option + cost view. Cube @ native + DEFAULT_COST = exactly $440,000; and it always
+ *  equals the Material+Labor+Markup rollup total (one number, no card-vs-waterfall drift). */
+export function costFor(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): number {
+  return costRollup(m, opt, cost).total;
 }
 /** Build time (months) for a model at an option — 3D Print collapses the shell (cement ×0.6, composite ×0.55); the
  *  prefab hex-panel shell assembles fast too (×0.7); stick framing is the ×1.0 baseline. */
