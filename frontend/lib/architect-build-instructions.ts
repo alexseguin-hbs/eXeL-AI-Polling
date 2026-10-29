@@ -77,7 +77,7 @@ function framingSteps(m: SimModel, opt: BuildOption): Omit<InstructionStep, "n">
     ];
   }
   const fm = FRAME_MATERIALS[opt.frameMaterial];
-  const raise = opt.frameMaterial === "aluminum" ? 4 : opt.frameMaterial === "steel" ? 3 : 2;
+  const raise = opt.frameMaterial === "aluminum" ? 4 : opt.frameMaterial === "all-steel" ? 3 : opt.frameMaterial === "steel-corners" ? 2 : 2;
   return [
     { title: `Sill & wall framing (${fm.label.toLowerCase()})`, measure: `${fm.spec}; 8' wall height; single bottom / double top plate`, crewDays: raise, codeFlag: opt.frameMaterial !== "wood" ? "metal-frame thermal break + connectors" : undefined },
     { title: "Headers & openings", measure: "Headers over every opening; king + jack studs carry the load to the sill", crewDays: 1 },

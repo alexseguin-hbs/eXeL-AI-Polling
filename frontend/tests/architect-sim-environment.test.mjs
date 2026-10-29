@@ -39,7 +39,7 @@ ok(JSON.stringify(conservedKeys(tiny)) === JSON.stringify([...TINY_KEYS].sort())
 const TINY_OBJECTS = TINY_KEYS.reduce((s, k) => s + defaultObjectsForRoom(k).length, 0);  // 7+5+3+6+9 = 30
 ok(tiny.placements.length === 5 && totalObjectCount(tiny) === TINY_OBJECTS, `Tiny Home places its ${TINY_KEYS.length} zones + ${TINY_OBJECTS} pieces (got ${tiny.placements.length}/${totalObjectCount(tiny)})`);
 ok(totalObjectCount(tiny) < HOME_OBJECTS, "a tiny home genuinely carries fewer pieces than the full-size home (honest)");
-ok(tiny.shellRect && tiny.shellRect.w > tiny.shellRect.h * 3, "the Tiny Home shell is a long rectangle (reads as a THOW)");
+ok(tiny.shellRect && tiny.shellRect.w > tiny.shellRect.h * 2.5, "the Tiny Home shell is a long rectangle (8.5×24 ≈ 2.8:1, reads as a THOW)");
 ok(tiny.placements.filter((p) => p.open).length === 3, "the Tiny Home's great room is open (Living·Kitchen·Dining)");
 
 // the forms are genuinely distinct

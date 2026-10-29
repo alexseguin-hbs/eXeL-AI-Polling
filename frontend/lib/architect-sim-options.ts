@@ -31,14 +31,19 @@ export type SimName = (typeof SIMS)[number];
 // ── the four build dimensions ─────────────────────────────────────────────────────────────────────────────────────
 export type Method = "stick-framed" | "3d-print" | "hex-panel";
 export type PrintMaterial = "cement" | "composite";
-export type FrameMaterial = "wood" | "steel" | "aluminum";
+// operator 2026-10-28 (IMG-07): "wood, aluminum studs, steel reinforced 4 corners or all steel … Voortman cut and holes
+// automated with steel cutting machine plasma cutter." Four frame materials; the two steel options carry the automated-fab note.
+export type FrameMaterial = "wood" | "aluminum" | "steel-corners" | "all-steel";
 export type RoofType = "gable" | "hip" | "flat" | "hex-dome";
+export type LaborMode = "pro" | "mixed" | "volunteer";
 
 export interface BuildOption { method: Method; printMaterial: PrintMaterial; frameMaterial: FrameMaterial; roof: RoofType; }
 
+// operator 2026-10-28 (IMG-01): "Frame (not Stick). Use conventional CAD AND ARCHITECTURE LANGUAGE." The method reads
+// "Frame" (conventional framed construction) — the frame MATERIAL (wood/aluminum/steel) is the sub-selection below.
 export const METHODS: Record<Method, { label: string; short: string; blurb: string }> = {
-  "stick-framed": { label: "Stick-framed", short: "STICK", blurb: "Conventional dimensional-lumber (or metal) framing." },
-  "3d-print":     { label: "3D Print",     short: "3D PRINT", blurb: "Printed monolithic walls — fast shell, non-combustible, durable; material sets the strength/carbon." },
+  "stick-framed": { label: "Frame",          short: "FRAME",    blurb: "Conventional framed construction (wood, aluminum, or steel studs) — the industry-standard structural frame." },
+  "3d-print":     { label: "3D Print",       short: "3D PRINT", blurb: "Printed monolithic walls — fast shell, non-combustible, durable; the print material sets strength/carbon." },
   "hex-panel":    { label: "Hex-panel shell", short: "HEX PANEL", blurb: "Prefab geodesic hex panels bolted at hubs — the Eco-Sphere's native shell; fast dry assembly, aerodynamic (operator: \"Hex Panels for Shell of Eco-Sphere\")." },
 };
 /** Which construction methods each form offers — the Eco-Sphere dome is built with hex panels or printed cement (never
@@ -48,25 +53,28 @@ export const METHODS_FOR: Record<FormId, Method[]> = {
   "tiny":     ["stick-framed", "3d-print"],
   "eco-sphere": ["hex-panel", "3d-print"],
 };
-/** The hex-panel shell's FRAMING-element cost multiplier (prefab panels — a modest saving over stick). */
-const HEX_PANEL_COST_FACTOR = 0.90;
-/** 3D-Print materials (operator: "Cement, composite, and future selections of varying strengths"). costFactor applies
- *  to the FRAMING element only (printing replaces framing labour); carbonStar shifts the headline carbon. ESTIMATE. */
-export const PRINT_MATERIALS: Record<PrintMaterial, { label: string; short: string; blurb: string; costFactor: number; carbonStar: number; strength: string }> = {
-  cement:    { label: "Cement",    short: "CEMENT",    blurb: "Monolithic printed cement — very strong, non-combustible; high embodied carbon.", costFactor: 0.70, carbonStar: -1, strength: "~6 ksi compressive (vendor) vs 2–3.5 ksi standard" },
-  composite: { label: "Composite", short: "COMPOSITE", blurb: "Printed polymer-mineral composite — ~5× stronger, ~30% lighter, ~50% less embodied carbon than cement (vendor).", costFactor: 0.85, carbonStar: 0, strength: "~5× stronger, ~30% lighter than cement (vendor)" },
+/** The hex-panel shell's FRAMING-element material / labour multipliers (prefab panels — more material, far less site labour). */
+const HEX_PANEL_MAT_FACTOR = 1.05, HEX_PANEL_LABOR_FACTOR = 0.6;
+/** 3D-Print materials (operator: "Cement, composite, and future selections of varying strengths"). matFactor/laborFactor
+ *  apply to the FRAMING element (printing adds material but is machine time — big labour saving); carbonStar shifts the
+ *  headline carbon. ESTIMATE. */
+export const PRINT_MATERIALS: Record<PrintMaterial, { label: string; short: string; blurb: string; matFactor: number; laborFactor: number; carbonStar: number; strength: string }> = {
+  cement:    { label: "Cement",    short: "CEMENT",    blurb: "Monolithic printed cement — very strong, non-combustible; high embodied carbon.", matFactor: 1.1, laborFactor: 0.35, carbonStar: -1, strength: "~6 ksi compressive (vendor) vs 2–3.5 ksi standard" },
+  composite: { label: "Composite", short: "COMPOSITE", blurb: "Printed polymer-mineral composite — ~5× stronger, ~30% lighter, ~50% less embodied carbon than cement (vendor).", matFactor: 1.4, laborFactor: 0.35, carbonStar: 0, strength: "~5× stronger, ~30% lighter than cement (vendor)" },
 };
 /** Future print materials — shown DISABLED in the dropdown so the "more coming" the operator asked for is visible. */
 export const FUTURE_PRINT_MATERIALS: { label: string; note: string }[] = [
   { label: "Geopolymer", note: "low-carbon cement alternative — coming" },
   { label: "Hempcrete", note: "carbon-negative infill — coming" },
 ];
-/** Stick-frame materials (operator: "Framing wood vs steel and other aluminum and other frame options"). costFactor
- *  applies to the FRAMING element; the frame also nudges a few sims (strength / seismic / corrosion / carbon). */
-export const FRAME_MATERIALS: Record<FrameMaterial, { label: string; short: string; blurb: string; costFactor: number; spec: string }> = {
-  wood:     { label: "Wood",     short: "WOOD",  blurb: "Dimensional lumber — lowest cost, ductile, fast to raise; the default.", costFactor: 1.0,  spec: "2×4 / 2×6 studs @16\" o.c., double top plate" },
-  steel:    { label: "Steel",    short: "STEEL", blurb: "Light-gauge steel — 30–50% lighter & stronger, non-combustible; pricier, needs thermal breaks.", costFactor: 1.15, spec: "16–18 ga steel studs @16\" o.c." },
-  aluminum: { label: "Aluminum", short: "ALUM",  blurb: "Aluminum frame — corrosion-resistant, lightest; highest cost, specialty crews.", costFactor: 1.45, spec: "aluminium extrusions, bolted connections" },
+/** Frame materials (operator IMG-07: wood · aluminum studs · steel-reinforced 4 corners · all-steel; the steel options are
+ *  Voortman-style automated plasma-cut/drilled fabrication). matFactor scales the FRAMING element's MATERIAL cost; laborFactor
+ *  scales its LABOR hours (automated steel cuts shop-labour but adds material); each also nudges a few sims. */
+export const FRAME_MATERIALS: Record<FrameMaterial, { label: string; short: string; blurb: string; matFactor: number; laborFactor: number; spec: string; voortman?: boolean }> = {
+  wood:          { label: "Wood",            short: "WOOD",  blurb: "Dimensional lumber — lowest cost, ductile, fast to raise; the default.", matFactor: 1.0, laborFactor: 1.0, spec: "2×4 / 2×6 studs @16\" o.c., double top plate" },
+  aluminum:      { label: "Aluminum studs",  short: "ALUM",  blurb: "Aluminum studs — corrosion-resistant, lightest; highest material cost, specialty crews.", matFactor: 1.8, laborFactor: 1.1, spec: "aluminium stud wall, bolted connections" },
+  "steel-corners": { label: "Steel-reinforced corners", short: "STEEL×4", blurb: "Wood/light-steel walls with steel-reinforced four corners — stronger load path at modest added cost (Voortman-cut steel posts).", matFactor: 1.3, laborFactor: 0.95, spec: "4 corner steel posts + conventional infill; Voortman plasma-cut", voortman: true },
+  "all-steel":   { label: "All-steel",       short: "ALL-STEEL", blurb: "Full light-gauge steel frame — non-combustible, precise, fast on site; shop-fabricated (Voortman automated cut + holes).", matFactor: 1.6, laborFactor: 0.75, spec: "16–18 ga steel studs @16\" o.c.; Voortman automated cut/drill", voortman: true },
 };
 /** Roof types (operator: "different roof options for Cube, Tiny Home, 3D Print" + "show HEX roof"). costFactor applies
  *  to the ROOFING element; windDelta/thermalDelta nudge those two sims. */
@@ -107,10 +115,10 @@ export const SIM_MODELS: SimModel[] = [
     note: "The standard home — nine rooms on a 3×3 grid; cost DERIVED from the estimate engine (DEFAULT_SECTIONS).",
   },
   {
-    id: "tiny", label: "Tiny Home", form: "8.5 × 40 ft · standard THOW", areaFt2: 340, rooms: 5, layoutLabel: "8.5×40 ft · ~340 ft²",
+    id: "tiny", label: "Tiny Home", form: "8.5 × 24 ft · standard THOW", areaFt2: 204, rooms: 5, layoutLabel: "8.5×24 ft · ~204 ft²",
     native: { method: "stick-framed", printMaterial: "cement", frameMaterial: "wood", roof: "gable" },
     stickMonths: 3, energyScore: 4, carbonScore: 4, basis: "ASSUMED",
-    note: "A real standard tiny home on a trailer — 8.5×40 ft (~340 ft²) with a realistic THOW layout; ASSUMED, parametric.",
+    note: "A real standard tiny home on a trailer — 8.5×24 ft (~204 ft²). Size chosen from the industry consensus across ~30 THOW builds: road-legal 8.5 ft wide, length 24 ± ~5 ft (common 20–30 ft). ASSUMED, parametric.",
   },
   {
     id: "eco-sphere", label: "Eco-Sphere", form: "7 hexagons · hex-panel dome · 900 ft²", areaFt2: 900, rooms: 7, layoutLabel: "7 hex · 9 rooms",
@@ -124,10 +132,27 @@ export const modelById = (id: string | null | undefined): SimModel | null => SIM
 /** The build option for a model, with optional overrides merged over its native option. */
 export function optFor(m: SimModel, override?: Partial<BuildOption>): BuildOption { return { ...m.native, ...(override ?? {}) }; }
 
-// ── the ONE cost engine — every cost derives from DEFAULT_SECTIONS, area-scaled + option-adjusted ───────────────────
+// ── the ONE cost engine — MATERIAL + LABOR + MARKUP, derived from DEFAULT_SECTIONS (operator 2026-10-28, IMG-02/06) ─────
+// Each engine section's costUsd is a MARKET PRICE = (Material + Labor@pro) × (1 + BAKED_MARKUP). We decompose it so a buyer
+// SEES Material · Labor · Markup, drives Labor down with volunteers (friends/family/veterans) and Markup down for a community
+// build — "shine light + optimise each step as a team." At the NATIVE default (Pro labour, 50% markup) every figure reconciles
+// EXACTLY to the engine (Cube = $440,000); switch to Volunteer + 0% markup and a 204 ft² Tiny reads ~$40k (the operator's number).
 const SECTION = (id: string): number => DEFAULT_SECTIONS.find((s) => s.id === id)?.costUsd ?? 0;
 const ALL_SECTION_IDS = DEFAULT_SECTIONS.map((s) => s.id);
-const BASE_COST = DEFAULT_SECTIONS.reduce((s, w) => s + w.costUsd, 0);   // $440,000 (the Cube at native option)
+const BASE_COST = DEFAULT_SECTIONS.reduce((s, w) => s + w.costUsd, 0);   // $440,000 (the Cube at native option + DEFAULT_COST)
+const r100 = (n: number): number => Math.round(n / 100) * 100;
+
+const BAKED_MARKUP = 0.5;        // contractor markup already implied in the engine costUsd → native stays the DERIVED $440k
+const MATERIAL_FRACTION = 0.30;  // material's share of the pre-markup basis (labour = the rest); calibrated so a volunteer-built,
+                                 // zero-markup 204 ft² tiny lands ~$40k (the real-world figure the operator cited)
+/** WHO builds — the labour-cost lever (friends/family/veterans ⇒ donated labour ⇒ ≈ $0). */
+export const LABOR_MODES: Record<LaborMode, { label: string; short: string; blurb: string; scale: number }> = {
+  pro:       { label: "Pro crew",              short: "PRO",       blurb: "Licensed paid trades at market labour rates — a full contractor build.", scale: 1.0 },
+  mixed:     { label: "Mixed (pro + helpers)", short: "MIXED",     blurb: "Key trades paid, the rest friends/family/helpers — roughly half the labour cost.", scale: 0.5 },
+  volunteer: { label: "Volunteer build",       short: "VOLUNTEER", blurb: "Built with friends, family & veterans — donated labour (Vision-2525); labour cost ≈ $0.", scale: 0.0 },
+};
+export interface CostParams { laborMode: LaborMode; markup: number; }
+export const DEFAULT_COST: CostParams = { laborMode: "pro", markup: BAKED_MARKUP };
 
 // the six MAJOR elements the operator asked to compare, mapped 1:1 to the engine's work sections
 export const ELEMENTS = ["Foundation", "Framing", "Electrical", "Plumbing", "HVAC", "Roofing"] as const;
@@ -136,23 +161,49 @@ const ELEMENT_SECTION: Record<ElementName, string> = { Foundation: "found", Fram
 
 /** Area scale with a fixed-cost floor (a small home never costs zero to build): 0.30 + 0.70 × (ft²/900). Cube = 1.0. */
 const areaFactor = (m: SimModel): number => 0.30 + 0.70 * (m.areaFt2 / 900);
-/** The FRAMING-element cost multiplier for an option: the print material (3D Print), the hex-panel factor, or the frame material (stick). */
-export function framingFactor(opt: BuildOption): number {
-  if (opt.method === "3d-print") return PRINT_MATERIALS[opt.printMaterial].costFactor;
-  if (opt.method === "hex-panel") return HEX_PANEL_COST_FACTOR;
-  return FRAME_MATERIALS[opt.frameMaterial].costFactor;
+/** The shell (frame) section's MATERIAL multiplier by method: print material, hex-panel, or frame material. */
+function frameMatFactor(opt: BuildOption): number {
+  if (opt.method === "3d-print") return PRINT_MATERIALS[opt.printMaterial].matFactor;
+  if (opt.method === "hex-panel") return HEX_PANEL_MAT_FACTOR;
+  return FRAME_MATERIALS[opt.frameMaterial].matFactor;
 }
-/** One engine section's cost for a model at an option — area-scaled, Framing × the method factor, Roofing × the roof factor. */
-function sectionCostRaw(m: SimModel, sectionId: string, opt: BuildOption): number {
-  let c = SECTION(sectionId) * areaFactor(m);
-  if (sectionId === "frame") c *= framingFactor(opt);
-  if (sectionId === "roof") c *= ROOFS[opt.roof].costFactor;
-  return c;
+/** The shell (frame) section's LABOUR multiplier by method (3D Print / all-steel shop-fab cut site labour). */
+function frameLaborFactor(opt: BuildOption): number {
+  if (opt.method === "3d-print") return PRINT_MATERIALS[opt.printMaterial].laborFactor;
+  if (opt.method === "hex-panel") return HEX_PANEL_LABOR_FACTOR;
+  return FRAME_MATERIALS[opt.frameMaterial].laborFactor;
 }
-/** The full-build cost for a model at an option (all ten engine sections). Cube @ native = exactly $440,000. */
-export function costFor(m: SimModel, opt: BuildOption): number {
-  const total = ALL_SECTION_IDS.reduce((s, id) => s + sectionCostRaw(m, id, opt), 0);
+/** Legacy single multiplier (material×labour share) kept for callers that want a frame-section scalar. */
+export function framingFactor(opt: BuildOption): number { return frameMatFactor(opt) * MATERIAL_FRACTION + frameLaborFactor(opt) * (1 - MATERIAL_FRACTION); }
+
+/** One section split into pre-markup Material + Labor@pro ($), area-scaled + option-adjusted. */
+function sectionSplit(m: SimModel, sectionId: string, opt: BuildOption): { material: number; laborPro: number } {
+  const basis = SECTION(sectionId) / (1 + BAKED_MARKUP);
+  let material = basis * MATERIAL_FRACTION * areaFactor(m);
+  let laborPro = basis * (1 - MATERIAL_FRACTION) * areaFactor(m);
+  if (sectionId === "frame") { material *= frameMatFactor(opt); laborPro *= frameLaborFactor(opt); }
+  if (sectionId === "roof")  { const rf = ROOFS[opt.roof].costFactor; material *= rf; laborPro *= rf; }
+  return { material, laborPro };
+}
+export interface CostSplit { material: number; labor: number; markup: number; total: number; }
+/** Material + Labor + Markup for one section at a cost view (labour mode scales labour; markup on the sub-total). */
+function sectionPrice(m: SimModel, sectionId: string, opt: BuildOption, cost: CostParams): CostSplit {
+  const { material, laborPro } = sectionSplit(m, sectionId, opt);
+  const labor = laborPro * LABOR_MODES[cost.laborMode].scale;
+  const sub = material + labor;
+  const markup = sub * cost.markup;
+  return { material, labor, markup, total: sub + markup };
+}
+/** The full-build cost for a model at an option + cost view (all ten sections). Cube @ native + DEFAULT_COST = $440,000. */
+export function costFor(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): number {
+  const total = ALL_SECTION_IDS.reduce((s, id) => s + sectionPrice(m, id, opt, cost).total, 0);
   return Math.round(total / 1000) * 1000;
+}
+/** Whole-build Material / Labor / Markup rollup (for the waterfall: Material → +Labor → +Markup → Total). */
+export function costRollup(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): CostSplit {
+  let material = 0, labor = 0, markup = 0;
+  for (const id of ALL_SECTION_IDS) { const p = sectionPrice(m, id, opt, cost); material += p.material; labor += p.labor; markup += p.markup; }
+  return { material: r100(material), labor: r100(labor), markup: r100(markup), total: r100(material + labor + markup) };
 }
 /** Build time (months) for a model at an option — 3D Print collapses the shell (cement ×0.6, composite ×0.55); the
  *  prefab hex-panel shell assembles fast too (×0.7); stick framing is the ×1.0 baseline. */
@@ -163,13 +214,15 @@ function methodMonthsFactor(opt: BuildOption): number {
 }
 export function monthsFor(m: SimModel, opt: BuildOption): number { return Math.max(1, Math.round(m.stickMonths * methodMonthsFactor(opt))); }
 
-// ── cost BY ELEMENT (operator: "Show cost of key elements: Foundation, Electrical, Plumbing, Framing, HVAC, Roofing") ─
-export interface ElementCost { element: ElementName; usd: number; }
-/** The six major elements priced from the SAME engine sections as the card cost (so they reconcile). */
-export function elementCosts(m: SimModel, opt: BuildOption): ElementCost[] {
-  return ELEMENTS.map((el) => ({ element: el, usd: Math.round(sectionCostRaw(m, ELEMENT_SECTION[el], opt) / 100) * 100 }));
+// ── cost BY ELEMENT with the Material/Labor/Markup split (operator IMG-02/06: "toggle on Material + Labor + Markup") ───
+export interface ElementCost { element: ElementName; material: number; labor: number; markup: number; usd: number; }
+/** The six major elements priced from the SAME engine sections as the card cost (so they reconcile), each split into
+ *  Material / Labor / Markup at the chosen cost view. */
+export function elementCosts(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): ElementCost[] {
+  return ELEMENTS.map((el) => { const p = sectionPrice(m, ELEMENT_SECTION[el], opt, cost);
+    return { element: el, material: r100(p.material), labor: r100(p.labor), markup: r100(p.markup), usd: r100(p.total) }; });
 }
-export function elementSubtotal(m: SimModel, opt: BuildOption): number { return elementCosts(m, opt).reduce((s, e) => s + e.usd, 0); }
+export function elementSubtotal(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): number { return elementCosts(m, opt, cost).reduce((s, e) => s + e.usd, 0); }
 
 /** Headline (envelope + embodied) carbon score 1..5 at an option — 3D-Print cement & aluminium frame cost a star for
  *  embodied carbon (the trade-off a carbon interviewer scrutinises — Thor); composite / steel / wood do not. */
@@ -262,13 +315,15 @@ function methodDelta(sim: SimName, opt: BuildOption): number {
     };
     return d[sim] ?? 0;
   }
-  const steel = opt.frameMaterial === "steel", alum = opt.frameMaterial === "aluminum";
+  const alum = opt.frameMaterial === "aluminum";
+  const allSteel = opt.frameMaterial === "all-steel", steelCorners = opt.frameMaterial === "steel-corners";
+  const steel = allSteel || steelCorners;   // any steel content
   const d: Partial<Record<SimName, number>> = {
-    Structural: steel ? +0.4 : alum ? +0.3 : 0,
-    Earthquake: alum ? +0.4 : steel ? +0.2 : 0,   // lighter frame → better seismic
+    Structural: allSteel ? +0.5 : steelCorners ? +0.3 : alum ? +0.3 : 0,   // steel-reinforced corners strengthen the load path
+    Earthquake: alum ? +0.4 : steel ? +0.2 : 0,   // lighter/ductile metal → better seismic
     Fire: steel ? +0.3 : alum ? +0.1 : 0,          // steel non-combustible
-    Flood: alum ? +0.3 : 0,                        // aluminium corrosion-resistant
-    Lifecycle: alum ? +0.3 : steel ? +0.1 : 0,
+    Flood: alum ? +0.3 : steel ? +0.2 : 0,         // metal frames resist rot/corrosion
+    Lifecycle: alum ? +0.3 : steel ? +0.2 : 0,
     Carbon: alum ? -0.4 : steel ? -0.2 : 0,        // higher embodied carbon
   };
   return d[sim] ?? 0;
@@ -285,10 +340,10 @@ export interface SimMetric { label: string; value: string; }
 const num = (x: number, digits = 0): string => x.toLocaleString("en-US", { maximumFractionDigits: digits });
 
 const METRICS: Record<SimName, (m: SimModel, d: Record<DriverKey, number>, opt: BuildOption) => SimMetric[]> = {
-  "Structural":    (m, d, o) => { const printed = o.method === "3d-print"; return [{ label: "Load margin", value: `${num(20 + d.conv * 8 + d.curved * 4 + (printed ? 15 : o.frameMaterial === "steel" ? 8 : 0))}%` }, { label: "Wall system", value: printed ? `printed ${PRINT_MATERIALS[o.printMaterial].label.toLowerCase()}` : `stick · ${FRAME_MATERIALS[o.frameMaterial].label.toLowerCase()}` }]; },
+  "Structural":    (m, d, o) => { const printed = o.method === "3d-print"; const steel = o.frameMaterial === "all-steel" || o.frameMaterial === "steel-corners"; return [{ label: "Load margin", value: `${num(20 + d.conv * 8 + d.curved * 4 + (printed ? 15 : steel ? 8 : 0))}%` }, { label: "Wall system", value: printed ? `printed ${PRINT_MATERIALS[o.printMaterial].label.toLowerCase()}` : o.method === "hex-panel" ? "hex-panel shell" : `frame · ${FRAME_MATERIALS[o.frameMaterial].label.toLowerCase()}` }]; },
   "Wind":          (m, d, o) => [{ label: "Design wind", value: `${num(100 + d.curved * 8 + (o.method === "3d-print" ? 15 : 0) + ROOFS[o.roof].windDelta * 10)} mph` }, { label: "Roof", value: ROOFS[o.roof].label }],
-  "Flood":         (m, d, o) => [{ label: "Freeboard", value: `${num(1 + d.compact * 0.4, 1)} ft` }, { label: "Frame", value: o.method === "3d-print" ? "printed (no stud rot)" : o.frameMaterial === "aluminum" ? "aluminium (corrosion ✓)" : o.frameMaterial } ],
-  "Fire":          (m, d, o) => [{ label: "Egress time", value: `${num(120 - d.compact * 10 - d.conv * 5)} s` }, { label: "Wall rating", value: o.method === "3d-print" ? "non-combustible" : o.frameMaterial === "steel" ? "non-combustible (steel)" : `${num(20 + d.conv * 8)} min` }],
+  "Flood":         (m, d, o) => { const steel = o.frameMaterial === "all-steel" || o.frameMaterial === "steel-corners"; return [{ label: "Freeboard", value: `${num(1 + d.compact * 0.4, 1)} ft` }, { label: "Frame", value: o.method === "3d-print" ? "printed (no stud rot)" : o.method === "hex-panel" ? "panel (sealed)" : o.frameMaterial === "aluminum" ? "aluminium (corrosion ✓)" : steel ? "steel (corrosion ✓)" : "wood" }]; },
+  "Fire":          (m, d, o) => { const steel = o.frameMaterial === "all-steel" || o.frameMaterial === "steel-corners"; return [{ label: "Egress time", value: `${num(120 - d.compact * 10 - d.conv * 5)} s` }, { label: "Wall rating", value: o.method === "3d-print" ? "non-combustible" : steel ? "non-combustible (steel)" : `${num(20 + d.conv * 8)} min` }]; },
   "Earthquake":    (m, d, o) => { const heavy = o.method === "3d-print" && o.printMaterial === "cement"; return [{ label: "Drift ratio", value: `${num(2.4 - d.curved * 0.25, 2)}%` }, { label: "System", value: heavy ? "mass (ductility ↓)" : o.method === "3d-print" ? "composite (light)" : `ductility ${num(d.curved, 1)}/5` }]; },
   "Thermal":       (m, _d, o) => [{ label: "Envelope", value: `R-${num(13 + m.energyScore * 6 + (o.method === "3d-print" ? 4 : 0) + ROOFS[o.roof].thermalDelta * 6)}` }, { label: "Mass", value: o.method === "3d-print" ? (o.printMaterial === "cement" ? "high (cement)" : "medium (composite)") : `${m.energyScore}/5 (assumed)` }],
   "Solar":         (m, _d, o) => { const roof = Math.round(m.areaFt2 * (m.id === "eco-sphere" ? 0.6 : m.id === "tiny" ? 0.4 : 0.5)); return [{ label: "Roof solar area", value: `${num(roof)} ft²` }, { label: "Annual yield", value: `${num(roof * 15)} kWh` }]; },
@@ -297,7 +352,7 @@ const METRICS: Record<SimName, (m: SimModel, d: Record<DriverKey, number>, opt: 
   "Evacuation":    (m, d) => [{ label: "Egress travel", value: `${num(20 + m.areaFt2 * 0.03)} ft` }, { label: "Clear time", value: `${num(90 - d.compact * 8 - d.conv * 4)} s` }],
   "Accessibility": (m, d) => [{ label: "Turning radius", value: `${num(48 + d.spacious * 3)} in` }, { label: "Clear door", value: `${num(32 + d.spacious)} in` }],
   "Carbon":        (m, _d, o) => { const operating = m.areaFt2 * (12 - m.energyScore * 1.5); const embPenalty = o.method === "3d-print" ? (o.printMaterial === "cement" ? 0.03 : 0.012) : o.frameMaterial === "aluminum" ? 0.02 : 0; const embodied = m.areaFt2 * (0.09 - m.carbonScore * 0.008) + m.areaFt2 * embPenalty; const tag = o.method === "3d-print" ? (o.printMaterial === "cement" ? " (cement↑)" : " (composite)") : o.frameMaterial === "aluminum" ? " (alum↑)" : " (assumed)"; return [{ label: "Embodied" + tag, value: `${num(embodied, 1)} tCO₂e` }, { label: "Operating", value: `${num(operating)} kg/yr` }]; },
-  "Lifecycle":     (m, _d, o) => { const life = costFor(m, o) * (1 + (6 - m.energyScore) * 0.08); const dur = o.method === "3d-print" ? "high (printed)" : o.frameMaterial === "aluminum" ? "high (alum)" : o.frameMaterial === "steel" ? "high (steel)" : `${num(5 - m.energyScore * 0.6, 1)}/5`; return [{ label: "30-yr cost", value: `$${num(life)}` }, { label: "Durability", value: dur }]; },
+  "Lifecycle":     (m, _d, o) => { const life = costFor(m, o) * (1 + (6 - m.energyScore) * 0.08); const steel = o.frameMaterial === "all-steel" || o.frameMaterial === "steel-corners"; const dur = o.method === "3d-print" ? "high (printed)" : o.method === "hex-panel" ? "high (panel)" : o.frameMaterial === "aluminum" ? "high (alum)" : steel ? "high (steel)" : `${num(5 - m.energyScore * 0.6, 1)}/5`; return [{ label: "30-yr cost", value: `$${num(life)}` }, { label: "Durability", value: dur }]; },
 };
 function simMetrics(m: SimModel, sim: SimName, opt: BuildOption): SimMetric[] { return METRICS[sim](m, drivers(m, opt), opt); }
 

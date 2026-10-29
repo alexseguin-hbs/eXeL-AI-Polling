@@ -4,8 +4,8 @@
 // BY ELEMENT — all derived from ONE engine (DEFAULT_SECTIONS) so the element breakdown reconciles to the card cost.
 import {
   SIMS, SIM_MODELS, METHODS, METHODS_FOR, PRINT_MATERIALS, FUTURE_PRINT_MATERIALS, FRAME_MATERIALS, ROOFS, ROOFS_FOR,
-  ELEMENTS, carbonFor, compareModels, costFor, elementCosts, elementSubtotal, monthsFor, optFor, framingFactor,
-  phaseSchedule, runBattery, simResult, simMatrix, overallScore, recommendation, modelById,
+  LABOR_MODES, DEFAULT_COST, ELEMENTS, carbonFor, compareModels, costFor, costRollup, elementCosts, elementSubtotal,
+  monthsFor, optFor, framingFactor, phaseSchedule, runBattery, simResult, simMatrix, overallScore, recommendation, modelById,
 } from "@/lib/architect-sim-options";
 import { DEFAULT_SECTIONS } from "@/lib/architect-estimate";
 
@@ -23,11 +23,11 @@ const ids = SIM_MODELS.map((m) => m.id);
 const grid = modelById("3x3-grid"), tiny = modelById("tiny"), eco = modelById("eco-sphere");
 ok(grid.label === "Cube" && tiny.label === "Tiny Home" && eco.label === "Eco-Sphere", "labels Cube · Tiny Home · Eco-Sphere");
 
-// FX-01: the Tiny Home is a REAL standard size (8.5×40 ≈ 340 ft²); Cube + Eco are the full-size 900 ft² forms
+// FX-01 / v4: the Tiny Home is a REAL standard THOW (8.5×24 ≈ 204 ft², chosen from ~30 builds); Cube + Eco are 900 ft²
 ok(grid.areaFt2 === 900 && eco.areaFt2 === 900, "Cube + Eco are 900 ft²");
-ok(tiny.areaFt2 === 340, `Tiny Home is a real standard 340 ft² (got ${tiny.areaFt2})`);
-ok(/40 ft/.test(tiny.form) && /THOW/.test(tiny.form), "Tiny Home form names the 8.5×40 standard THOW");
-ok(grid.layoutLabel === "9 rooms" && /340/.test(tiny.layoutLabel) && /7 hex/.test(eco.layoutLabel), "layoutLabel reconciles card ⇄ environment");
+ok(tiny.areaFt2 === 204, `Tiny Home is the data-chosen standard 204 ft² (got ${tiny.areaFt2})`);
+ok(/24 ft/.test(tiny.form) && /THOW/.test(tiny.form), "Tiny Home form names the 8.5×24 standard THOW");
+ok(grid.layoutLabel === "9 rooms" && /204/.test(tiny.layoutLabel) && /7 hex/.test(eco.layoutLabel), "layoutLabel reconciles card ⇄ environment");
 
 // ONE engine: Cube @ native = the estimate engine's exact total; every cost derives from DEFAULT_SECTIONS
 const baseCost = DEFAULT_SECTIONS.reduce((s, w) => s + w.costUsd, 0);
@@ -46,6 +46,23 @@ ok(elementSubtotal(grid, optFor(grid)) === 281000, "Cube six-element subtotal = 
 ok(elementSubtotal(tiny, optFor(tiny)) < elementSubtotal(grid, optFor(grid)), "Tiny's element subtotal is smaller (area-scaled)");
 for (const m of SIM_MODELS) ok(elementSubtotal(m, optFor(m)) <= costFor(m, optFor(m)), `${m.id} six elements are a subtotal of the full build`);
 
+// ── MATERIAL + LABOR + MARKUP (operator IMG-02/06): the lever that lets friends/family/veterans drive cost down ──
+ok(LABOR_MODES.pro.scale === 1 && LABOR_MODES.mixed.scale === 0.5 && LABOR_MODES.volunteer.scale === 0, "labour modes: pro 1.0 · mixed 0.5 · volunteer 0 (donated labour)");
+ok(DEFAULT_COST.laborMode === "pro" && DEFAULT_COST.markup === 0.5, "default cost view = pro labour + 50% markup (the DERIVED anchor)");
+const gridRoll = costRollup(grid, optFor(grid), DEFAULT_COST);
+ok(gridRoll.material > 0 && gridRoll.labor > 0 && gridRoll.markup > 0, "the Cube cost splits into Material + Labor + Markup");
+ok(Math.abs(gridRoll.total - baseCost) <= 1000, `Material+Labor+Markup reconciles to the DERIVED total ($${gridRoll.total} ≈ $${baseCost})`);
+// volunteer labour + 0 markup is far cheaper than pro + 50% (the transparency / "boil it down" story)
+ok(costFor(grid, optFor(grid), { laborMode: "volunteer", markup: 0 }) < costFor(grid, optFor(grid), DEFAULT_COST) * 0.6, "volunteer + 0% markup is far below pro + 50%");
+// the markup slider moves the price; mixed is between pro and volunteer
+ok(costFor(grid, optFor(grid), { laborMode: "pro", markup: 0 }) < costFor(grid, optFor(grid), { laborMode: "pro", markup: 0.5 }), "the markup slider raises the price");
+const tinyVol = costFor(tiny, optFor(tiny), { laborMode: "volunteer", markup: 0 });
+ok(tinyVol >= 25000 && tinyVol <= 60000, `a volunteer-built, zero-markup tiny home reads in the real-world ~$40k range (got $${tinyVol})`);
+// scores do NOT swing with the labour/markup sliders (scores are about design, not who builds) — overallScore ignores cost view
+ok(overallScore("3x3-grid", optFor(grid)) === overallScore("3x3-grid", optFor(grid)), "scores are stable (deterministic, cost-view-independent)");
+// elementCosts carries the per-element Material / Labor / Markup split
+ok(elementCosts(grid, optFor(grid)).every((e) => typeof e.material === "number" && typeof e.labor === "number" && typeof e.markup === "number"), "each element carries Material / Labor / Markup");
+
 // ── method dimension (the ICON hook) + per-form gating ──
 ok(Object.keys(METHODS).length === 3 && METHODS["3d-print"].label === "3D Print" && /Hex-panel/.test(METHODS["hex-panel"].label), "methods: Stick · 3D Print · Hex-panel");
 ok(!/ICON/i.test(METHODS["3d-print"].label + METHODS["3d-print"].blurb), "the 3D Print method names no brand");
@@ -61,7 +78,8 @@ ok(monthsFor(grid, gridPrint) < monthsFor(grid, gridStick), "3D Print builds the
 
 // ── 3D-Print materials: cement vs composite (strength / cost / carbon differ) + "more coming" ──
 ok(PRINT_MATERIALS.cement && PRINT_MATERIALS.composite, "cement + composite materials exist");
-ok(PRINT_MATERIALS.cement.costFactor < PRINT_MATERIALS.composite.costFactor, "cement frames cheaper than composite");
+ok(PRINT_MATERIALS.cement.matFactor < PRINT_MATERIALS.composite.matFactor, "cement material cheaper than composite");
+ok(PRINT_MATERIALS.cement.laborFactor < 1 && PRINT_MATERIALS.composite.laborFactor < 1, "printing cuts shell labour (machine time)");
 ok(FUTURE_PRINT_MATERIALS.length >= 1, "future print materials are listed ('more coming')");
 const gridComposite = { ...gridStick, method: "3d-print", printMaterial: "composite" };
 ok(carbonFor(grid, gridPrint) < carbonFor(grid, gridComposite), "cement costs a carbon star; composite does not");
@@ -70,11 +88,15 @@ ok(simResult("3x3-grid", "Carbon", gridPrint).score <= simResult("3x3-grid", "Ca
 ok(simResult("3x3-grid", "Structural", gridComposite).score >= simResult("3x3-grid", "Structural", gridPrint).score, "composite is stronger than cement (Structural)");
 
 // ── frame materials: wood / steel / aluminum (cost + strength + carbon) ──
-ok(FRAME_MATERIALS.wood.costFactor === 1.0 && FRAME_MATERIALS.steel.costFactor > 1 && FRAME_MATERIALS.aluminum.costFactor > FRAME_MATERIALS.steel.costFactor, "wood < steel < aluminum on cost");
-ok(framingFactor({ ...gridStick, frameMaterial: "steel" }) === 1.15, "steel framing factor wired");
+// frame materials (operator IMG-07): wood · aluminum studs · steel-reinforced corners · all-steel (Voortman)
+ok(["wood", "aluminum", "steel-corners", "all-steel"].every((k) => FRAME_MATERIALS[k]), "four frame materials: wood/aluminum/steel-corners/all-steel");
+ok(FRAME_MATERIALS["steel-corners"].voortman && FRAME_MATERIALS["all-steel"].voortman, "the steel options carry the Voortman automated-fab flag");
+ok(FRAME_MATERIALS.wood.matFactor === 1.0 && FRAME_MATERIALS.aluminum.matFactor > 1 && FRAME_MATERIALS["all-steel"].laborFactor < 1, "wood baseline; aluminum pricier material; all-steel cuts site labour (shop-fab)");
+ok(framingFactor({ ...gridStick, frameMaterial: "wood" }) === 1.0, "wood framing factor = 1.0 (anchors the DERIVED cost)");
+ok(framingFactor({ ...gridStick, frameMaterial: "aluminum" }) > 1, "aluminum framing factor > wood");
 ok(costFor(grid, { ...gridStick, frameMaterial: "aluminum" }) > costFor(grid, gridStick), "aluminum frame costs more than wood");
 ok(carbonFor(grid, { ...gridStick, frameMaterial: "aluminum" }) < carbonFor(grid, gridStick), "aluminum's embodied carbon costs a headline star");
-ok(simResult("3x3-grid", "Structural", { ...gridStick, frameMaterial: "steel" }).score >= simResult("3x3-grid", "Structural", gridStick).score, "steel frame raises Structural");
+ok(simResult("3x3-grid", "Structural", { ...gridStick, frameMaterial: "all-steel" }).score >= simResult("3x3-grid", "Structural", gridStick).score, "all-steel frame raises Structural");
 
 // ── roof options + hex roof ──
 ok(ROOFS.gable && ROOFS.hip && ROOFS.flat && ROOFS["hex-dome"], "roof types: gable · hip · flat · hex-dome");

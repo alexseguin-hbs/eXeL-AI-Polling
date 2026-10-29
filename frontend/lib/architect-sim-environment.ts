@@ -54,14 +54,15 @@ export function gridEnvironment(): SimEnvironment {
 
 // ── Tiny Home — a real standard 8.5 × 40 ft THOW (~340 ft²), drawn as a long horizontal rectangle (true proportion).
 //    A realistic THOW layout front→rear: an OPEN great room (Living · Kitchen · Dining nook), then Bath + Bedroom/loft. ─
-const TINY_LEN_FT = 40, TINY_WID_FT = 8.5;
+// 8.5 × 24 ft — the standard THOW size (industry consensus across ~30 builds: 8.5 ft road-legal width, 24 ± ~5 ft length).
+const TINY_LEN_FT = 24, TINY_WID_FT = 8.5;
 const TINY_ZONES: { key: string; ft: number; open?: boolean }[] = [
-  { key: "L", ft: 11, open: true },  // Living (front)
-  { key: "K", ft: 8, open: true },   // Kitchen
-  { key: "D", ft: 5, open: true },   // Dining nook
-  { key: "B", ft: 6 },               // Bath
-  { key: "M", ft: 10 },              // Bedroom / loft (rear)
-];  // Σ = 40 ft
+  { key: "L", ft: 7, open: true },   // Living (front)
+  { key: "K", ft: 5, open: true },   // Kitchen
+  { key: "D", ft: 3, open: true },   // Dining nook
+  { key: "B", ft: 4 },               // Bath
+  { key: "M", ft: 5 },               // Bedroom / loft (rear)
+];  // Σ = 24 ft
 export function tinyEnvironment(): SimEnvironment {
   const drawW = VIEW - 2 * MARGIN;          // 108
   const sx = drawW / TINY_LEN_FT;           // svg units per foot along the length (2.7)

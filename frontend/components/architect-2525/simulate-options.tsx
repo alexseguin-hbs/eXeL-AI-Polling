@@ -17,8 +17,9 @@
 import { useMemo, useState } from "react";
 import {
   SIM_MODELS, SIMS, METHODS, METHODS_FOR, PRINT_MATERIALS, FUTURE_PRINT_MATERIALS, FRAME_MATERIALS, ROOFS, ROOFS_FOR,
-  carbonFor, compareModels, costFor, elementCosts, elementSubtotal, monthsFor, optFor, overallScore, phaseSchedule,
-  recommendation, simMatrix, simResult, type BuildOption, type Method, type PrintMaterial, type FrameMaterial, type RoofType,
+  LABOR_MODES, DEFAULT_COST, carbonFor, compareModels, costFor, costRollup, elementCosts, elementSubtotal, monthsFor, optFor,
+  overallScore, phaseSchedule, recommendation, simMatrix, simResult,
+  type BuildOption, type Method, type PrintMaterial, type FrameMaterial, type RoofType, type CostParams, type LaborMode,
 } from "@/lib/architect-sim-options";
 import { SimEnvironmentView } from "./sim-environment-view";
 import { BuildInstructionsPanel, BuildTimelineCompare } from "./build-instructions";
@@ -67,6 +68,9 @@ export function SimulateOptions() {
   const [optsBy, setOptsBy] = useState<Record<string, BuildOption>>(() => Object.fromEntries(SIM_MODELS.map((m) => [m.id, optFor(m)])));
   const [compare, setCompare] = useState(false);
   const [openRows, setOpenRows] = useState<Set<string>>(new Set());
+  // per-card COST VIEW — who builds (labour mode) + markup slider (operator IMG-02/06: Material + Labor + Markup, default 50%)
+  const [costBy, setCostBy] = useState<Record<string, CostParams>>(() => Object.fromEntries(SIM_MODELS.map((m) => [m.id, { ...DEFAULT_COST }])));
+  const setCost = (id: string, patch: Partial<CostParams>) => setCostBy((s) => ({ ...s, [id]: { ...s[id], ...patch } }));
 
   const allSimulated = SIM_MODELS.every((m) => simulated.has(m.id));
   const allPrintedCement = SIM_MODELS.every((m) => optsBy[m.id]?.method === "3d-print" && optsBy[m.id]?.printMaterial === "cement");
@@ -109,7 +113,19 @@ export function SimulateOptions() {
               style={{ borderColor: on ? (mode === "cement" ? C.cement : C.cyan) : C.border, color: on ? (mode === "cement" ? C.cement : C.cyan) : C.dim, background: on ? "#0b1220" : "transparent" }}>{lbl}</button>
           );
         })}
-        <span style={{ color: C.dim }}>{allPrintedCement ? "· all three printed in cement" : allNative ? "· native: Eco-Sphere hex-panel dome; Cube + Tiny stick-framed" : "· custom — options edited per card (neither preset)"}</span>
+        <span style={{ color: C.dim }}>{allPrintedCement ? "· all three printed in cement" : allNative ? "· native: Eco-Sphere hex-panel dome; Cube + Tiny framed" : "· custom — options edited per card (neither preset)"}</span>
+      </div>
+
+      {/* ★ RATINGS + COMPARE — always one tap away (operator IMG-04: 5★ + compare easily accessible) */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border px-2 py-1.5 text-[9px]" style={{ borderColor: `${C.gold}55`, background: C.panel }} data-arch-sim-ratings>
+        <span className="uppercase tracking-wider" style={{ color: C.gold }}>★ Ratings · tap-to-compare</span>
+        {SIM_MODELS.map((m) => { const sim = simulated.has(m.id); const sc = overallScore(m.id, optsBy[m.id]); return (
+          <span key={m.id}><b style={{ color: C.cyan }}>{m.label.split(" ")[0]}</b> <span style={{ color: sim ? C.gold : C.dim }}>{sim ? `${stars(Math.round(sc))} ${sc.toFixed(1)}` : "— run"}</span>{sim ? <span style={{ color: C.dim }}> · {usd(costFor(m, optsBy[m.id], costBy[m.id]))}</span> : null}</span>
+        ); })}
+        <button data-arch-sim-compare-top disabled={!allSimulated} onClick={() => { setCompare(true); if (typeof document !== "undefined") document.querySelector("[data-arch-sim-compare]")?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
+          className="rounded border px-2 py-0.5 font-semibold" style={{ borderColor: allSimulated ? C.gold : C.border, color: allSimulated ? C.gold : C.dim, background: allSimulated ? "#1a1405" : "transparent" }}>
+          {allSimulated ? "▾ COMPARE ALL 3" : "COMPARE — run all 3 first"}
+        </button>
       </div>
 
       {/* 3 model cards */}
@@ -122,10 +138,13 @@ export function SimulateOptions() {
           const passed = results.filter((r) => r.status === "PASS").length;
           const avg = overallScore(m.id, opt);
           const basisCol = m.basis === "DERIVED" ? C.green : C.amber;
-          const cardTotal = costFor(m, opt);
-          const elems = elementCosts(m, opt);
-          const elemMax = Math.max(...elems.map((e) => e.usd));
-          const elemSub = elementSubtotal(m, opt);
+          const cv = costBy[m.id];
+          const cardTotal = costFor(m, opt, cv);
+          const elems = elementCosts(m, opt, cv);
+          const elemMax = Math.max(...elems.map((e) => e.usd), 1);
+          const elemSub = elementSubtotal(m, opt, cv);
+          const roll = costRollup(m, opt, cv);
+          const assumeOpen = openRows.has("assume:" + m.id);
           const row = (label: string, value: string, metric?: string) => {
             const win = !!metric && compare && allSimulated && winnerOf(metric) === m.id;
             return (
@@ -213,12 +232,67 @@ export function SimulateOptions() {
                     </div>
                   </div>
 
-                  {/* ── COST BY ELEMENT (operator: "Show cost of key elements…") ── */}
+                  {/* ── COST · Material + Labor + Markup (operator IMG-02/06: see M+L+Markup, adjustable markup, boil it down) ── */}
                   <div data-arch-sim-elements className="rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
                     <div className="mb-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>
-                      <span>Cost by element</span><span>{usd(elemSub)} <span style={{ color: C.dim }}>of {usd(cardTotal)}</span></span>
+                      <span>Cost · Material + Labor + Markup</span><span style={{ color: C.cyan, fontWeight: 700 }}>{usd(cardTotal)}</span>
                     </div>
-                    <div className="space-y-0.5">
+                    {/* WHO builds — the labour lever (friends/family/veterans ⇒ ≈ $0 labour) */}
+                    <div className="flex flex-wrap items-center gap-1 text-[8px]">
+                      <span style={{ color: C.dim, width: 38, flexShrink: 0 }}>Labor</span>
+                      {(Object.keys(LABOR_MODES) as LaborMode[]).map((lm) => (
+                        <button key={lm} data-arch-sim-labor={`${m.id}:${lm}`} title={LABOR_MODES[lm].blurb} onClick={() => setCost(m.id, { laborMode: lm })}
+                          className="rounded border px-1 py-0.5 font-semibold" style={{ borderColor: cv.laborMode === lm ? C.green : C.border, color: cv.laborMode === lm ? C.green : C.dim, background: cv.laborMode === lm ? "#0a1f14" : "transparent" }}>{LABOR_MODES[lm].short}</button>
+                      ))}
+                    </div>
+                    {/* markup slider — default 50% margin */}
+                    <div className="mt-1 flex items-center gap-1.5 text-[8px]">
+                      <span style={{ color: C.dim, width: 38, flexShrink: 0 }}>Markup</span>
+                      <input type="range" min={0} max={100} step={5} value={Math.round(cv.markup * 100)} data-arch-sim-markup={m.id}
+                        onChange={(e) => setCost(m.id, { markup: Number(e.target.value) / 100 })} style={{ flex: 1, accentColor: C.gold }} aria-label={`${m.label} markup`} />
+                      <span style={{ color: C.gold, width: 30, textAlign: "right" }}>{Math.round(cv.markup * 100)}%</span>
+                    </div>
+                    {/* the Material → +Labor → +Markup → Total waterfall */}
+                    {(() => {
+                      const steps: [string, number, string][] = [["Material", roll.material, C.cyan], ["Labor", roll.labor, C.violet], ["Markup", roll.markup, C.gold]];
+                      const max = roll.total || 1; let run = 0;
+                      return (
+                        <div data-arch-sim-waterfall className="mt-1.5 space-y-0.5">
+                          {steps.map(([lbl, val, col]) => { const left = run; run += val; return (
+                            <div key={lbl} className="flex items-center gap-1.5 text-[8px]">
+                              <span style={{ color: C.dim, width: 46, flexShrink: 0 }}>{lbl}</span>
+                              <span className="relative h-2 flex-1 rounded-sm" style={{ background: "#0b1220" }}>
+                                <span className="absolute top-0 h-2 rounded-sm" style={{ left: `${(left / max) * 100}%`, width: `${Math.max(1, (val / max) * 100)}%`, background: col, opacity: 0.9 }} />
+                              </span>
+                              <span style={{ color: col, width: 58, flexShrink: 0, textAlign: "right" }}>+{usd(val)}</span>
+                            </div>
+                          ); })}
+                          <div className="flex items-center gap-1.5 text-[8px] font-bold" style={{ borderTop: `1px solid ${C.border}`, paddingTop: 2 }}>
+                            <span style={{ color: C.text, width: 46 }}>Total</span><span className="flex-1" /><span style={{ color: C.text, width: 58, textAlign: "right" }}>{usd(roll.total)}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    {/* reveal assumptions — per-element Material / Labor / Markup */}
+                    <button data-arch-sim-assume={m.id} onClick={() => toggleRow("assume:" + m.id)} className="mt-1 w-full rounded border px-1.5 py-0.5 text-[8px] font-semibold" style={{ borderColor: C.border, color: C.dim }}>
+                      {assumeOpen ? "▴ hide assumptions" : "▾ reveal assumptions · M / L / Markup per element"}
+                    </button>
+                    {assumeOpen && (
+                      <div className="mt-1 space-y-0.5">
+                        {elems.map((e) => (
+                          <div key={e.element} className="grid items-center gap-1 text-[8px]" style={{ gridTemplateColumns: "54px 1fr 1fr 1fr 46px" }}>
+                            <span style={{ color: C.dim }}>{e.element}</span>
+                            <span style={{ color: C.cyan }}>M {usd(e.material)}</span>
+                            <span style={{ color: C.violet }}>L {usd(e.labor)}</span>
+                            <span style={{ color: C.gold }}>+{usd(e.markup)}</span>
+                            <span style={{ color: C.text, textAlign: "right" }}>{usd(e.usd)}</span>
+                          </div>
+                        ))}
+                        <div className="text-[8px]" style={{ color: C.dim }}>Six major elements · {m.basis === "DERIVED" ? "derived from the estimate engine" : "ASSUMED area · parametric"} · labour {LABOR_MODES[cv.laborMode].label.toLowerCase()} · markup {Math.round(cv.markup * 100)}% · est. Switch to <b style={{ color: C.green }}>Volunteer + 0% markup</b> for the friends/family/veterans build cost.</div>
+                      </div>
+                    )}
+                    {/* element bars (always visible) */}
+                    <div className="mt-1 space-y-0.5">
                       {elems.map((e) => (
                         <div key={e.element} className="flex items-center gap-1.5 text-[8px]">
                           <span style={{ color: C.dim, width: 56, flexShrink: 0 }}>{e.element}</span>
@@ -227,7 +301,6 @@ export function SimulateOptions() {
                         </div>
                       ))}
                     </div>
-                    <div className="mt-0.5 text-[8px]" style={{ color: C.dim }}>Six major elements of the full {usd(cardTotal)} build · {m.basis === "DERIVED" ? "derived from the estimate engine" : "split across the engine's six elements from an ASSUMED area · parametric"} · est.</div>
                   </div>
 
                   {/* TIME TO BUILD, BY PHASE (calendar months) */}

@@ -48,8 +48,8 @@ for (const m of SIM_MODELS) {
 // ── method-aware Framing/Shell label (wood vs steel vs aluminum · printed cement/composite · hex panels) ──
 const grid = modelById("3x3-grid");
 ok(/wood/i.test(phaseLabel("Framing", grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "wood" })), "stick wood → Framing · wood");
-ok(/steel/i.test(phaseLabel("Framing", grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "steel" })), "stick steel → Framing · steel");
-ok(/alum/i.test(phaseLabel("Framing", grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "aluminum" })), "stick aluminum → Framing · aluminum");
+ok(/steel/i.test(phaseLabel("Framing", grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "all-steel" })), "frame all-steel → Framing · all-steel");
+ok(/alum/i.test(phaseLabel("Framing", grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "aluminum" })), "frame aluminum → Framing · aluminum studs");
 ok(/print|cement/i.test(phaseLabel("Framing", grid, { ...optFor(grid), method: "3d-print", printMaterial: "cement" })), "3D print → Shell · printed cement");
 const eco = modelById("eco-sphere");
 ok(/hex/i.test(phaseLabel("Framing", eco, optFor(eco))), "Eco hex-panel → Shell · hex panels");
@@ -57,8 +57,8 @@ ok(/roof/i.test(phaseLabel("Roofing", grid, optFor(grid))), "Roofing label names
 
 // the frame material changes the Framing steps' measurements (wood ≠ steel ≠ aluminum)
 const fWood = JSON.stringify(buildInstructions("3x3-grid", { ...optFor(grid), frameMaterial: "wood" }).phases.find((p) => p.element === "Framing"));
-const fSteel = JSON.stringify(buildInstructions("3x3-grid", { ...optFor(grid), frameMaterial: "steel" }).phases.find((p) => p.element === "Framing"));
-ok(fWood !== fSteel, "wood vs steel Framing steps differ (measurements + crew-days)");
+const fSteel = JSON.stringify(buildInstructions("3x3-grid", { ...optFor(grid), frameMaterial: "all-steel" }).phases.find((p) => p.element === "Framing"));
+ok(fWood !== fSteel, "wood vs all-steel Framing steps differ (measurements + crew-days)");
 
 // the tiny home is genuinely simpler — a ductless mini-split HVAC and fewer total crew-days than the Cube
 const tinyBI = buildInstructions("tiny");
