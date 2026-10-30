@@ -1,7 +1,7 @@
 // ARCHITECT-2525 · PIPELINE gate (operator 2026-10-29: "architect future versions now — Revit + Unity/Unreal"). The four
 // fidelity tiers (Draft → Revit·DXF → Unity → Unreal), one edge graph → many renderers, and the projection registry wired
 // to the canonical export seam: honest LIVE (WebGL draft + BIM/IFC + Voortman cut-list) vs DECLARED (Revit/DXF/glTF/Unity/Unreal).
-import { PIPELINE_STAGES, PROJECTIONS, EXPORT_SCHEMA_VERSION, exportManifest, projectionsFor, liveProjections, declaredProjections, pipelineSummary } from "@/lib/architect-pipeline";
+import { PIPELINE_STAGES, PROJECTIONS, EXPORT_SCHEMA_VERSION, exportManifest, manifestIds, projectionsFor, liveProjections, declaredProjections, pipelineSummary, stageStatus } from "@/lib/architect-pipeline";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -40,13 +40,27 @@ ok(liveProjections().find((p) => p.id === "cut-list").note.toLowerCase().include
 const declared = declaredProjections().map((p) => p.id).sort();
 ok(["revit", "dxf", "gltf", "unity", "unreal"].every((id) => declared.includes(id)), "Revit/DXF/glTF/Unity/Unreal are DECLARED targets");
 
-// the canonical export manifest seam
+// the canonical export manifest seam — v2: each projection carries {id, status, format} (fleet P1#9: the machine seam is
+// as honest as the UI badges)
 const mf = exportManifest();
-ok(mf.schema_version === EXPORT_SCHEMA_VERSION && Array.isArray(mf.projections), "exportManifest has schema_version + projections[]");
-ok(mf.projections.length === PROJECTIONS.length && mf.projections.every((id) => PROJECTIONS.some((p) => p.id === id)), "the manifest lists every projection id (the seam)");
+ok(mf.schema_version === EXPORT_SCHEMA_VERSION && EXPORT_SCHEMA_VERSION === 2 && Array.isArray(mf.projections), "exportManifest is schema v2 with projections[]");
+ok(mf.projections.length === PROJECTIONS.length && mf.projections.every((mp) => PROJECTIONS.some((p) => p.id === mp.id) && (mp.status === "LIVE" || mp.status === "DECLARED") && typeof mp.format === "string"), "every manifest projection carries id + status + format (honest seam)");
+ok(JSON.stringify(manifestIds()) === JSON.stringify(PROJECTIONS.map((p) => p.id)), "manifestIds() is the flat id list for the R-CORE invalidated_exports seam");
+
+// fleet P0#4: the cement concrete-print toolpath (ICON's native method) is registered on the seam, paired with the steel cut-list
+const printPath = PROJECTIONS.find((p) => p.id === "print-path");
+ok(printPath && /concrete|print|toolpath|cement/i.test(printPath.label + printPath.note), "a concrete print toolpath projection exists (ICON cement path)");
+ok(printPath && printPath.stageId === "cad", "the concrete print path sits with the fabrication deliverables (cad tier)");
+ok(PROJECTIONS.some((p) => p.id === "cut-list" && p.status === "LIVE") && PROJECTIONS.some((p) => p.id === "print-path"), "steel cut-list (LIVE) + concrete print path both present — Frame or Cement off one seam");
+
+// fleet P0#5: the cad tier reads MIXED (ships LIVE deliverables though its native renderer is declared), never a flat DECLARED that undercounts
+const cad = stageStatus("cad");
+ok(cad.status === "MIXED" && cad.live === 2 && cad.declared === 3, `cad tier is MIXED · 2 LIVE · 3 declared (got ${cad.status} ${cad.live}/${cad.declared})`);
+ok(stageStatus("edge").status === "LIVE", "the edge/Draft tier is fully LIVE");
+ok(stageStatus("realtime").status === "DECLARED" && stageStatus("cinematic").status === "DECLARED", "the Unity + Unreal tiers are fully declared");
 
 // projectionsFor + summary
-ok(projectionsFor("cad").length >= 3, "the CAD tier carries multiple projections (BIM/cut-list/Revit/DXF)");
+ok(projectionsFor("cad").length >= 3, "the CAD tier carries multiple projections (BIM/cut-list/print-path/Revit/DXF)");
 const sum = pipelineSummary();
 ok(sum.stages === 4 && sum.live === 3 && sum.declared === PROJECTIONS.length - 3, `summary: 4 stages, 3 live, ${PROJECTIONS.length - 3} declared`);
 

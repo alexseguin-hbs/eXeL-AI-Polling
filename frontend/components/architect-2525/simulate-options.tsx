@@ -144,9 +144,15 @@ export function SimulateOptions() {
           const cardTotal = roll.total;
           const elems = bd.elements;
           const rem = bd.remainder;           // the four un-itemised sections as one honest reconciling row
-          // the always-visible bars include the remainder so they visibly sum to the headline (no hidden $159k)
-          const barRows = [...elems.map((e) => ({ label: e.element as string, usd: e.usd })), { label: "Other*", usd: rem.usd }];
+          // the always-visible bars include the remainder so they visibly sum to the headline (no hidden $159k); each bar is
+          // STACKED Material/Labor/Markup so the "M/L/Markup per element" the reveal promises is shown, not just a total (fleet P0#2)
+          const barRows = [
+            ...elems.map((e) => ({ label: e.element as string, material: e.material, labor: e.labor, markup: e.markup, usd: e.usd })),
+            { label: "Other", material: rem.material, labor: rem.labor, markup: rem.markup, usd: rem.usd },
+          ];
           const elemMax = Math.max(...barRows.map((b) => b.usd), 1);
+          // THOW terminology (fleet P1#6): a tiny-house-on-wheels sits on a trailer chassis, not a poured foundation
+          const elemLabel = (el: string) => (m.id === "tiny" && el === "Foundation" ? "Trailer/chassis" : el);
           const assumeOpen = openRows.has("assume:" + m.id);
           const row = (label: string, value: string, metric?: string) => {
             const win = !!metric && compare && allSimulated && winnerOf(metric) === m.id;
@@ -284,7 +290,7 @@ export function SimulateOptions() {
                       <div className="mt-1 space-y-0.5">
                         {elems.map((e) => (
                           <div key={e.element} className="grid items-center gap-1 text-[8px]" style={{ gridTemplateColumns: "54px 1fr 1fr 1fr 46px" }}>
-                            <span style={{ color: C.dim }}>{e.element}</span>
+                            <span style={{ color: C.dim }}>{elemLabel(e.element)}</span>
                             <span style={{ color: C.cyan }}>M {usd(e.material)}</span>
                             <span style={{ color: C.violet }}>L {usd(e.labor)}</span>
                             <span style={{ color: C.gold }}>+{usd(e.markup)}</span>
@@ -310,12 +316,23 @@ export function SimulateOptions() {
                         <div className="text-[8px]" style={{ color: C.dim }}>Six major elements + <b style={{ color: C.text }}>Other*</b> (site · permits · drywall · insulation · interior finish · landscaping) reconcile EXACTLY to the {usd(roll.total)} total · {m.basis === "DERIVED" ? "derived from the estimate engine" : "ASSUMED area · parametric"} · labour {LABOR_MODES[cv.laborMode].label.toLowerCase()} · markup {Math.round(cv.markup * 100)}%. Tap <b style={{ color: C.green }}>VOLUNTEER</b> (labour ≈ $0, markup snaps to 0%) for the friends/family/veterans build cost.</div>
                       </div>
                     )}
-                    {/* element bars (always visible) — the six elements + the Other* remainder sum to the headline */}
-                    <div className="mt-1 space-y-0.5">
+                    {/* element bars (always visible) — six elements + the Other remainder sum to the headline; each bar is
+                        STACKED Material (cyan) · Labor (violet) · Markup (gold) so the per-element M/L/Markup is visible at a glance */}
+                    <div className="mt-1.5 space-y-0.5">
+                      <div className="flex items-center gap-2 text-[8px]" style={{ color: C.dim }}>
+                        <span>cost by element</span>
+                        <span style={{ color: C.cyan }}>▮ Material</span><span style={{ color: C.violet }}>▮ Labor</span><span style={{ color: C.gold }}>▮ Markup</span>
+                      </div>
                       {barRows.map((b) => (
                         <div key={b.label} className="flex items-center gap-1.5 text-[8px]">
-                          <span style={{ color: b.label === "Other*" ? C.dim : C.dim, width: 56, flexShrink: 0, fontStyle: b.label === "Other*" ? "italic" : "normal" }}>{b.label}</span>
-                          <span className="h-2 rounded-sm" style={{ background: b.label === "Other*" ? C.dim : C.cyan, width: `${Math.max(4, (b.usd / elemMax) * 100)}%`, opacity: 0.8 }} />
+                          <span style={{ color: C.dim, width: 56, flexShrink: 0, fontStyle: b.label === "Other" ? "italic" : "normal" }}>{elemLabel(b.label)}</span>
+                          <span className="flex h-2 overflow-hidden rounded-sm" style={{ width: `${Math.max(4, (b.usd / elemMax) * 100)}%` }} title={`${b.label}: Material ${usd(b.material)} · Labor ${usd(b.labor)} · Markup ${usd(b.markup)}`}>
+                            {b.usd > 0 ? (<>
+                              <span style={{ width: `${(b.material / b.usd) * 100}%`, background: C.cyan }} />
+                              <span style={{ width: `${(b.labor / b.usd) * 100}%`, background: C.violet }} />
+                              <span style={{ width: `${(b.markup / b.usd) * 100}%`, background: C.gold }} />
+                            </>) : <span style={{ width: "100%", background: C.dim }} />}
+                          </span>
                           <span style={{ color: C.text, flexShrink: 0 }}>{usd(b.usd)}</span>
                         </div>
                       ))}
@@ -331,6 +348,8 @@ export function SimulateOptions() {
                     const phaseName = (id: string, label: string) =>
                       id === "framing" ? (opt.method === "3d-print" ? "Shell·3D-print" : opt.method === "hex-panel" ? "Shell·hex" : `Framing·${opt.frameMaterial}`)
                       : id === "roofing" ? `Roof·${ROOFS[opt.roof].short.toLowerCase()}`
+                      : m.id === "tiny" && id === "foundation" ? "Trailer/chassis"   // THOW sits on a trailer, not a foundation (fleet P1#6)
+                      : m.id === "tiny" && id === "sewer" ? "Utility hookups"          // a towable tiny uses hookups, not a sewer tie-in
                       : label;
                     return (
                       <div data-arch-sim-phases className="rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
