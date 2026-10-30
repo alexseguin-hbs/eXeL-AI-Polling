@@ -30,10 +30,10 @@ ok(b.lo < 100000 && b.hi > 100000 && Math.abs((100000 - b.lo) - (b.hi - 100000))
 
 // ── rollupProject — pinned totals for the default sections at gate 3 ──
 const r = rollupProject(DEFAULT_SECTIONS, 3);
-ok(r.manHours === 4060 && r.costUsd === 440000, "rollup pins man-hours 4060 + cost $440,000");
+ok(r.manHours === 4060 && r.costUsd === 240000, "rollup pins man-hours 4060 + cost $240,000 (real market, ~$266/ft²)");
 ok(r.aaceClass === 4 && r.aaceLabel === "Study" && r.confidencePct === 45, "rollup AACE class 4 (Study) @ 45% for gate 3");
 ok(r.costBand.lo < r.costUsd && r.costUsd < r.costBand.hi, "cost estimate sits inside its band");
-ok(JSON.stringify(r.costBand) === JSON.stringify({ lo: 246840, hi: 633160, pct: 0.439 }), "cost band pinned (±43.9%)");
+ok(JSON.stringify(r.costBand) === JSON.stringify({ lo: 134640, hi: 345360, pct: 0.439 }), "cost band pinned (±43.9%)");
 ok(r.hoursBand.pct === r.costBand.pct, "hours + cost share the same band pct");
 ok(JSON.stringify(rollupProject(DEFAULT_SECTIONS, 3)) === JSON.stringify(r), "rollupProject is deterministic");
 
@@ -41,14 +41,14 @@ ok(JSON.stringify(rollupProject(DEFAULT_SECTIONS, 3)) === JSON.stringify(r), "ro
 ok(advanceGate(0) === 1 && advanceGate(13) === 13, "advanceGate steps up, clamps at LAST_GATE");
 
 // ── IMG-04 — buildSchedule: a start-date + months + cost → real Start/Finish dates + the $/day·$/hr·$/min accrual ──
-const bs = buildSchedule("2026-03-01", 6, 440000);
+const bs = buildSchedule("2026-03-01", 6, 240000);
 ok(bs.startISO === "2026-03-01" && bs.endISO === "2026-09-01", "buildSchedule: Finish = Start + the calendar months");
 ok(bs.totalDays === 184, `buildSchedule: totalDays = the real span (got ${bs.totalDays})`);
-ok(Math.abs(bs.perDayUsd - 440000 / 184) < 1e-6, "buildSchedule: $/day = cost / totalDays");
-ok(Math.abs(bs.perMinUsd - 440000 / (184 * 1440)) < 1e-9, "buildSchedule: $/min = cost / (totalDays × 1440) — the mot.ts rate law");
+ok(Math.abs(bs.perDayUsd - 240000 / 184) < 1e-6, "buildSchedule: $/day = cost / totalDays");
+ok(Math.abs(bs.perMinUsd - 240000 / (184 * 1440)) < 1e-9, "buildSchedule: $/min = cost / (totalDays × 1440) — the mot.ts rate law");
 ok(Math.abs(bs.perHourUsd - bs.perDayUsd / 24) < 1e-6, "buildSchedule: $/hr = $/day ÷ 24");
-ok(JSON.stringify(buildSchedule("2026-03-01", 6, 440000)) === JSON.stringify(bs), "buildSchedule is deterministic (replay law)");
-ok(buildSchedule("not-a-date", 6, 440000).totalDays > 0, "buildSchedule falls back on a bad start-date — never NaN/throws");
+ok(JSON.stringify(buildSchedule("2026-03-01", 6, 240000)) === JSON.stringify(bs), "buildSchedule is deterministic (replay law)");
+ok(buildSchedule("not-a-date", 6, 240000).totalDays > 0, "buildSchedule falls back on a bad start-date — never NaN/throws");
 
 console.log(`\nARCHITECT-ESTIMATE ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);

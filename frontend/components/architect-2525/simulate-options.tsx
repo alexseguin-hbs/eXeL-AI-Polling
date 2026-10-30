@@ -17,7 +17,8 @@
 import { useMemo, useState } from "react";
 import {
   SIM_MODELS, SIMS, METHODS, METHODS_FOR, PRINT_MATERIALS, FUTURE_PRINT_MATERIALS, FRAME_MATERIALS, ROOFS, ROOFS_FOR,
-  LABOR_MODES, DEFAULT_COST, carbonFor, compareModels, costBreakdown, costFor, defaultMarkupFor, monthsFor, optFor,
+  LABOR_MODES, DEFAULT_COST, carbonFor, compareModels, costBreakdown, costFor, costPerFt2, defaultMarkupFor, laborHoursFor,
+  laborRateFor, proLaborRateFor, monthsFor, optFor,
   overallScore, phaseSchedule, recommendation, simMatrix, simResult,
   type BuildOption, type Method, type PrintMaterial, type FrameMaterial, type RoofType, type CostParams, type LaborMode,
 } from "@/lib/architect-sim-options";
@@ -142,17 +143,23 @@ export function SimulateOptions() {
           const bd = costBreakdown(m, opt, cv);
           const roll = bd.total;              // Material / Labor / Markup / Total — the authoritative headline
           const cardTotal = roll.total;
+          const perFt2 = costPerFt2(m, opt, cv);   // real market $/ft² (operator 2026-10-30)
+          const laborHrs = laborHoursFor(m, opt);  // build-content hours — labor$ = hours × rate
+          const laborRate = laborRateFor(m, opt, cv);
+          const proRate = proLaborRateFor(m, opt);
           const elems = bd.elements;
           const rem = bd.remainder;           // the four un-itemised sections as one honest reconciling row
-          // the always-visible bars include the remainder so they visibly sum to the headline (no hidden $159k); each bar is
-          // STACKED Material/Labor/Markup so the "M/L/Markup per element" the reveal promises is shown, not just a total (fleet P0#2)
+          const fx = bd.fixed;                // the Tiny's fixed trailer+appliance equipment row (null for sited forms)
+          // THOW terminology (fleet P1#6): a tiny-house-on-wheels sits on a trailer chassis, not a poured foundation
+          const elemLabel = (el: string) => (m.id === "tiny" && el === "Foundation" ? "Trailer/chassis" : el);
+          // the always-visible bars include the remainder + the fixed row so they visibly sum to the headline; each bar is
+          // STACKED Material/Labor/Markup so the "M/L/Markup per element" the reveal promises is shown, not just a total
           const barRows = [
             ...elems.map((e) => ({ label: e.element as string, material: e.material, labor: e.labor, markup: e.markup, usd: e.usd })),
             { label: "Other", material: rem.material, labor: rem.labor, markup: rem.markup, usd: rem.usd },
+            ...(fx ? [{ label: fx.label, material: fx.material, labor: fx.labor, markup: fx.markup, usd: fx.usd }] : []),
           ];
           const elemMax = Math.max(...barRows.map((b) => b.usd), 1);
-          // THOW terminology (fleet P1#6): a tiny-house-on-wheels sits on a trailer chassis, not a poured foundation
-          const elemLabel = (el: string) => (m.id === "tiny" && el === "Foundation" ? "Trailer/chassis" : el);
           const assumeOpen = openRows.has("assume:" + m.id);
           const row = (label: string, value: string, metric?: string) => {
             const win = !!metric && compare && allSimulated && winnerOf(metric) === m.id;
@@ -172,7 +179,7 @@ export function SimulateOptions() {
               <div className="mt-0.5 text-[9px]" style={{ color: C.dim }}>{m.form}</div>
               <div className="mt-1.5 space-y-0.5">
                 {row("Area", `${m.areaFt2.toLocaleString()} ft² · ${m.layoutLabel}`)}
-                {row("Cost", usd(cardTotal), "Cost")}
+                {row("Cost", `${usd(cardTotal)} · ${usd(perFt2)}/ft²`, "Cost")}
                 {row("Build", `${monthsFor(m, opt)} mo`, "Build time")}
                 {row("Energy", stars(m.energyScore), "Energy")}
                 {row("Carbon", stars(carbonFor(m, opt)), "Carbon")}
@@ -305,6 +312,16 @@ export function SimulateOptions() {
                           <span style={{ color: C.gold }}>+{usd(rem.markup)}</span>
                           <span style={{ color: C.text, textAlign: "right" }}>{usd(rem.usd)}</span>
                         </div>
+                        {/* the Tiny's fixed trailer+appliance equipment row — flat, no labour, no markup (a real pass-through) */}
+                        {fx && (
+                          <div className="grid items-center gap-1 text-[8px]" style={{ gridTemplateColumns: "54px 1fr 1fr 1fr 46px", borderTop: `1px dashed ${C.border}`, paddingTop: 2 }} title="trailer / chassis + appliances — a fixed equipment purchase that volunteer labour does not reduce">
+                            <span style={{ color: C.dim }}>Trailer</span>
+                            <span style={{ color: C.cyan }}>M {usd(fx.material)}</span>
+                            <span style={{ color: C.dim }}>L $0</span>
+                            <span style={{ color: C.dim }}>+$0</span>
+                            <span style={{ color: C.text, textAlign: "right" }}>{usd(fx.usd)}</span>
+                          </div>
+                        )}
                         {/* the reconciling subtotal — column sums tie to the waterfall bars and the headline (fleet's top fix) */}
                         <div data-arch-sim-reconcile className="grid items-center gap-1 text-[8px] font-bold" style={{ gridTemplateColumns: "54px 1fr 1fr 1fr 46px", borderTop: `1px solid ${C.border}`, paddingTop: 2 }}>
                           <span style={{ color: C.text }}>Total</span>
@@ -313,7 +330,9 @@ export function SimulateOptions() {
                           <span style={{ color: C.gold }}>+{usd(roll.markup)}</span>
                           <span style={{ color: C.text, textAlign: "right" }}>{usd(roll.total)}</span>
                         </div>
-                        <div className="text-[8px]" style={{ color: C.dim }}>Six major elements + <b style={{ color: C.text }}>Other*</b> (site · permits · drywall · insulation · interior finish · landscaping) reconcile EXACTLY to the {usd(roll.total)} total · {m.basis === "DERIVED" ? "derived from the estimate engine" : "ASSUMED area · parametric"} · labour {LABOR_MODES[cv.laborMode].label.toLowerCase()} · markup {Math.round(cv.markup * 100)}%. Tap <b style={{ color: C.green }}>VOLUNTEER</b> (labour ≈ $0, markup snaps to 0%) for the friends/family/veterans build cost.</div>
+                        {/* labour $ = hours × rate — the build steps compliment the Material/Labor/Markup assumptions (operator 2026-10-30) */}
+                        <div data-arch-sim-laborrate className="text-[8px]" style={{ color: C.dim }}>Labour {usd(roll.labor)} = <b style={{ color: C.violet }}>{laborHrs.toLocaleString()} h</b> × {cv.laborMode === "volunteer" ? <b style={{ color: C.green }}>$0/h (donated · worth ~${proRate}/h)</b> : <b style={{ color: C.violet }}>${laborRate}/h</b>} · the same hours drive the Build-Instructions crew-days.</div>
+                        <div className="text-[8px]" style={{ color: C.dim }}>Six major elements + <b style={{ color: C.text }}>Other*</b>{fx ? " + Trailer" : ""} reconcile EXACTLY to the {usd(roll.total)} total ({usd(perFt2)}/ft²) · {m.basis === "DERIVED" ? "derived from the estimate engine (real market cost)" : "ASSUMED area · parametric"} · labour {LABOR_MODES[cv.laborMode].label.toLowerCase()} · markup {Math.round(cv.markup * 100)}%. Tap <b style={{ color: C.green }}>VOLUNTEER</b> (labour ≈ $0, markup snaps to 0%) for the friends/family/veterans build cost.</div>
                       </div>
                     )}
                     {/* element bars (always visible) — six elements + the Other remainder sum to the headline; each bar is

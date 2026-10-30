@@ -4,8 +4,8 @@
 // BY ELEMENT — all derived from ONE engine (DEFAULT_SECTIONS) so the element breakdown reconciles to the card cost.
 import {
   SIMS, SIM_MODELS, METHODS, METHODS_FOR, PRINT_MATERIALS, FUTURE_PRINT_MATERIALS, FRAME_MATERIALS, ROOFS, ROOFS_FOR,
-  LABOR_MODES, DEFAULT_COST, ELEMENTS, REMAINDER_LABEL, carbonFor, compareModels, costBreakdown, costFor, costRollup,
-  defaultMarkupFor, elementCosts, elementSubtotal,
+  LABOR_MODES, DEFAULT_COST, ELEMENTS, REMAINDER_LABEL, carbonFor, compareModels, costBreakdown, costFor, costPerFt2, costRollup,
+  defaultMarkupFor, elementCosts, elementSubtotal, laborHoursFor, laborRateFor, proLaborRateFor,
   monthsFor, optFor, framingFactor, phaseSchedule, runBattery, simResult, simMatrix, overallScore, recommendation, modelById,
 } from "@/lib/architect-sim-options";
 import { DEFAULT_SECTIONS } from "@/lib/architect-estimate";
@@ -44,9 +44,9 @@ for (const m of SIM_MODELS) ok(m.energyScore >= 1 && m.energyScore <= 5 && m.car
 ok(ELEMENTS.length === 6 && ["Foundation", "Framing", "Electrical", "Plumbing", "HVAC", "Roofing"].every((e) => ELEMENTS.includes(e)), "the six major elements are the operator's list");
 const gridElems = elementCosts(grid, optFor(grid));
 ok(gridElems.length === 6, "elementCosts returns the six elements");
-const expect = { Foundation: 61000, Framing: 88000, Electrical: 34000, Plumbing: 38000, HVAC: 29000, Roofing: 31000 };
+const expect = { Foundation: 33000, Framing: 48000, Electrical: 18000, Plumbing: 21000, HVAC: 16000, Roofing: 17000 };
 for (const e of gridElems) ok(e.usd === expect[e.element], `Cube @ native ${e.element} = $${expect[e.element]} (engine, got ${e.usd})`);
-ok(elementSubtotal(grid, optFor(grid)) === 281000, "Cube six-element subtotal = $281,000 (sum of the engine sections)");
+ok(elementSubtotal(grid, optFor(grid)) === 153000, "Cube six-element subtotal = $153,000 (sum of the engine sections at the $240k real-market total)");
 ok(elementSubtotal(tiny, optFor(tiny)) < elementSubtotal(grid, optFor(grid)), "Tiny's element subtotal is smaller (area-scaled)");
 for (const m of SIM_MODELS) ok(elementSubtotal(m, optFor(m)) <= costFor(m, optFor(m)), `${m.id} six elements are a subtotal of the full build`);
 
@@ -67,24 +67,38 @@ ok(overallScore("3x3-grid", optFor(grid)) === overallScore("3x3-grid", optFor(gr
 // elementCosts carries the per-element Material / Labor / Markup split
 ok(elementCosts(grid, optFor(grid)).every((e) => typeof e.material === "number" && typeof e.labor === "number" && typeof e.markup === "number"), "each element carries Material / Labor / Markup");
 
-// ── v4 FLEET FIX: the six elements + an honest "Other" remainder reconcile EXACTLY to the headline + waterfall ──────────
-// (the 48-AsM fleet's top finding was a $159k / 36% unexplained gap between the six-element table and the $440k headline).
+// ── FLEET FIX + R4: the six elements + "Other" remainder + the fixed "Trailer & appliances" row reconcile EXACTLY to the
+// headline/waterfall at every cost view (the $240k real-market total; the Tiny's $18k fixed floor is its own reconciling row).
 for (const m of SIM_MODELS) {
   for (const cv of [DEFAULT_COST, { laborMode: "volunteer", markup: 0 }, { laborMode: "mixed", markup: 0.25 }]) {
     const bd = costBreakdown(m, optFor(m), cv);
-    const colSum = (k) => bd.elements.reduce((s, e) => s + e[k], 0) + bd.remainder[k];
-    ok(colSum("material") === bd.total.material, `${m.id} @ ${cv.laborMode}: element+remainder MATERIAL = waterfall material`);
-    ok(colSum("labor") === bd.total.labor, `${m.id} @ ${cv.laborMode}: element+remainder LABOR = waterfall labor`);
-    ok(colSum("markup") === bd.total.markup, `${m.id} @ ${cv.laborMode}: element+remainder MARKUP = waterfall markup`);
-    ok(bd.elements.reduce((s, e) => s + e.usd, 0) + bd.remainder.usd === bd.total.total, `${m.id} @ ${cv.laborMode}: six elements + Other = ${bd.total.total} headline (no unexplained gap)`);
+    const fx = (k) => (bd.fixed ? bd.fixed[k] : 0);
+    const colSum = (k) => bd.elements.reduce((s, e) => s + e[k], 0) + bd.remainder[k] + fx(k);
+    ok(colSum("material") === bd.total.material, `${m.id} @ ${cv.laborMode}: element+remainder+fixed MATERIAL = waterfall material`);
+    ok(colSum("labor") === bd.total.labor, `${m.id} @ ${cv.laborMode}: element+remainder+fixed LABOR = waterfall labor`);
+    ok(colSum("markup") === bd.total.markup, `${m.id} @ ${cv.laborMode}: element+remainder+fixed MARKUP = waterfall markup`);
+    ok(bd.elements.reduce((s, e) => s + e.usd, 0) + bd.remainder.usd + fx("usd") === bd.total.total, `${m.id} @ ${cv.laborMode}: six elements + Other + fixed = ${bd.total.total} headline (no unexplained gap)`);
     ok(costFor(m, optFor(m), cv) === bd.total.total, `${m.id} @ ${cv.laborMode}: costFor === breakdown total (card = waterfall = reconcile)`);
   }
 }
 // the remainder is the four un-itemised engine sections (site · drywall · finish · landscaping) and is labelled honestly
 const gridBd = costBreakdown(grid, optFor(grid), DEFAULT_COST);
-ok(gridBd.remainder.usd === 159000, `Cube @ native: the Other remainder = $159,000 (site 42 + drywall 26 + finish 72 + land 19; got $${gridBd.remainder.usd})`);
-ok(gridBd.remainder.material === 31800 && gridBd.remainder.labor === 74100 && gridBd.remainder.markup === 53100, "the remainder splits M $31,800 / L $74,100 / Markup $53,100 (reconciles the fleet's numbers)");
+ok(gridBd.fixed === null, "the Cube has no fixed trailer row (sited build)");
+ok(gridBd.remainder.usd === 87000, `Cube @ native: the Other remainder = $87,000 (site+drywall+finish+land at the $240k total; got $${gridBd.remainder.usd})`);
+ok(gridBd.remainder.material === 17400 && gridBd.remainder.labor === 40600 && gridBd.remainder.markup === 29000, "the remainder splits M $17,400 / L $40,600 / Markup $29,000 (reconciles at the real-market total)");
 ok(/site/i.test(REMAINDER_LABEL) && /finish/i.test(REMAINDER_LABEL), "the remainder row names what it covers (site · drywall · finish · landscaping)");
+
+// ── R4: real market cost — Cube ≈ $240k / $266/ft²; the Tiny's fixed trailer floor holds a volunteer build at ~$40k ──
+ok(costFor(grid, optFor(grid)) === 240000, `Cube @ native = $240,000 real-market total (got $${costFor(grid, optFor(grid))})`);
+ok(costPerFt2(grid, optFor(grid)) >= 250 && costPerFt2(grid, optFor(grid)) <= 300, `Cube $/ft² is real-market ~$266 (got ${costPerFt2(grid, optFor(grid))})`);
+ok(tiny.fixedUsd === 18000, "the Tiny carries an $18k fixed trailer+appliance floor");
+const tinyVolBd = costBreakdown(tiny, optFor(tiny), { laborMode: "volunteer", markup: 0 });
+ok(tinyVolBd.fixed && tinyVolBd.fixed.usd === 18000 && tinyVolBd.fixed.labor === 0 && tinyVolBd.fixed.markup === 0, "the Tiny's fixed row is $18k equipment — no labour, no markup");
+ok(costFor(tiny, optFor(tiny), { laborMode: "volunteer", markup: 0 }) === 40000, `one-tap Volunteer Tiny = $40,000 (material + fixed trailer; got $${costFor(tiny, optFor(tiny), { laborMode: "volunteer", markup: 0 })})`);
+// labour hours track the labour dollars: labor$ = hours × rate (build steps compliment M/L/Markup — operator 2026-10-30)
+ok(laborHoursFor(grid, optFor(grid)) === 4060, "Cube labour hours = the engine man-hours (4,060) at area 900");
+ok(laborRateFor(grid, optFor(grid)) >= 25 && laborRateFor(grid, optFor(grid)) <= 32, `Cube implied labour rate is realistic ~$28/hr (got $${laborRateFor(grid, optFor(grid))})`);
+ok(laborRateFor(grid, optFor(grid), { laborMode: "volunteer", markup: 0 }) === 0 && proLaborRateFor(grid, optFor(grid)) > 0, "Volunteer labour rate is $0 (donated), but the pro-equivalent 'worth' is shown");
 
 // ── v4 FLEET FIX: tapping VOLUNTEER snaps markup to 0% so the ~$40k friends/family/veterans headline is one tap ──────────
 ok(defaultMarkupFor("pro") === 0.5 && defaultMarkupFor("mixed") === 0.25 && defaultMarkupFor("volunteer") === 0, "defaultMarkupFor: pro 50% · mixed 25% · VOLUNTEER 0% (one-tap community build)");

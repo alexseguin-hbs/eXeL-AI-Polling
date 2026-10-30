@@ -75,18 +75,21 @@ export interface WorkSection {
   rag: Rag;           // gate-review status (Status / Risk / Next-Steps)
 }
 
-// A representative custom-home work breakdown (foundation → finish).
+// A representative 900 ft² home work breakdown (foundation → finish). Costs calibrated to REAL market pricing (operator
+// 2026-10-30: "Cube cost seems high; ensure real market costs") — the ten sections total $240,000 ≈ $266/ft² for 900 ft²,
+// matching complete 3D-printed homes (ICON-market ~$265-300/ft²) and the upper band of conventional builds (~$144-200/ft²).
+// Proportions kept realistic; man-hours unchanged (4,060) so the engine's implied labor rate is a realistic ~$28/hr.
 export const DEFAULT_SECTIONS: WorkSection[] = [
-  { id: "site", name: "Site Work", trade: "Excavation", manHours: 320, costUsd: 42000, rag: "green" },
-  { id: "found", name: "Foundation", trade: "Concrete", manHours: 480, costUsd: 61000, rag: "green" },
-  { id: "frame", name: "Framing", trade: "Carpentry", manHours: 920, costUsd: 88000, rag: "amber" },
-  { id: "roof", name: "Roofing", trade: "Roofing", manHours: 260, costUsd: 31000, rag: "green" },
-  { id: "plumb", name: "Plumbing", trade: "Plumbing", manHours: 340, costUsd: 38000, rag: "green" },
-  { id: "elec", name: "Electrical", trade: "Electrical", manHours: 300, costUsd: 34000, rag: "amber" },
-  { id: "hvac", name: "HVAC", trade: "Mechanical", manHours: 240, costUsd: 29000, rag: "green" },
-  { id: "drywall", name: "Drywall", trade: "Finish", manHours: 380, costUsd: 26000, rag: "green" },
-  { id: "finish", name: "Interior Finish", trade: "Finish", manHours: 640, costUsd: 72000, rag: "green" },
-  { id: "land", name: "Landscaping", trade: "Site", manHours: 180, costUsd: 19000, rag: "green" },
+  { id: "site", name: "Site Work", trade: "Excavation", manHours: 320, costUsd: 23000, rag: "green" },
+  { id: "found", name: "Foundation", trade: "Concrete", manHours: 480, costUsd: 33000, rag: "green" },
+  { id: "frame", name: "Framing", trade: "Carpentry", manHours: 920, costUsd: 48000, rag: "amber" },
+  { id: "roof", name: "Roofing", trade: "Roofing", manHours: 260, costUsd: 17000, rag: "green" },
+  { id: "plumb", name: "Plumbing", trade: "Plumbing", manHours: 340, costUsd: 21000, rag: "green" },
+  { id: "elec", name: "Electrical", trade: "Electrical", manHours: 300, costUsd: 18000, rag: "amber" },
+  { id: "hvac", name: "HVAC", trade: "Mechanical", manHours: 240, costUsd: 16000, rag: "green" },
+  { id: "drywall", name: "Drywall", trade: "Finish", manHours: 380, costUsd: 14000, rag: "green" },
+  { id: "finish", name: "Interior Finish", trade: "Finish", manHours: 640, costUsd: 40000, rag: "green" },
+  { id: "land", name: "Landscaping", trade: "Site", manHours: 180, costUsd: 10000, rag: "green" },
 ];
 
 export interface ProjectRollup {

@@ -104,6 +104,8 @@ export interface SimModel {
   energyScore: number;     // 1..5 (higher = more efficient envelope) — a DESIGN ASSUMPTION
   carbonScore: number;     // 1..5 (higher = lower OPERATING carbon) — a DESIGN ASSUMPTION
   basis: Basis;            // DERIVED = engine; ASSUMED = parametric
+  fixedUsd?: number;       // fixed equipment cost that does NOT scale with labour mode or markup (e.g. the Tiny's trailer +
+                           // appliances) — a real pass-through purchase, so a volunteer/0%-markup Tiny still reads ~$40k
   note: string;
 }
 
@@ -117,8 +119,8 @@ export const SIM_MODELS: SimModel[] = [
   {
     id: "tiny", label: "Tiny Home", form: "8.5 × 24 ft · standard THOW", areaFt2: 204, rooms: 5, layoutLabel: "5 zones",
     native: { method: "stick-framed", printMaterial: "cement", frameMaterial: "wood", roof: "gable" },
-    stickMonths: 3, energyScore: 4, carbonScore: 4, basis: "ASSUMED",
-    note: "A real standard tiny home on a trailer — 8.5×24 ft (~204 ft²). Size chosen from the industry consensus across ~30 THOW builds: road-legal 8.5 ft wide, length 24 ± ~5 ft (common 20–30 ft). ASSUMED, parametric.",
+    stickMonths: 3, energyScore: 4, carbonScore: 4, basis: "ASSUMED", fixedUsd: 18000,
+    note: "A real standard tiny home on a trailer — 8.5×24 ft (~204 ft²). Size chosen from the industry consensus across ~30 THOW builds: road-legal 8.5 ft wide, length 24 ± ~5 ft (common 20–30 ft). Carries a fixed ~$18k trailer+appliance cost (equipment, not labour) so a volunteer build still reads ~$40k. ASSUMED, parametric.",
   },
   {
     id: "eco-sphere", label: "Eco-Sphere", form: "7 hexagons · hex-panel dome · 900 ft²", areaFt2: 900, rooms: 7, layoutLabel: "7 hex · 9 rooms",
@@ -136,15 +138,16 @@ export function optFor(m: SimModel, override?: Partial<BuildOption>): BuildOptio
 // Each engine section's costUsd is a MARKET PRICE = (Material + Labor@pro) × (1 + BAKED_MARKUP). We decompose it so a buyer
 // SEES Material · Labor · Markup, drives Labor down with volunteers (friends/family/veterans) and Markup down for a community
 // build — "shine light + optimise each step as a team." At the NATIVE default (Pro labour, 50% markup) every figure reconciles
-// EXACTLY to the engine (Cube = $440,000); switch to Volunteer + 0% markup and a 204 ft² Tiny reads ~$40k (the operator's number).
+// EXACTLY to the engine (Cube = $240,000 ≈ $266/ft², recalibrated to real market cost 2026-10-30); a Volunteer + 0% markup
+// 204 ft² Tiny reads ~$40k (material ~$22k + its fixed ~$18k trailer/appliance floor — the operator's number).
 const SECTION = (id: string): number => DEFAULT_SECTIONS.find((s) => s.id === id)?.costUsd ?? 0;
 const ALL_SECTION_IDS = DEFAULT_SECTIONS.map((s) => s.id);
-const BASE_COST = DEFAULT_SECTIONS.reduce((s, w) => s + w.costUsd, 0);   // $440,000 (the Cube at native option + DEFAULT_COST)
+const BASE_COST = DEFAULT_SECTIONS.reduce((s, w) => s + w.costUsd, 0);   // $240,000 (the Cube at native option + DEFAULT_COST)
 const r100 = (n: number): number => Math.round(n / 100) * 100;
 
-const BAKED_MARKUP = 0.5;        // contractor markup already implied in the engine costUsd → native stays the DERIVED $440k
-const MATERIAL_FRACTION = 0.30;  // material's share of the pre-markup basis (labour = the rest); calibrated so a volunteer-built,
-                                 // zero-markup 204 ft² tiny lands ~$40k (the real-world figure the operator cited)
+const BAKED_MARKUP = 0.5;        // contractor markup already implied in the engine costUsd → native stays the DERIVED $240k
+const MATERIAL_FRACTION = 0.30;  // material's share of the pre-markup basis (labour = the rest); with the trailer floor a
+                                 // volunteer-built, zero-markup 204 ft² tiny lands ~$40k (the real-world figure the operator cited)
 /** WHO builds — the labour-cost lever (friends/family/veterans ⇒ donated labour ⇒ ≈ $0). */
 export const LABOR_MODES: Record<LaborMode, { label: string; short: string; blurb: string; scale: number }> = {
   pro:       { label: "Pro crew",              short: "PRO",       blurb: "Licensed paid trades at market labour rates — a full contractor build.", scale: 1.0 },
@@ -203,13 +206,47 @@ function sectionPrice(m: SimModel, sectionId: string, opt: BuildOption, cost: Co
 export function costRollup(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): CostSplit {
   let material = 0, labor = 0, markup = 0;
   for (const id of ALL_SECTION_IDS) { const p = sectionPrice(m, id, opt, cost); material += p.material; labor += p.labor; markup += p.markup; }
-  const M = r100(material), L = r100(labor), K = r100(markup);
+  // the fixed equipment cost (the Tiny's trailer + appliances) is a material-type pass-through: it does NOT scale with
+  // labour mode and carries NO markup, so a volunteer/0% build still shows it. It lands in the Material channel.
+  const fixed = m.fixedUsd ?? 0;
+  const M = r100(material) + fixed, L = r100(labor), K = r100(markup);
   return { material: M, labor: L, markup: K, total: M + L + K };
 }
-/** The full-build cost for a model at an option + cost view. Cube @ native + DEFAULT_COST = exactly $440,000; and it always
+/** The full-build cost for a model at an option + cost view. Cube @ native + DEFAULT_COST = exactly $240,000; and it always
  *  equals the Material+Labor+Markup rollup total (one number, no card-vs-waterfall drift). */
 export function costFor(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): number {
   return costRollup(m, opt, cost).total;
+}
+/** Real market $/ft² for the card — the full-build cost ÷ the model's area (operator 2026-10-30: "ensure real market costs"). */
+export function costPerFt2(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): number {
+  return m.areaFt2 > 0 ? Math.round(costFor(m, opt, cost) / m.areaFt2) : 0;
+}
+/** Total labour HOURS for a model at an option — the engine man-hours, area-scaled, with the frame/roof option factors (so the
+ *  hours track the labour dollars). The implied rate (labour$ ÷ hours) makes "labor$ = hours × rate" visible, so the build
+ *  steps compliment the Material/Labor/Markup assumptions (operator 2026-10-30). */
+export function laborHoursFor(m: SimModel, opt: BuildOption): number {
+  let h = 0;
+  for (const s of DEFAULT_SECTIONS) {
+    let hh = s.manHours * areaFactor(m);
+    if (s.id === "frame") hh *= frameLaborFactor(opt);
+    if (s.id === "roof") hh *= ROOFS[opt.roof].costFactor;
+    h += hh;
+  }
+  return Math.round(h);
+}
+/** The blended labour rate ($/hr) implied by the cost view = labour dollars ÷ labour hours (≈ $28/hr at Pro; $0 at Volunteer,
+ *  where the hours are donated). The pro-equivalent rate (labour at full market) is the honest "what the hours are worth". */
+export function laborRateFor(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): number {
+  const hours = laborHoursFor(m, opt);
+  if (hours <= 0) return 0;
+  return Math.round(costRollup(m, opt, cost).labor / hours);
+}
+/** The pro-equivalent labour rate ($/hr) — labour at full market (Pro, same markup) ÷ hours — so a Volunteer card can show
+ *  "Yh of donated labour, worth ~$Z/hr" instead of a bare $0. */
+export function proLaborRateFor(m: SimModel, opt: BuildOption): number {
+  const hours = laborHoursFor(m, opt);
+  if (hours <= 0) return 0;
+  return Math.round(costRollup(m, opt, { laborMode: "pro", markup: 0 }).labor / hours);
 }
 /** Build time (months) for a model at an option — 3D Print collapses the shell (cement ×0.6, composite ×0.55); the
  *  prefab hex-panel shell assembles fast too (×0.7); stick framing is the ×1.0 baseline. */
@@ -239,16 +276,21 @@ export function elementSubtotal(m: SimModel, opt: BuildOption, cost: CostParams 
 // reconcile EXACTLY to the card total and the Material/Labor/Markup waterfall — closing the "$159k unexplained" gap the
 // 48-AsM fleet flagged as the demo's top defect (an ICON estimator must see every dollar land).
 export const REMAINDER_LABEL = "Site · drywall · finish · landscaping";
+export const FIXED_LABEL = "Trailer & appliances";
 export interface RemainderCost { label: string; material: number; labor: number; markup: number; usd: number; }
-export interface CostBreakdown { elements: ElementCost[]; remainder: RemainderCost; total: CostSplit; }
+export interface CostBreakdown { elements: ElementCost[]; remainder: RemainderCost; fixed: RemainderCost | null; total: CostSplit; }
 export function costBreakdown(m: SimModel, opt: BuildOption, cost: CostParams = DEFAULT_COST): CostBreakdown {
   const elements = elementCosts(m, opt, cost);
   const total = costRollup(m, opt, cost);
+  const fixed = m.fixedUsd ?? 0;
   const sum = (k: "material" | "labor" | "markup") => elements.reduce((s, e) => s + e[k], 0);
-  const material = total.material - sum("material");
+  // the section remainder is the whole-build rollup MINUS the six elements AND minus the fixed equipment (which is its own
+  // row), so six elements + remainder + fixed reconcile EXACTLY to the total at every cost view.
+  const material = total.material - fixed - sum("material");
   const labor = total.labor - sum("labor");
   const markup = total.markup - sum("markup");
-  return { elements, remainder: { label: REMAINDER_LABEL, material, labor, markup, usd: material + labor + markup }, total };
+  const fixedRow: RemainderCost | null = fixed > 0 ? { label: FIXED_LABEL, material: fixed, labor: 0, markup: 0, usd: fixed } : null;
+  return { elements, remainder: { label: REMAINDER_LABEL, material, labor, markup, usd: material + labor + markup }, fixed: fixedRow, total };
 }
 
 /** Headline (envelope + embodied) carbon score 1..5 at an option — 3D-Print cement & aluminium frame cost a star for
