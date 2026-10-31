@@ -34,32 +34,59 @@ const usd = (n: number) => "$" + n.toLocaleString("en-US", { maximumFractionDigi
 const stars = (n: number) => "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
 const selectStyle = { background: C.ground, color: C.text, border: `1px solid ${C.border}`, borderRadius: 4, padding: "1px 4px", fontSize: 9 } as const;
 
-/** The tiny form glyph for the matrix column heads (the big furnished mockups live in the cards). */
+/** The tiny form glyph for the matrix column heads (the big furnished mockups live in the cards).
+ *
+ * ICONOLOGY LAW (operator 2026-10-31, his three zoomed screenshots: "enhance iconology so lines connect better"): every glyph is
+ * built from NAMED VERTICES and every stroke endpoint is one of them — one stroke width for cyan and violet, round joins and caps,
+ * faces drawn as CLOSED polygons that share their corners. Before: the Tiny Home's roof was a flap with no right-hand face to land
+ * on and its door sat on top of the base line; the Eco-Sphere's lattice floated inside the dome in a thinner stroke; the Cube's
+ * violet faces met the cyan grid's corners half a stroke off and only the front face carried the 3×3. Gated:
+ * tests/architect-form-glyphs.test.mjs (every endpoint on a vertex / the arc / the base / the hub; nothing leaves the dome).
+ *
+ * Geometry (viewBox 0..32): the two boxes use ONE oblique projection p(x,y,z) = (ox + w·x + d·z, oy − h·y − d·z), depth vector
+ * (d, −d). Cube: ox 9 · oy 26 · w = h = 16 · d = 4 — the unit cube's 8 corners, the three visible faces, a 3×3 grid on EACH of them
+ * (the 3×3×3 cube his rule demands of the voxel). Tiny Home: ox 3 · oy 25 · w 20 · h 12 · d 6 — three faces; the door is an open path
+ * whose feet stand ON the base edge. Eco-Sphere: arc centre (16,24) r 12 whose ends are the base line's ends; lattice nodes only ON
+ * the arc (30°·60°·90°·120°·150°), on the base (x 4·10·16·22·28) or the one hub (16,18): the geodesic ring is the chords between
+ * consecutive arc nodes; the spokes run hub → every arc node and hub → the two inner base nodes. */
+const GLYPH_STROKE = 1.25;
 function FormGlyph({ id, size = 26 }: { id: string; size?: number }) {
   const st = { width: size, height: size, display: "block" } as const;
+  const svgProps = { viewBox: "0 0 32 32", style: st, fill: "none", stroke: C.cyan, strokeWidth: GLYPH_STROKE, strokeLinejoin: "round" as const, strokeLinecap: "round" as const, "aria-hidden": true };
   if (id === "tiny") {
     return (
-      <svg viewBox="0 0 32 32" style={st} fill="none" stroke={C.cyan} strokeWidth={1.5} aria-hidden>
-        <path d="M3 14 L9 9 L29 9 L29 23 L3 23 Z" vectorEffect="non-scaling-stroke" />
-        <line x1="3" y1="14" x2="29" y2="14" vectorEffect="non-scaling-stroke" />
-        <rect x="19" y="16" width="5" height="7" stroke={C.violet} vectorEffect="non-scaling-stroke" />
+      <svg {...svgProps} data-arch-glyph="tiny">
+        {/* front face (3,13)→(23,13)→(23,25)→(3,25) · top (3,13)→(9,7)→(29,7)→(23,13) · right (23,13)→(29,7)→(29,19)→(23,25) */}
+        <path d="M3 13 L23 13 L23 25 L3 25 Z" vectorEffect="non-scaling-stroke" />
+        <path d="M3 13 L9 7 L29 7 L23 13 Z" vectorEffect="non-scaling-stroke" />
+        <path d="M23 13 L29 7 L29 19 L23 25 Z" vectorEffect="non-scaling-stroke" />
+        {/* the door: an open path inside the front face, its feet on the base edge y 25 (never a rectangle over the base line) */}
+        <path d="M15 25 L15 18 L19 18 L19 25" stroke={C.violet} vectorEffect="non-scaling-stroke" />
       </svg>
     );
   }
   if (id === "eco-sphere") {
     return (
-      <svg viewBox="0 0 32 32" style={st} fill="none" stroke={C.cyan} strokeWidth={1.5} aria-hidden>
+      <svg {...svgProps} data-arch-glyph="eco-sphere">
         <path d="M4 24 A12 12 0 0 1 28 24" vectorEffect="non-scaling-stroke" />
-        <line x1="4" y1="24" x2="28" y2="24" vectorEffect="non-scaling-stroke" />
-        <path d="M16 12 L9 24 M16 12 L23 24 M8.5 18 L23.5 18 M12 13.5 L16 24 M20 13.5 L16 24" stroke={C.violet} strokeWidth={1} vectorEffect="non-scaling-stroke" />
+        <path d="M4 24 L28 24" vectorEffect="non-scaling-stroke" />
+        {/* the geodesic ring: chords between consecutive arc nodes (0°…180° in 30° steps) */}
+        <path d="M4 24 L5.608 18 L10 13.608 L16 12 L22 13.608 L26.392 18 L28 24" stroke={C.violet} vectorEffect="non-scaling-stroke" />
+        {/* the spokes: hub (16,18) → every arc node, and → the two inner base nodes */}
+        <path d="M16 18 L5.608 18 M16 18 L10 13.608 M16 18 L16 12 M16 18 L22 13.608 M16 18 L26.392 18 M16 18 L10 24 M16 18 L22 24" stroke={C.violet} vectorEffect="non-scaling-stroke" />
       </svg>
     );
   }
   return (
-    <svg viewBox="0 0 32 32" style={st} fill="none" stroke={C.cyan} strokeWidth={1.5} aria-hidden>
-      <path d="M9 10 L13 6 L29 6 L25 10 M29 6 L29 22 L25 26" stroke={C.violet} strokeWidth={1} vectorEffect="non-scaling-stroke" />
-      <rect x="9" y="10" width="16" height="16" vectorEffect="non-scaling-stroke" />
-      <path d="M14.33 10 L14.33 26 M19.66 10 L19.66 26 M9 15.33 L25 15.33 M9 20.66 L25 20.66" strokeWidth={0.9} vectorEffect="non-scaling-stroke" />
+    <svg {...svgProps} data-arch-glyph="cube">
+      {/* front face (z 0) · its 3×3 grid */}
+      <path d="M9 10 L25 10 L25 26 L9 26 Z" vectorEffect="non-scaling-stroke" />
+      <path d="M14.333 10 L14.333 26 M19.667 10 L19.667 26 M9 15.333 L25 15.333 M9 20.667 L25 20.667" vectorEffect="non-scaling-stroke" />
+      {/* top face (y 1) and right face (x 1), closed, sharing the front face's corners · their 3×3 grids */}
+      <path d="M9 10 L13 6 L29 6 L25 10 Z" stroke={C.violet} vectorEffect="non-scaling-stroke" />
+      <path d="M25 10 L29 6 L29 22 L25 26 Z" stroke={C.violet} vectorEffect="non-scaling-stroke" />
+      <path d="M10.333 8.667 L26.333 8.667 M11.667 7.333 L27.667 7.333 M14.333 10 L18.333 6 M19.667 10 L23.667 6" stroke={C.violet} vectorEffect="non-scaling-stroke" />
+      <path d="M25 20.667 L29 16.667 M25 15.333 L29 11.333 M26.333 24.667 L26.333 8.667 M27.667 23.333 L27.667 7.333" stroke={C.violet} vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }
