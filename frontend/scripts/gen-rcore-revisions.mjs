@@ -32,6 +32,14 @@ const OUT_DIR = path.join(FRONTEND, "lib", "2525-core");
 
 // --check writes nothing and exits 1 on the first file that differs from what this run would write.
 const CHECK = process.argv.includes("--check");
+// THE STAMP TOKEN LAW (2026-10-31): every ledger text ships in the client bundle, and scripts/stamp-count.mjs (postbuild, the door
+// Cloudflare builds through) refuses an export that carries more than ONE `HH:MM CST` token. A release row that said
+// "~11:20 CST" turned three Cloudflare builds red. So: no ledger text may carry that token — write the hour in words or dotted.
+const STAMP_TIME = /\b\d{2}:\d{2} CST\b/;
+function refuseStampTokens(id, entries) {
+  const bad = entries.filter((e) => STAMP_TIME.test(String(e.text ?? e.why ?? e.title ?? "")));
+  if (bad.length) { console.error(`gen-rcore-revisions: ${id} ledger rows ${bad.map((e) => e.rev).join(", ")} carry an "HH:MM CST" token — the build-stamp gate (stamp-count) counts it; write the time dotted (11.20) or in words`); process.exit(1); }
+}
 let stale = 0;
 const emit = (file, body, note) => {
   const p = path.join(OUT_DIR, file);
@@ -90,6 +98,7 @@ const HEADER = (src) =>
     `\nimport type { LedgerInput } from "@/lib/2525-core/revisions";\n\n` +
     `/** Drone-2525 append-only traceability ledger — ${ledger.entries.length} entries, extracted at build time. */\n` +
     `export const DRONE_LEDGER: LedgerInput = ${JSON.stringify(ledger, null, 2)};\n`;
+  refuseStampTokens("drone-2525", ledger.entries);
   emit("drone-ledger.gen.ts", body, `${ledger.entries.length} ledger entries`);
 }
 
@@ -128,6 +137,7 @@ for (const { file, constName, out } of STAGE2_LEDGERS) {
     `\nimport type { LedgerInput } from "@/lib/2525-core/revisions";\n\n` +
     `/** ${ledger.section} append-only traceability ledger — ${ledger.entries.length} entries, extracted at build time. */\n` +
     `export const ${constName}: LedgerInput = ${JSON.stringify(ledger, null, 2)};\n`;
+  refuseStampTokens(ledger.section || out, ledger.entries);
   emit(out, body, `${ledger.entries.length} ledger entries`);
 }
 
