@@ -622,6 +622,110 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 15,
+   "commit": "004242d1c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/architect-build.tsx",
+       "blob": "4863942d72941dd4f9b9e0eef068709e0bdeec16"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-design.tsx",
+       "blob": "a1d5ad0d110bef9e0bd03872fc6ae2d3a3d57f46"
+      },
+      {
+       "path": "frontend/components/architect-2525/command-ux1.tsx",
+       "blob": "34480d60bfa7155b73a0abbd40532e49c86a9d19"
+      },
+      {
+       "path": "frontend/components/architect-2525/room-designer.tsx",
+       "blob": "aa843dc96ec0154df5578e637be68c5cbbc8bf98"
+      },
+      {
+       "path": "frontend/components/architect-2525/tiny-floorplan.tsx",
+       "blob": "b7841da01021e0fadd3708de72bbc7bc8e0d9fd6"
+      },
+      {
+       "path": "frontend/components/architect-2525/voxel-house.tsx",
+       "blob": "33382de3a43d7f8ae831e3b9bea72e0fb94cf3a1"
+      }
+     ],
+     "add": 46,
+     "del": 21,
+     "bytes": 19213,
+     "lines": 223,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 16,
+   "commit": "004242d1c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/architect-build.tsx",
+       "blob": "4863942d72941dd4f9b9e0eef068709e0bdeec16"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-design.tsx",
+       "blob": "a1d5ad0d110bef9e0bd03872fc6ae2d3a3d57f46"
+      },
+      {
+       "path": "frontend/components/architect-2525/command-ux1.tsx",
+       "blob": "34480d60bfa7155b73a0abbd40532e49c86a9d19"
+      },
+      {
+       "path": "frontend/components/architect-2525/room-designer.tsx",
+       "blob": "aa843dc96ec0154df5578e637be68c5cbbc8bf98"
+      },
+      {
+       "path": "frontend/components/architect-2525/tiny-floorplan.tsx",
+       "blob": "b7841da01021e0fadd3708de72bbc7bc8e0d9fd6"
+      },
+      {
+       "path": "frontend/components/architect-2525/voxel-house.tsx",
+       "blob": "33382de3a43d7f8ae831e3b9bea72e0fb94cf3a1"
+      }
+     ],
+     "add": 46,
+     "del": 21,
+     "bytes": 19213,
+     "lines": 223,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }

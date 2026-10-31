@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Architect-2525 append-only traceability ledger — 14 entries, extracted at build time. */
+/** Architect-2525 append-only traceability ledger — 16 entries, extracted at build time. */
 export const ARCHITECT_LEDGER: LedgerInput = {
   "section": "Architect-2525",
   "route": "/Architect-2525",
@@ -107,6 +107,20 @@ export const ARCHITECT_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "R5 — the live site, fixed now: the Master Bedroom opens as the decided standard layout in a SIMPLE Room Designer (lib/room-objects.ts STANDARD_LAYOUTS.M + standardLayoutFor; ROOM_ASSETS.M without dresser/wardrobe, with desk; room-designer.tsx simpleMode default + ⚙ Advanced; the name badge re-homed for Simple) with ONE placement convention across every view (worldSpan — the room designer, the house plan, the house voxel and the packer; the WireGuard keeps half-foot centres); GPS works (public/_headers + worker.js geolocation=(self); architect-skysun locate() with honest branches; the pod GPS error logged); /main is never used (worker.js 301 /main[/x] → /[x] keeping the query; app/Architect-2525 canonical + /design; app/main/** removed; _redirects lowercase → /Architect-2525/; 14 app references purged; tests, CI probe and scripts re-pointed; ledger routes + registry on root routes); Build 4D draws the canonical 3×3 step by step (architect-build.tsx over TINY_ROOM_LAYOUT); the R4 card's untrue \"the same hours drive the Build-Instructions crew-days\" clause trimmed; two react/no-unescaped-entities lint errors from 2026-10-28 fixed so next build passes. Gates (new, in test:ci): room-standard-layout 38 · geolocation-policy 10 · main-redirect 42; re-pinned room-objects 133 · room-audit 437 · sim-environment 40 · product-truth 72 · guard 43 and the re-pointed route tests; tsc 0 new; static export OK. Shipped f299909b9.",
       "commit": "f299909b9"
+    },
+    {
+      "rev": 15,
+      "date": "2026-10-31",
+      "kind": "decision",
+      "text": "HI answers to the 48-agent fleet's four open questions (AskUserQuestion 2026-10-31, persisted verbatim at docs/asks/2026.10.31_06.28..05_architect2525_hi_decisions_r5b_r6.md): (1) the Master Bedroom is LAYOUT A′ WITHOUT RUG — \"only have furniture, no rugs or curtains till the later polish stage after the house is designed with the interior stage\" → the vanity + mirror move opposite the bed on the S wall, nightstands flush at the head, windows N + W, door S; no rug in any default palette or standard layout until the polish stage; clearances gated (24\" walkways · 24\" bed-foot → vanity · the door swing clear · a 36\" chair zone beside the bed); (2) the Overview tile REPLACES \"NOT CALCULATED\" / \"$66,800\" with the DERIVED Simulate estimate \"$240,000 · ESTIMATE · Simulate · DERIVED\" (R6, register + gate amended in the same commit; the canonical model still computes no cost); (3) the cost split is LABELLED now (\"materials ≈ 20% · ASSUMED\") and the Tiny's double-counted trailer is fixed in R6 (the Tiny skips site/foundation/land; the trailer row holds $40,000); the $240,000 · $267/ft² · 50% default markup are not reopened; (4) the saved-designs table hardening (migration 044 cloned from 030; the two RPCs the client calls exist in no migration) ships with R6 and the operator applies the SQL. The plan R5b → R10 was approved the same day; this row is executed by the R5b ship.",
+      "commit": "004242d1c"
+    },
+    {
+      "rev": 16,
+      "date": "2026-10-31",
+      "kind": "release",
+      "text": "Executes the 2026-10-31 HI answer (A′, no rug; no rugs or curtains by default until the interior polish stage) and the fleet's confirmed R5 gaps: STANDARD_LAYOUTS.M = A′ (rev 2), rug off the palettes; wall kinds wall-aligned on place/move/flip/mirror; clampFootprint flush to walls; RoomCell.layoutRev seed-merge (pre-R5b bedrooms re-seated once, later arrangements kept); sanitizeObjects rewritten (hasOwn whitelist, footprint clamp, [] stays [], 99 objects, 64-char ids); designer 8-px tap threshold, select-after-place, 44-px chips, hit pads, palette above the pane; metric strip off in room focus; loadProjectFile validates; ownWindows/ownDoors; the Entry door beside its window; /main redirect case-insensitive + collapsing with a real gate. Rows 13 · 14 (R5) rode in this ship commit. LIVE: promoted by the operator (Cloudflare version 6de8233a, 2026-10-31 ~11:20 CST), his footer ARCHITECT-2525 · v0.001-2026.10.31-07.02CST · 004242d; the first Verify Live LIVE STATE reading of it is owed (the session cannot dispatch the workflow).",
+      "commit": "004242d1c"
     }
   ]
 };
