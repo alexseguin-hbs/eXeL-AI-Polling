@@ -126,11 +126,23 @@
   1. **Three states, never collapsed.** COMMITTED ≠ PUSHED ≠ LIVE. Report all three, every time.
   2. **PUSHED means the remote moved** — proven with `git ls-remote`, never inferred from a push's exit code.
   3. **LIVE means the site serves that SHA** — proven by fetching it. Nothing else counts as deployed.
-  4. **UNREACHABLE IS NOT A PASS.** The Claude Code sandbox proxy 403s every host, so LIVE cannot be confirmed
-     from there. Say **UNVERIFIED** and hand the operator the command. Never say "deployed", "shipped", or
-     "live" without the SHA comparison. Never explain a stale site away as "deploy lag" without checking
-     Cloudflare Build history first.
+  4. **UNREACHABLE IS NOT A PASS.** The Claude Code sandbox cannot reach the site host, so the direct probe cannot
+     confirm LIVE from there — then read the second source (the next rule) before writing a word. Say **UNVERIFIED**
+     only after it, with the failures quoted. Never say "deployed", "shipped", or "live" without the SHA comparison.
+     Never explain a stale site away as "deploy lag" without checking Cloudflare's Deployments first.
   5. **Always include the website URL** so the operator can check in one tap.
+- **KNOW WHAT IS LIVE BEFORE EVERY UPDATE (operator 2026-10-31: "test the site" · "Make sure you know what fucking
+  architect-2525 is live always").** For a week the report line read UNVERIFIED while the site served the 24 Oct build
+  (000fe42); the operator found it himself. Three sources, read in this order, and the first that answers is quoted:
+  1. the direct probe (`cd frontend && npm run status` — the served `SHA:` banner, app/layout.tsx:29);
+  2. the latest Verify Live **LIVE STATE** line (verify-live.yml, a check-run annotation) read through the GitHub
+     Actions tools — list_workflow_runs(verify-live.yml) → list_workflow_jobs → job logs/annotations;
+  3. the operator's own stamp from his phone (`ARCHITECT-2525 · v0.001-YYYY.MM.DD-HH.MMCST · <sha>`).
+  The status line names the source and time: `cloudflare LIVE <sha> (<source> · <time>)` / `STALE <sha> (…)`.
+  **UNVERIFIED is allowed only with the failed probe quoted** (the fetch error and the CI read that was tried).
+  Environment ask (standing): add `exel-ai-polling.explore-096.workers.dev` under Allowed domains in the cloud
+  environment's network settings — https://code.claude.com/docs/en/cloud-environments#network-access — so source 1
+  answers from the sandbox. Gate: frontend/tests/know-live-rule.test.mjs.
 - **THE SIGNER NEVER MEETS THE MACHINE (operator 2026-09-10, MoT-enforced).** A person signing a legal document on their phone
   was shown *"This site's database migration is incomplete (036 is applied, 038 is not: paste the served SQL again)"*, a
   `Copy migration 036 SQL` button, and a `LOCAL ONLY` badge. He does not run our database and cannot paste SQL. Asking him to

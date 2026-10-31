@@ -1,11 +1,11 @@
-# Deploy to Cloudflare Workers on every push to main.
+# The GATE on every push to main — and, when the Supabase secrets exist, a second deployer to Cloudflare Workers.
 #
-# WHY THIS EXISTS (AAR 2026-07-29): the Cloudflare git integration has never successfully deployed this Worker.
-# Across 14 consecutive commit pairs the SAME commit built green on the preview branch and red on `main`, and the
-# only Source that ever appears in Deployment History is "Wrangler" — i.e. a human running `wrangler deploy` by
-# hand. Meanwhile the site served a 4-hour-old build while every push reported success. This workflow replaces
-# that path with one that is versioned in the repo, reviewable, and — critically — FAILS LOUDLY instead of
-# silently serving stale or degraded code.
+# WHAT IS TRUE (measured 2026-10-31): Cloudflare Workers Builds is the deployer that has actually run — it builds every push of
+# every branch and promotes the production branch; the `ship` job below has never run, because the two NEXT_PUBLIC_SUPABASE_*
+# Actions secrets were never set (every run since #2008 reads "SHIP SKIPPED"). This file's standing value is the `gate` job:
+# every test the repo owns, on every push to main, in one job that is required — and a build under real pipefail so a red
+# postbuild can no longer hide behind `tee`. (The AAR 2026-07-29 note that "the git integration never deployed" described
+# July; it is not true today and is not repeated here.)
 #
 # Three gates, in order, any of which stops the deploy:
 #   envcheck  — required NEXT_PUBLIC_* present, or the bundle would ship with an empty Supabase client
@@ -82,9 +82,16 @@ jobs:
         env:
           WORKERS_CI_COMMIT_SHA: ${{ github.sha }}
           SMOKE_REQUIRED: "1"
+        shell: bash
         run: |
           npm run build 2>&1 | tee /tmp/gate-build.log
           grep -q "Compiled successfully" /tmp/gate-build.log || { echo "::error::gate build did not report 'Compiled successfully'"; exit 1; }
+      # A red build names its cause. Under `shell: bash` (pipefail) a failing postbuild gate now fails the step above — before,
+      # `tee`'s exit code hid it and "Compiled successfully" had already printed (a false green). Read the gate's own line here.
+      - name: Name the postbuild gate that failed
+        if: failure()
+        run: |
+          grep -E "stamp-count:|render-smoke|fin-layout|fin-sync|sf-layout|nav-gear|html-export|FAIL" /tmp/gate-build.log | tail -20 | while IFS= read -r line; do echo "::error title=postbuild::$line"; done || true
       - name: Drone perf + crew (measured, before the scorer reads them)
         run: |
           npm run test:drone-perf
@@ -244,6 +251,7 @@ jobs:
           NEXT_PUBLIC_AUTH0_AUDIENCE: ${{ secrets.NEXT_PUBLIC_AUTH0_AUDIENCE }}
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
           WORKERS_CI_COMMIT_SHA: ${{ github.sha }}
+        shell: bash
         run: |
           npm run build 2>&1 | tee /tmp/build.log
           grep -q "Compiled successfully" /tmp/build.log \
@@ -263,6 +271,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: frontend
+          wranglerVersion: "4.115.0"   # the one pin — package.json `deploy`, ship.sh and verify-live.yml carry the same
           command: deploy
 
       # A deploy is not a ship. Cloudflare's edge needs a moment to propagate, so poll rather than fail on the

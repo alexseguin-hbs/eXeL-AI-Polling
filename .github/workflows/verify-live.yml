@@ -1,20 +1,28 @@
-# Is the live site serving main? — the answer, on demand, with NO secrets required.
+# What is the live site serving, and is it the commit we want? — the answer, on demand, with NO secrets required.
 #
-# WHY: the Claude Code sandbox proxy 403s every outbound host, so an agent working there physically cannot
-# read the deployed site and must report UNVERIFIED. That is honest but useless on its own. GitHub's runners
-# DO have network, so this workflow performs the one check the sandbox can't and records the verdict in the
-# Actions API — where the agent CAN read it. "Is it live?" becomes answerable again, by evidence.
+# WHY: the Claude Code sandbox cannot reach the site host (it is outside the environment's allowed network domains), so an
+# agent working there cannot read the deployed site directly. It CAN read api.github.com. GitHub's runners have full network,
+# so this workflow performs the check the sandbox can't and records the verdict where the agent reads it: the LIVE STATE
+# step below publishes ONE line on every run — a check-run annotation, the step summary and an artifact — naming what the
+# site serves, which branches carry it, what Cloudflare holds active and unpromoted, and when it was read. It never fails.
+# (Operator 2026-10-31: "make sure you know what architect-2525 is live always" — for a week the compare below said STALE
+# 000fe42 every half hour and nobody read it; the line now exists to be read: frontend/scripts/status.mjs reads it.)
 #
-# Deliberately separate from deploy.yml: that one needs CLOUDFLARE_API_TOKEN and the NEXT_PUBLIC_* secrets.
-# This one needs NOTHING. It must never be blocked by missing configuration, because it is the instrument of
-# record for whether Cloudflare actually shipped the commit.
+# Then the compare: WANT = the `want` input → frontend/deploy.json productionBranch → github.sha. A STALE verdict names what
+# IS live. Deliberately separate from deploy.yml: that one needs CLOUDFLARE_API_TOKEN and the NEXT_PUBLIC_* secrets. This
+# one needs nothing (the Cloudflare read in LIVE STATE is optional and says UNREAD when the secrets are absent).
 
 name: Verify Live
 
 on:
   push:
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      want:
+        description: "sha or branch to expect live (default: frontend/deploy.json productionBranch, else this sha)"
+        required: false
+        default: ""
   schedule:
     - cron: "*/30 * * * *"     # catch a deploy that silently stops promoting
 
@@ -27,6 +35,94 @@ jobs:
     timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # the branches that contain the live sha; origin/<branch> for WANT
+
+      # KNOW WHAT IS LIVE, ALWAYS. This step NEVER fails and ALWAYS publishes one line.
+      - name: LIVE STATE (never fails)
+        id: live
+        continue-on-error: true
+        shell: bash
+        env:
+          SITE: https://exel-ai-polling.explore-096.workers.dev
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          stamp() { # $1=url → "sha|date|time|v0001": the banner app/layout.tsx renders (SHA: · Date: · Time:) and the v0.001 footer
+            local h s d t v
+            h="$(curl -sS -m 20 -H 'cache-control: no-cache' "$1" || true)"
+            s="$(printf '%s' "$h" | grep -oE 'SHA:[^<0-9a-f]{0,8}(<[^>]*>[^<0-9a-f]{0,8})?[0-9a-f]{7}' | grep -oE '[0-9a-f]{7}$' | head -1)"
+            d="$(printf '%s' "$h" | grep -oE 'Date:[^<]{0,8}(<[^>]*>)?[^<]{0,8}[0-9]{4}\.[0-9]{2}\.[0-9]{2}' | grep -oE '[0-9]{4}\.[0-9]{2}\.[0-9]{2}$' | head -1)"
+            t="$(printf '%s' "$h" | grep -oE 'Time:[^<]{0,8}(<[^>]*>)?[^<]{0,8}[0-9]{2}:[0-9]{2} CST' | grep -oE '[0-9]{2}:[0-9]{2} CST$' | head -1)"
+            v="$(printf '%s' "$h" | grep -oE 'v0\.001-[0-9.]+-[0-9.]+CST' | head -1)"
+            printf '%s|%s|%s|%s' "${s:-none}" "${d:--}" "${t:--}" "${v:--}"
+          }
+          PREVIEW="$(node -e "process.stdout.write(require('./frontend/deploy.json').previewAlias||'')")"
+          ROOT="$(stamp "$SITE/")"; ARCH="$(stamp "$SITE/Architect-2525/")"
+          if [ -n "$PREVIEW" ]; then PREV="$(stamp "$PREVIEW/Architect-2525/")"; else PREV="none|-|-|-"; fi
+          live="${ROOT%%|*}"; rest="${ROOT#*|}"; ldate="${rest%%|*}"; rest="${rest#*|}"; ltime="${rest%%|*}"
+          arch="${ARCH%%|*}"; archv="${ARCH##*|}"; prev="${PREV%%|*}"
+          branches="none-in-clone"
+          if [ "$live" != "none" ] && git rev-parse -q --verify "$live^{commit}" >/dev/null 2>&1; then
+            branches="$(git branch -r --contains "$live" --format='%(refname:short)' | sed 's#^origin/##' | grep -v '^HEAD$' | paste -sd, -)"
+            [ -z "$branches" ] && branches="none-in-clone"
+          fi
+          # Cloudflare: the active production deployment and the newest Ready version that is NOT in it (built, never promoted).
+          # Read only when the two secrets exist — their existence is asserted, not proven (the Actions ship job never ran); the
+          # first run prints the raw JSON heads so the field names can be written down here and in the gate fixture.
+          cf_active="UNREAD(secrets absent)"; cf_unpromoted="UNREAD"
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            ( cd frontend && npx --yes wrangler@4.115.0 deployments list --json > /tmp/cf-dep.json 2>/tmp/cf-dep.err || true
+              npx --yes wrangler@4.115.0 versions list --json > /tmp/cf-ver.json 2>/tmp/cf-ver.err || true )
+            echo "--- cloudflare deployments (head)"; head -c 600 /tmp/cf-dep.json 2>/dev/null || true; echo
+            echo "--- cloudflare versions (head)"; head -c 600 /tmp/cf-ver.json 2>/dev/null || true; echo
+            parsed="$(node -e '
+              const fs=require("fs"); const rd=(f)=>{try{return JSON.parse(fs.readFileSync(f,"utf8"))}catch{return null}};
+              const dep=rd("/tmp/cf-dep.json"), ver=rd("/tmp/cf-ver.json");
+              const deps=Array.isArray(dep)?dep:(dep&&(dep.deployments||dep.result))||[]; const vers=Array.isArray(ver)?ver:(ver&&(ver.versions||ver.result))||[];
+              const when=(x)=>Date.parse(x&&(x.created_on||x.created||x.createdOn||x.timestamp)||0)||0;
+              const id=(v)=>String(v.version_id||v.versionId||v.id||"?"); const msg=(x)=>String((x&&x.annotations&&(x.annotations["workers/message"]||x.annotations.message))||(x&&x.message)||"").slice(0,48);
+              const newestDep=[...deps].sort((a,b)=>when(b)-when(a))[0]; let active="UNREAD(no-deployments)", ids=new Set();
+              if(newestDep){ const vs=newestDep.versions||[]; ids=new Set(vs.map(id)); active=vs.map((v)=>`${id(v).slice(0,8)}@${v.percentage??v.percent??"?"}%`).join("+")+(msg(newestDep)?`"${msg(newestDep)}"`:""); }
+              const newestVer=[...vers].sort((a,b)=>when(b)-when(a))[0]; let unp="none";
+              if(newestVer && !ids.has(id(newestVer))) unp=`${id(newestVer).slice(0,8)}"${msg(newestVer)}"`;
+              process.stdout.write(active.replace(/\s+/g,"_")+" "+unp.replace(/\s+/g,"_"));
+            ' 2>/dev/null || echo "UNREAD(parse) UNREAD(parse)")"
+            cf_active="${parsed%% *}"; cf_unpromoted="${parsed#* }"
+          fi
+          read_at="$(date -u +%Y-%m-%dT%H:%MZ)"
+          LINE="LIVE STATE · live=$live built $ldate $ltime · arch=$arch $archv · branches=$branches · cf.active=$cf_active · cf.unpromoted=$cf_unpromoted · preview=$prev · read=$read_at"
+          echo "$LINE"
+          echo "::notice title=LIVE STATE::$LINE"
+          { echo "### LIVE STATE"; echo '`'"$LINE"'`'; echo "(built = the commit clock of the served sha, not the promotion time)"; } >> "$GITHUB_STEP_SUMMARY"
+          node -e 'const [live,ldate,ltime,arch,archv,branches,cfa,cfu,prev,read]=process.argv.slice(1); require("fs").writeFileSync("live-state.json", JSON.stringify({live,built:`${ldate} ${ltime}`,arch,archVersion:archv,branches:branches.split(","),cfActive:cfa,cfUnpromoted:cfu,preview:prev,read},null,2)+"\n")' "$live" "$ldate" "$ltime" "$arch" "$archv" "$branches" "$cf_active" "$cf_unpromoted" "$prev" "$read_at"
+          { echo "LIVE_SHA=$live"; echo "LIVE_DATE=$ldate"; echo "LIVE_TIME=$ltime"; echo "LIVE_BRANCHES=$branches"; echo "CF_ACTIVE=$cf_active"; echo "CF_UNPROMOTED=$cf_unpromoted"; } >> "$GITHUB_ENV"
+          exit 0
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-state
+          path: live-state.json
+          if-no-files-found: warn
+
+      # WANT: the `want` input (a sha or a branch) → frontend/deploy.json productionBranch → this sha. The compare below is
+      # against the branch Cloudflare actually promotes, not whatever ref the cron happens to run on.
+      - name: Resolve WANT (input → frontend/deploy.json productionBranch → github.sha)
+        id: want
+        shell: bash
+        env:
+          WANT_INPUT: ${{ inputs.want }}
+          GITHUB_SHA_IN: ${{ github.sha }}
+        run: |
+          w="$WANT_INPUT"; src="input"
+          if [ -z "$w" ]; then w="$(node -e "process.stdout.write(require('./frontend/deploy.json').productionBranch||'')")"; src="deploy.json"; fi
+          if [ -z "$w" ]; then w="$GITHUB_SHA_IN"; src="github.sha"; fi
+          if printf '%s' "$w" | grep -Eq '^[0-9a-f]{7,40}$'; then sha="$(git rev-parse -q --verify "$w^{commit}" || true)"
+          else sha="$(git rev-parse -q --verify "origin/$w^{commit}" || true)"; fi
+          if [ -z "$sha" ]; then echo "::error title=WANT::'$w' ($src) is neither a reachable sha nor a remote branch"; exit 1; fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"; echo "sha7=${sha:0:7}" >> "$GITHUB_OUTPUT"; echo "source=$src($w)" >> "$GITHUB_OUTPUT"
+          echo "want=${sha:0:7} from $src($w)"
 
       # Cloudflare builds then promotes; give it room before calling it stale. Reports the SHA it actually
       # sees on every attempt, so the log is a deployment timeline rather than a single pass/fail.
@@ -50,10 +146,11 @@ jobs:
             echo "### ✅ migration 036 answers" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Poll live site for ${{ github.sha }}
+      - name: Poll live site for ${{ steps.want.outputs.sha7 }}
         env:
           SITE: https://exel-ai-polling.explore-096.workers.dev
-          WANT: ${{ github.sha }}
+          WANT: ${{ steps.want.outputs.sha }}
+          WANT_SOURCE: ${{ steps.want.outputs.source }}
         run: |
           want7="${WANT:0:7}"
           echo "expecting: $want7"
@@ -74,13 +171,15 @@ jobs:
             fi
             sleep 30
           done
-          echo "::error title=STALE::expected $want7, site is serving ${live:-nothing}"
+          echo "::error title=STALE::want $want7 ($WANT_SOURCE) · live=${LIVE_SHA:-${live:-none}} built ${LIVE_DATE:--} ${LIVE_TIME:--} on [${LIVE_BRANCHES:-?}] · cf.active=${CF_ACTIVE:-?} · cf.unpromoted=${CF_UNPROMOTED:-?}"
           {
             echo "### ❌ STALE"
-            echo "Expected \`$want7\`, live site serves \`${live:-nothing}\` after 15 minutes."
+            echo "Wanted \`$want7\` ($WANT_SOURCE); the live site serves \`${LIVE_SHA:-${live:-none}}\` (built ${LIVE_DATE:--} ${LIVE_TIME:--}, on [${LIVE_BRANCHES:-?}]) after 15 minutes."
+            echo "Cloudflare active: ${CF_ACTIVE:-?} · newest unpromoted: ${CF_UNPROMOTED:-?}"
             echo ""
-            echo "Cloudflare built but did not promote, or the build failed."
-            echo "Remedy: Workers & Pages → exel-ai-polling → Deployments → promote newest to 100%,"
+            echo "Cloudflare built but did not promote, or the build failed, or the live build is from another branch."
+            echo "Remedy: if cf.unpromoted names a version, Workers & Pages → exel-ai-polling → Deployments → promote it to 100%;"
+            echo "if branches= lacks the production branch, the live build came from another branch (promote the right one);"
             echo "or clear the build cache (Settings → Build → Clear build cache) and retry."
           } >> "$GITHUB_STEP_SUMMARY"
           exit 1
@@ -102,6 +201,34 @@ jobs:
             echo "### ❌ /drone-2525/ does not answer — HTTP $code" >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
+
+      # ARCHITECT-2525 ON THE EDGE (operator 2026-10-31: "make sure you know what architect-2525 is live always"): the route
+      # answers with its own markup and the wanted stamp; the one Worker redirect lands a legacy "main" address on the canonical
+      # one with its query intact (R5); the geolocation header that broke GPS for a week reads (self) (R5). Each line is one he can
+      # check on his phone.
+      - name: Probe /Architect-2525/ on the live site (markup · stamp · the /main redirect · geolocation)
+        shell: bash
+        env:
+          SITE: https://exel-ai-polling.explore-096.workers.dev
+          WANT7: ${{ steps.want.outputs.sha7 }}
+        run: |
+          code="$(curl -sS -m 20 -o /tmp/arch.html -w '%{http_code}' -H 'cache-control: no-cache' "$SITE/Architect-2525/" || echo 000)"
+          st="$(grep -oE 'SHA:[^<0-9a-f]{0,8}(<[^>]*>[^<0-9a-f]{0,8})?[0-9a-f]{7}' /tmp/arch.html | grep -oE '[0-9a-f]{7}$' | head -1)"
+          if [ "$code" = "200" ] && grep -q 'data-arch-ribbon' /tmp/arch.html && [ "$st" = "$WANT7" ]; then
+            echo "::notice title=ARCH ROUTE::$SITE/Architect-2525/ answers 200 with the Architect ribbon, stamp $st"
+          else
+            echo "::error title=ARCH ROUTE::/Architect-2525/ → HTTP $code, ribbon $(grep -q 'data-arch-ribbon' /tmp/arch.html && echo present || echo ABSENT), stamp ${st:-none} (want $WANT7)"; exit 1
+          fi
+          r="$(curl -sS -m 20 -o /dev/null -w '%{http_code} %{redirect_url}' "$SITE/main/Architect-2525/?q=1")"   # main-redirect-probe
+          if [ "$r" = "301 $SITE/Architect-2525/?q=1" ]; then echo "::notice title=ARCH ROUTE::/main/Architect-2525/?q=1 → 301 $SITE/Architect-2525/?q=1"   # main-redirect-probe
+          else echo "::error title=ARCH ROUTE::/main/Architect-2525/?q=1 → $r (want 301 $SITE/Architect-2525/?q=1 — worker.js)"; exit 1; fi   # main-redirect-probe
+          pp="$(curl -sSI -m 20 "$SITE/Architect-2525/" | tr -d '\r' | awk -F': ' 'tolower($1)=="permissions-policy"{print $2}')"
+          case "$pp" in *'geolocation=()'*) echo "::error title=ARCH ROUTE::Permissions-Policy carries geolocation=() again — GPS is dead on every page"; exit 1;; esac
+          case "$pp" in
+            *'geolocation=(self)'*) echo "::notice title=ARCH ROUTE::Permissions-Policy on /Architect-2525/ allows geolocation=(self)" ;;
+            *) echo "::error title=ARCH ROUTE::Permissions-Policy on /Architect-2525/ is '${pp:-none}' — geolocation=(self) missing (public/_headers)"; exit 1 ;;
+          esac
+          echo "### ✅ /Architect-2525/ answers with its ribbon and stamp $st · /main redirect 301 · geolocation=(self)" >> "$GITHUB_STEP_SUMMARY"
 
       # 2026.10.17 · IS _headers ACTUALLY HONOURED? The cache class was fixed in public/_headers on the
       # reasoning that Workers Static Assets reads it — but that reasoning is not provable from inside the

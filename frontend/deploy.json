@@ -1,0 +1,8 @@
+{
+  "productionBranch": "main",
+  "site": "https://exel-ai-polling.explore-096.workers.dev",
+  "previewAlias": "https://claude-debug-wsl-issues-yydpp-exel-ai-polling.explore-096.workers.dev",
+  "worker": "exel-ai-polling",
+  "deployer": "cloudflare-workers-builds",
+  "note": "The one declaration of where the site lives and which branch Cloudflare Workers Builds promotes to production. verify-live.yml resolves its WANT from productionBranch; scripts/status.mjs reads `site`; tests/live-state-workflow.test.mjs holds every hard-coded SITE in the workflows and scripts equal to `site`. Re-point productionBranch here (one hunk) if the operator moves production to another branch."
+}

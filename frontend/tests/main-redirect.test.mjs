@@ -99,7 +99,10 @@ for (const f of ["architect-2525", "celestial-2525", "security-2525"]) {
 const reg = readFileSync(join(ROOT, "..", "docs/traceability/projects.registry.json"), "utf8");
 ok(!/frontend\/app\/main\//.test(reg), "the projects registry scopes no app/main path");
 const vl = readFileSync(join(ROOT, "..", ".github/workflows/verify-live.yml"), "utf8");
-ok(!/\/main\//.test(vl), "Verify Live probes root routes, never /main");
+// R5b+: the ONE sanctioned /main in the workflow is the probe that proves the redirect on the edge — its lines are tagged.
+const vlUntagged = vl.split("\n").filter((l) => !/main-redirect-probe/.test(l)).join("\n");
+ok(!/\/main\//.test(vlUntagged), "Verify Live probes root routes, never /main (outside the tagged redirect probe)");
+ok(/main-redirect-probe/.test(vl) && /301 \$SITE\/Architect-2525\/\?q=1/.test(vl), "Verify Live asserts the /main redirect on the edge (301 to the canonical address, query kept)");
 
 console.log(`\nMAIN-REDIRECT ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);

@@ -34,8 +34,9 @@ try {
   die(`✗ could not reach ${SITE} — ${err.message}`);
 }
 
-// The app stamps its build SHA into the served HTML (footer/meta). Accept any 7-40 hex run that matches.
-const live = [...html.matchAll(/\b([0-9a-f]{7,40})\b/g)].map((m) => m[1].slice(0, 7));
+// The app stamps its build SHA into the served HTML banner (app/layout.tsx: `SHA:&nbsp;<span>sha</span>`). Read THAT — never
+// "any 7-40 hex run in the page": that match passed by luck for a week (fleet r.147, Krishna).
+const live = [...html.matchAll(/SHA:[^<0-9a-f]{0,8}(?:<[^>]*>[^<0-9a-f]{0,8})?([0-9a-f]{7})/gi)].map((m) => m[1]);
 const hit = live.includes(want);
 
 console.log(`site   : ${SITE}`);
