@@ -23,7 +23,10 @@
   DECIDE; technology owns generating the evidence.** The artifact is a standalone HTML file (served via file, not a
   claude.ai artifact — the SAVE FEEDBACK Blob download must work): header provenance (SHA · LIVE url · tsc · gates ·
   FX range) · §1 FX INDEX · §2 FIX DETAIL with **real before/after screenshots** + change/proof/risk + a
-  `👍 APPROVE / ✎ CHANGES / ✋ HOLD` row + comment · §3 12 Ascended Masters · §4 MoT synthesis + risks · §5 QUEUED
+  `👍 APPROVE / ✎ CHANGES / ✋ HOLD` row + comment **PER IMAGE — one for one, for every image** (operator 2026-10-31: "image
+  then comment, image comment/decision (1 for 1 for all images)": a before image, an after image and a whole-screen capture are
+  three cards, each with its own row and comment; decision cards carry real images beside their picks, each with its own
+  row and comment; the paired JSON holds one `features[<imageId>]` per image) · §3 12 Ascended Masters · §4 MoT synthesis + risks · §5 QUEUED
   backlog · HI DECISION + SAVE FEEDBACK → `<stamp>_<FX>_FEEDBACK.json` (schema: `{release,date,stamp,sha,timestamp,
   verdict,overallNotes,features:{FX:{verdict,comment}}}`). **No chunk is "done" without its FX artifact served to HI.**
   Do NOT make HI reconstruct changes from GitHub, CI logs or chat; do NOT ship a prose-only report. Screenshots are
