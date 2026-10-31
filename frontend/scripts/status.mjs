@@ -80,7 +80,17 @@ try {
 const TOKEN = process.env.GH_TOKEN || process.env.GITHUB_TOKEN || "";
 const hasGh = !process.env.STATUS_NO_GH && (() => { try { execSync("command -v gh", { stdio: "ignore" }); return true; } catch { return false; } })();
 let apiNote = TOKEN ? "" : hasGh ? "" : "no GitHub token here (set GH_TOKEN) and no gh";
+// In the Claude Code sandbox the token is honoured only THROUGH the environment's HTTPS proxy (a raw fetch to api.github.com
+// answers 401; curl, which honours HTTPS_PROXY, answers 200 — measured 2026-10-31). Node's fetch bypasses the proxy, so when a
+// proxy is configured the read goes through curl; a fake API (tests) or a proxy-less machine uses fetch.
+const viaProxy = !!process.env.HTTPS_PROXY && !process.env.GITHUB_API_URL;
 const ghGet = async (p) => {
+  if (TOKEN && viaProxy) {
+    const out = execSync(`curl -sS -m 20 -w '\\n%{http_code}' -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/vnd.github+json" "${API}/repos/${REPO}/${p}"`, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    const nl = out.lastIndexOf("\n"); const code = out.slice(nl + 1).trim(); const body = out.slice(0, nl);
+    if (code !== "200") throw new Error(`GitHub API ${code} on ${p.split("?")[0]}`);
+    return JSON.parse(body);
+  }
   if (TOKEN) {
     const r = await fetch(`${API}/repos/${REPO}/${p}`, { headers: { authorization: `Bearer ${TOKEN}`, accept: "application/vnd.github+json" }, signal: AbortSignal.timeout(15000) });
     if (!r.ok) throw new Error(`GitHub API ${r.status} on ${p.split("?")[0]}`);
