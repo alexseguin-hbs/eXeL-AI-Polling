@@ -148,9 +148,10 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
         <div style={face(`translate3d(0px,${size / 2}px,${h / 2}px) rotateX(90deg)`, size, h, color, false, wallW)} />
         <div style={face(`translate3d(${-size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false, wallW)} />
         <div style={face(`translate3d(${size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false, wallW)} />
-        {/* IMG-02 — draw the room's REAL objects when it has any (placed or defaults → mirrors the 2D plan);
-            fall back to the low-fi canned furn3d only when there are none (e.g. the full-home single cube). */}
-        {opts.objects?.length ? objects3d(opts.objects, size) : (opts.furn && furn3d(key, size))}
+        {/* IMG-02 — draw the room's REAL objects when it has an array (placed, defaults, or EMPTIED → mirrors the 2D plan, an
+            emptied room reads empty here too — R5b, Krishna); the low-fi canned furn3d only when there is no array at all
+            (e.g. the full-home single cube). */}
+        {opts.objects ? objects3d(opts.objects, size) : (opts.furn && furn3d(key, size))}
         <button
           data-arch-voxel-cell={key}
           onClick={(e) => { e.stopPropagation(); selectRoom(id); }}

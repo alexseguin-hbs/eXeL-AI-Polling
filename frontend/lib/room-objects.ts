@@ -129,7 +129,9 @@ export function clampFootprint(gx: number, gy: number, w: number, d: number, rot
   const axis = (g: number, f: number): number => {
     // whole footprint inside [0,ROOM_GRID] ft: centre (g+0.5) must be in [f/2, ROOM_GRID-f/2] → g in [f/2-0.5, ROOM_GRID-0.5-f/2]
     if (round) {
-      const lo = Math.ceil(f / 2 - 0.5), hi = Math.floor(ROOM_GRID - 0.5 - f / 2);
+      // R5b (AsM-caught, J1): the ROUNDED cell is clamped to the FRACTIONAL bounds, so an integer drag can land FLUSH to a
+      // wall (the old ceil/floor cell bounds held a 5-ft bed 6" off the N wall after its first pointer-move).
+      const lo = f / 2 - 0.5, hi = ROOM_GRID - 0.5 - f / 2;
       if (lo > hi) return Math.max(0, Math.min(ROOM_GRID - 1, Math.round((ROOM_GRID - f) / 2))); // oversize → centred
       return Math.max(lo, Math.min(hi, Math.round(g)));
     }
@@ -255,27 +257,70 @@ function nextId(objs: PlacedObject[], kind: ObjectKind): string {
   return `${kind}-${n}`;
 }
 
-/** Place a new object at (gx,gy), clamped so its whole footprint stays inside the room (FIX-6). NEW array, no mutate. */
+/**
+ * R5b — A WALL OBJECT IS ALWAYS WALL-ALIGNED (AsM-caught, the geometry lens): a window / door / mirror / wall TV on the W or E
+ * wall runs ALONG that wall (rot 90), on the N or S wall across (rot 0). Place snaps it to its wall with that rotation;
+ * Move re-aligns it to the wall it lands on; Rotate FLIPS it (+180°, the hinge / swing side) instead of turning it
+ * perpendicular into the room — which is what the generic 90° step did (a 3-ft window became a 0.5 × 3 ft bar sticking out
+ * of the wall while the badge still said "W wall"). One rule, shared with the WireGuard so a legacy stored layout is
+ * normalised on load. Gated by tests/room-standard-layout.test.mjs.
+ */
+export function wallRot(wall: Wall): Rot { return wall === "W" || wall === "E" ? 90 : 0; }
+/** The nearest wall-aligned rotation for `wall` that keeps a 180° flip: {0,180} on N/S · {90,270} on W/E. */
+export function alignedRot(rot: Rot, wall: Wall): Rot {
+  const base = wallRot(wall);
+  return rot === base || rot === ((base + 180) % 360) ? rot : base;
+}
+/** The wall an object sits on — wallOf, but at a CORNER tie it prefers the axis the object already runs along (a W-wall
+ * window at gy 0 stays W; wallOf alone would answer N). */
+export function wallOfObject(o: { gx: number; gy: number; rot: Rot }): Wall {
+  const dLeft = o.gx, dRight = ROOM_GRID - 1 - o.gx, dTop = o.gy, dBot = ROOM_GRID - 1 - o.gy;
+  const m = Math.min(dLeft, dRight, dTop, dBot);
+  const cands: Wall[] = [];
+  if (m === dTop) cands.push("N");
+  if (m === dBot) cands.push("S");
+  if (m === dLeft) cands.push("W");
+  if (m === dRight) cands.push("E");
+  const vertical = o.rot === 90 || o.rot === 270;
+  return cands.find((w) => ((w === "W" || w === "E") === vertical)) ?? cands[0];
+}
+
+/** Place a new object at (gx,gy), clamped so its whole footprint stays inside the room (FIX-6). NEW array, no mutate.
+ * A wall object snaps to its nearest wall and runs along it (R5b). */
 export function placeObject(objs: PlacedObject[], kind: ObjectKind, gx: number, gy: number): PlacedObject[] {
-  const c = clampFootprint(gx, gy, OBJECT_SPEC[kind].w, OBJECT_SPEC[kind].d, 0);
+  const spec = OBJECT_SPEC[kind];
+  if (spec.onWall) {
+    const wall = wallOf(gx, gy), rot = wallRot(wall), s = slideAlongWall(wall, gx, gy);
+    // the clamp keeps the piece flush to its wall (a 1.5-ft-deep closet rod sits at gy 0.25, not through the wall)
+    const c = clampFootprint(s.gx, s.gy, spec.w, spec.d, rot);
+    return [...objs, { id: nextId(objs, kind), kind, gx: c.gx, gy: c.gy, rot }];
+  }
+  const c = clampFootprint(gx, gy, spec.w, spec.d, 0);
   return [...objs, { id: nextId(objs, kind), kind, gx: c.gx, gy: c.gy, rot: 0 }];
 }
 
-/** Move an existing object to (gx,gy), footprint-clamped (rotation- + variant-aware) fully inside the room (FIX-6). */
-export function moveObject(objs: PlacedObject[], id: string, gx: number, gy: number): PlacedObject[] {
+/** Move an existing object to (gx,gy), footprint-clamped (rotation- + variant-aware) fully inside the room (FIX-6).
+ * A wall object takes the alignment of the wall it lands on; a drag passes the wall it LOCKED (corner cells are ambiguous). */
+export function moveObject(objs: PlacedObject[], id: string, gx: number, gy: number, wall?: Wall): PlacedObject[] {
   return objs.map((o) => {
     if (o.id !== id) return o;
     const fp = footprintOf(o);
-    const c = clampFootprint(gx, gy, fp.w, fp.d, o.rot);
-    return { ...o, gx: c.gx, gy: c.gy };
+    const rot = OBJECT_SPEC[o.kind].onWall ? alignedRot(o.rot, wall ?? wallOfObject({ gx, gy, rot: o.rot })) : o.rot;
+    const c = clampFootprint(gx, gy, fp.w, fp.d, rot);
+    return { ...o, rot, gx: c.gx, gy: c.gy };
   });
 }
 
-/** Rotate an object 90° clockwise (0→90→180→270→0), then re-clamp so the rotated footprint stays inside (FIX-6). */
+/** Rotate: free furniture turns 90° clockwise (0→90→180→270→0); a wall object FLIPS (+180°, hinge / swing side) and stays
+ * aligned with its wall (R5b). Re-clamped so the rotated footprint stays inside (FIX-6), keeping a half-foot pivot (R5). */
 export function rotateObject(objs: PlacedObject[], id: string): PlacedObject[] {
   return objs.map((o) => {
     if (o.id !== id) return o;
-    const rot = (((o.rot + 90) % 360) as Rot);
+    const onWall = OBJECT_SPEC[o.kind].onWall;
+    const wall = wallOfObject(o);
+    const rot = onWall
+      ? alignedRot((((alignedRot(o.rot, wall) + 180) % 360) as Rot), wall)
+      : (((o.rot + 90) % 360) as Rot);
     const fp = footprintOf(o);
     const c = clampFootprint(o.gx, o.gy, fp.w, fp.d, rot, false);   // R5: keep the pivot (no rounding of a half-foot centre)
     return { ...o, rot, gx: c.gx, gy: c.gy };
@@ -405,10 +450,13 @@ export const ROOM_ASSETS: Record<string, ObjectKind[]> = {
   // Table / vanity with mirror works"): NO dresser, NO wardrobe in the Master Bedroom — clothes live in the Master Closet
   // (C, below, which lists both); a desk (the table/vanity) + wall mirror instead. R-CORE-locked by
   // tests/room-standard-layout.test.mjs — re-admitting either kind here fails the build (operator: "stop reverting").
-  M: ["bed", "nightstand", "desk", "tv", "chair", "mirror", "lamp", "rug"], // Master Bedroom
+  // HI DECISION (2026-10-31): "only have furniture — no rugs or curtains till the later polish stage after the house is
+  // designed with the interior stage" → no soft furnishings in any default palette or standard layout (the `rug` kind
+  // stays in OBJECT_SPEC; nothing is deleted). Gated by tests/room-standard-layout.test.mjs.
+  M: ["bed", "nightstand", "desk", "tv", "chair", "mirror", "lamp"], // Master Bedroom
   B: ["toilet", "tub", "shower", "sink", "mirror", "shelving"],       // Master Bath
   C: ["wardrobe", "dresser", "closetrod", "shelving", "shoerack", "mirror"], // Master Closet (FIX-9)
-  L: ["sofa", "tv", "table", "chair", "bookshelf", "rug", "lamp"],    // Living Room
+  L: ["sofa", "tv", "table", "chair", "bookshelf", "lamp"],           // Living Room (no rug by default — HI 2026-10-31)
   K: ["counter", "sink", "fridge", "stove", "rangehood"],             // Kitchen
   D: ["table", "chair", "counter"],                                  // Dining Room
   O: ["desk", "chair", "bookshelf", "tv"],                           // Office
@@ -421,7 +469,8 @@ export const COMMON_ASSETS: ObjectKind[] = ["door", "window", "shell", "roof"];
 const GENERAL_ASSETS: ObjectKind[] = ["bed", "sofa", "counter", "table", "desk", "chair", "toilet", "sink"];
 /** The palette for a room: its context assets (or a general set) + the common openings/shell, de-duplicated (S3). */
 export function paletteForRoom(roomKey: string): ObjectKind[] {
-  const base = ROOM_ASSETS[roomKey] ?? GENERAL_ASSETS;
+  // R5b (Thor): OWN keys only — ROOM_ASSETS["constructor"] is a function, and spreading it threw on the render path.
+  const base = Object.hasOwn(ROOM_ASSETS, roomKey) ? ROOM_ASSETS[roomKey] : GENERAL_ASSETS;
   const seen = new Set<ObjectKind>();
   const out: ObjectKind[] = [];
   for (const k of [...base, ...COMMON_ASSETS]) if (!seen.has(k)) { seen.add(k); out.push(k); }
@@ -439,7 +488,7 @@ export function paletteForRoom(roomKey: string): ObjectKind[] {
 export function defaultObjectsForRoom(roomKey: string): PlacedObject[] {
   const std = standardLayoutFor(roomKey);
   if (std) return std;
-  const kinds = ROOM_ASSETS[roomKey] ?? [];
+  const kinds = Object.hasOwn(ROOM_ASSETS, roomKey) ? ROOM_ASSETS[roomKey] : [];
   // AsM-caught (Thoth BLOCKER): a row packer dropped the Master Bedroom's small items after the 6'-deep bed, which
   // re-triggered the "defaults vanish" HOLD. Use a greedy OCCUPANCY-GRID packer instead: place the biggest footprints
   // first, first-fit (top-left) on a 1-ft cell grid, so the small pieces (mirror, lamp, tv…) GAP-FILL the space around
@@ -486,22 +535,63 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
  * Pure + deterministic (replay law). R-CORE-locked by tests/room-standard-layout.test.mjs.
  */
 export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
+  // R5b — LAYOUT A′ (HI 2026-10-31, after the fleet measured R5's Layout A: the vanity sat 6" from the bed and the door swept it):
+  // the vanity + mirror go OPPOSITE the bed on the S wall, where the decision card put the dresser; NO rug ("only furniture —
+  // no rugs or curtains till the later polish stage"). Clearances (gated): 2.5-ft aisles beside the bed · 2 ft bed-foot → vanity
+  // · the door's 3-ft swing clear of everything · a 36" chair zone beside the bed in front of the vanity (x 7.5–10 · y 5–8).
   M: [
-    { id: "bed-1",        kind: "bed",        gx: 4.5, gy: 2.5, rot: 0 },            // centre (5, 3) · x 2.5–7.5 · y 0–6
-    { id: "nightstand-1", kind: "nightstand", gx: 1,   gy: 0.5, rot: 0 },            // left of the head · x 0.75–2.25
-    { id: "nightstand-2", kind: "nightstand", gx: 8,   gy: 0.5, rot: 0 },            // right of the head · x 7.75–9.25
-    { id: "desk-1",       kind: "desk",       gx: 0.5, gy: 5.5, rot: 90 },           // the table/vanity on the W wall · x 0–2 · y 4–8
-    { id: "mirror-1",     kind: "mirror",     gx: 0,   gy: 5.5, rot: 90, elev: 3 },  // the wall mirror above the vanity
-    { id: "rug-1",        kind: "rug",        gx: 6,   gy: 7.5, rot: 0 },            // at the foot of the bed · x 3.5–9.5 · y 6–10
-    { id: "window-1",     kind: "window",     gx: 8,   gy: 0,   rot: 0 },            // N (exterior) · over the right nightstand
-    { id: "window-2",     kind: "window",     gx: 0,   gy: 2.5, rot: 90 },           // W (exterior) · beside the bed
-    { id: "door-1",       kind: "door",       gx: 1,   gy: 9,   rot: 0 },            // S wall · from the Living Room · clear of the vanity
+    { id: "bed-1",        kind: "bed",        gx: 4.5, gy: 2.5, rot: 0 },            // centre (5, 3) · x 2.5–7.5 · y 0–6 · head on the N wall
+    { id: "nightstand-1", kind: "nightstand", gx: 1,   gy: 0.25, rot: 0 },           // flush at the head, left · x 0.75–2.25 · y 0–1.5
+    { id: "nightstand-2", kind: "nightstand", gx: 8,   gy: 0.25, rot: 0 },           // flush at the head, right · x 7.75–9.25 · y 0–1.5
+    { id: "desk-1",       kind: "desk",       gx: 7.5, gy: 8.5, rot: 0 },            // the table/vanity on the S wall, opposite the bed · x 6–10 · y 8–10
+    { id: "mirror-1",     kind: "mirror",     gx: 7.5, gy: 9,   rot: 0, elev: 3 },   // the wall mirror above the vanity (S wall)
+    { id: "window-1",     kind: "window",     gx: 7.5, gy: 0,   rot: 0 },            // N (exterior) · over the right nightstand · x 6.5–9.5 (clear of the corner)
+    { id: "window-2",     kind: "window",     gx: 0,   gy: 2.5, rot: 90 },           // W (exterior) · beside the bed · y 1.5–4.5
+    { id: "door-1",       kind: "door",       gx: 1,   gy: 9,   rot: 0 },            // S wall · from the Living Room · x 0–3
   ],
 };
+/** The standard layouts' edition. A stored room whose `layoutRev` is older is re-seated to the decided layout on load
+ * (the WireGuard, lib/architect-guard.ts) — "stop reverting" reaches the devices that saved the earlier edition too. */
+export const STANDARD_LAYOUT_REV = 2;
 /** The decided layout for a room key (a fresh copy), or null when the room has none (→ the packer). */
 export function standardLayoutFor(roomKey: string): PlacedObject[] | null {
-  const l = STANDARD_LAYOUTS[roomKey];
+  // R5b (Thor): OWN keys only — STANDARD_LAYOUTS["constructor"] is Object, and `.map` on it threw through the guard.
+  const l = Object.hasOwn(STANDARD_LAYOUTS, roomKey) ? STANDARD_LAYOUTS[roomKey] : undefined;
   return l ? l.map((o) => ({ ...o })) : null;
+}
+
+/** Every DECIDED edition of the standard layouts, so the guard can tell an UNTOUCHED prior edition (re-seat it to the current
+ * one — "stop reverting" reaches every device) from a room the user ARRANGED (keep it, stamp it — a seed merges into a saved
+ * copy, it never replaces it; AsM-caught, Krishna). Edition 1 = Layout A (R5: the vanity on the W wall, a rug at the foot);
+ * edition 2 = A′ (R5b, the 2026-10-31 HI answer: no rug). Edition 0 = no decided layout existed (the packer), always re-seated. */
+export const STANDARD_LAYOUT_EDITIONS: Record<number, Record<string, PlacedObject[]>> = {
+  1: {
+    M: [
+      { id: "bed-1",        kind: "bed",        gx: 4.5, gy: 2.5, rot: 0 },
+      { id: "nightstand-1", kind: "nightstand", gx: 1,   gy: 0.5, rot: 0 },
+      { id: "nightstand-2", kind: "nightstand", gx: 8,   gy: 0.5, rot: 0 },
+      { id: "desk-1",       kind: "desk",       gx: 0.5, gy: 5.5, rot: 90 },
+      { id: "mirror-1",     kind: "mirror",     gx: 0,   gy: 5.5, rot: 90, elev: 3 },
+      { id: "rug-1",        kind: "rug",        gx: 6,   gy: 7.5, rot: 0 },
+      { id: "window-1",     kind: "window",     gx: 8,   gy: 0,   rot: 0 },
+      { id: "window-2",     kind: "window",     gx: 0,   gy: 2.5, rot: 90 },
+      { id: "door-1",       kind: "door",       gx: 1,   gy: 9,   rot: 0 },
+    ],
+  },
+  2: STANDARD_LAYOUTS,
+};
+/** The decided layout of a room key at a given edition (a fresh copy), or null. */
+export function standardLayoutAt(roomKey: string, rev: number): PlacedObject[] | null {
+  const ed = Object.hasOwn(STANDARD_LAYOUT_EDITIONS, rev) ? STANDARD_LAYOUT_EDITIONS[rev] : undefined;
+  const l = ed && Object.hasOwn(ed, roomKey) ? ed[roomKey] : undefined;
+  return l ? l.map((o) => ({ ...o })) : null;
+}
+/** The same arrangement: the same kinds at the same centres, rotations, variants and elevations (ids and order ignored). */
+export function sameArrangement(a: readonly PlacedObject[], b: readonly PlacedObject[]): boolean {
+  if (a.length !== b.length) return false;
+  const key = (o: PlacedObject) => `${o.kind}@${o.gx},${o.gy},${o.rot},${o.variant ?? ""},${o.elev ?? ""}`;
+  const sa = a.map(key).sort(), sb = b.map(key).sort();
+  return sa.every((k, i) => k === sb[i]);
 }
 
 /**
@@ -547,11 +637,14 @@ export function mirrorObjects(objs: PlacedObject[], axis: "h" | "v"): PlacedObje
   // R5 (AsM-caught): footprint-aware and NOT rounded — a half-foot centre (the standard layout's bed at gx 4.5, the
   // vanity at 0.5) mirrors to its exact twin and stays inside the room; clampCell's Math.round pushed the mirrored
   // vanity through the far wall and the bed ½ ft off-centre on the first Mirror.
+  // R5b: a true reflection also maps the ORIENTATION — h: 90↔270 (a W-wall piece becomes an E-wall piece, hinge side flipped),
+  // v: 0↔180 (a headboard on the N wall ends on the S wall). Exact for every bilaterally symmetric shape; an involution.
+  const flipRot = (r: Rot): Rot => axis === "h" ? (r === 90 ? 270 : r === 270 ? 90 : r) : (r === 0 ? 180 : r === 180 ? 0 : r);
   return objs.map((o) => {
     const fp = footprintOf(o);
     const c = axis === "h"
       ? clampFootprint(ROOM_GRID - 1 - o.gx, o.gy, fp.w, fp.d, o.rot, false)
       : clampFootprint(o.gx, ROOM_GRID - 1 - o.gy, fp.w, fp.d, o.rot, false);
-    return { ...o, gx: c.gx, gy: c.gy };
+    return { ...o, rot: flipRot(o.rot), gx: c.gx, gy: c.gy };
   });
 }

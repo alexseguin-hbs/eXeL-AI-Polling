@@ -73,12 +73,12 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
               const objs = r.objects ?? defaultObjectsForRoom(r.k);   // SAME predicate as voxel + designer — an emptied room ([]) stays empty in all three (AsM-caught divergence)
               // R5: a room whose objects carry their OWN openings (the Master Bedroom's Layout A places its two windows
               // and its door) draws those, not ALSO the canned count ticks + door arc (which doubled them — AsM-caught).
-              const ownOpenings = objs.some((o) => o.kind === "window" || o.kind === "door");
+              const ownWindows = objs.some((o) => o.kind === "window"), ownDoors = objs.some((o) => o.kind === "door");   // R5b: two flags — a room with only a door keeps its window ticks
               return (<>
-                {!ownOpenings && Array.from({ length: r.windows }).map((_, wi) => { const wxp = rx + (rw * (wi + 1)) / (r.windows + 1); return <line key={`win${wi}`} x1={wxp - 2.6} y1={ry} x2={wxp + 2.6} y2={ry} stroke={C.cyan} strokeWidth="1.4" />; })}
+                {!ownWindows && Array.from({ length: r.windows }).map((_, wi) => { const wxp = rx + (rw * (wi + 1)) / (r.windows + 1); return <line key={`win${wi}`} x1={wxp - 2.6} y1={ry} x2={wxp + 2.6} y2={ry} stroke={C.cyan} strokeWidth="1.4" />; })}
                 {showFurniture && placedContents(objs, rx, ry, rw, rh)}
-                {!ownOpenings && <line x1={rx + rw * 0.55} y1={ry + rh} x2={rx + rw * 0.85} y2={ry + rh} stroke={C.bg} strokeWidth="1.6" />}
-                {!ownOpenings && <path d={`M ${rx + rw * 0.55} ${ry + rh} A ${rw * 0.3} ${rw * 0.3} 0 0 1 ${rx + rw * 0.55} ${ry + rh - rw * 0.3}`} fill="none" stroke={C.door} strokeWidth="0.3" opacity="0.7" />}
+                {!ownDoors && <line x1={rx + rw * 0.55} y1={ry + rh} x2={rx + rw * 0.85} y2={ry + rh} stroke={C.bg} strokeWidth="1.6" />}
+                {!ownDoors && <path d={`M ${rx + rw * 0.55} ${ry + rh} A ${rw * 0.3} ${rw * 0.3} 0 0 1 ${rx + rw * 0.55} ${ry + rh - rw * 0.3}`} fill="none" stroke={C.door} strokeWidth="0.3" opacity="0.7" />}
               </>);
             })()}
             {/* label */}

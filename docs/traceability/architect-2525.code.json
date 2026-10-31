@@ -416,6 +416,212 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 13,
+   "commit": "f299909b9",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/architect-build.tsx",
+       "blob": "6b44997f9822eca284048dc7d4f3bbffe9e70442"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-skysun.tsx",
+       "blob": "3c155e758c4012701c601b638a3f9c752f27a024"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-soi.tsx",
+       "blob": "863bc79c64c18941202893b690a86841753df860"
+      },
+      {
+       "path": "frontend/components/architect-2525/build-instructions.tsx",
+       "blob": "a41a062748c491c95b00ee5a319d34341903a9af"
+      },
+      {
+       "path": "frontend/components/architect-2525/command-ux1.tsx",
+       "blob": "eacc929984bd5981040bf70752dc2d1d88e07b55"
+      },
+      {
+       "path": "frontend/components/architect-2525/metric-strip.tsx",
+       "blob": "9de4dae937a4485e2e1ff243fe8f7a6cc12ba460"
+      },
+      {
+       "path": "frontend/components/architect-2525/room-designer.tsx",
+       "blob": "e977ae85fc7ae78dba07c0ba1a34b39e62558f0c"
+      },
+      {
+       "path": "frontend/components/architect-2525/simulate-options.tsx",
+       "blob": "8b7f4d2d1c671c1910bd0f74dc5b7042092ceb7f"
+      },
+      {
+       "path": "frontend/components/architect-2525/sky-celestial-embed.tsx",
+       "blob": "30843a6b81d8c0dad52d96a879b35ed32a3b01aa"
+      },
+      {
+       "path": "frontend/components/architect-2525/tiny-floorplan.tsx",
+       "blob": "3227a1b3050127e874baa340f450ef81489efabc"
+      },
+      {
+       "path": "frontend/components/architect-2525/voxel-house.tsx",
+       "blob": "79b63c82faaa68183dbd061d1c735521f4d185ed"
+      }
+     ],
+     "add": 227,
+     "del": 83,
+     "bytes": 54254,
+     "lines": 613,
+     "status": "recorded"
+    },
+    {
+     "key": "routes",
+     "name": "Routes",
+     "cells": [
+      3,
+      6,
+      7,
+      12,
+      15,
+      16,
+      17,
+      21,
+      24,
+      25
+     ],
+     "files": [
+      {
+       "path": "frontend/app/Architect-2525/design/page.tsx",
+       "blob": "fee3209c38453ca945cf45b4becc9c7a88d53d09"
+      },
+      {
+       "path": "frontend/app/Architect-2525/page.tsx",
+       "blob": "3497c0320a55af4c69e9e54abe364ddb039e85e7"
+      }
+     ],
+     "add": 18,
+     "del": 0,
+     "bytes": 1365,
+     "lines": 23,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 14,
+   "commit": "f299909b9",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/architect-build.tsx",
+       "blob": "6b44997f9822eca284048dc7d4f3bbffe9e70442"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-skysun.tsx",
+       "blob": "3c155e758c4012701c601b638a3f9c752f27a024"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-soi.tsx",
+       "blob": "863bc79c64c18941202893b690a86841753df860"
+      },
+      {
+       "path": "frontend/components/architect-2525/build-instructions.tsx",
+       "blob": "a41a062748c491c95b00ee5a319d34341903a9af"
+      },
+      {
+       "path": "frontend/components/architect-2525/command-ux1.tsx",
+       "blob": "eacc929984bd5981040bf70752dc2d1d88e07b55"
+      },
+      {
+       "path": "frontend/components/architect-2525/metric-strip.tsx",
+       "blob": "9de4dae937a4485e2e1ff243fe8f7a6cc12ba460"
+      },
+      {
+       "path": "frontend/components/architect-2525/room-designer.tsx",
+       "blob": "e977ae85fc7ae78dba07c0ba1a34b39e62558f0c"
+      },
+      {
+       "path": "frontend/components/architect-2525/simulate-options.tsx",
+       "blob": "8b7f4d2d1c671c1910bd0f74dc5b7042092ceb7f"
+      },
+      {
+       "path": "frontend/components/architect-2525/sky-celestial-embed.tsx",
+       "blob": "30843a6b81d8c0dad52d96a879b35ed32a3b01aa"
+      },
+      {
+       "path": "frontend/components/architect-2525/tiny-floorplan.tsx",
+       "blob": "3227a1b3050127e874baa340f450ef81489efabc"
+      },
+      {
+       "path": "frontend/components/architect-2525/voxel-house.tsx",
+       "blob": "79b63c82faaa68183dbd061d1c735521f4d185ed"
+      }
+     ],
+     "add": 227,
+     "del": 83,
+     "bytes": 54254,
+     "lines": 613,
+     "status": "recorded"
+    },
+    {
+     "key": "routes",
+     "name": "Routes",
+     "cells": [
+      3,
+      6,
+      7,
+      12,
+      15,
+      16,
+      17,
+      21,
+      24,
+      25
+     ],
+     "files": [
+      {
+       "path": "frontend/app/Architect-2525/design/page.tsx",
+       "blob": "fee3209c38453ca945cf45b4becc9c7a88d53d09"
+      },
+      {
+       "path": "frontend/app/Architect-2525/page.tsx",
+       "blob": "3497c0320a55af4c69e9e54abe364ddb039e85e7"
+      }
+     ],
+     "add": 18,
+     "del": 0,
+     "bytes": 1365,
+     "lines": 23,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }

@@ -1,5 +1,5 @@
 // ARCHITECT-2525 · SIMULATE ENVIRONMENT gate (operator 2026-10-27/28): pressing SIMULATE "creates that environment".
-// The two FULL-SIZE forms (Cube · Eco-Sphere) conserve all nine room keys + all 46 real furniture pieces; the Tiny Home
+// The two FULL-SIZE forms (Cube · Eco-Sphere) conserve all nine room keys + all 44 real furniture pieces (R5b: no rugs by default); the Tiny Home
 // is a REAL standard 8.5×40 THOW (~340 ft²) with its own realistic subset, every piece in-bounds. Furniture is the REAL
 // set from defaultObjectsForRoom — nothing invented. Generators are deterministic (replay-safe).
 import { environmentFor, gridEnvironment, tinyEnvironment, hexEnvironment, conservedKeys, totalObjectCount, environmentObjects, hexPoints, ALL_ROOM_KEYS, VIEW, MARGIN } from "@/lib/architect-sim-environment";
@@ -11,8 +11,8 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } 
 // the nine real room keys the full-size home carries
 const KEYS = ["M", "B", "C", "L", "K", "D", "O", "S", "E"];
 ok(ALL_ROOM_KEYS.length === 9 && KEYS.every((k) => ALL_ROOM_KEYS.includes(k)), "the full-size home carries the nine real room keys");
-const HOME_OBJECTS = KEYS.reduce((s, k) => s + defaultObjectsForRoom(k).length, 0);   // 46 real pieces
-ok(HOME_OBJECTS === 46, `the full-size home has 46 conserved furniture pieces (got ${HOME_OBJECTS})`);
+const HOME_OBJECTS = KEYS.reduce((s, k) => s + defaultObjectsForRoom(k).length, 0);   // 44 real pieces (Layout A′ 8 · Living 6 · the rest packed)
+ok(HOME_OBJECTS === 44, `the full-size home has 44 conserved furniture pieces (got ${HOME_OBJECTS})`);
 
 const grid = gridEnvironment(), tiny = tinyEnvironment(), hex = hexEnvironment();
 ok(environmentFor("3x3-grid").formId === "3x3-grid" && environmentFor("tiny").formId === "tiny" && environmentFor("eco-sphere").formId === "eco-sphere", "environmentFor routes each form");
@@ -22,7 +22,7 @@ ok(grid.shell === "grid" && tiny.shell === "tiny" && hex.shell === "hex", "shell
 ok(grid.placements.length === 9, "Cube places all 9 rooms");
 ok(hex.hexes.length === 7 && hex.dome === true, "Eco-Sphere = 7 hexagons under a dome");
 
-// ── CONSERVATION (the full-size law) — Cube + Eco-Sphere place all nine room keys, so all 46 pieces appear in each ──
+// ── CONSERVATION (the full-size law) — Cube + Eco-Sphere place all nine room keys, so all 44 pieces appear in each ──
 for (const [name, env] of [["Cube", grid], ["Eco-Sphere", hex]]) {
   ok(JSON.stringify(conservedKeys(env)) === JSON.stringify([...KEYS].sort()), `${name} conserves all nine room keys`);
   ok(totalObjectCount(env) === HOME_OBJECTS, `${name} conserves all ${HOME_OBJECTS} furniture pieces (got ${totalObjectCount(env)})`);
@@ -36,7 +36,7 @@ ok(hex.hexes[0].roomKeys.length === 1, "the centre hex is a single room (the Liv
 // ── the Tiny Home is a REAL standard THOW with its OWN realistic subset (fewer rooms, honest) ──
 const TINY_KEYS = ["L", "K", "D", "B", "M"];
 ok(JSON.stringify(conservedKeys(tiny)) === JSON.stringify([...TINY_KEYS].sort()), "Tiny Home carries a realistic subset (Living·Kitchen·Dining·Bath·Bedroom)");
-const TINY_OBJECTS = TINY_KEYS.reduce((s, k) => s + defaultObjectsForRoom(k).length, 0);  // 7+5+3+6+9 = 30
+const TINY_OBJECTS = TINY_KEYS.reduce((s, k) => s + defaultObjectsForRoom(k).length, 0);  // 6+5+3+6+8 = 28
 ok(tiny.placements.length === 5 && totalObjectCount(tiny) === TINY_OBJECTS, `Tiny Home places its ${TINY_KEYS.length} zones + ${TINY_OBJECTS} pieces (got ${tiny.placements.length}/${totalObjectCount(tiny)})`);
 ok(totalObjectCount(tiny) < HOME_OBJECTS, "a tiny home genuinely carries fewer pieces than the full-size home (honest)");
 ok(tiny.shellRect && tiny.shellRect.w > tiny.shellRect.h * 2.5, "the Tiny Home shell is a long rectangle (8.5×24 ≈ 2.8:1, reads as a THOW)");
@@ -79,5 +79,5 @@ ok(JSON.stringify(hexEnvironment()) === JSON.stringify(hexEnvironment()), "hexEn
 ok(JSON.stringify(gridEnvironment()) === JSON.stringify(gridEnvironment()), "gridEnvironment is deterministic");
 ok(JSON.stringify(tinyEnvironment()) === JSON.stringify(tinyEnvironment()), "tinyEnvironment is deterministic");
 
-console.log(`\narchitect-sim-environment: ${pass} passed, ${fail} failed · Cube+Eco conserve 9/46 · Tiny = real 8.5×40 THOW subset`);
+console.log(`\narchitect-sim-environment: ${pass} passed, ${fail} failed · Cube+Eco conserve 9/44 · Tiny = real 8.5×24 THOW subset`);
 process.exit(fail ? 1 : 0);

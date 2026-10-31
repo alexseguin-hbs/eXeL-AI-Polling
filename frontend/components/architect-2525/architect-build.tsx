@@ -148,9 +148,9 @@ export function ArchitectBuild() {
                   return <rect key={`${r.id}w${i}`} x={x} y={y} width={horiz ? w : t} height={horiz ? t : w} fill="#0b2a2e" stroke={C.cyan} strokeWidth="0.35" />;
                 });
               })}
-              {/* the Entry's doors — the front door on the south edge, a second (porch) door on the east edge */}
+              {/* the Entry's doors (up to two): the front door at the W end of the south edge — clear of the window's centre slot — and a second (porch) door on the east edge */}
               {rooms.filter((r) => r.k === "E").map((r) => Array.from({ length: Math.min(2, r.doors) }, (_, i) => i === 0
-                ? <rect key={`${r.id}d0`} x={cx(r.col) + CELL / 2 - 2} y={cy(r.row) + CELL - 0.6} width={4} height={1.4} fill="#1a2a1f" stroke="#22c55e" strokeWidth="0.35" />
+                ? <rect key={`${r.id}d0`} x={cx(r.col) + 2.5} y={cy(r.row) + CELL - 0.6} width={4} height={1.4} fill="#1a2a1f" stroke="#22c55e" strokeWidth="0.35" />
                 : <rect key={`${r.id}d1`} x={cx(r.col) + CELL - 0.6} y={cy(r.row) + CELL / 2 - 2} width={1.4} height={4} fill="#1a2a1f" stroke="#22c55e" strokeWidth="0.35" />))}
             </g>
           )}

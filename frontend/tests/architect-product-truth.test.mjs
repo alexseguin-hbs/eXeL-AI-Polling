@@ -149,6 +149,14 @@ ok(/pan:\s*false/.test(rdSrc), "the Room Designer's own 3D camera ALSO disables 
 ok(/data-arch-add-toast/.test(cmdSrc) && /setAddToast\(/.test(cmdSrc), "adding a system to the house shows a confirmation toast — the tap/drag feedback that was missing on a phone (IMG-05, AsM-caught)");
 ok(/r\.objects \?\? defaultObjectsForRoom\(r\.k\)/.test(voxSrc) && /objects3d\(/.test(voxSrc), "the Voxel renders each room's REAL objects (placed or defaults) — it MIRRORS the 2D plan, not a canned placeholder (IMG-02 bug 3)");
 const tfSrc = read("../components/architect-2525/tiny-floorplan.tsx");
+// R5b render rules (AsM-caught): a room's OWN openings replace the canned ticks/arc per kind; the Build-4D Entry door sits clear
+// of the Entry's window; no house-metric pill inside a room; the saved-designs Load runs the WireGuard.
+ok(/const ownWindows = objs\.some\(\(o\) => o\.kind === "window"\), ownDoors = objs\.some\(\(o\) => o\.kind === "door"\)/.test(tfSrc) && /\{!ownWindows && Array\.from\(\{ length: r\.windows \}\)/.test(tfSrc) && /\{!ownDoors && <path d=/.test(tfSrc), "the house plan draws a room's own windows OR its canned ticks, its own door OR the canned arc — never both (R5b)");
+ok(/d0`\} x=\{cx\(r\.col\) \+ 2\.5\}/.test(bd), "Build 4D: the Entry's front door sits at the W end of the S edge, clear of the window's centre slot (R5b)");
+ok(/\{opts\.objects \? objects3d\(opts\.objects, size\) : \(opts\.furn && furn3d\(key, size\)\)\}/.test(voxSrc), "the house voxel mirrors an EMPTIED room as empty — the canned furniture only when the room has no object array at all (R5b, Krishna)");
+ok(/if \(!m \|\| \(m\.gx === o\.gx && m\.gy === o\.gy && m\.rot === o\.rot\)\) return;/.test(rdSrc), "a clamped drag that lands where the piece already is writes nothing (R5b, Krishna)");
+ok(/metricStrip=\{focusRoom \? null : <MetricStrip/.test(ux), "no house-metric overlay while a room is entered (R5b)");
+ok(/const file = parseProject\(raw\); if \(!file\) return;/.test(ux), "the saved-designs Load passes parseProject before seating anything (R5b)");
 ok(/defaultObjectsForRoom\(r\.k\)/.test(tfSrc) && /placedContents\(objs/.test(tfSrc), "the whole-house 2D floor plan reads the SAME source (objects ?? defaultObjectsForRoom) as the voxel — both panels on Model mirror, no canned furniture() hint (IMG-02 bug 3, AsM-caught)");
 
 // ── IMG-04 (operator 2026-10-24): the build schedule gains real DATES + the Financial-2525 $/min time system ──

@@ -14,9 +14,9 @@ ok(JSON.stringify(placeObject([], "bed", 2, 3)) === JSON.stringify(a), "place is
 
 // FIX-6 — footprint-aware clamp: the WHOLE object stays inside the room, never off-grid, never poking a wall.
 const c = placeObject([], "sofa", 99, -4);   // sofa 5w x 2d
-ok(c[0].gx === 7 && c[0].gy === 1, "place footprint-clamps sofa 5x2 (99,-4 → 7,1: box fully inside)");
+ok(c[0].gx === 7 && c[0].gy === 0.5, "place footprint-clamps sofa 5x2 (99,-4 → 7,0.5: box fully inside, FLUSH to the N wall — R5b fractional bounds)");
 const mv = moveObject(a, "bed-1", -3, 42);   // bed 5w x 6.7d
-ok(mv[0].gx === 2 && mv[0].gy === 6, "move footprint-clamps bed 5x6.7 (-3,42 → 2,6)");
+ok(mv[0].gx === 2 && Math.abs(mv[0].gy - (ROOM_GRID - 0.5 - footprintOf(mv[0]).d / 2)) < 1e-9, `move footprint-clamps the bed (-3,42 → 2,${mv[0].gy}: flush to the S wall — R5b fractional bounds)`);
 
 // Rotate cycles 0→90→180→270→0.
 let r = placeObject([], "desk", 1, 1);
@@ -41,7 +41,7 @@ let mo = placeObject([], "bed", 2, 3);
 mo = placeObject(mo, "sink", 0, 9);   // 2ft sink footprint-clamps off the corner → (1,8)
 const mh = mirrorObjects(mo, "h");
 ok(mh[0].gx === ROOM_GRID - 1 - 2 && mh[0].gy === 3, "mirror h flips gx (2→7), keeps gy");
-ok(mo[1].gx === 1 && mo[1].gy === 8 && mh[1].gx === ROOM_GRID - 1 - 1 && mh[1].gy === 8, "sink clamps (0,9)→(1,8); mirror h → (8,8)");
+ok(mo[1].gx === 0.5 && mo[1].gy === 8.5 && mh[1].gx === 8.5 && mh[1].gy === 8.5, "sink clamps (0,9)→(0.5,8.5) flush to the SW corner; mirror h → (8.5,8.5) (R5b fractional bounds)");
 const mvert = mirrorObjects(mo, "v");
 ok(mvert[0].gy === ROOM_GRID - 1 - 3 && mvert[0].gx === 2, "mirror v flips gy (3→6), keeps gx");
 ok(JSON.stringify(mirrorObjects(mh, "h")) === JSON.stringify(mo), "mirror h twice = identity (involution, replay-safe)");
@@ -115,7 +115,7 @@ ok(paletteForRoom("B").includes("shower") && paletteForRoom("B").includes("tub")
 ["closetrod", "shelving", "shoerack", "rug", "mirror", "lamp", "rangehood"].forEach((k) =>
   ok(k in OBJECT_SPEC && GROUP_ORDER.includes(groupOf(k)), `FIX-9 kind ${k} has spec + group`));
 ok(["closetrod", "shelving", "shoerack"].every((k) => paletteForRoom("C").includes(k)), "closet palette has rod + shelving + shoe rack (IMG_7532)");
-ok(paletteForRoom("K").includes("rangehood") && paletteForRoom("M").includes("mirror") && paletteForRoom("L").includes("rug"), "kitchen→rangehood, bedroom→mirror, living→rug");
+ok(paletteForRoom("K").includes("rangehood") && paletteForRoom("M").includes("mirror") && paletteForRoom("L").includes("lamp") && !paletteForRoom("L").includes("rug"), "kitchen→rangehood, bedroom→mirror, living→lamp (no rug by default — HI 2026-10-31)");
 ok(["door", "window", "shell", "roof"].every((k) => paletteForRoom("O").includes(k)), "every room palette appends openings + structural shell");
 ok(new Set(paletteForRoom("L")).size === paletteForRoom("L").length, "palette is de-duplicated (no repeated kind)");
 ok(paletteForRoom("ZZ").length > 0 && paletteForRoom("ZZ").includes("door"), "unknown room key → general fallback palette (still has openings)");
@@ -136,8 +136,8 @@ const inside = (g, f) => g + 0.5 - f / 2 >= -1e-9 && g + 0.5 + f / 2 <= ROOM_GRI
 ok(clampFootprint(9, 0, 3, 0.15, 0).gx === 8 && inside(8, 3), "clampFootprint: 3ft-wide object pulled off the corner (9→8)");
 ok(clampFootprint(0, 0, 3, 0.15, 0).gx === 1, "clampFootprint: 3ft-wide object off the near corner (0→1)");
 // rotation swaps which footprint axis binds.
-ok(clampFootprint(9, 9, 5, 2, 0).gx === 7 && clampFootprint(9, 9, 5, 2, 0).gy === 8, "clampFootprint rot0: 5x2 (9,9→7,8)");
-ok(clampFootprint(9, 9, 5, 2, 90).gx === 8 && clampFootprint(9, 9, 5, 2, 90).gy === 7, "clampFootprint rot90 swaps axes: 5x2 (9,9→8,7)");
+ok(clampFootprint(9, 9, 5, 2, 0).gx === 7 && clampFootprint(9, 9, 5, 2, 0).gy === 8.5, "clampFootprint rot0: 5x2 (9,9→7,8.5 — flush, R5b)");
+ok(clampFootprint(9, 9, 5, 2, 90).gx === 8.5 && clampFootprint(9, 9, 5, 2, 90).gy === 7, "clampFootprint rot90 swaps axes: 5x2 (9,9→8.5,7 — flush, R5b)");
 // centred object stays put; oversize object is centred, never NaN/off-grid.
 ok(clampFootprint(4, 4, 2, 2, 0).gx === 4 && clampFootprint(4, 4, 2, 2, 0).gy === 4, "clampFootprint leaves an in-bounds object put");
 const big = clampFootprint(9, 9, 12, 12, 0);

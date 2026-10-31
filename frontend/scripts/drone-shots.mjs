@@ -51,7 +51,7 @@ let bad = 0;
 async function shoot(ctx, name, width, height, steps = async () => {}) {
   const page = await ctx.newPage();
   await page.setViewportSize({ width, height });
-  await page.goto(`${URL_BASE}/main/Drone-2525/`, { waitUntil: "networkidle" });
+  await page.goto(`${URL_BASE}/drone-2525/`, { waitUntil: "networkidle" });
   await page.waitForSelector("[data-drone-arena] svg path", { timeout: 20000 });
   await steps(page);
   const paths = await page.locator("[data-drone-arena] svg path").count();

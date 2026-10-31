@@ -40,6 +40,13 @@ const cases = [
   ["/main/Drone-2525/?crew=CREW42&seat=targeteer", "https://site.test/Drone-2525/?crew=CREW42&seat=targeteer"],
   ["/main/Drone-2525/?si=ABC123", "https://site.test/Drone-2525/?si=ABC123"],
   ["/main/?x=1", "https://site.test/?x=1"],
+  // R5b: any case and a repeated prefix land in ONE hop
+  ["/Main/Architect-2525/", "https://site.test/Architect-2525/"],
+  ["/MAIN/x?q=1", "https://site.test/x?q=1"],
+  ["/main/main/x", "https://site.test/x"],
+  // R5b (Thor NOTE-9): a doubled slash after the prefix collapses — never a Location that reads "//host" to a human
+  ["/main//x", "https://site.test/x"],
+  ["/main//evil.com/", "https://site.test/evil.com/"],
 ];
 for (const [from, to] of cases) {
   const r = await call(from);
@@ -47,9 +54,9 @@ for (const [from, to] of cases) {
 }
 // never a loop: the target never starts with /main, and a non-/main path is untouched
 for (const [, to] of cases) ok(!new URL(to).pathname.startsWith("/main"), `${to} is not itself under /main (no loop)`);
-for (const p of ["/", "/Architect-2525/", "/maintenance", "/mainline/x", "/drone-2525/?crew=A"]) {
+for (const p of ["/", "/Architect-2525/", "/maintenance", "/mainline/x", "/drone-2525/?crew=A", "/main-street"]) {
   const r = await call(p);
-  ok(r.status !== 301 || !/^\/main(\/|$)/.test(p), `${p} is NOT redirected as /main (got ${r.status})`);
+  ok(r.status !== 301, `${p} is NOT redirected (got ${r.status})`);   // R5b: a real assertion (the old one could never fail)
 }
 ok((await call("/maintenance")).status === 200, "/maintenance (starts with the letters 'main') is served, not redirected");
 
@@ -73,8 +80,11 @@ const walk = (d) => { for (const n of readdirSync(d)) { if (n === "node_modules"
     // (block comments, line comments that are not part of a URL, and JSX comment braces). Then ANY "/main" token —
     // after a quote, a paren, whitespace or a tag close — is a hit: a link, a label, a router.push, a string.
     const raw = readFileSync(p, "utf8");
-    const src = raw.replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, " ")).replace(/(^|[^:])\/\/[^\n]*/gm, (c, pre) => pre + " ".repeat(c.length - pre.length));
-    for (const m of src.matchAll(/(?:^|[\s"'`(>])\/main(?=[\/"'`?#)<\s]|$)/gm)) hits.push(`${p.slice(ROOT.length + 1)}:${src.slice(0, m.index).split("\n").length}`);
+    // R5b: tokenise once — strings are kept whole (a `//` or `/*` inside a string never opens a comment), block and line
+    // comments are blanked; the old stripper could erase real code after a comment containing "/main/*".
+    const src = raw.replace(/("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, (c, str) => (str ? c : c.replace(/[^\n]/g, " ")));
+    // ANY "/main" token after a quote, bracket, operator, whitespace or a tag close — and before any non-identifier char
+    for (const m of src.matchAll(/(?:^|[\s"'`(>=,\[{“‘])\/main(?=[^A-Za-z0-9_-]|$)/gm)) hits.push(`${p.slice(ROOT.length + 1)}:${src.slice(0, m.index).split("\n").length}`);
   } } };
 for (const d of ["app", "components", "lib"]) walk(join(ROOT, d));
 for (const f of ["paused.html"]) { const src = readFileSync(join(ROOT, "public", f), "utf8"); for (const m of src.matchAll(/href="\/main[\/"]/g)) hits.push(`public/${f}:${src.slice(0, m.index).split("\n").length}`); }

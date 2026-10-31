@@ -5,7 +5,7 @@
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/room-audit.test.mjs
 import {
   OBJECT_KINDS, OBJECT_SPEC, COMMON_ASSETS, ROOM_ASSETS, paletteForRoom, placeObject, moveObject, nudgeObject,
-  rotateObject, footprintOf, heightOf, shapePartsOf, clampFootprint, ROOM_GRID,
+  rotateObject, footprintOf, heightOf, shapePartsOf, clampFootprint, ROOM_GRID, STANDARD_LAYOUT_REV,
 } from "../lib/room-objects.ts";
 import { sanitizeRoomLayout } from "../lib/architect-guard.ts";
 import { TINY_ROOM_LAYOUT } from "../lib/room-layout.ts";
@@ -18,9 +18,12 @@ const ROOMS = Object.keys(ROOM_ASSETS);
 const reachable = new Set();
 for (const r of ROOMS) for (const k of paletteForRoom(r)) reachable.add(k);
 
+// HI 2026-10-31: "only furniture — no rugs or curtains till the later polish stage": soft furnishings are PARKED (the kind
+// stays, the lifecycle still works; it is not offered in any palette until the polish stage).
+const PARKED = new Set(["rug"]);
 for (const kind of OBJECT_KINDS) {
-  // 1. reachable from some room's palette (else the operator can never arm it)
-  ok(reachable.has(kind), `${kind}: reachable in a room palette`);
+  // 1. reachable from some room's palette (else the operator can never arm it) — unless parked by HI decision
+  ok(PARKED.has(kind) ? !reachable.has(kind) : reachable.has(kind), `${kind}: ${PARKED.has(kind) ? "parked (not offered until the polish stage)" : "reachable in a room palette"}`);
 
   // 2. PLACE — adds exactly one object, in-bounds
   const placed = placeObject([], kind, 4, 4);
@@ -51,7 +54,7 @@ for (const kind of OBJECT_KINDS) {
   ok(rotateObject(placed, o.id)[0].rot !== o.rot, `${kind}: rotates`);
 
   // 8. WireGuard — a placed kind survives the stored-layout sanitize (never silently dropped)
-  const layout = TINY_ROOM_LAYOUT.map((r, i) => (i === 0 ? { ...r, objects: placed } : r));
+  const layout = TINY_ROOM_LAYOUT.map((r, i) => (i === 0 ? { ...r, objects: placed, layoutRev: STANDARD_LAYOUT_REV } : r));   // R5b: a write at the current edition is kept
   const san = sanitizeRoomLayout(layout);
   ok((san[0].objects || []).some((x) => x.kind === kind), `${kind}: survives WireGuard sanitize`);
 }

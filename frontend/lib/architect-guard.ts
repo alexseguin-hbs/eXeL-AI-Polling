@@ -14,26 +14,45 @@
 import { DEFAULT_PARAMS, type FinishTier, type GlobalParams, type HouseStyle } from "./architect-project";
 import { DEFAULT_PROGRAM, type RoomProgram } from "./room-program";
 import { cloneLayout, ELEMENT_MAX, TINY_GRID, type RoomCell } from "./room-layout";
-import { OBJECT_SPEC, ROOM_GRID, VARIANTS, type PlacedObject, type ObjectKind, type Rot } from "./room-objects";
+import { OBJECT_SPEC, ROOM_GRID, VARIANTS, STANDARD_LAYOUT_REV, standardLayoutFor, standardLayoutAt, sameArrangement, wallOfObject, alignedRot, footprintOf, clampFootprint, type PlacedObject, type ObjectKind, type Rot } from "./room-objects";
 
-/** Whitelist a stored PlacedObject[] — keep only well-formed placements, clamp to the 10×10 grid + valid rot. */
+/** The most placements one 10×10 room may hold (a stored array of 50,000 was kept whole — AsM-caught, Thor). */
+export const MAX_OBJECTS_PER_ROOM = 99;
+/** The most room cells a stored layout may hold (the grid is 3×3; a stored 1,000,000 was kept whole — AsM-caught, Thor). */
+export const MAX_CELLS = 99;
+
+/** Whitelist a stored PlacedObject[] — keep only well-formed placements of OWN kinds, wall-aligned, with the WHOLE footprint
+ * clamped inside the room; capped. Returns [] for an empty / all-invalid ARRAY (an emptied room stays empty — it used to come
+ * back as the default), undefined only when nothing array-like was stored. */
 function sanitizeObjects(raw: unknown): PlacedObject[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   const out: PlacedObject[] = [];
+  const seen = new Set<string>();
   for (const o of raw) {
+    if (out.length >= MAX_OBJECTS_PER_ROOM) break;
     const r = asRecord(o);
-    if (typeof r.id !== "string" || typeof r.kind !== "string" || !(r.kind in OBJECT_SPEC)) continue;
-    const rot = ([0, 90, 180, 270] as const).includes(r.rot as Rot) ? (r.rot as Rot) : 0;
+    // R5b (Thor): OWN keys only — the `in` operator admitted "constructor" / "__proto__" / "toString" as kinds, and the first
+    // one rendered crashed the Elements list on every reload.
+    if (typeof r.id !== "string" || typeof r.kind !== "string" || !Object.hasOwn(OBJECT_SPEC, r.kind)) continue;
+    const id = r.id.slice(0, 64);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    const rot0 = ([0, 90, 180, 270] as const).includes(r.rot as Rot) ? (r.rot as Rot) : 0;
     // Preserve a size variant only if it's a known id for this kind (whitelist — untrusted stored value).
     const kind = r.kind as ObjectKind;
     const variant = typeof r.variant === "string" && VARIANTS[kind]?.some((v) => v.id === r.variant) ? r.variant : undefined;
     const elev = typeof r.elev === "number" && Number.isFinite(r.elev) ? boundNum(r.elev, ROOM_GRID) : undefined; // ft off floor (window sill etc.)
-    // R5: coordinates are finite numbers clamped to the grid, NOT rounded — the standard layouts and the packer place
-    // on half-foot centres (a 5-ft bed centred in a 10-ft room is gx 4.5); rounding here shifted every default by up
-    // to ½ ft on reload. Still a whitelist: non-finite → 0, out of range → clamped.
-    out.push({ id: r.id, kind, gx: boundNum(r.gx, ROOM_GRID - 1), gy: boundNum(r.gy, ROOM_GRID - 1), rot, ...(variant ? { variant } : {}), ...(elev !== undefined ? { elev } : {}) });
+    // R5 / R5b: coordinates are finite numbers, NOT rounded (half-foot centres are the convention: a 5-ft bed centred in a
+    // 10-ft room is gx 4.5); the legal window reaches −0.4 for a thin wall piece flush to the W/N wall, so the pre-clamp is
+    // [−1, ROOM_GRID] and the WHOLE FOOTPRINT is then clamped inside (a stored bed at gx 9 spanned [7,12] through the wall).
+    const gx0 = boundNum(r.gx, ROOM_GRID, -1), gy0 = boundNum(r.gy, ROOM_GRID, -1);
+    // a stored wall object is normalised to its wall's alignment (a legacy window at rot 0 on the W wall → 90)
+    const rot = OBJECT_SPEC[kind].onWall ? alignedRot(rot0, wallOfObject({ gx: gx0, gy: gy0, rot: rot0 })) : rot0;
+    const fp = footprintOf({ id, kind, gx: gx0, gy: gy0, rot, ...(variant ? { variant } : {}) });
+    const c = clampFootprint(gx0, gy0, fp.w, fp.d, rot, false);
+    out.push({ id, kind, gx: c.gx, gy: c.gy, rot, ...(variant ? { variant } : {}), ...(elev !== undefined ? { elev } : {}) });
   }
-  return out.length ? out : undefined;
+  return out;
 }
 import { STANDARD_BY_ID } from "./building-codes";
 import type { ArchitectSnapshot } from "./architect-saved-files";
@@ -115,11 +134,17 @@ export function sanitizeProgram(raw: unknown): RoomProgram {
 export function sanitizeRoomLayout(raw: unknown): RoomCell[] {
   if (!Array.isArray(raw)) return cloneLayout();
   const cells: RoomCell[] = [];
+  const seenCell = new Set<string>();
   for (const r of raw) {
+    if (cells.length >= MAX_CELLS) break;
     const c = asRecord(r);
     if (typeof c.id !== "string" || typeof c.k !== "string" || typeof c.label !== "string") continue;
+    // R5b (Thor): the cells array is bounded like the objects — capped count, capped strings, one cell per id.
+    const id = c.id.slice(0, 64), k = c.k.slice(0, 8), label = c.label.slice(0, 120);
+    if (!id || !k || seenCell.has(id)) continue;
+    seenCell.add(id);
     cells.push({
-      id: c.id, k: c.k, label: c.label,
+      id, k, label,
       row: boundInt(c.row, 0, TINY_GRID - 1),
       col: boundInt(c.col, 0, TINY_GRID - 1),
       w: boundInt(c.w ?? 1, 1, TINY_GRID),
@@ -128,7 +153,23 @@ export function sanitizeRoomLayout(raw: unknown): RoomCell[] {
       doors: boundInt(c.doors, 0, ELEMENT_MAX),
       outlets: boundInt(c.outlets, 0, ELEMENT_MAX),
       furniture: c.furniture === true,
-      objects: sanitizeObjects(c.objects),
+      // R5b — the standard-layout edition. A room with a DECIDED layout is re-seated to the current edition ONLY when what is
+      // stored is an UNTOUCHED prior edition (edition 0 = the packer, never a decision; edition 1 = Layout A exactly) — so
+      // "stop reverting" reaches every device. A room the user ARRANGED is kept and stamped with the current edition: a seed
+      // merges into a saved copy, it never replaces it (AsM-caught, Krishna). A stamp above the current edition is clamped
+      // (a forged 9999 can never opt out of a future edition — Thor/Krishna).
+      ...(() => {
+        const std = standardLayoutFor(k);
+        const objects = sanitizeObjects(c.objects);
+        if (!std) return objects !== undefined ? { objects } : {};
+        const rev = Math.min(boundInt(c.layoutRev ?? 0, 0, 9999), STANDARD_LAYOUT_REV);
+        if (rev < STANDARD_LAYOUT_REV) {
+          const prior = rev > 0 ? sanitizeObjects(standardLayoutAt(k, rev)) : undefined;
+          const untouched = objects === undefined || rev === 0 || (prior !== undefined && sameArrangement(objects, prior));
+          if (untouched) return { objects: std, layoutRev: STANDARD_LAYOUT_REV };
+        }
+        return { ...(objects !== undefined ? { objects } : {}), layoutRev: STANDARD_LAYOUT_REV };
+      })(),
     });
   }
   return cells.length ? cells : cloneLayout();
@@ -139,17 +180,20 @@ export function sanitizeRoomLayout(raw: unknown): RoomCell[] {
 export function sanitizeSnapshot(raw: unknown): ArchitectSnapshot {
   const s = asRecord(raw);
   return {
-    houseSpec: strList(s.houseSpec),
-    layerHidden: strList(s.layerHidden),
-    layerLocked: strList(s.layerLocked),
-    unclassified: asArray(s.unclassified),
-    bimManifest: s.bimManifest && typeof s.bimManifest === "object" ? s.bimManifest : null,
-    assetOverrides: asRecord(s.assetOverrides),
+    // R5b (Thor): every list is bounded — 500 strings, codes de-duplicated, replay entries are objects only.
+    houseSpec: strList(s.houseSpec).slice(0, 500),
+    layerHidden: strList(s.layerHidden).slice(0, 500),
+    layerLocked: strList(s.layerLocked).slice(0, 500),
+    // R5b (AsM-caught, Thor/Sofia): the snapshot now uses its own SEC-B helpers — primitives/arrays in `unclassified` reached
+    // bim-io as objects, an array could pose as the manifest, and own `__proto__`/`constructor` keys rode in assetOverrides.
+    unclassified: objArray(s.unclassified, 500),
+    bimManifest: objOrNull(s.bimManifest),
+    assetOverrides: objMap(s.assetOverrides),
     gate: boundInt(s.gate ?? 3, 0, 13),
     globalParams: sanitizeParams(s.globalParams),
     program: sanitizeProgram(s.program),
-    codes: strList(s.codes).filter((id) => id in STANDARD_BY_ID),
-    replay: asArray(s.replay).slice(-200),
+    codes: [...new Set(strList(s.codes).filter((id) => Object.hasOwn(STANDARD_BY_ID, id)))].slice(0, 500),
+    replay: objArray(s.replay, 200),
     savedAt: boundNum(s.savedAt, Number.MAX_SAFE_INTEGER),
   };
 }

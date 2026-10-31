@@ -79,6 +79,9 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // S1 — the wall a dragged door/window is LOCKED to, captured at grab so it SLIDES along that wall (never jumps
   // to a nearer edge mid-drag). Cleared on release. null = not dragging a wall object.
   const dragWall = useRef<Wall | null>(null);
+  // R5b (Mission-Planning parity): a TAP never moves a piece — the drag starts only once the pointer has travelled ~8 px.
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const dragMoved = useRef(false);
   // R5 — SIMPLE by default (HI decision, Room Designer decision card: simplify S1; repeated 2026-10-30 "we already said
   // this is too busy"). Simple = ONE pane (2D/3D toggle · rotate · reset) + the palette + the Elements list with
   // Size/Rotate/Delete — the Mission-Planning arm→tap→auto-disarm loop. "⚙ Advanced" reveals the CAD chrome:
@@ -197,11 +200,14 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const placeAt = (gx: number, gy: number) => {
     if (!tool) return;
     const p = OBJECT_SPEC[tool].onWall ? wallSnap(gx, gy) : { gx, gy };
-    commit(placeObject(objects, tool, p.gx, p.gy));
+    const next = placeObject(objects, tool, p.gx, p.gy);
+    commit(next);
+    setSelId(next[next.length - 1].id);   // R5b: the piece just placed is SELECTED (Mission Planning's select-after-place) — no hunt in the list
     setTool(null); // auto-disengage so a second tap doesn't stamp a duplicate (operator: re-select to place again)
   };
   const objDown = (id: string) => (e: React.PointerEvent) => {
     e.stopPropagation(); drag.current = id; setSelId(id); dragPushed.current = false;
+    dragStart.current = { x: e.clientX, y: e.clientY }; dragMoved.current = false;
     // S1 — lock this drag to the wall the object currently sits on, so it slides along it.
     const o = objects.find((x) => x.id === id);
     dragWall.current = o && OBJECT_SPEC[o.kind].onWall ? wallOf(o.gx, o.gy) : null;
@@ -222,14 +228,23 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
       return; // pinching — do not move objects
     }
     if (!drag.current) return;
+    if (!dragMoved.current) {   // R5b: below the tap threshold nothing moves (a half-foot piece used to snap on the first tick)
+      const s0 = dragStart.current;
+      if (s0 && Math.abs(e.clientX - s0.x) + Math.abs(e.clientY - s0.y) < 8) return;
+      dragMoved.current = true;
+    }
     const c = cellFromEvent(e); if (!c) return;
     const o = objects.find((x) => x.id === drag.current); if (!o) return;
     // S1 — a wall object SLIDES along its captured wall (perpendicular axis pinned); everything else moves freely.
     const p = OBJECT_SPEC[o.kind].onWall ? slideAlongWall(dragWall.current ?? wallOf(c.gx, c.gy), c.gx, c.gy) : c;
     if (p.gx !== o.gx || p.gy !== o.gy) {
+      const next = moveObject(objects, o.id, p.gx, p.gy, OBJECT_SPEC[o.kind].onWall ? (dragWall.current ?? undefined) : undefined);
+      const m = next.find((x) => x.id === o.id);
+      // R5b (Krishna): a clamped move that lands where the piece already is writes nothing (it persisted on every pointermove tick).
+      if (!m || (m.gx === o.gx && m.gy === o.gy && m.rot === o.rot)) return;
       // push ONE pre-drag snapshot the first time this drag actually moves, so the whole drag is a single undo step.
       if (!dragPushed.current) { setHistory((h) => [...h.slice(-49), objects]); dragPushed.current = true; }
-      onChange(moveObject(objects, o.id, p.gx, p.gy));
+      onChange(next);
     }
   };
   // Tap-to-place is on POINTERUP at the SVG level, not the floor rect's onClick — on mobile a click after the
@@ -264,7 +279,9 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     if (!(k in OBJECT_SPEC)) return;
     const c = cellFromEvent(e); if (!c) return;
     const p = OBJECT_SPEC[k].onWall ? wallSnap(c.gx, c.gy) : c;
-    commit(placeObject(objects, k, p.gx, p.gy));
+    const next = placeObject(objects, k, p.gx, p.gy);
+    commit(next);
+    setSelId(next[next.length - 1].id);   // R5b: select-after-place
     setTool(null); // auto-disengage after a drop too, so the next drop needs a fresh pick
   };
 
@@ -330,6 +347,8 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             const Icon = ICON[o.kind];
             return (
               <g key={o.id} data-arch-roomobj={o.kind} transform={`rotate(${o.rot} ${cx} ${cy})`} style={{ cursor: interactive ? "grab" : "default" }} onPointerDown={interactive ? objDown(o.id) : undefined}>
+                {/* R5b — a transparent HIT PAD so a thin wall piece (0.2–0.5 ft sash / mirror) is a finger-sized target */}
+                {interactive && (w < 1 || d < 1) && <rect data-arch-hitpad x={cx - Math.max(w, 1) * 5} y={cy - Math.max(d, 1) * 5} width={Math.max(w, 1) * 10} height={Math.max(d, 1) * 10} fill="transparent" />}
                 <rect x={cx - w * 5} y={cy - d * 5} width={w * 10} height={d * 10} rx={1.5}
                   fill={`${s.color}${on ? "55" : "2e"}`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.4 : 0.8} />
                 {/* upper-left DRAG GRIP — the standard 6-dot handle (2 cols × 3 rows, ⠿) so it reads as "grab to move",
@@ -701,7 +720,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     return (
       <button key={k} data-arch-tool={k} onClick={() => setTool(on ? null : k)} title={`${s.label} — tap then tap the floor, or drag onto the plan`}
         draggable onDragStart={(e) => { e.dataTransfer.setData("text/plain", k); e.dataTransfer.effectAllowed = "copy"; setTool(k); }}
-        className="flex cursor-grab items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] active:cursor-grabbing"
+        className="flex min-h-[44px] cursor-grab items-center gap-1 rounded border px-2.5 py-0.5 text-[11px] active:cursor-grabbing"
         style={{ borderColor: on ? C.gold : C.border, background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
         <Icon className="h-3.5 w-3.5" style={{ color: on ? C.gold : s.color }} />{s.label}
       </button>
@@ -729,7 +748,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         <button data-arch-room-simple={simpleMode ? "1" : "0"} onClick={() => setSimple(!simpleMode)}
           className="ml-auto flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold"
           style={{ borderColor: advanced ? C.violet : C.border, color: advanced ? C.violet : C.dim }}
-          title={advanced ? "Advanced: dimensions, second pane, mirror, nudge pad, BOM, demo — tap for Simple" : "Simple — tap for ⚙ Advanced (dimensions, second pane, mirror, nudge, BOM, demo)"}>
+          title={advanced ? t("arch.room.advancedTip") : t("arch.room.simpleTip")}>
           {advanced ? t("arch.room.advanced") : t("arch.room.simple")}
         </button>
         {/* FIX-C — explanations for the non-simple areas (operator: intuitive + get explanations) */}
@@ -754,7 +773,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             <li><span style={{ color: C.text }}>Doors &amp; windows</span> {t("arch.room.helpDoors")}</li>
             <li><span style={{ color: C.text }}>Systems:</span> {t("arch.room.helpSystems")}</li>
             {advanced && <li><span style={{ color: C.text }}>{t("arch.room.helpBomLabel")}</span> {t("arch.room.helpBom")}</li>}
-            <li><span style={{ color: C.text }}>Views:</span> {t("arch.room.helpViews")}</li>
+            <li><span style={{ color: C.text }}>Views:</span> {advanced ? t("arch.room.helpViews") : t("arch.room.helpViewsSimple")}</li>
           </ul>
         </div>
       )}
@@ -762,11 +781,11 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
       {/* R5 SIMPLE — one pane (2D ⇄ 3D) + the palette, nothing else. */}
       {simpleMode ? (
         <div className="flex flex-col gap-2">
+          {paletteEl}{/* R5b: the palette sits ABOVE the pane — arm a tool, tap the floor, no scroll between (Mission Planning) */}
           <div className="relative">
             {paneHeader(mainView, setMainView, rot2d, cam.reset)}
             {mainView === "2D" ? plan2D(bearing2d, setBearing2d, true) : voxel3D(cam)}
           </div>
-          {paletteEl}
         </div>
       ) :
       /* STACKED (two independent panes, top+bottom) ⇄ FLOATING (main + draggable mini) — operator IMG_7521 (Advanced) */

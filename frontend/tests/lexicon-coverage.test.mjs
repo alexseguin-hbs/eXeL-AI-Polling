@@ -127,7 +127,10 @@ const AFTER_FILL = new Set([
   'arch.room.simple',
   'arch.room.advanced',
   'arch.room.helpMoveSimple',
-]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
+  'arch.room.helpViewsSimple',
+  'arch.room.simpleTip',
+  'arch.room.advancedTip',
+]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; rcore.* (2026-09-25) and the arch.room.* R5/R5b keys remain STAGED (English until the Architect UI/UX is final).
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;
 const ALLOWED = (() => { const f = path.resolve(process.cwd(), '..', 'docs/asks/2026-09-12_lexicon_identical_allowed.psv'); if (!fs.existsSync(f)) return new Set(); return new Set(fs.readFileSync(f, 'utf8').split('\n').slice(1).filter(Boolean).map((l) => { const [scope, key] = l.split('|'); return `${scope}|${key}`; })); })();   // reviewed: a formula, a name, a unit, or a word the language shares

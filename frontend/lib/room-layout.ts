@@ -19,6 +19,9 @@ export interface RoomCell {
   windows: number; doors: number; outlets: number; furniture: boolean;
   // Interactive in-room designer placements (#167) — furniture/openings on the 1-ft grid, 2D+3D.
   objects?: import("./room-objects").PlacedObject[];
+  // R5b — the standard-layout edition this cell's objects were last written at (see STANDARD_LAYOUT_REV in room-objects);
+  // absent = before R5b. Optional + additive: the firewall forbids deleting this file, not extending it.
+  layoutRev?: number;
 }
 /** Kinds a room element editor can step. */
 export type ElementKind = "windows" | "doors" | "outlets";

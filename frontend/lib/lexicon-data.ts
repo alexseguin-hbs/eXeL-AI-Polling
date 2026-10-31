@@ -2271,6 +2271,9 @@ const siteUxB3: TranslationEntry[] = [
   // R5 (2026-10-31) — SIMPLE ⇄ ⚙ ADVANCED (HI decision S1). Staged in AFTER_FILL: English until the Architect UI/UX is final.
   { key: "arch.room.simple", englishDefault: "Simple", context: "Room Designer header: the mode button when the designer is in Simple mode (tap → Advanced)", cubeId: 0 },
   { key: "arch.room.advanced", englishDefault: "⚙ Advanced", context: "Room Designer header: the mode button when the CAD chrome is shown (tap → Simple)", cubeId: 0 },
+  { key: "arch.room.helpViewsSimple", englishDefault: "one pane, 2D ⇄ 3D — left-drag pan · right-drag rotate/tilt · pinch/scroll zoom.", context: "Help panel: Views instruction in Simple mode (one pane)", cubeId: 0 },
+  { key: "arch.room.simpleTip", englishDefault: "Simple — tap for ⚙ Advanced (dimensions, second pane, mirror, nudge, BOM, demo)", context: "Room Designer header: tooltip of the mode button while in Simple mode", cubeId: 0 },
+  { key: "arch.room.advancedTip", englishDefault: "Advanced: dimensions, second pane, mirror, nudge pad, BOM, demo — tap for Simple", context: "Room Designer header: tooltip of the mode button while in Advanced mode", cubeId: 0 },
   { key: "arch.room.helpMoveSimple", englishDefault: "drag it on the plan. ⚙ Advanced adds the ↑↓←→ nudge pad, dimension ✎ callouts, mirror, a second pane, the Bill of Materials and the guided demo.", context: "Help panel: Move instruction in Simple mode (names what ⚙ Advanced adds)", cubeId: 0 },
   { key: "arch.room.helpNudgePad", englishDefault: "nudge pad", context: "Help panel: emphasized 'nudge pad' term in the Move instruction", cubeId: 0 },
   { key: "arch.room.helpMoveStep", englishDefault: "— tap the step to switch 1\" / 6\" / 1'. Items can never leave the room.", context: "Help panel: Move instruction (after the nudge-pad label)", cubeId: 0 },

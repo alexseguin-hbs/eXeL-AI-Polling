@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * drone-walkthrough — every screen a person can reach on /main/Drone-2525, captured from the REAL static
+ * drone-walkthrough — every screen a person can reach on /drone-2525, captured from the REAL static
  * export, with the controls available on each one recorded as it goes.
  *
  * Operator 2026-09-15: "first show me screen by screen as well as button controls to see all key actions
@@ -46,7 +46,7 @@ async function launch() {
   return chromium.launch(executablePath ? { executablePath } : {});
 }
 
-const BASE = `http://127.0.0.1:${PORT}/main/Drone-2525/`;
+const BASE = `http://127.0.0.1:${PORT}/drone-2525/`;
 const screens = [];
 let bad = 0;
 

@@ -43,7 +43,7 @@ import { useCanonicalDesign } from "./use-canonical-design";
 import { MetricStrip } from "./metric-strip";
 import { useLayerState } from "./use-layer-state";
 import { ArchitectProjects } from "./architect-projects";
-import { serializeProject, type ArchitectProjectFile } from "@/lib/architect-project-file";
+import { serializeProject, parseProject, type ArchitectProjectFile } from "@/lib/architect-project-file";
 import { type RoomCell } from "@/lib/room-layout";
 import { HouseSpec } from "./house-spec";
 import { CodesPanel } from "./codes-panel";
@@ -171,7 +171,9 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const [importLayout, setImportLayout] = useState<RoomCell[] | null>(null);
   const buildProjectFile = (name: string): ArchitectProjectFile =>
     serializeProject(name, homeType, layerState.snapshot(), designRooms, (() => { try { return Date.now(); } catch { return 0; } })());
-  const loadProjectFile = (file: ArchitectProjectFile) => {
+  const loadProjectFile = (raw: ArchitectProjectFile) => {
+    // R5b (AsM-caught, Thor/Sofia): the saved-designs library seated an UNCHECKED file; every load passes the WireGuard
+    const file = parseProject(raw); if (!file) return;
     layerState.applySnapshot(file.snapshot);                       // seat systems · params · program · codes · BIM · gate
     if (UNLOCKED_MARKETS.includes(file.homeType as HomeType)) setHomeType(file.homeType as HomeType);
     setImportLayout([...file.roomLayout]); // fresh ref each load → ArchitectDesign's seat effect always re-fires
@@ -344,7 +346,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} onHomeType={setHomeType} focusRoom={focusRoom}
               armed={armedComp} onArm={(v) => { setArmedComp(v); if (v) setSub("Design", "Model"); }} phaseGroup={phaseGroup} />}
             rightRail={<RightPanel selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} />}
-            metricStrip={<MetricStrip state={layerState} overlay homeType={homeType} />}
+            // R5b: no house-metric pill while a room is entered (it covered the N-lock + window-1 at 375 px)
+            metricStrip={focusRoom ? null : <MetricStrip state={layerState} overlay homeType={homeType} />}
             bottomPanel={<HouseSpec state={layerState} homeType={homeType} selectedId={selectedLayerId} onSelect={setSelectedLayerId} onLoadArchitect={loadProjectFile} />}
             bottomPanel2={<CodesPanel state={layerState} />}
           >

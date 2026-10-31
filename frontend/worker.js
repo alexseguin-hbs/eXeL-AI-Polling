@@ -24,8 +24,9 @@
 // SECURITY:
 //   1. Edge PREVENTION — deny unambiguous attack signatures in the request
 //      PATH (traversal, dotfiles, scanner probes) before they reach assets.
-//   2. PAUSE kill-switch — when paused, every route except the home page
-//      (/, /main, /main/*) and static assets returns paused.html with 503.
+//   2. PAUSE kill-switch — when paused, every route except the home page (/)
+//      and static assets returns paused.html with 503. (/main and /main/* are
+//      301'd to the root route BEFORE the pause check — /main is never used.)
 //   Both fail OPEN: any error leaves the site fully live. Toggle the pause via
 //   KV `SITE_STATE:paused` (instant) or env `SITE_PAUSED` (both default OFF).
 import { handleDonate, handleDonateVerify } from "./donate-core.js";
@@ -139,8 +140,12 @@ export default {
     // (run_worker_first guarantees it runs): /main → /, /main/<x> → /<x>, query string preserved (Drone ?crew= / ?si=
     // links), so every old link, ledger route and whitepaper URL lands on the canonical route. Never loops: the
     // target never starts with /main. Gated by tests/main-redirect.test.mjs.
-    if (url.pathname === "/main" || url.pathname.startsWith("/main/")) {
-      const rest = url.pathname.slice("/main".length);
+    // R5b: any case (/Main, /MAIN) and a repeated prefix (/main/main/x) collapse in ONE hop.
+    const mainHit = url.pathname.match(/^(?:\/main)+(?=\/|$)/i);
+    if (mainHit) {
+      // a doubled slash after the prefix (/main//x) collapses too — the Location is always same-origin, but "//x" read as a
+      // host to a human (Thor NOTE-9)
+      const rest = url.pathname.slice(mainHit[0].length).replace(/^\/{2,}/, "/");
       return Response.redirect(url.origin + (rest === "" || rest === "/" ? "/" : rest) + url.search, 301);
     }
 

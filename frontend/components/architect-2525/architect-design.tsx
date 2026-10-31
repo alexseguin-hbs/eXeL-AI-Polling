@@ -16,7 +16,7 @@ import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, setRoomObjects, toggleRoomFurniture, ROOM_FT, type RoomCell, type ElementKind } from "@/lib/room-layout";
 import { RoomDesigner } from "./room-designer";
-import type { PlacedObject } from "@/lib/room-objects";
+import { STANDARD_LAYOUT_REV, type PlacedObject } from "@/lib/room-objects";
 import { PhaseBar } from "./phase-bar";
 import { phaseById } from "@/lib/architect-phases";
 import { Frame, Wind, Zap, Droplets, Settings } from "lucide-react"; // our own iconology (no emojis) for Design Settings
@@ -122,7 +122,9 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   // Enter a room → optimize IT ONLY: step its elements / toggle furniture (persisted, clamped).
   const setElement = (kind: ElementKind, delta: number) => { if (focusRoomId) setRoomLayout((prev) => persistLayout(setRoomElement(prev, focusRoomId, kind, delta))); };
   const toggleFurn = () => { if (focusRoomId) setRoomLayout((prev) => persistLayout(toggleRoomFurniture(prev, focusRoomId))); };
-  const setObjects = (objects: PlacedObject[]) => { if (focusRoomId) setRoomLayout((prev) => persistLayout(setRoomObjects(prev, focusRoomId, objects))); };
+  // R5b: every write stamps the standard-layout edition (layoutRev) so the WireGuard keeps this arrangement on reload and only
+  // re-seats rooms written at an OLDER edition ("stop reverting" reaches every device without erasing current work).
+  const setObjects = (objects: PlacedObject[]) => { if (focusRoomId) setRoomLayout((prev) => persistLayout(setRoomObjects(prev, focusRoomId, objects).map((r) => (r.id === focusRoomId ? { ...r, layoutRev: STANDARD_LAYOUT_REV } : r)))); };
   const focusRoom = focusRoomId ? roomLayout.find((r) => r.id === focusRoomId) : undefined;
   // Emit the entered room UP so the left Vision Tree can context-scope to it (additive; null on Back-to-house).
   useEffect(() => { onFocusRoom?.(focusRoom ? { k: focusRoom.k, label: focusRoom.label } : null); }, [focusRoomId, focusRoom?.k, focusRoom?.label]);
