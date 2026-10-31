@@ -9,19 +9,14 @@
 export interface FeedbackSite { screen: string; site: string }
 
 const TABLE: readonly [prefix: string, screen: string, site: string][] = [
-  ["/main/Financial-2525", "financial-2525", "Financial-2525"],
+  // R5 (2026-10-31): no /main rows — /main is never used; the Worker 301s every /main/* to /* before any page loads.
   ["/financial-2525", "financial-2525", "Financial-2525"],
-  ["/main/Drone-2525", "drone-2525", "Drone-2525"],
   ["/drone-2525", "drone-2525", "Drone-2525"],
-  ["/main/Security-2525", "security-2525", "Security-2525"],
   ["/Security-2525", "security-2525", "Security-2525"],
   ["/Security", "security-2525", "Security-2525"],
-  ["/main/Architect-2525", "architect-2525", "Architect-2525"],
   ["/Architect-2525", "architect-2525", "Architect-2525"],
   ["/Architect", "architect-2525", "Architect-2525"],
-  ["/main/Celestial-2525", "celestial-2525", "Celestial-2525"],
   ["/Celestial-2525", "celestial-2525", "Celestial-2525"],
-  ["/main/SoI-2525", "soi-2525", "SoI-2525"],
   ["/SoI-2525", "soi-2525", "SoI-2525"],
   ["/soi-session", "soi-session", "SoI Session"],
   ["/innovation", "innovation", "Innovation Pod"],
@@ -32,7 +27,6 @@ const TABLE: readonly [prefix: string, screen: string, site: string][] = [
   ["/atlantis", "atlantis-accords", "Atlantis Accords"],
   ["/light-codex", "light-codex", "Light Codex"],
   ["/encrypted-messaging", "encrypted-messaging", "Encrypted Messaging"],
-  ["/main/experiences", "experiences", "Experiences"],
   ["/experiences", "experiences", "Experiences"],
   ["/workspace", "workspace", "Workspace"],
   ["/crs", "crs", "CRS Matrix"],
@@ -42,7 +36,6 @@ const TABLE: readonly [prefix: string, screen: string, site: string][] = [
   ["/session", "polling", "eXeL AI Polling"],
   ["/poll", "polling", "eXeL AI Polling"],
   ["/join", "join", "eXeL AI Polling"],
-  ["/main", "main", "eXeL AI"],
 ];
 
 export function feedbackSite(pathname: string): FeedbackSite {

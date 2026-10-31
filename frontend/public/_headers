@@ -23,7 +23,7 @@
   X-Frame-Options: SAMEORIGIN
   Content-Security-Policy: frame-ancestors 'self'
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(self), geolocation=()
+  Permissions-Policy: camera=(), microphone=(self), geolocation=(self)
 
 # r.202 · THE OPERATOR DECK — never cached, always the current revision (operator 2026-10-12: his phone's tab held r0.198
 # while the site served r0.201 — "why are you unable to delete old file and use this?"). Same rule as the living document:
@@ -71,19 +71,19 @@
 
 # Sensor Fusion asks for the camera on this page only. The rest of the site stays camera-off.
 /SensorFusion-2525
-  Permissions-Policy: camera=(self), microphone=(self), geolocation=()
+  Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)
 
 /SensorFusion-2525/
-  Permissions-Policy: camera=(self), microphone=(self), geolocation=()
+  Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)
 
 /SensorFusion-2525/*
-  Permissions-Policy: camera=(self), microphone=(self), geolocation=()
+  Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)
 
 # The full-screen Sensor Fusion file. Same bytes as the download twin.
 /sensor-fusion/SensorFusion-2525.html
   Cache-Control: no-cache, must-revalidate
   Content-Type: text/html; charset=utf-8
-  Permissions-Policy: camera=(self), microphone=(), geolocation=()
+  Permissions-Policy: camera=(self), microphone=(), geolocation=(self)
 
 # Download twin. Content-Disposition is what makes a phone save the file.
 /sensor-fusion/download/SensorFusion-2525.html

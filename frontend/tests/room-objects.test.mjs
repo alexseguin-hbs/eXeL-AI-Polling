@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap, projectPlaced, setVariantByHeight, elevOf, setElev, STD_SILL_FT, defaultObjectsForRoom } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap, projectPlaced, setVariantByHeight, elevOf, setElev, STD_SILL_FT, defaultObjectsForRoom, STANDARD_LAYOUTS, worldSpan } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -106,7 +106,10 @@ ok(COMMON_ASSETS.every((k) => k in OBJECT_SPEC) && COMMON_ASSETS.includes("door"
 const kitchen = paletteForRoom("K");
 ok(kitchen.includes("fridge") && kitchen.includes("stove") && kitchen.includes("sink"), "kitchen palette has fridge/stove/sink");
 ok(!kitchen.includes("bed") && !kitchen.includes("toilet"), "kitchen palette excludes bedroom/bath items");
-ok(paletteForRoom("M").includes("bed") && paletteForRoom("M").includes("nightstand") && paletteForRoom("M").includes("dresser"), "bedroom palette has bed/nightstand/dresser");
+// R5 HI decision (Room Designer decision card: "No dresser; place that in other room. Table / vanity with mirror works"):
+// the bedroom palette offers bed/nightstand/desk(vanity)/mirror and NO dresser/wardrobe — clothes live in the Master Closet.
+ok(paletteForRoom("M").includes("bed") && paletteForRoom("M").includes("nightstand") && paletteForRoom("M").includes("desk") && paletteForRoom("M").includes("mirror"), "bedroom palette has bed/nightstand/desk(vanity)/mirror");
+ok(!paletteForRoom("M").includes("dresser") && !paletteForRoom("M").includes("wardrobe") && paletteForRoom("C").includes("dresser") && paletteForRoom("C").includes("wardrobe"), "no dresser/wardrobe in the bedroom — both live in the Master Closet (R5 HI decision)");
 ok(paletteForRoom("B").includes("shower") && paletteForRoom("B").includes("tub") && paletteForRoom("B").includes("toilet"), "bath palette has shower/tub/toilet");
 // FIX-9 — richer closet catalog + gaps; all new kinds are real specs + grouped.
 ["closetrod", "shelving", "shoerack", "rug", "mirror", "lamp", "rangehood"].forEach((k) =>
@@ -204,14 +207,18 @@ let vd = setVariantByWidth(placeObject([], "bed", 1, 1), "bed-1", 3, "y");
 ok(VARIANTS.bed.find((v) => v.id === vd[0].variant), "setVariantByWidth axis 'y' picks a real variant by depth");
 
 // projectPlaced — the whole-house plan/voxel model ACTUAL room contents (operator IMG_7568/7569).
-// A 5×6 bed at grid 0,0 projected into a 30×30 room cell at origin: x/y 0, w = 5/10*30 = 15, h = 6/10*30 = 18.
-const bed00 = { id: "b0", kind: "bed", gx: 0, gy: 0, rot: 0 };
-const pj = projectPlaced(bed00, 0, 0, 30, 30);
-ok(pj.x === 0 && pj.y === 0, "projectPlaced: grid 0,0 → cell origin");
+// R5 — ONE placement convention everywhere (worldSpan): an object at cell g is CENTRED at g+0.5 ft, the same geometry
+// the Room Designer's own 2D plan (cx = gx*10+5) and 3D voxel (ox = gx+0.5-W/2) always drew. A 5×6 bed at grid
+// (4.5, 2.5) is centred at (5, 3) → spans x 2.5–7.5 · y 0–6 → in a 30×30 cell at origin: x 7.5, y 0, w 15, h 18.
+const bedC = { id: "b0", kind: "bed", gx: 4.5, gy: 2.5, rot: 0 };
+const pj = projectPlaced(bedC, 0, 0, 30, 30);
+ok(Math.abs(pj.x - 7.5) < 1e-9 && Math.abs(pj.y) < 1e-9, "projectPlaced: centre-of-cell convention — bed at (4.5,2.5) spans x 2.5–7.5 · y 0–6 → x 7.5, y 0");
 ok(Math.abs(pj.w - 15) < 1e-9 && Math.abs(pj.h - 18) < 1e-9, "projectPlaced: 5×6 bed → 15×18 in a 30×30 cell");
-// Offset cell + mid-room position scales proportionally (gx 2 of 10 → +6 in a 30-wide cell offset by 100).
-const pj2 = projectPlaced({ id: "b1", kind: "bed", gx: 2, gy: 3, rot: 0 }, 100, 50, 30, 30);
-ok(Math.abs(pj2.x - 106) < 1e-9 && Math.abs(pj2.y - 59) < 1e-9, "projectPlaced: grid 2,3 in offset cell → 106,59");
+// Offset cell + mid-room position scales proportionally; rotation swaps w/d (a 4×2 desk at rot 90 is 2 wide × 4 deep).
+const pj2 = projectPlaced({ id: "d1", kind: "desk", gx: 0.5, gy: 5.5, rot: 90 }, 100, 50, 30, 30);
+ok(Math.abs(pj2.x - 100) < 1e-9 && Math.abs(pj2.y - 62) < 1e-9 && Math.abs(pj2.w - 6) < 1e-9 && Math.abs(pj2.h - 12) < 1e-9, "projectPlaced: rotated desk at (0.5,5.5) rot 90 → x 100, y 62, 6×12 (rotation-aware)");
+const ws = worldSpan({ id: "w", kind: "window", gx: 0, gy: 2.5, rot: 90 });
+ok(Math.abs(ws.x1 - 0.25) < 1e-9 && Math.abs(ws.x2 - 0.75) < 1e-9 && Math.abs(ws.y1 - 1.5) < 1e-9 && Math.abs(ws.y2 - 4.5) < 1e-9, "worldSpan: a W-wall window (rot 90 at gx 0) spans x 0.25–0.75 · y 1.5–4.5");
 
 // setVariantByHeight — 3D height edit picks the variant whose HEIGHT is nearest (operator: adjust window head height).
 // WINDOW_VARIANTS heights: 2,3,4,5,... — typing 5' → the 3'×5' variant; typing 2' → the 2'×2' awning.
@@ -238,17 +245,24 @@ const dM = defaultObjectsForRoom("M");
 ok(dM.length > 0, "defaultObjectsForRoom('M') seeds furniture — a room never opens empty");
 // AsM-caught (Thoth BLOCKER): the packer MUST place EVERY one of a room's ROOM_ASSETS — a dropped item re-triggers
 // the operator's exact HOLD ("default items vanish on enter"). (The old `|| dM.length > 0` made this tautological.)
-ok(Object.keys(ROOM_ASSETS).every((rk) => defaultObjectsForRoom(rk).length === ROOM_ASSETS[rk].length), "EVERY room places ALL its ROOM_ASSETS — nothing is dropped (the 'defaults vanish' HOLD, incl. the Master Bedroom's 9)");
+// R5: a room with a DECIDED standard layout (STANDARD_LAYOUTS — the Master Bedroom's Layout A) returns exactly that
+// layout; every OTHER room is still packed and places ALL its ROOM_ASSETS.
+const PACKED = Object.keys(ROOM_ASSETS).filter((rk) => !STANDARD_LAYOUTS[rk]);
+ok(PACKED.length === 8 && PACKED.every((rk) => defaultObjectsForRoom(rk).length === ROOM_ASSETS[rk].length), "EVERY packed room places ALL its ROOM_ASSETS — nothing is dropped (the 'defaults vanish' HOLD)");
+ok(JSON.stringify(dM) === JSON.stringify(STANDARD_LAYOUTS.M) && dM !== STANDARD_LAYOUTS.M, "the Master Bedroom's default IS the decided Layout A (a fresh copy — never the shared array)");
 ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(dM), "defaultObjectsForRoom is deterministic — identical key → identical objects (replay law)");
-ok(dM.every((o) => { const fp = footprintOf(o); return o.gx >= 0 && o.gy >= 0 && o.gx + fp.w <= ROOM_GRID + 1e-9 && o.gy + fp.d <= ROOM_GRID + 1e-9; }), "every default object sits fully inside the 10×10 room");
+const insideRoom = (o) => { const sp = worldSpan(o); return sp.x1 >= -1e-9 && sp.y1 >= -1e-9 && sp.x2 <= ROOM_GRID + 1e-9 && sp.y2 <= ROOM_GRID + 1e-9; };
+ok(Object.keys(ROOM_ASSETS).every((rk) => defaultObjectsForRoom(rk).every(insideRoom)), "every default object in every room sits fully inside the 10×10 room (centre-of-cell convention, rotation-aware)");
 ok(new Set(dM.map((o) => o.id)).size === dM.length, "default object ids are unique (no collisions)");
 ok(defaultObjectsForRoom("ZZZ").length === 0, "an unknown room key yields no defaults (empty, never throws)");
 // IMG-02 AsM-caught (a528/Thoth): the default layout must NOT overlap — a pile of furniture would re-trigger the HOLD.
-// TOP-LEFT geometry, matching the renderers (projectPlaced / voxel objects3d): a footprint spans [gx,gx+w]×[gy,gy+d].
-const fpSpan = (o) => { const f = footprintOf(o); return { x1: o.gx, x2: o.gx + f.w, y1: o.gy, y2: o.gy + f.d }; };
-const areaOverlap = (a, b) => { const A = fpSpan(a), B = fpSpan(b); return Math.max(0, Math.min(A.x2, B.x2) - Math.max(A.x1, B.x1)) * Math.max(0, Math.min(A.y2, B.y2) - Math.max(A.y1, B.y1)); };
+// R5: ONE geometry (worldSpan — centre of cell, rotation-aware), the same the renderers use. A wall object hung at an
+// elevation ABOVE a floor object's height does not conflict with it (a window at a 3-ft sill over a 2-ft nightstand,
+// a mirror at 3 ft over a 2.5-ft vanity — real rooms); everything else on the floor must be clear.
+const areaOverlap = (a, b) => { const A = worldSpan(a), B = worldSpan(b); return Math.max(0, Math.min(A.x2, B.x2) - Math.max(A.x1, B.x1)) * Math.max(0, Math.min(A.y2, B.y2) - Math.max(A.y1, B.y1)); };
+const hungAbove = (a, b) => (OBJECT_SPEC[a.kind].onWall && elevOf(a) >= heightOf(b) - 1e-9) || (OBJECT_SPEC[b.kind].onWall && elevOf(b) >= heightOf(a) - 1e-9);
 let worstOverlap = 0;
-for (const rk of Object.keys(ROOM_ASSETS)) { const objs = defaultObjectsForRoom(rk); for (let i = 0; i < objs.length; i++) for (let j = i + 1; j < objs.length; j++) worstOverlap = Math.max(worstOverlap, areaOverlap(objs[i], objs[j])); }
+for (const rk of Object.keys(ROOM_ASSETS)) { const objs = defaultObjectsForRoom(rk); for (let i = 0; i < objs.length; i++) for (let j = i + 1; j < objs.length; j++) if (!hungAbove(objs[i], objs[j])) worstOverlap = Math.max(worstOverlap, areaOverlap(objs[i], objs[j])); }
 ok(worstOverlap < 0.01, `default room furniture never overlaps across all rooms (worst ${worstOverlap.toFixed(3)} ft² — no pile)`);
 
 console.log(`\nROOM-OBJECTS ${pass}/${pass + fail} passed`);

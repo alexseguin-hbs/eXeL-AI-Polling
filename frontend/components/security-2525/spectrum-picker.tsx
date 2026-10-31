@@ -3,7 +3,7 @@ import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { useLexicon } from "@/lib/lexicon-context";
 
 // The canonical SoI Trinity spectrum (Infrared → ROYGBIV → Ultraviolet → White),
-// single source of truth reused by /main. 13 stops.
+// single source of truth reused by the home page (/). 13 stops.
 export const SPECTRUM_13: readonly string[] = [
   TRINITY_COLORS.human, TRINITY_COLORS.evolution, TRINITY_COLORS.intelligence, TRINITY_COLORS.temporal,
   TRINITY_COLORS.abundance, TRINITY_COLORS.ooda, TRINITY_COLORS.platonic, TRINITY_COLORS.consciousness,

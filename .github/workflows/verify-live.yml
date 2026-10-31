@@ -115,7 +115,7 @@ jobs:
         run: |
           set -o pipefail
           bad=0
-          for path in "/SoI-2525/" "/main/Security-2525/" "/financial-2525/" "/drone-2525/play.html"; do
+          for path in "/SoI-2525/" "/Security-2525/" "/financial-2525/" "/drone-2525/play.html"; do
             cc="$(curl -sSI -m 20 "$SITE$path" | tr -d '\r' | awk -F': ' 'tolower($1)=="cache-control"{print tolower($2)}')"
             case "$cc" in
               *no-cache*) echo "::notice title=CACHE::$path → $cc" ;;

@@ -277,7 +277,7 @@ export function rotateObject(objs: PlacedObject[], id: string): PlacedObject[] {
     if (o.id !== id) return o;
     const rot = (((o.rot + 90) % 360) as Rot);
     const fp = footprintOf(o);
-    const c = clampFootprint(o.gx, o.gy, fp.w, fp.d, rot);
+    const c = clampFootprint(o.gx, o.gy, fp.w, fp.d, rot, false);   // R5: keep the pivot (no rounding of a half-foot centre)
     return { ...o, rot, gx: c.gx, gy: c.gy };
   });
 }
@@ -289,11 +289,28 @@ export function footprintOf(o: PlacedObject): { w: number; d: number } {
   return { w: OBJECT_SPEC[o.kind].w, d: OBJECT_SPEC[o.kind].d };
 }
 
-/** Project a placed object's footprint into a room rectangle (rx,ry,rw,rh) on the whole-house plan so the 2D floor
- * plan / voxel model what's ACTUALLY inside each room, not a generic placeholder (operator IMG_7568/7569). Pure. */
-export function projectPlaced(o: PlacedObject, rx: number, ry: number, rw: number, rh: number, roomFt = ROOM_GRID): { x: number; y: number; w: number; h: number } {
+/**
+ * ONE PLACEMENT CONVENTION (R5, 2026-10-31): an object at cell (gx,gy) has its CENTRE at (gx+0.5, gy+0.5) ft and spans
+ * ±w/2 × ±d/2 around it, rotation-aware (90/270 swap w and d). This is what the Room Designer's 2D plan (`cx = gx*10+5`)
+ * and its 3D voxel (`ox = gx+0.5-W/2`) have always drawn, what clampFootprint / nudge / slideAlongWall assume, and —
+ * since R5 — what the whole-house plan (projectPlaced), the house voxel (objects3d) and the default packer use too.
+ * Before R5 the house views used a TOP-LEFT convention ([gx, gx+w]), so the same bed sat 0.5-w/2 ft apart in the two
+ * views ("2D plan ⇄ 3D voxel must MIRROR"). Pure.
+ */
+export function worldSpan(o: PlacedObject): { x1: number; y1: number; x2: number; y2: number; w: number; d: number } {
   const fp = footprintOf(o);
-  return { x: rx + (o.gx / roomFt) * rw, y: ry + (o.gy / roomFt) * rh, w: (fp.w / roomFt) * rw, h: (fp.d / roomFt) * rh };
+  const swap = o.rot === 90 || o.rot === 270;
+  const w = swap ? fp.d : fp.w, d = swap ? fp.w : fp.d;
+  const cx = o.gx + 0.5, cy = o.gy + 0.5;
+  return { x1: cx - w / 2, y1: cy - d / 2, x2: cx + w / 2, y2: cy + d / 2, w, d };
+}
+
+/** Project a placed object's footprint into a room rectangle (rx,ry,rw,rh) on the whole-house plan so the 2D floor
+ * plan / voxel model what's ACTUALLY inside each room, not a generic placeholder (operator IMG_7568/7569). Pure;
+ * centre-of-cell convention (worldSpan). */
+export function projectPlaced(o: PlacedObject, rx: number, ry: number, rw: number, rh: number, roomFt = ROOM_GRID): { x: number; y: number; w: number; h: number } {
+  const sp = worldSpan(o);
+  return { x: rx + (sp.x1 / roomFt) * rw, y: ry + (sp.y1 / roomFt) * rh, w: (sp.w / roomFt) * rw, h: (sp.d / roomFt) * rh };
 }
 
 /** Standard window sill height above finished floor (ft) — the default off-ground for a window. */
@@ -384,7 +401,11 @@ export function shapePartsOf(kind: ObjectKind): ShapePart[] { return SHAPE_PARTS
  */
 export const ROOM_ASSETS_VERSION = 1;
 export const ROOM_ASSETS: Record<string, ObjectKind[]> = {
-  M: ["bed", "nightstand", "dresser", "wardrobe", "tv", "chair", "mirror", "lamp", "rug"], // Master Bedroom
+  // HI DECISION (Room Designer decision card → PROCEED · Layout A · simplify S1 · "No dresser; place that in other room.
+  // Table / vanity with mirror works"): NO dresser, NO wardrobe in the Master Bedroom — clothes live in the Master Closet
+  // (C, below, which lists both); a desk (the table/vanity) + wall mirror instead. R-CORE-locked by
+  // tests/room-standard-layout.test.mjs — re-admitting either kind here fails the build (operator: "stop reverting").
+  M: ["bed", "nightstand", "desk", "tv", "chair", "mirror", "lamp", "rug"], // Master Bedroom
   B: ["toilet", "tub", "shower", "sink", "mirror", "shelving"],       // Master Bath
   C: ["wardrobe", "dresser", "closetrod", "shelving", "shoerack", "mirror"], // Master Closet (FIX-9)
   L: ["sofa", "tv", "table", "chair", "bookshelf", "rug", "lamp"],    // Living Room
@@ -410,11 +431,14 @@ export function paletteForRoom(roomKey: string): ObjectKind[] {
 /**
  * IMG-02 (operator 2026-10-24): a room's DEFAULT furniture must SHOW when you enter it (it was vanishing) and the
  * 2D plan ⇄ 3D voxel must MIRROR. The fix is one source: a room with no saved objects falls back to THIS deterministic
- * default layout — its ROOM_ASSETS laid out left→right, top→bottom on the 10×10 grid with 1-ft gaps. Pure, no
- * Math.random (replay law): identical room key → identical objects, so the 2D plan, the 3D voxel, and the entered
- * designer all render the same furniture. On the first edit the designer commits the full set, so it persists.
+ * default layout — a DECIDED standard layout when the room has one (STANDARD_LAYOUTS — the Master Bedroom's Layout A,
+ * R5), else its ROOM_ASSETS packed on the 10×10 grid. Pure, no Math.random (replay law): identical room key →
+ * identical objects, so the 2D plan, the 3D voxel, and the entered designer all render the same furniture. On the
+ * first edit the designer commits the full set, so it persists.
  */
 export function defaultObjectsForRoom(roomKey: string): PlacedObject[] {
+  const std = standardLayoutFor(roomKey);
+  if (std) return std;
   const kinds = ROOM_ASSETS[roomKey] ?? [];
   // AsM-caught (Thoth BLOCKER): a row packer dropped the Master Bedroom's small items after the 6'-deep bed, which
   // re-triggered the "defaults vanish" HOLD. Use a greedy OCCUPANCY-GRID packer instead: place the biggest footprints
@@ -435,15 +459,49 @@ export function defaultObjectsForRoom(roomKey: string): PlacedObject[] {
     let done = false;
     for (let y = 0; y <= N - it.d && !done; y++) for (let x = 0; x <= N - it.w && !done; x++) {
       if (!freeAt(x, y, it.w, it.d)) continue;
-      // Place the footprint TOP-LEFT-aligned to the free cell (projectPlaced / objects3d render a footprint as
-      // [gx, gx+fw]×[gy, gy+fd]), so it sits exactly inside its reserved ceil-cell block and can NEVER poke into a
-      // neighbour. All items fit with zero overlap (verified over all nine rooms, top-left geometry).
-      objs = [...objs, { id: nextId(objs, it.kind), kind: it.kind, gx: x, gy: y, rot: 0 }];
+      // Place the footprint inside its reserved ceil-cell block [x, x+fw]×[y, y+fd] — in the ONE centre-of-cell
+      // convention (worldSpan: centre = g+0.5) that is gx = x + fw/2 - 0.5 — so it can NEVER poke into a neighbour
+      // or through a wall in ANY view (the designer's own 2D/3D, the house plan, the house voxel). Zero overlap over
+      // all nine rooms (tests/room-objects.test.mjs). Half-foot coordinates are legal (the guard keeps finite numbers).
+      objs = [...objs, { id: nextId(objs, it.kind), kind: it.kind, gx: r2(x + it.fw / 2 - 0.5), gy: r2(y + it.fd / 2 - 0.5), rot: 0 }];
       for (let j = y; j < y + it.d; j++) for (let i = x; i < x + it.w; i++) occ[j][i] = true;
       done = true;
     }
   }
   return objs;
+}
+const r2 = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * R5 (2026-10-31) — STANDARD LAYOUTS: a room whose default furniture is DECIDED, not packed. The operator's Room
+ * Designer decision card (PROCEED · Layout A · simplify S1 · "No dresser; place that in other room. Table / vanity with
+ * mirror works"), repeated on 2026-10-30 ("stop reverting; this is why you have R-Core: we already said this is too
+ * busy"). One source for the Master Bedroom; the packer stays the fallback for every other room. Centre-of-cell
+ * coordinates (worldSpan), 10×10 ft, N = top (gy 0), the room's EXTERIOR walls at N and W (M sits at row 0 · col 0 of
+ * the 3×3), the entry door on the S wall from the Living Room:
+ *   bed 5×6 head on the N wall, centred (x 2.5–7.5 · y 0–6) · two nightstands flanking the head · the desk (table /
+ *   vanity) 2×4 against the W wall with the wall mirror above it (elev 3 ft) · a 6×4 rug at the foot of the bed ·
+ *   TWO windows on the exterior walls (N over the right nightstand · W beside the bed; 3-ft sill) · the door on the S
+ *   wall clear of the vanity. tv · chair · lamp stay in the palette (ROOM_ASSETS.M) but are NOT placed — "too busy".
+ * Pure + deterministic (replay law). R-CORE-locked by tests/room-standard-layout.test.mjs.
+ */
+export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
+  M: [
+    { id: "bed-1",        kind: "bed",        gx: 4.5, gy: 2.5, rot: 0 },            // centre (5, 3) · x 2.5–7.5 · y 0–6
+    { id: "nightstand-1", kind: "nightstand", gx: 1,   gy: 0.5, rot: 0 },            // left of the head · x 0.75–2.25
+    { id: "nightstand-2", kind: "nightstand", gx: 8,   gy: 0.5, rot: 0 },            // right of the head · x 7.75–9.25
+    { id: "desk-1",       kind: "desk",       gx: 0.5, gy: 5.5, rot: 90 },           // the table/vanity on the W wall · x 0–2 · y 4–8
+    { id: "mirror-1",     kind: "mirror",     gx: 0,   gy: 5.5, rot: 90, elev: 3 },  // the wall mirror above the vanity
+    { id: "rug-1",        kind: "rug",        gx: 6,   gy: 7.5, rot: 0 },            // at the foot of the bed · x 3.5–9.5 · y 6–10
+    { id: "window-1",     kind: "window",     gx: 8,   gy: 0,   rot: 0 },            // N (exterior) · over the right nightstand
+    { id: "window-2",     kind: "window",     gx: 0,   gy: 2.5, rot: 90 },           // W (exterior) · beside the bed
+    { id: "door-1",       kind: "door",       gx: 1,   gy: 9,   rot: 0 },            // S wall · from the Living Room · clear of the vanity
+  ],
+};
+/** The decided layout for a room key (a fresh copy), or null when the room has none (→ the packer). */
+export function standardLayoutFor(roomKey: string): PlacedObject[] | null {
+  const l = STANDARD_LAYOUTS[roomKey];
+  return l ? l.map((o) => ({ ...o })) : null;
 }
 
 /**
@@ -486,7 +544,14 @@ export function countKind(objs: PlacedObject[], kind: ObjectKind): number {
  * deterministic; applying the same axis twice returns the original layout (involution → replay-safe).
  */
 export function mirrorObjects(objs: PlacedObject[], axis: "h" | "v"): PlacedObject[] {
-  return objs.map((o) => axis === "h"
-    ? { ...o, gx: clampCell(ROOM_GRID - 1 - o.gx) }
-    : { ...o, gy: clampCell(ROOM_GRID - 1 - o.gy) });
+  // R5 (AsM-caught): footprint-aware and NOT rounded — a half-foot centre (the standard layout's bed at gx 4.5, the
+  // vanity at 0.5) mirrors to its exact twin and stays inside the room; clampCell's Math.round pushed the mirrored
+  // vanity through the far wall and the bed ½ ft off-centre on the first Mirror.
+  return objs.map((o) => {
+    const fp = footprintOf(o);
+    const c = axis === "h"
+      ? clampFootprint(ROOM_GRID - 1 - o.gx, o.gy, fp.w, fp.d, o.rot, false)
+      : clampFootprint(o.gx, ROOM_GRID - 1 - o.gy, fp.w, fp.d, o.rot, false);
+    return { ...o, gx: c.gx, gy: c.gy };
+  });
 }

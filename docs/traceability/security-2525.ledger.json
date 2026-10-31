@@ -1,6 +1,6 @@
 {
  "section": "Security-2525",
- "route": "/main/Security-2525",
+ "route": "/Security-2525",
  "note": "Append-only Vision 2525 traceability for the SECURITY-2525 Autonomous Command Network surface. rev monotonic; append, never edit. Opened 2026-09-25 (R-CORE Stage 2, operator ask docs/asks/2026-09-25_rcore_button_revision_tracking.md). Seeded from real reachable commits on components/security-2525/command-ux1.tsx + mission-planning.tsx; this shallow history reaches back to ef8b1c3 (2026-08-28), which is the earliest commit that touched the surface in the clone, not necessarily its creation.",
  "entries": [
   {

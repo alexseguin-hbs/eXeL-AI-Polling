@@ -1,6 +1,6 @@
 {
  "section": "Architect-2525",
- "route": "/main/Architect-2525",
+ "route": "/Architect-2525",
  "note": "Append-only Vision 2525 traceability for the ARCHITECT-2525 Construction Coordination command shell (components/architect-2525/command-ux1.tsx). rev monotonic; append, never edit. Opened 2026-09-25 (R-CORE Stage 2) for family uniformity across the 2525 surfaces. Seeded from real reachable commits; earliest reachable is ef8b1c3 (2026-08-28), the shallow-clone floor that touched the surface, not necessarily its creation.",
  "entries": [
   {
@@ -30,6 +30,62 @@
    "kind": "decision",
    "text": "R-CORE version-history badge mounted on ARCHITECT-2525 (Stage 2), for family uniformity across the 2525 surfaces: the bottom-centre two-click badge opens the R-CORE · Version History compare panel over this surface's own append-only ledger (operator 2026-09-25).",
    "commit": ""
+  },
+  {
+   "rev": 5,
+   "date": "2026-10-29",
+   "kind": "release",
+   "text": "Simulate v4 (Part 1) — every build-option card prices Material + Labor + Markup from one engine (lib/architect-sim-options.ts); Frame/CAD terms; frame materials wood · steel-corners · all-steel; the Tiny Home at the standard THOW size; forms COMPARE with the 13-sim ★ rating. Shipped 7b37095f1.",
+   "commit": "7b37095f1"
+  },
+  {
+   "rev": 6,
+   "date": "2026-10-29",
+   "kind": "release",
+   "text": "Simulate v4 (Part 2) — the pipeline architecture Draft → Revit → Unity/Unreal drawn on the surface, with the canonical export seam (writers to follow). Shipped 774343afd.",
+   "commit": "774343afd"
+  },
+  {
+   "rev": 7,
+   "date": "2026-10-29",
+   "kind": "release",
+   "text": "Simulate v4 — the card total reconciles with the Material/Labor/Markup waterfall: costFor = costRollup.total, one number everywhere. Shipped ce5006612.",
+   "commit": "ce5006612"
+  },
+  {
+   "rev": 8,
+   "date": "2026-10-29",
+   "kind": "release",
+   "text": "Simulate v4 — cost reconciles to the penny (48-AsM fleet fix): six elements (Foundation · Framing · Electrical · Plumbing · HVAC · Roofing) + an Other remainder = the headline = the waterfall; Volunteer → 0% markup in one tap for the ~$40k Tiny; the redundant Area line dropped. Shipped 2bd5cb3c8.",
+   "commit": "2bd5cb3c8"
+  },
+  {
+   "rev": 9,
+   "date": "2026-10-30",
+   "kind": "release",
+   "text": "Simulate v4 R3 — the full 48-AsM fleet's demo-blockers: stacked M/L/Markup element bars, pipeline LIVE/DECLARED honesty with the concrete print toolpath, THOW trailer/chassis terms. Shipped 6d85b4cec.",
+   "commit": "6d85b4cec"
+  },
+  {
+   "rev": 10,
+   "date": "2026-10-30",
+   "kind": "release",
+   "text": "The 48-AsM fleet + Master-of-Thought record of the Simulate v4 review (SHA ce5006612) persisted at docs/assessments/2026-10-29_architect2525_simv4_fleet48_mot.md. Shipped 8d0ef6a12.",
+   "commit": "8d0ef6a12"
+  },
+  {
+   "rev": 11,
+   "date": "2026-10-30",
+   "kind": "release",
+   "text": "R4 — real market cost (operator SAVE-FEEDBACK on Simulate v4: APPROVE WITH CHANGES — \"Cube cost seems high; UX IS WAY BETTER\", \"ensure costs are real market costs\"): DEFAULT_SECTIONS recalibrated to $240,000 (≈$267/ft², the ICON-market target he chose); a $/ft² readout on every card; the Tiny holds ~$40k through a fixed Trailer & appliances floor (fixedUsd, reconciled as its own row); labor $ = hours × rate shown (laborHoursFor · laborRateFor, ~$28/hr). Tests re-pinned (architect-estimate 240000; architect-sim-options 234/0). Shipped 82debfc45.",
+   "commit": "82debfc45"
+  },
+  {
+   "rev": 12,
+   "date": "2026-10-30",
+   "kind": "decision",
+   "text": "HI decisions taken on the Simulate v4 feedback and the SoI-2525 direction (AskUserQuestion, persisted at docs/asks/2026.10.30_22.09..33_architect2525_hi_decisions_r4_r5.md): (1) the Cube's target is ~$240k (his words: ≈$265/ft², the ICON market; $240,000 ÷ 900 ft² computes to $267/ft², the figure the card shows) — executed by 82debfc45; (2) the volunteer Tiny keeps ~$40k through a fixed trailer + appliance floor — executed by 82debfc45; (3) the Site map pin marks the Abuja pilot site; (4) design-first is a methods × (cost · time · elements) matrix — Frame · Steel · Concrete · 3D-print side by side BEFORE a build method is chosen (R7); (5) the pilots Austin · Mexico City · Abuja are example data on the Architect project only — the Atlantis Accord is NOT touched (\"no need to update atlantis accords; this is example\"). On R4 itself (APPROVE WITH CHANGES): \"$240 is good target price\"; \"Material cost must be covered\" → \"Costs should always include minimally full hours of staff needed to complete the job. Upside is if we have volunteers. Never make materials zero\" (R6); \"ensure no disconnects from this and rest of architect 2525\" (R6, one cost truth); the \"3 → 6 decisions\" remark was an observation only.",
+   "commit": "82debfc45"
   }
  ]
 }

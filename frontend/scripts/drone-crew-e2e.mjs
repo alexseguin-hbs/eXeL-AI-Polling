@@ -79,7 +79,7 @@ async function launch() {
 }
 
 const CODE = "CREW77";
-const url = (seat) => `http://127.0.0.1:${PORT}/main/Drone-2525/?crew=${CODE}&seat=${seat}`;
+const url = (seat) => `http://127.0.0.1:${PORT}/drone-2525/?crew=${CODE}&seat=${seat}`;
 const txt = async (p, sel) => ((await p.locator(sel).first().count()) ? ((await p.locator(sel).first().textContent()) ?? "").replace(/\s+/g, " ").trim() : null);
 const has = async (p, sel) => (await p.locator(sel).count()) > 0;
 

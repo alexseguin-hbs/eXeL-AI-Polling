@@ -1,6 +1,6 @@
 // Single source of truth for the SoI Trinity spectrum palette.
 // Infrared → ROYGBIV → Ultraviolet → White, even hue steps, Settings-anchored.
-// Referenced by BOTH the home page (/main) and the Divinity Guide so the two
+// Referenced by BOTH the home page (/) and the Divinity Guide so the two
 // can never drift apart (R-CORE: stable shared contract, reuse not restate).
 export const TRINITY_COLORS = {
   human: "#8B0000",         // Infrared (deep red, below visible red)

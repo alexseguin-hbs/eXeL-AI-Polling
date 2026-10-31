@@ -370,7 +370,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             </div>
             {sub("Design") === "Site" ? <ArchitectSkySun /> : null}
             {/* Sky = the Celestial-2525 MASTER, embedded via iframe (operator: one master design, no code
-                repurposing). Any celestial iteration lands in /main/Celestial-2525 and flows here for free. */}
+                repurposing). Any celestial iteration lands in /Celestial-2525 and flows here for free. */}
             {sub("Design") === "Sky" ? <SkyCelestialEmbed /> : null}
             {sub("Design") === "Compare" ? (
               <div className="flex flex-col gap-2">

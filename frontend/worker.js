@@ -134,11 +134,21 @@ export default {
       // malformed percent-encoding — do not block; let ASSETS handle it
     }
 
+    // --- /main is never used (operator 2026-10-30: "/main/Architect-2525/ must post to /Architect-2525/. Main should
+    // never be used anywhere. /main is the same as the site root"). ONE permanent redirect, before the asset fetch
+    // (run_worker_first guarantees it runs): /main → /, /main/<x> → /<x>, query string preserved (Drone ?crew= / ?si=
+    // links), so every old link, ledger route and whitepaper URL lands on the canonical route. Never loops: the
+    // target never starts with /main. Gated by tests/main-redirect.test.mjs.
+    if (url.pathname === "/main" || url.pathname.startsWith("/main/")) {
+      const rest = url.pathname.slice("/main".length);
+      return Response.redirect(url.origin + (rest === "" || rest === "/" ? "/" : rest) + url.search, 301);
+    }
+
     // --- Site pause kill-switch (fails OPEN on any error) ---
     try {
       if (await isPaused(env)) {
         const p = url.pathname;
-        const isHome = p === "/" || p === "/main" || p === "/main/" || p.startsWith("/main/");
+        const isHome = p === "/";
         const isAsset = p.startsWith("/_next/") || /\.[a-z0-9]+$/i.test(p);
         if (!isHome && !isAsset) {
           const res = await env.ASSETS.fetch(new URL("/paused.html", url.origin));
@@ -177,7 +187,7 @@ export default {
       // every document revalidates before reuse — three times the operator was shown a page older than the
       // one the site served (the living document r143, the operator deck r.202, R-CORE 2026.10.17)
       if (isDocument) headers.set("Cache-Control", "no-cache, must-revalidate");
-      if (isSensorFusion) headers.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=()");
+      if (isSensorFusion) headers.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(self)");
       return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers });
     }
     return asset;

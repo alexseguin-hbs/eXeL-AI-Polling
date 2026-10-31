@@ -15,7 +15,7 @@ ok(/sub\("Design"\)\s*===\s*"Sky"\s*\?\s*<SkyCelestialEmbed/.test(ux), "Designâ†
 
 const emb = fs.readFileSync(path.join(ROOT, "components/architect-2525/sky-celestial-embed.tsx"), "utf8");
 ok(/data-sky-celestial-embed/.test(emb), "embed carries the data-sky-celestial-embed hook (SPIRAL #A67)");
-ok(/src="\/main\/Celestial-2525\/"/.test(emb), "iframe src = /main/Celestial-2525/ (the master)");
+ok(/src="\/Celestial-2525\/"/.test(emb), "iframe src = /Celestial-2525/ (the master)");
 ok(/<iframe/.test(emb), "renders an <iframe> (no code repurposing)");
 
 console.log(`\nSKY-EMBED ${pass}/${pass + fail} passed`);

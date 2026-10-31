@@ -79,6 +79,18 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // S1 — the wall a dragged door/window is LOCKED to, captured at grab so it SLIDES along that wall (never jumps
   // to a nearer edge mid-drag). Cleared on release. null = not dragging a wall object.
   const dragWall = useRef<Wall | null>(null);
+  // R5 — SIMPLE by default (HI decision, Room Designer decision card: simplify S1; repeated 2026-10-30 "we already said
+  // this is too busy"). Simple = ONE pane (2D/3D toggle · rotate · reset) + the palette + the Elements list with
+  // Size/Rotate/Delete — the Mission-Planning arm→tap→auto-disarm loop. "⚙ Advanced" reveals the CAD chrome:
+  // dimension callouts + keypad, 3D height rails, the second pane / floating mini + North-lock, mirror H/V, the nudge
+  // pad, the BOM quote and the guided demo. Persisted; MEP overlays stay driven by Design Settings (an explicit choice).
+  // R-CORE-locked by tests/room-standard-layout.test.mjs (Simple must stay the default).
+  const [simpleMode, setSimpleMode] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    try { return localStorage.getItem("arch2525.roomSimple") !== "0"; } catch { return true; }
+  });
+  const setSimple = (v: boolean) => { setSimpleMode(v); try { localStorage.setItem("arch2525.roomSimple", v ? "1" : "0"); } catch {} };
+  const advanced = !simpleMode;
   // S0 — layout mode: STACKED (top+bottom panes) ⇄ FLOATING (main + draggable mini). Persisted (operator IMG_7521).
   const [layoutMode, setLayoutMode] = useState<"stacked" | "floating">(() => {
     if (typeof window === "undefined") return "stacked";
@@ -346,7 +358,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           })}
           {/* S5 — CAD dimension callouts for the selected/dragged object (O.C. · R.O. · AFF, feet-inches). Interactive
               pane only; witness lines + labels rotate with the plan. Vendors build each room to a published standard. */}
-          {interactive && sel && (() => {
+          {interactive && advanced && sel && (() => {
             const fp = footprintOf(sel);
             const ann = annotateObject(sel, { ...OBJECT_SPEC[sel.kind], h: heightOf(sel) }, fp);
             const onWall = OBJECT_SPEC[sel.kind].onWall;
@@ -425,6 +437,22 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
               </g>
             );
           })()}
+          {/* R5 — the NAME BADGE in SIMPLE mode too (the CAD callouts above are Advanced-only): the moment an element is
+              tapped, say WHAT IT IS right on it (operator 2026-10-25). Same badge, re-homed outside the callouts. */}
+          {interactive && sel && simpleMode && (() => {
+            const vlab = VARIANTS[sel.kind]?.find((v) => v.id === sel.variant)?.label;
+            const name = `${vlab ? vlab + " " : ""}${OBJECT_SPEC[sel.kind].label}`;
+            const cxN = sel.gx * 10 + 5, cyN = sel.gy * 10 + 5;
+            const halfW = name.length * 0.98 + 2;
+            const bx = Math.max(1 + halfW, Math.min(99 - halfW, cxN));
+            const by = Math.max(6, Math.min(94, cyN));
+            return (
+              <g data-arch-roomobj-name style={{ pointerEvents: "none" }}>
+                <rect x={bx - halfW} y={by - 3} width={halfW * 2} height={5.6} rx={1.3} fill="#0a0f16f2" stroke={C.gold} strokeWidth={0.5} />
+                <text x={bx} y={by + 1} fontSize={3.5} fontWeight={700} fill={C.gold} textAnchor="middle" stroke="#070b12" strokeWidth={0.6} style={{ paintOrder: "stroke" }}>{name}</text>
+              </g>
+            );
+          })()}
         </g>
       </svg>
       <Compass2525 bearing={(bear * Math.PI) / 180} onNorth={() => setBear(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
@@ -434,13 +462,13 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           className="absolute bottom-1.5 right-1.5 z-10 rounded border px-1.5 py-0.5 text-[9px] font-semibold"
           style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16cc" }}>{zoom2d.toFixed(1)}× ⟲</button>
       )}
-      <button data-arch-room-link onClick={() => setLink(!linkView)} title={linkView ? "North LOCKED — top & mini rotate together (tap to unlock)" : "Lock North — rotate top & mini together (mirror)"}
+      {advanced && <button data-arch-room-link onClick={() => setLink(!linkView)} title={linkView ? "North LOCKED — top & mini rotate together (tap to unlock)" : "Lock North — rotate top & mini together (mirror)"}
         className="absolute right-1.5 top-1.5 z-10 rounded border p-0.5" style={{ borderColor: linkView ? C.cyan : C.border, color: linkView ? C.cyan : C.dim, background: "#0a0f16cc" }}>
         {linkView ? <Link2 className="h-3 w-3" /> : <Link2Off className="h-3 w-3" />}
-      </button>
+      </button>}
       {/* FIX-5b/5c — numeric dimension entry (click a ✎ dimension → type an exact value in feet-inches). Editing a
           gap moves the object so the OTHER gap re-derives; size snaps to nearest standard; O.C. sets exact centre. */}
-      {interactive && sel && dimEntry && (() => {
+      {interactive && advanced && sel && dimEntry && (() => {
         const applyDim = () => {
           const v = parseFeet(dimVal);
           if (v != null) {
@@ -559,7 +587,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           {/* 3D HEIGHT dimension — a vertical callout on the SELECTED object showing its height, tappable to adjust
               (operator: "make 3D have height of object dimensions similar to 2D for adjusting items like height of
               window"). Reuses the same feet-inches keypad via startDimEdit. */}
-          {sel && (() => {
+          {advanced && sel && (() => {
             const o = objects.find((x) => x.id === selId); if (!o) return null;
             const fp = footprintOf(o); const swap = o.rot === 90 || o.rot === 270;
             const W = swap ? fp.d : fp.w, D = swap ? fp.w : fp.d;
@@ -621,10 +649,10 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           })}
         </svg>
         <Compass2525 bearing={vcam.bearing} onNorth={() => vcam.setBearing(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
-        <button data-arch-room-link onClick={() => setLink(!linkView)} title={linkView ? "North LOCKED — top & mini rotate together (tap to unlock)" : "Lock North — rotate top & mini together (mirror)"}
+        {advanced && <button data-arch-room-link onClick={() => setLink(!linkView)} title={linkView ? "North LOCKED — top & mini rotate together (tap to unlock)" : "Lock North — rotate top & mini together (mirror)"}
           className="absolute right-1.5 top-1.5 z-10 rounded border p-0.5" style={{ borderColor: linkView ? C.cyan : C.border, color: linkView ? C.cyan : C.dim, background: "#0a0f16cc" }}>
           {linkView ? <Link2 className="h-3 w-3" /> : <Link2Off className="h-3 w-3" />}
-        </button>
+        </button>}
         <div className="pointer-events-none absolute bottom-1 left-1.5 text-[7px]" style={{ color: C.dim }}>{t("arch.room.navHint3d")}</div>
       </div>
     );
@@ -657,11 +685,13 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
       ) : (
         <button onClick={onReset} title={t("arch.room.resetView")} className="shrink-0 rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.dim }}>{t("vision.ctrl.reset")}</button>
       )}
-      {/* S8 — MIRROR is a DATA op (affects 2D + 3D from one source), so it's shown in BOTH view modes on every pane */}
-      <button onClick={() => commit(mirrorObjects(objects, "h"))} title={t("arch.room.mirrorHorizontal")} className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Columns2 className="h-3 w-3" /></button>
-      <button onClick={() => commit(mirrorObjects(objects, "v"))} title={t("arch.room.mirrorVertical")} className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Rows2 className="h-3 w-3" /></button>
-      <span className="shrink-0 font-semibold" style={{ color: C.dim }}>{t("vision.rcore")}</span>
-      {RCORE_LANES.map((l) => <span key={l.key} title={l.def} className="shrink-0 rounded px-1 font-semibold" style={{ color: l.color }}>{l.label}</span>)}
+      {/* S8 — MIRROR is a DATA op (affects 2D + 3D from one source), so it's shown in BOTH view modes on every pane (Advanced) */}
+      {advanced && <>
+        <button onClick={() => commit(mirrorObjects(objects, "h"))} title={t("arch.room.mirrorHorizontal")} className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Columns2 className="h-3 w-3" /></button>
+        <button onClick={() => commit(mirrorObjects(objects, "v"))} title={t("arch.room.mirrorVertical")} className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Rows2 className="h-3 w-3" /></button>
+        <span className="shrink-0 font-semibold" style={{ color: C.dim }}>{t("vision.rcore")}</span>
+        {RCORE_LANES.map((l) => <span key={l.key} title={l.def} className="shrink-0 rounded px-1 font-semibold" style={{ color: l.color }}>{l.label}</span>)}
+      </>}
     </div>
   );
   // Interior palette (shared between both layout modes) — sits between the panes (stacked) / below (floating).
@@ -695,33 +725,52 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         <button data-arch-roomdesign-back onClick={onBack} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← {t("vision.nav.backToHouse")}</button>
         <span className="text-[11px] font-bold" style={{ color: C.gold }}>{room.k} · {room.label}</span>
         <span className="text-[9px]" style={{ color: C.dim }}>10′×10′ · {t("arch.room.tapAToolHint")}</span>
+        {/* R5 — SIMPLE (default) ⇄ ⚙ ADVANCED: the CAD chrome is opt-in (HI decision S1, "too busy") */}
+        <button data-arch-room-simple={simpleMode ? "1" : "0"} onClick={() => setSimple(!simpleMode)}
+          className="ml-auto flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold"
+          style={{ borderColor: advanced ? C.violet : C.border, color: advanced ? C.violet : C.dim }}
+          title={advanced ? "Advanced: dimensions, second pane, mirror, nudge pad, BOM, demo — tap for Simple" : "Simple — tap for ⚙ Advanced (dimensions, second pane, mirror, nudge, BOM, demo)"}>
+          {advanced ? t("arch.room.advanced") : t("arch.room.simple")}
+        </button>
+        {/* FIX-C — explanations for the non-simple areas (operator: intuitive + get explanations) */}
+        <button data-arch-help onClick={() => setHelpOpen((h) => !h)} className="rounded-full border px-1.5 text-[10px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }} title={t("arch.room.helpTitle")}>?</button>
         {/* UNDO — reverse the last placement/move/edit (operator: "undo button for ensuring multiple items are unplaced") */}
         <button data-arch-roomdesign-undo onClick={undo} disabled={history.length === 0}
-          className="ml-auto flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold disabled:opacity-40"
+          className="flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold disabled:opacity-40"
           style={{ borderColor: history.length ? C.gold : C.border, color: history.length ? C.gold : C.dim }}
           title={`${t("vision.ctrl.undo")}${history.length ? ` (${history.length})` : ""}`}>
           <Undo2 className="h-3 w-3" /> {t("vision.ctrl.undo")}{history.length ? ` ${history.length}` : ""}
         </button>
-        {/* FIX-C — explanations for the non-simple areas (operator: intuitive + get explanations) */}
-        <button data-arch-help onClick={() => setHelpOpen((h) => !h)} className="rounded-full border px-1.5 text-[10px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }} title={t("arch.room.helpTitle")}>?</button>
       </div>
       {helpOpen && (
         <div data-arch-help-panel className="rounded border p-2 text-[10px] leading-relaxed" style={{ borderColor: C.cyan, background: "#070b12", color: C.text }}>
           <div className="mb-1 font-bold" style={{ color: C.cyan }}>{t("arch.room.helpHeading")}</div>
           <ul className="ml-3 list-disc space-y-0.5" style={{ color: C.dim }}>
             <li><span style={{ color: C.text }}>Place:</span> {t("arch.room.helpPlace")}</li>
-            <li><span style={{ color: C.text }}>Move:</span> {t("arch.room.helpMove1")} <span style={{ color: C.text }}>{t("arch.room.helpNudgePad")}</span> {t("arch.room.helpMoveStep")}</li>
-            <li><span style={{ color: C.text }}>Resize:</span> tap <span style={{ color: C.violet }}>Size</span> {t("arch.room.helpResize1")} <span style={{ color: C.cyan }}>dimension ✎</span> {t("arch.room.helpResize2")}</li>
+            {advanced
+              ? <li><span style={{ color: C.text }}>Move:</span> {t("arch.room.helpMove1")} <span style={{ color: C.text }}>{t("arch.room.helpNudgePad")}</span> {t("arch.room.helpMoveStep")}</li>
+              : <li><span style={{ color: C.text }}>Move:</span> {t("arch.room.helpMoveSimple")}</li>}
+            {advanced && <li><span style={{ color: C.text }}>Resize:</span> tap <span style={{ color: C.violet }}>Size</span> {t("arch.room.helpResize1")} <span style={{ color: C.cyan }}>dimension ✎</span> {t("arch.room.helpResize2")}</li>}
             <li><span style={{ color: C.text }}>Doors &amp; windows</span> {t("arch.room.helpDoors")}</li>
             <li><span style={{ color: C.text }}>Systems:</span> {t("arch.room.helpSystems")}</li>
-            <li><span style={{ color: C.text }}>{t("arch.room.helpBomLabel")}</span> {t("arch.room.helpBom")}</li>
+            {advanced && <li><span style={{ color: C.text }}>{t("arch.room.helpBomLabel")}</span> {t("arch.room.helpBom")}</li>}
             <li><span style={{ color: C.text }}>Views:</span> {t("arch.room.helpViews")}</li>
           </ul>
         </div>
       )}
 
-      {/* STACKED (two independent panes, top+bottom) ⇄ FLOATING (main + draggable mini) — operator IMG_7521 */}
-      {layoutMode === "stacked" ? (
+      {/* R5 SIMPLE — one pane (2D ⇄ 3D) + the palette, nothing else. */}
+      {simpleMode ? (
+        <div className="flex flex-col gap-2">
+          <div className="relative">
+            {paneHeader(mainView, setMainView, rot2d, cam.reset)}
+            {mainView === "2D" ? plan2D(bearing2d, setBearing2d, true) : voxel3D(cam)}
+          </div>
+          {paletteEl}
+        </div>
+      ) :
+      /* STACKED (two independent panes, top+bottom) ⇄ FLOATING (main + draggable mini) — operator IMG_7521 (Advanced) */
+      layoutMode === "stacked" ? (
         <div className="flex flex-col gap-2">
           {/* TOP pane — interactive editor */}
           <div className="relative">
@@ -817,7 +866,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                 <button data-arch-roomobj-rotate onClick={() => commit(rotateObject(objects, sel.id))} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /> Rotate</button>
                 <button data-arch-roomobj-delete onClick={() => { commit(removeObject(objects, sel.id)); setSelId(null); }} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: "#f87171" }}><Trash2 className="h-3 w-3" /> Delete</button>
                 {/* FIX-B — spatial nudge pad (arrows + ft/in step), Mission-Planning asset-planning style */}
-                <span data-arch-nudge className="flex items-center gap-0.5 rounded border px-1 py-0.5" style={{ borderColor: C.border }} title={`Nudge the selected item by the chosen step; tap the step to change 1" / 6" / 1'`}>
+                {advanced && <span data-arch-nudge className="flex items-center gap-0.5 rounded border px-1 py-0.5" style={{ borderColor: C.border }} title={`Nudge the selected item by the chosen step; tap the step to change 1" / 6" / 1'`}>
                   <button data-arch-nudge-step onClick={() => setNudgeIx((i) => (i + 1) % NUDGE_STEPS_FT.length)} className="rounded px-1 text-[9px] font-bold tabular-nums" style={{ color: C.gold }}>{NUDGE_STEPS_FT[nudgeIx].label}</button>
                   {(() => { const step = NUDGE_STEPS_FT[nudgeIx].ft; return (<>
                     <button data-arch-nudge-up onClick={() => commit(nudgeObject(objects, sel.id, 0, -step))} title={t("arch.room.moveUp")} className="rounded p-0.5" style={{ color: C.cyan }}><ArrowUp className="h-3 w-3" /></button>
@@ -825,7 +874,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                     <button data-arch-nudge-left onClick={() => commit(nudgeObject(objects, sel.id, -step, 0))} title={t("arch.room.moveLeft")} className="rounded p-0.5" style={{ color: C.cyan }}><ArrowLeft className="h-3 w-3" /></button>
                     <button data-arch-nudge-right onClick={() => commit(nudgeObject(objects, sel.id, step, 0))} title={t("arch.room.moveRight")} className="rounded p-0.5" style={{ color: C.cyan }}><ArrowRight className="h-3 w-3" /></button>
                   </>); })()}
-                </span>
+                </span>}
                 <button data-arch-roomobj-deselect onClick={() => setSelId(null)} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.dim }}>Done</button>
                 <span style={{ color: C.dim }}>· {t("arch.room.dragOrNudge")}</span>
               </div>
@@ -836,7 +885,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
 
       {/* FIX-10 — BILL OF MATERIALS: purchasable quote line items. Sits BELOW Active Elements and defaults to a SINGLE
           line (header + count), expandable so it doesn't take the whole screen (operator IMG_7596). */}
-      {objects.length > 0 && (() => {
+      {advanced && objects.length > 0 && (() => {
         const bom = roomBom(objects, outlets);
         return (
           <div data-arch-bom className="rounded border" style={{ borderColor: C.border, background: "#070b12" }}>
@@ -861,7 +910,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
 
       {/* S9 — GUIDED DEMO: a narrated walkthrough of the full capability set (layout→structural→electric→water→
           sewer→HVAC). Read-only narration of the pure runPlaytest() engine; drives no other state. */}
-      <div data-arch-playtest className="rounded border" style={{ borderColor: C.border, background: "#070b12" }}>
+      {advanced && <div data-arch-playtest className="rounded border" style={{ borderColor: C.border, background: "#070b12" }}>
         <button data-arch-playtest-toggle onClick={() => { setDemoOpen((o) => !o); setDemoStep(0); }}
           className="flex w-full items-center justify-between px-2 py-1 text-[10px] font-semibold" style={{ color: C.cyan }}>
           <span>▶ {t("arch.room.guidedDemo")}</span>
@@ -900,7 +949,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             </div>
           );
         })()}
-      </div>
+      </div>}
     </div>
   );
 }

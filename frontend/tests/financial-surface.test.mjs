@@ -16,9 +16,10 @@ const read = (p) => fs.readFileSync(p, 'utf8');
 const strip = (s) => s.replace(/\/\/[^\n]*\n/g, '\n').replace(/\/\*[\s\S]*?\*\//g, '').trim();
 
 // 1 — two routes, one component, identical bodies (the Drone-2525 route pattern)
-const ROUTES = ['app/main/Financial-2525/page.tsx', 'app/financial-2525/page.tsx'];
+// R5 (2026-10-31): /main is never used — the Worker 301s /main/Financial-2525/ → /Financial-2525/ → /financial-2525/; one route.
+const ROUTES = ['app/financial-2525/page.tsx'];
 const bodies = ROUTES.map((r) => { const s = read(r); ok(/^"use client";/.test(s), `${r} is a client page`); ok(/import \{ FinancialCommandUX1 \} from "@\/components\/financial-2525\/command-ux1"/.test(s) && /<FinancialCommandUX1 \/>/.test(s), `${r} mounts the one component`); return strip(s); });
-ok(bodies[0] === bodies[1], 'both route bodies are identical once comments are stripped');
+ok(bodies.length === 1 && bodies[0].length > 0 && !fs.existsSync('app/main'), 'one route body; app/main/ is gone (/main is redirected by the Worker)');
 
 // 2 — the component
 const ux = read('components/financial-2525/command-ux1.tsx');
@@ -92,7 +93,7 @@ const launcher = read('components/vision-2525-launcher.tsx');
 ok(/code: "FINANCIAL-2525"/.test(launcher) && /router\.push\("\/financial-2525"\)/.test(launcher), 'the VISION • 2525 launcher carries the FINANCIAL tile → /financial-2525 (the canonical address, addendum 15; /main/Financial-2525 the alias)');
 
 // 4 — the export emits both routes when out/ exists
-for (const r of ['out/main/Financial-2525/index.html', 'out/financial-2525/index.html']) {
+for (const r of ['out/financial-2525/index.html']) {
   if (!fs.existsSync('out')) { pass++; continue; }
   ok(fs.existsSync(r) && fs.statSync(r).size > 2000, `${r} is exported (> 2 KB)`);
 }
@@ -216,7 +217,7 @@ ok(/\{ key: "calmonth", label: t\("fin\.per_cal_month"\), period: "calmonth" \},
 
 ok(!/cyan/.test(ux), "r.034 (addendum 67 'we stick to color per selector'): no fixed cyan anywhere on the surface — every accent is the theme's primary");
 { const head = ux.slice(ux.indexOf("<header"), ux.indexOf("</header>"));
-  ok(/<a href="\/main\/" data-fin-home aria-label=\{t\("fin\.home"\)\}[\s\S]*?<ExelWordmark /.test(head) && head.indexOf("data-fin-home") < head.indexOf("<SoiGlobe") && head.indexOf("<SoiGlobe") < head.indexOf("data-fin-settings") && /onClick=\{\(\) => setSettingsOpen\(true\)\}/.test(head) && /<ModeratorSettings open=\{settingsOpen\} onClose=\{\(\) => setSettingsOpen\(false\)\}/.test(ux), "r.034 (addendum 67): eXeL AI upper left links to /main; the globe, then the Settings gear, upper right (r.042, addendum 76)"); }
+  ok(/<a href="\/" data-fin-home aria-label=\{t\("fin\.home"\)\}[\s\S]*?<ExelWordmark /.test(head) && head.indexOf("data-fin-home") < head.indexOf("<SoiGlobe") && head.indexOf("<SoiGlobe") < head.indexOf("data-fin-settings") && /onClick=\{\(\) => setSettingsOpen\(true\)\}/.test(head) && /<ModeratorSettings open=\{settingsOpen\} onClose=\{\(\) => setSettingsOpen\(false\)\}/.test(ux), "r.034 (addendum 67): eXeL AI upper left links to /main; the globe, then the Settings gear, upper right (r.042, addendum 76)"); }
 
 ok(!/p\.withdrawable\)/.test(ux) && !/C\.consciousness/.test(ux) && !/t\("fin\.withdrawable"\)/.test(ux), "r.034: no separate Withdrawable stroke or cyan legend word — with no hold it is the Released line; the tap line takes the theme colour");
 

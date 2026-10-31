@@ -90,8 +90,8 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL:', m); } 
   s = issueInvite(s, 'https://x.test/', 'seed', 1000);
   ok(s.invite !== null, 'a roster gets one');
   ok(s.invite.to.length === 1 && s.invite.to[0] === 'a', 'and it names who it was issued to');
-  ok(s.invite.url.includes('/main/Drone-2525/?si=') && s.invite.url.includes(s.invite.code), 'the link carries the code');
-  ok(!s.invite.url.includes('//main'), 'and a trailing slash on the host does not double up');
+  ok(s.invite.url.includes('/drone-2525/?si=') && s.invite.url.includes(s.invite.code), 'the link carries the code');
+  ok(!s.invite.url.includes('//drone'), 'and a trailing slash on the host does not double up');
   ok(s.invite.expiresAtMs === 1000 + INVITE_TTL_MS, `it expires after ${INVITE_TTL_MS / 60000} minutes`);
   ok(inviteLive(s, 2000) && !inviteLive(s, 1000 + INVITE_TTL_MS + 1), 'and it is live until then, and not after');
 

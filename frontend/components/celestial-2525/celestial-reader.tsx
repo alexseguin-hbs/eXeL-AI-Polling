@@ -3,7 +3,7 @@
 /**
  * CELESTIAL-2525 · family/education reader (Vision 2525).
  * =================================================================================================
- * Standalone /main/Celestial-2525 — nieces & nephews learn the solar system. Laid out like the
+ * Standalone /Celestial-2525 — nieces & nephews learn the solar system. Laid out like the
  * Divinity Guide / Atlantis Accord (reused, not recreated): LEFT = the VISUAL SELECTOR (the full
  * celestial map + a 3-circle group navigator that expands to all 12 bodies, the operator's "3 → all");
  * RIGHT = the READING PAGE (a reading-level picker + the selected body's page). Each body is authored

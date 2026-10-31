@@ -1,7 +1,7 @@
 "use client";
 
 // Experiences landing — a polling-style QR that expands with a shareable link to the
-// portfolio (<basePath>/docs). Rendered by both /experiences and /main/experiences so
+// portfolio (<basePath>/docs). Rendered by /experiences (the old /main/experiences address is 301'd there by the Worker) so
 // either URL works. Copy is written to land with hiring managers globally: heart (the
 // person who built real things), mind (evidence), spirit (work in service of more).
 // Reuses QRCodeSVG exactly like app/sim/page.tsx.

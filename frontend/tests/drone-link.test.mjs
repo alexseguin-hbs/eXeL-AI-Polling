@@ -107,8 +107,8 @@ ok(!authored(gimbalMsg({ az: 'left' })).ok, 'an aim that is not a pair of angles
 // ── THE SECOND PERSON'S LINK ────────────────────────────────────────────────────────────────────
 {
   const u = seatUrl('https://x.test/', 'CREW42', 'targeteer');
-  ok(u === 'https://x.test/main/Drone-2525/?crew=CREW42&seat=targeteer', `the link carries the crew and the seat: ${u}`);
-  ok(!u.includes('//main'), 'and a trailing slash on the host does not double up');
+  ok(u === 'https://x.test/drone-2525/?crew=CREW42&seat=targeteer', `the link carries the crew and the seat: ${u}`);
+  ok(!u.includes('//drone'), 'and a trailing slash on the host does not double up');
   const r = seatFromParams('?crew=crew42&seat=pilot');
   ok(r.code === 'CREW42' && r.seat === 'pilot', 'opening it puts that person straight into that seat');
   ok(seatFromParams('?crew=X&seat=captain') === null, 'a seat that does not exist gives no seat, never a default one');

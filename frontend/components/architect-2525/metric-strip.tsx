@@ -8,7 +8,7 @@
  * is hidden." Rendered as a compact overlay on the map by DesignWorkspace when the right rail is
  * collapsed. Values are the deterministic `programMetrics(...).counts` (+ sqft), never re-derived here.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LayoutGrid, Bath, Ruler, Square, DoorOpen, Plug, SlidersHorizontal } from "lucide-react";
 import { programMetrics } from "@/lib/room-program";
 import { BuildingProgram } from "./building-program";
@@ -23,6 +23,10 @@ export function MetricStrip({ state, overlay = false, homeType = "full" }: { sta
   // 3-state view (operator feedback FX-54): tap ••• to cycle  icons+number → icons+number+words → ••• only.
   // "dots" is the minimal footprint so the rail never covers critical UX.
   const [mode, setMode] = useState<"icons" | "words" | "dots">("icons");
+  // R5 (phone capture, 375 px): the overlay strip sat over the room designer's header buttons. On a narrow screen it
+  // starts as ••• — the operator's own FX-54 minimal footprint ("so the rail never covers critical UX"); one tap expands
+  // it. Decided after mount (no SSR/hydration mismatch); wider screens keep the icon strip.
+  useEffect(() => { if (overlay && typeof window !== "undefined" && window.innerWidth < 480) setMode("dots"); }, [overlay]);
   const cycleMode = () => setMode((v) => (v === "icons" ? "words" : v === "words" ? "dots" : "icons"));
   const showItems = mode !== "dots";
   const expanded = mode === "words";

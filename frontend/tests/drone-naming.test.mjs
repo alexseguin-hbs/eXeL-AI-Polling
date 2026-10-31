@@ -57,7 +57,6 @@ function surface() {
   walk(path.join(FRONTEND, 'lib/drone-2525'));
   walk(path.join(FRONTEND, 'components/drone-2525'));
   walk(path.join(FRONTEND, 'app/drone-2525'));
-  walk(path.join(FRONTEND, 'app/main/Drone-2525'));
   return out;
 }
 

@@ -122,6 +122,11 @@ const AFTER_FILL = new Set([
   'rcore.added', 'rcore.revised', 'rcore.carried', 'rcore.rev_short', 'rcore.close',
   'rcore.same_rev', 'rcore.too_large', 'rcore.fewer_than_two',
   'rcore.impact.l1', 'rcore.impact.l2', 'rcore.impact.l3', 'rcore.impact.l4', 'rcore.impact.l5',
+  // Architect-2525 R5 (operator 2026-10-29/30: Room Designer decision card — simplify S1; "stop reverting"): the Simple ⇄
+  // ⚙ Advanced mode button and the Simple help line. ENGLISH ONLY until he says the Architect UI/UX is final.
+  'arch.room.simple',
+  'arch.room.advanced',
+  'arch.room.helpMoveSimple',
 ]);   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys (arena + round) filled ×32 on 2026-09-15; nothing is staged.   // Drone-2525 keys filled ×32 on 2026-09-15; nothing is staged.
 const ph = (s) => (String(s).match(/\{[a-z_]+\}/g) ?? []).sort().join(' ');
 const KEEP = /^(https?:\/\/|[0-9.\s%×·—–-]+$|[A-Z0-9_\-.]+$)/;

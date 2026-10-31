@@ -16,7 +16,6 @@
       "paths": [
         "frontend/components/architect-2525/",
         "frontend/app/Architect-2525/",
-        "frontend/app/main/Architect-2525/",
         "docs/architecture-2525/"
       ],
       "areas": [
@@ -31,8 +30,7 @@
           "key": "routes",
           "name": "Routes",
           "paths": [
-            "frontend/app/Architect-2525/",
-            "frontend/app/main/Architect-2525/"
+            "frontend/app/Architect-2525/"
           ]
         },
         {
@@ -52,8 +50,7 @@
       "codeRecord": "git-scoped",
       "paths": [
         "frontend/components/celestial-2525/",
-        "frontend/app/Celestial-2525/",
-        "frontend/app/main/Celestial-2525/"
+        "frontend/app/Celestial-2525/"
       ],
       "areas": [
         {
@@ -67,8 +64,7 @@
           "key": "routes",
           "name": "Routes",
           "paths": [
-            "frontend/app/Celestial-2525/",
-            "frontend/app/main/Celestial-2525/"
+            "frontend/app/Celestial-2525/"
           ]
         }
       ]
@@ -82,7 +78,6 @@
       "paths": [
         "frontend/components/security-2525/",
         "frontend/app/Security-2525/",
-        "frontend/app/main/Security-2525/",
         "frontend/app/review-2525/",
         "docs/security-2525/"
       ],
@@ -99,7 +94,6 @@
           "name": "Routes",
           "paths": [
             "frontend/app/Security-2525/",
-            "frontend/app/main/Security-2525/",
             "frontend/app/review-2525/"
           ]
         },
@@ -152,7 +146,6 @@
       "codeRecord": "git-scoped",
       "paths": [
         "frontend/app/SoI-2525/",
-        "frontend/app/main/SoI-2525/",
         "frontend/lib/innovation-data.ts",
         "frontend/lib/innovation-store.ts",
         "docs/drs/"
@@ -166,8 +159,7 @@
           "key": "page",
           "name": "The page",
           "paths": [
-            "frontend/app/SoI-2525/",
-            "frontend/app/main/SoI-2525/"
+            "frontend/app/SoI-2525/"
           ]
         },
         {
@@ -397,7 +389,6 @@
         "frontend/components/financial-2525/",
         "frontend/lib/financial-2525/",
         "frontend/app/financial-2525/",
-        "frontend/app/main/Financial-2525/",
         "docs/financial-2525/"
       ],
       "areas": [
@@ -419,8 +410,7 @@
           "key": "routes",
           "name": "Routes",
           "paths": [
-            "frontend/app/financial-2525/",
-            "frontend/app/main/Financial-2525/"
+            "frontend/app/financial-2525/"
           ]
         },
         {

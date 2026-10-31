@@ -219,7 +219,7 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
   const [facingAz, setFacingAz] = useState(180); // a house face / window azimuth (0=N,90=E,180=S,270=W) to align to the sun
   const [gps, setGps] = useState("");            // free-form GPS entry (decimal · DMS · N/S/E/W) — any format
   const [gpsErr, setGpsErr] = useState(false);
-  const [locState, setLocState] = useState<"idle" | "locating" | "ok" | "denied" | "unavailable" | "timeout" | "unsupported">("idle");
+  const [locState, setLocState] = useState<"idle" | "locating" | "ok" | "denied" | "unavailable" | "timeout" | "unsupported" | "insecure">("idle");
   const [locAcc, setLocAcc] = useState<number | null>(null); // GPS fix accuracy (m), when device location is used
 
   // Snap the whole sky (date + hour) to the CURRENT local apparent-solar time at a longitude — so the dome shows
@@ -230,18 +230,28 @@ export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } 
   const applyGps = (raw: string) => { const p = parseAnyCoord(raw, lat); if (!p) { setGpsErr(true); return; } setGpsErr(false); setLat(p.lat); setLon(p.lon); syncNow(p.lon); };
   // Device GPS hardware → set the lot from the phone/computer's own location (one tap at the actual site). Asks the OS
   // for permission; guides the user to turn ON GPS / Location Services and allow access if it is off or blocked.
+  // R5 (operator 2026-10-30: "ensure GPS WORKS AS WELL") — the root cause was the site-wide Permissions-Policy
+  // `geolocation=()` in public/_headers, which disabled the API for the whole origin so every tap failed with code 1
+  // (now `geolocation=(self)`, gated by tests/geolocation-policy.test.mjs). This handler keeps the call SYNCHRONOUS inside
+  // the tap (iOS Safari needs the user gesture — no await before getCurrentPosition), names a non-secure context honestly,
+  // logs the browser's own reason, gives a cold GPS ONE patient retry on timeout, and never calls a slow fix "blocked".
   const locate = () => {
     if (typeof navigator === "undefined" || !navigator.geolocation) { setLocState("unsupported"); setGpsErr(true); return; }
+    if (typeof window !== "undefined" && window.isSecureContext === false) { setLocState("insecure"); setGpsErr(true); return; }
     setLocState("locating"); setGpsErr(false);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => { const la = Math.round(pos.coords.latitude * 1e6) / 1e6, lo = Math.round(pos.coords.longitude * 1e6) / 1e6; setLat(la); setLon(lo); setGps(`${la}, ${lo}`); setLocAcc(Math.round(pos.coords.accuracy)); setLocState("ok"); setGpsErr(false); syncNow(lo); },
-      (err) => setLocState(err.code === err.PERMISSION_DENIED ? "denied" : err.code === err.POSITION_UNAVAILABLE ? "unavailable" : "timeout"),
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
-    );
+    const onOk = (pos: GeolocationPosition) => { const la = Math.round(pos.coords.latitude * 1e6) / 1e6, lo = Math.round(pos.coords.longitude * 1e6) / 1e6; setLat(la); setLon(lo); setGps(`${la}, ${lo}`); setLocAcc(Math.round(pos.coords.accuracy)); setLocState("ok"); setGpsErr(false); syncNow(lo); };
+    let retried = false;
+    const onErr = (err: GeolocationPositionError) => {
+      if (typeof console !== "undefined") console.warn("[gps] fix refused:", err.code, err.message);
+      if (err.code === err.TIMEOUT && !retried) { retried = true; navigator.geolocation.getCurrentPosition(onOk, onErr, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }); return; }
+      setLocState(err.code === err.PERMISSION_DENIED ? "denied" : err.code === err.POSITION_UNAVAILABLE ? "unavailable" : "timeout");
+    };
+    navigator.geolocation.getCurrentPosition(onOk, onErr, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
   };
   const LOC_MSG: Record<string, string> = {
     locating: "Locating… allow the location prompt if it appears.",
-    denied: "Location is blocked. Turn ON GPS / Location Services and allow this site to access location, then tap 📍 again.",
+    denied: "Location is blocked for this site. iPhone: Settings → Privacy & Security → Location Services → Safari → While Using (and Precise), then reload and tap 📍 — or type your coordinates / tap the map.",
+    insecure: "GPS needs a secure (https) page — open the https address, then tap 📍 again.",
     unavailable: "No GPS fix. Turn ON your device GPS / Location hardware (and step near a window / outside), then tap 📍 again.",
     timeout: "GPS timed out. Make sure Location is ON with signal, then tap 📍 again — or type your coordinates.",
     unsupported: "This browser can't read GPS — type your coordinates instead.",

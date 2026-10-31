@@ -53,7 +53,7 @@ const CPU_THROTTLE = Number(process.env.PERF_CPU || 10);
 let memoHit = null;
 
 async function run(page, label, setup, extra = {}) {
-  await page.goto(`http://127.0.0.1:${PORT}/main/Drone-2525/`, { waitUntil: "networkidle" });
+  await page.goto(`http://127.0.0.1:${PORT}/drone-2525/`, { waitUntil: "networkidle" });
   await page.waitForSelector("[data-drone-arena] svg path", { timeout: 20000 });
   await setup(page);
   await page.waitForTimeout(700);
@@ -132,7 +132,7 @@ const runs = [];
     // a heavier rung makes obvious. Comparing a paused 1.1 with a paused 5.5 is the whole test: if the
     // heavier one is materially slower while nothing is moving, the memo is being thrown away each frame.
     const paused = async (level) => {
-      await page.goto(`http://127.0.0.1:${PORT}/main/Drone-2525/`, { waitUntil: "networkidle" });
+      await page.goto(`http://127.0.0.1:${PORT}/drone-2525/`, { waitUntil: "networkidle" });
       await page.waitForSelector("[data-drone-arena] svg path", { timeout: 20000 });
       await mot(page, level);
       await page.waitForTimeout(900);

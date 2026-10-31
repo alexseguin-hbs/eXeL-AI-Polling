@@ -27,7 +27,7 @@ import type { HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 import { elevAt, cornerAltitudes, mToFt } from "@/lib/terrain";
 import { TINY_ROOM_LAYOUT, type RoomCell } from "@/lib/room-layout";
-import { OBJECT_SPEC, footprintOf, defaultObjectsForRoom, ROOM_GRID, type PlacedObject } from "@/lib/room-objects";
+import { OBJECT_SPEC, worldSpan, defaultObjectsForRoom, ROOM_GRID, type PlacedObject } from "@/lib/room-objects";
 
 const C = { dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", text: "#c8d6e5", green: "#22c55e" };
 
@@ -128,10 +128,10 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   const SKIP3D = new Set<string>(["door", "window", "shell", "roof"]);
   const objects3d = (objects: PlacedObject[] | undefined, s: number) =>
     (objects ?? []).filter((o) => !SKIP3D.has(o.kind)).map((o) => {
-      const fp = footprintOf(o), sp = OBJECT_SPEC[o.kind];
-      const w = Math.max(2, (fp.w / ROOM_GRID) * s), d = Math.max(2, (fp.d / ROOM_GRID) * s);
-      const dx = ((o.gx + fp.w / 2) / ROOM_GRID) * s - s / 2;   // grid cell → room-local px (room centred at 0,0)
-      const dy = ((o.gy + fp.d / 2) / ROOM_GRID) * s - s / 2;
+      const span = worldSpan(o), sp = OBJECT_SPEC[o.kind];      // R5: the ONE centre-of-cell convention, rotation-aware
+      const w = Math.max(2, (span.w / ROOM_GRID) * s), d = Math.max(2, (span.d / ROOM_GRID) * s);
+      const dx = ((o.gx + 0.5) / ROOM_GRID) * s - s / 2;   // grid cell centre → room-local px (room centred at 0,0)
+      const dy = ((o.gy + 0.5) / ROOM_GRID) * s - s / 2;
       const hgt = Math.max(2, (Math.min(sp.h, 8) / ROOM_GRID) * s);
       return furnBox(dx, dy, w, d, hgt, sp.color, `o${o.id}`);
     });

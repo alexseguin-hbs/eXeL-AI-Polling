@@ -4,11 +4,11 @@
 // active" and "ensure draft of game is here". A URL that has been handed to someone is a promise, and a
 // promise that depends on a build step nobody checks is not one.
 //
-// The domain already answered at /main/Drone-2525, alongside its Architect and Celestial siblings. That
-// route stays — links to it exist too. What this gate holds is that BOTH addresses exist, that they render
-// the SAME component rather than forking into two games, and that the static export actually contains the
-// page (the app is `output: 'export'`, so a route that compiles but does not emit is a 404 in production
-// and green in CI).
+// The domain once also answered at /main/Drone-2525. R5 (2026-10-31, operator: "/main should never be used
+// anywhere"): /main/* is 301'd to /* by the Worker (tests/main-redirect.test.mjs) and the app/main pages are
+// gone, so there is ONE address. What this gate holds is that it exists, renders the game, and that the static
+// export actually contains the page (the app is `output: 'export'`, so a route that compiles but does not emit
+// is a 404 in production and green in CI).
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,10 +21,10 @@ const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm,
 
 const ROUTES = [
   { rel: 'app/drone-2525/page.tsx', url: '/drone-2525/', out: 'out/drone-2525/index.html' },
-  { rel: 'app/main/Drone-2525/page.tsx', url: '/main/Drone-2525/', out: 'out/main/Drone-2525/index.html' },
 ];
+ok(!existsSync(path.join(FRONTEND, 'app/main')), 'app/main/ is gone — /main is never used (the Worker redirects it)');
 
-// ── BOTH DOORS EXIST, AND BOTH OPEN INTO THE SAME ROOM ──────────────────────────────────────────
+// ── THE DOOR EXISTS, AND OPENS INTO THE GAME ────────────────────────────────────────────────────
 for (const r of ROUTES) {
   const p = path.join(FRONTEND, r.rel);
   ok(existsSync(p), `${r.url} has a page (${r.rel})`);
@@ -34,11 +34,6 @@ for (const r of ROUTES) {
   ok(/from "@\/components\/drone-2525\/command-ux1"/.test(src),
      `${r.url} imports the one component — a second copy would be a second game`);
   ok(/"use client"/.test(src), `${r.url} is a client route, as the arena needs`);
-}
-{
-  // Same component, same props, no fork. Compared after comments are stripped: prose may differ, code may not.
-  const bodies = ROUTES.map((r) => strip(readFileSync(path.join(FRONTEND, r.rel), 'utf8')).replace(/\s+/g, ' ').trim());
-  ok(bodies[0] === bodies[1], 'the two routes are the same code, so they cannot drift into two different games');
 }
 
 // ── AND THE STATIC EXPORT ACTUALLY CONTAINS THEM ────────────────────────────────────────────────
@@ -63,5 +58,5 @@ for (const r of ROUTES) {
   }
 }
 
-console.log(`\ndrone-route: ${pass} passed, ${fail} failed · /drone-2525/ and /main/Drone-2525/ are one game at two addresses`);
+console.log(`\ndrone-route: ${pass} passed, ${fail} failed · /drone-2525/ is the one address (/main/* is redirected)`);
 process.exit(fail ? 1 : 0);

@@ -457,7 +457,7 @@ export default function SoISessionPage() {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => setMember(i, { gps: { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy, at: new Date(pos.timestamp).toISOString() } }),
-      () => {}, { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 },
+      (err) => { if (typeof console !== "undefined") console.warn("[pod gps] fix refused:", err.code, err.message); }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 },
     );
   };
 

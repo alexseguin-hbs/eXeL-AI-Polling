@@ -5,8 +5,9 @@ import { feedbackSite } from "../lib/feedback-screen.ts";
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL: " + m); } };
 const cases = [
-  ["/financial-2525/", "financial-2525"], ["/main/Financial-2525", "financial-2525"], ["/drone-2525", "drone-2525"], ["/main/Drone-2525/", "drone-2525"],
-  ["/main/Security-2525/", "security-2525"], ["/Architect-2525", "architect-2525"], ["/main/Celestial-2525", "celestial-2525"], ["/SoI-2525/", "soi-2525"],
+  ["/financial-2525/", "financial-2525"], ["/Financial-2525", "financial-2525"], ["/drone-2525", "drone-2525"], ["/Drone-2525/", "drone-2525"],
+  ["/Security-2525/", "security-2525"], ["/Architect-2525", "architect-2525"], ["/architect-2525/feedback", "architect-2525"], ["/Celestial-2525", "celestial-2525"], ["/SoI-2525/", "soi-2525"],
+  ["/main/Architect-2525", "other"], ["/main", "other"],
   ["/innovation", "innovation"], ["/vision-2525/MoT", "vision-2525"], ["/divinity-guide-trinity", "other"], ["/divinity-guide", "divinity-guide"],
   ["/dashboard", "dashboard"], ["/session", "polling"], ["/join", "join"], ["/sim", "sim"], ["/", "landing"], ["/somewhere-new", "other"],
 ];

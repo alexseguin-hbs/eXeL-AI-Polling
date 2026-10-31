@@ -7,7 +7,7 @@ import type { LedgerInput } from "@/lib/2525-core/revisions";
 /** Celestial-2525 append-only traceability ledger — 3 entries, extracted at build time. */
 export const CELESTIAL_LEDGER: LedgerInput = {
   "section": "Celestial-2525",
-  "route": "/main/Celestial-2525",
+  "route": "/Celestial-2525",
   "note": "Append-only Vision 2525 traceability for the CELESTIAL-2525 family/education reader (components/celestial-2525/celestial-reader.tsx). rev monotonic; append, never edit. Opened 2026-09-25 (R-CORE Stage 2) for family uniformity across the 2525 surfaces. Seeded from real reachable commits; earliest reachable is ef8b1c3 (2026-08-28), the shallow-clone floor that touched the surface, not necessarily its creation.",
   "entries": [
     {

@@ -8,7 +8,7 @@ import { useLexicon } from "@/lib/lexicon-context";
  * SeedCoin — a two-sided Seed token you can flip.
  *
  *  FRONT  the site's own Seed of Life (<SeedOfLifeLogo>, the exact mark from
- *         /main and /vision-2525 — thin translucent cyan strokes on a dark
+ *         / (home) and /vision-2525 — thin translucent cyan strokes on a dark
  *         ground) with a circle drawn around it and a little spacing, the way
  *         the Trinity logo rings its inner marks (operator, 2026-08-13).
  *  BACK   the operator's clean Alvar cyan raster — /architect/alvar-ai-cyan.png,

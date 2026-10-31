@@ -5,7 +5,7 @@
 // Every item is a consistent collapsible Card: an open-link icon on the LEFT, the title + badge as a
 // 2-line default, an expand dropdown on the UPPER RIGHT, and the blurb (plus PDF View/Download) kept
 // indented under the header when expanded. Copy avoids the em-dash on purpose. Titles use `truncate`
-// so they stay on one line on phones. Rendered by both /experiences/docs and /main/experiences/docs.
+// so they stay on one line on phones. Rendered by /experiences/docs.
 
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
@@ -49,7 +49,7 @@ const WRITEUPS: Item[] = [
     titleKey: "experiences.egg.soi.title",
     badgeKey: "experiences.egg.soi.badge",
     blurbKey: "experiences.egg.soi.blurb",
-    href: "/main/SoI-2525/",
+    href: "/SoI-2525/",
     image: { src: "/experiences/innovate-speed-of-thought.png", altKey: "experiences.egg.poster.alt" },
     stats: [
       { labelKey: "experiences.egg.soi.buildLabel", valueKey: "experiences.egg.soi.buildVal" },
@@ -59,7 +59,7 @@ const WRITEUPS: Item[] = [
       labelKey: "experiences.egg.soi.demoLabel",
       codeKey: "experiences.egg.soi.demoCode",
       openKey: "experiences.egg.soi.demoOpen",
-      href: "/main/SoI-2525/",
+      href: "/SoI-2525/",
     },
   },
 ];

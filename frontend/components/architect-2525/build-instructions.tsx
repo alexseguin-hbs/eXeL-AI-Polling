@@ -100,7 +100,7 @@ export function BuildTimelineCompare() {
           </div>
         ))}
       </div>
-      <div className="mt-1.5 text-[9px]" style={{ color: C.amber }}>⚠ Planning estimate — these are hands-on LABOR crew-days (rules of thumb at a 4-person crew), NOT calendar time. The 3D-printed shell is the fewest crew-days (printing is machine time — the crew sets up and finishes); the hex-panel shell assembles dry in about the same few days. A tiny home is shortest overall because it is the smallest; MEP + finish dominate the rest. Calendar time (with the 28-day slab cure + inspections) is the months shown on each card's "Time to build".</div>
+      <div className="mt-1.5 text-[9px]" style={{ color: C.amber }}>⚠ Planning estimate — these are hands-on LABOR crew-days (rules of thumb at a 4-person crew), NOT calendar time. The 3D-printed shell is the fewest crew-days (printing is machine time — the crew sets up and finishes); the hex-panel shell assembles dry in about the same few days. A tiny home is shortest overall because it is the smallest; MEP + finish dominate the rest. Calendar time (with the 28-day slab cure + inspections) is the months shown on each card&apos;s &quot;Time to build&quot;.</div>
     </div>
   );
 }

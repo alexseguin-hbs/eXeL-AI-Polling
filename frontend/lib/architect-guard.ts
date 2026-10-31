@@ -28,7 +28,10 @@ function sanitizeObjects(raw: unknown): PlacedObject[] | undefined {
     const kind = r.kind as ObjectKind;
     const variant = typeof r.variant === "string" && VARIANTS[kind]?.some((v) => v.id === r.variant) ? r.variant : undefined;
     const elev = typeof r.elev === "number" && Number.isFinite(r.elev) ? boundNum(r.elev, ROOM_GRID) : undefined; // ft off floor (window sill etc.)
-    out.push({ id: r.id, kind, gx: boundInt(r.gx, 0, ROOM_GRID - 1), gy: boundInt(r.gy, 0, ROOM_GRID - 1), rot, ...(variant ? { variant } : {}), ...(elev !== undefined ? { elev } : {}) });
+    // R5: coordinates are finite numbers clamped to the grid, NOT rounded — the standard layouts and the packer place
+    // on half-foot centres (a 5-ft bed centred in a 10-ft room is gx 4.5); rounding here shifted every default by up
+    // to ½ ft on reload. Still a whitelist: non-finite → 0, out of range → clamped.
+    out.push({ id: r.id, kind, gx: boundNum(r.gx, ROOM_GRID - 1), gy: boundNum(r.gy, ROOM_GRID - 1), rot, ...(variant ? { variant } : {}), ...(elev !== undefined ? { elev } : {}) });
   }
   return out.length ? out : undefined;
 }

@@ -180,7 +180,7 @@ export const linkLine = (s: LinkState, nowMs: number): string => {
 // ── THE JOIN CODE ───────────────────────────────────────────────────────────────────────────────────
 /** The second person opens this on their own phone or computer, already in the seat the first one is not. */
 export const seatUrl = (origin: string, code: string, seat: Seat): string =>
-  `${origin.replace(/\/$/, "")}/main/Drone-2525/?crew=${encodeURIComponent(code)}&seat=${seat}`;
+  `${origin.replace(/\/$/, "")}/drone-2525/?crew=${encodeURIComponent(code)}&seat=${seat}`;
 
 /** Read a seat out of a link somebody opened. Anything unrecognised means "no seat", never a default one. */
 export function seatFromParams(search: string): { code: string; seat: Seat } | null {

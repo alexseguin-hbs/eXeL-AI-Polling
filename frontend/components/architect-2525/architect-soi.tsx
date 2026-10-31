@@ -36,7 +36,7 @@ export function ArchitectSoI({ econ }: { econ: EconomyResult }) {
         <div className="flex items-center gap-2">
           <span className="text-[9px]" style={{ color: C.dim }}>{t("arch.soi.encourage_intelligence_growth_reimagine_innovation_incentives")}</span>
           <button data-soi-edit onClick={() => setEditing((e) => !e)} className="rounded border px-2 py-0.5 text-[9px]" style={{ borderColor: C.border, color: editing ? C.gold : C.dim }}>{editing ? "done" : "edit"}</button>
-          <button data-soi-publish onClick={doPublish} className="rounded border px-2 py-0.5 text-[9px] font-bold" style={{ borderColor: C.violet, color: published ? C.green : C.violet }}>{published ? "published ✓" : "publish → /main"}</button>
+          <button data-soi-publish onClick={doPublish} className="rounded border px-2 py-0.5 text-[9px] font-bold" style={{ borderColor: C.violet, color: published ? C.green : C.violet }}>{published ? "published ✓" : "publish → /dashboard"}</button>
         </div>
       </div>
 

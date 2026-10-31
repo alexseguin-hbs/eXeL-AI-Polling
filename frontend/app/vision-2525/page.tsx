@@ -50,7 +50,7 @@ const GATES: { label: string; icon: LucideIcon }[] = [
 
 const PANELS: { title: string; icon: LucideIcon; color: string; items: string[]; href: string; cta: string }[] = [
   { title: "Collective Intelligence", icon: Users, color: SUNSET, items: ["Polling", "Feedback", "Priorities", "Insight"], href: "/dashboard/", cta: "Open the console" },
-  { title: "Global Coordination", icon: Globe, color: CYAN, items: ["Live map", "Presence", "Sessions", "Reach"], href: "/main/Security-2525/", cta: "See the world view" },
+  { title: "Global Coordination", icon: Globe, color: CYAN, items: ["Live map", "Presence", "Sessions", "Reach"], href: "/Security-2525/", cta: "See the world view" },
   { title: "Simulation & Replay", icon: Sparkles, color: VIOLET, items: ["Learn", "Improve", "Adapt", "Prove"], href: "/sim/", cta: "Run a simulation" },
   { title: "AI & Data Analytics", icon: Brain, color: CYAN, items: ["Pattern recognition", "Predictive intelligence", "Decision support", "Risk visibility"], href: "/innovation/", cta: "Explore the engine" },
   { title: "Education & Enablement", icon: GraduationCap, color: SUNSET, items: ["Curriculum", "Training", "Certification", "Inspiration"], href: "/experiences/", cta: "Start learning" },
@@ -67,11 +67,11 @@ const VALUES: { label: string; sub: string; icon: LucideIcon }[] = [
 
 const WORLDS: { code: string; name: string; tagline: string; href: string; color: string }[] = [
   { code: "SoI-2525", name: "System of Innovation", tagline: "Portfolio · Gates · Governance", href: "/innovation/", color: CYAN },
-  { code: "ARCHITECT-2525", name: "Architect", tagline: "Design · Build · Model", href: "/main/Architect-2525/", color: VIOLET },
-  { code: "SECURITY-2525", name: "Security", tagline: "Air & Missile Defense C2", href: "/main/Security-2525/", color: "#ff6b6b" },
-  { code: "CELESTIAL-2525", name: "Celestial", tagline: "Sky · Learn · Family", href: "/main/Celestial-2525/", color: SUNSET },
-  { code: "DRONE-2525", name: "Drone", tagline: "The Range · Target · Approve · Fire", href: "/main/Drone-2525/", color: "#f59e0b" },
-  { code: "FINANCIAL-2525", name: "Financial", tagline: "Budget · Ladder · $/min", href: "/main/Financial-2525/", color: "#22c55e" },
+  { code: "ARCHITECT-2525", name: "Architect", tagline: "Design · Build · Model", href: "/Architect-2525/", color: VIOLET },
+  { code: "SECURITY-2525", name: "Security", tagline: "Air & Missile Defense C2", href: "/Security-2525/", color: "#ff6b6b" },
+  { code: "CELESTIAL-2525", name: "Celestial", tagline: "Sky · Learn · Family", href: "/Celestial-2525/", color: SUNSET },
+  { code: "DRONE-2525", name: "Drone", tagline: "The Range · Target · Approve · Fire", href: "/drone-2525/", color: "#f59e0b" },
+  { code: "FINANCIAL-2525", name: "Financial", tagline: "Budget · Ladder · $/min", href: "/financial-2525/", color: "#22c55e" },
   { code: "SENSORFUSION-2525", name: "Sensor Fusion", tagline: "Capture · Annotate · Models", href: "/SensorFusion-2525/", color: "#38bdf8" },
   { code: "LIGHT CODEX", name: "Light Codex", tagline: "Encode · Image · Key", href: "/light-codex/", color: "#e879f9" },
 ];

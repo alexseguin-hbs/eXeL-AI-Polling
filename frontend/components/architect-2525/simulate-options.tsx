@@ -331,7 +331,7 @@ export function SimulateOptions() {
                           <span style={{ color: C.text, textAlign: "right" }}>{usd(roll.total)}</span>
                         </div>
                         {/* labour $ = hours × rate — the build steps compliment the Material/Labor/Markup assumptions (operator 2026-10-30) */}
-                        <div data-arch-sim-laborrate className="text-[8px]" style={{ color: C.dim }}>Labour {usd(roll.labor)} = <b style={{ color: C.violet }}>{laborHrs.toLocaleString()} h</b> × {cv.laborMode === "volunteer" ? <b style={{ color: C.green }}>$0/h (donated · worth ~${proRate}/h)</b> : <b style={{ color: C.violet }}>${laborRate}/h</b>} · the same hours drive the Build-Instructions crew-days.</div>
+                        <div data-arch-sim-laborrate className="text-[8px]" style={{ color: C.dim }}>Labour {usd(roll.labor)} = <b style={{ color: C.violet }}>{laborHrs.toLocaleString()} h</b> × {cv.laborMode === "volunteer" ? <b style={{ color: C.green }}>$0/h (donated · worth ~${proRate}/h)</b> : <b style={{ color: C.violet }}>${laborRate}/h</b>}.</div>
                         <div className="text-[8px]" style={{ color: C.dim }}>Six major elements + <b style={{ color: C.text }}>Other*</b>{fx ? " + Trailer" : ""} reconcile EXACTLY to the {usd(roll.total)} total ({usd(perFt2)}/ft²) · {m.basis === "DERIVED" ? "derived from the estimate engine (real market cost)" : "ASSUMED area · parametric"} · labour {LABOR_MODES[cv.laborMode].label.toLowerCase()} · markup {Math.round(cv.markup * 100)}%. Tap <b style={{ color: C.green }}>VOLUNTEER</b> (labour ≈ $0, markup snaps to 0%) for the friends/family/veterans build cost.</div>
                       </div>
                     )}
@@ -490,7 +490,7 @@ export function SimulateOptions() {
         </div>
         <div className="mt-1.5 space-y-0.5">
           <div className="text-[10px]" style={{ color: C.dim }}>Initial 0–5 score + detailed metrics · deterministic estimate (a design preview, not an engineering analysis).</div>
-          <div className="text-[10px]" style={{ color: C.amber }}>⚠ Energy/Carbon — and the sims they weight — are DESIGN ASSUMPTIONS. Only the Cube's cost is engine-derived. Materials are modelled honestly (cement: stronger/non-combustible, higher embodied carbon; composite: stronger/lighter/less carbon; steel/aluminum: stronger, higher carbon).</div>
+          <div className="text-[10px]" style={{ color: C.amber }}>⚠ Energy/Carbon — and the sims they weight — are DESIGN ASSUMPTIONS. Only the Cube&apos;s cost is engine-derived. Materials are modelled honestly (cement: stronger/non-combustible, higher embodied carbon; composite: stronger/lighter/less carbon; steel/aluminum: stronger, higher carbon).</div>
         </div>
       </div>
 

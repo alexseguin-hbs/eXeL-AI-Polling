@@ -713,10 +713,10 @@ export function FinancialCommandUX1() {
     <div data-financial-ux1 className="w-full px-4 pb-20 pt-3 sm:pb-10">
       {/* Header — the Session's: the globe, the Trinity glyphs, the title ───────────────────────── */}
       <header data-fin-header className="mb-3 text-center">   {/* r.042 (addendum 76, his third request): the header is smaller — focus is the outcome */}
-        {/* r.034 (addendum 67): "eXeL AI" upper left takes the person back to /main; the eXeL Polling Settings (the colour selector)
+        {/* r.034 (addendum 67): "eXeL AI" upper left takes the person back to the site root (/); the eXeL Polling Settings (the colour selector)
             and the globe upper right. Every accent on this surface follows the selected colour (Tailwind `primary` = the theme). */}
         <div data-fin-topbar className="relative flex min-h-[64px] items-center justify-between">
-          <a href="/main/" data-fin-home aria-label={t("fin.home")} title={t("fin.home")} className="inline-flex min-h-[36px] items-center gap-1 text-sm">
+          <a href="/" data-fin-home aria-label={t("fin.home")} title={t("fin.home")} className="inline-flex min-h-[36px] items-center gap-1 text-sm">
             <ExelWordmark exelClass="font-bold text-primary" aiClass="font-light text-muted-foreground" />
           </a>
           {/* r.042 (addendum 78 + the AsM pre-push review "the header is not visibly smaller"): the mini Trinity sits IN the top bar,

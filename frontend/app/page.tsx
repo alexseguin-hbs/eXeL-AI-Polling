@@ -167,11 +167,11 @@ export default function LandingPage() {
                 child's heart, mind and spirit grow — central and critical for family). */}
           <p className="text-sm font-semibold" style={{ color: displayColor }}>
             {!customMode && currentPreset.titleKey === "trinity.blank.title" ? (
-              <a href="/main/Celestial-2525/" data-trinity-egg style={{ color: "inherit", textDecoration: "none" }}>
+              <a href="/Celestial-2525/" data-trinity-egg style={{ color: "inherit", textDecoration: "none" }}>
                 {displayTitle}
               </a>
             ) : !customMode && currentPreset.titleKey === "trinity.family.title" ? (
-              <a href="/main/Architect-2525/design/" data-family-egg style={{ color: "inherit", textDecoration: "none" }}>
+              <a href="/Architect-2525/design/" data-family-egg style={{ color: "inherit", textDecoration: "none" }}>
                 {displayTitle}
               </a>
             ) : displayTitle}

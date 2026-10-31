@@ -1,6 +1,6 @@
 // HOMEPAGE EASTER-EGG lock — the two hidden preset hyperlinks stay wired to their destinations:
-//  · white "Trinity Framework" (trinity.blank.title)  → /main/Celestial-2525/
-//  · violet "Sacred Family Framework" (trinity.family.title) → /main/Architect-2525/design → Architect
+//  · white "Trinity Framework" (trinity.blank.title)  → /Celestial-2525/
+//  · violet "Sacred Family Framework" (trinity.family.title) → /Architect-2525/design → Architect
 //    Design → MODEL, where the Tiny Home / Home target-market selector lives (Thought Master IMG_7483).
 // Run: node --experimental-strip-types tests/home-eggs.test.mjs
 import fs from "node:fs";
@@ -13,12 +13,12 @@ const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m
 
 const page = fs.readFileSync(path.join(ROOT, "app/page.tsx"), "utf8");
 // Trinity egg (unchanged) — white preset → Celestial-2525.
-ok(/trinity\.blank\.title[\s\S]{0,160}href="\/main\/Celestial-2525\/"[\s\S]{0,40}data-trinity-egg/.test(page), "Trinity Framework egg → /main/Celestial-2525/ (data-trinity-egg)");
+ok(/trinity\.blank\.title[\s\S]{0,160}href="\/Celestial-2525\/"[\s\S]{0,40}data-trinity-egg/.test(page), "Trinity Framework egg → /Celestial-2525/ (data-trinity-egg)");
 // Family egg — violet family preset → Architect Design deep-link.
-ok(/trinity\.family\.title[\s\S]{0,160}href="\/main\/Architect-2525\/design\/"[\s\S]{0,40}data-family-egg/.test(page), "Sacred Family Framework egg → /main/Architect-2525/design/ (data-family-egg)");
+ok(/trinity\.family\.title[\s\S]{0,160}href="\/Architect-2525\/design\/"[\s\S]{0,40}data-family-egg/.test(page), "Sacred Family Framework egg → /Architect-2525/design/ (data-family-egg)");
 
 // The design deep-link route mounts the Architect on the DESIGN tab.
-const route = fs.readFileSync(path.join(ROOT, "app/main/Architect-2525/design/page.tsx"), "utf8");
+const route = fs.readFileSync(path.join(ROOT, "app/Architect-2525/design/page.tsx"), "utf8");
 ok(/initialTab="DESIGN"/.test(route), "design route mounts <ArchitectCommandUX1 initialTab=\"DESIGN\">");
 
 // DESIGN resolves to the Design tab + MODEL subtab (where Tiny Home / Home is selectable).

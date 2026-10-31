@@ -135,7 +135,7 @@ export function issueInvite(s: SiState, origin: string, seed: string, atMs: numb
     ...s,
     invite: {
       code,
-      url: `${origin.replace(/\/$/, "")}/main/Drone-2525/?si=${code}`,
+      url: `${origin.replace(/\/$/, "")}/drone-2525/?si=${code}`,
       issuedAtMs: atMs,
       expiresAtMs: atMs + INVITE_TTL_MS,
       to: s.roster.map((m) => m.id),

@@ -3,7 +3,7 @@
 /**
  * VISION 2525 Launcher — the Easter-egg cube-grid gateway.
  * Thin wrapper over the shared <CubeLauncher>. SIM / SECURITY / ATLANTIS / CODEX /
- * ARCHITECT unlocked; MANTA / DRONE locked. ARCHITECT-2525 → /main/Architect-2525.
+ * ARCHITECT unlocked; MANTA / DRONE locked. ARCHITECT-2525 → /Architect-2525.
  * ATLANTIS-2525 (7-level sealed
  * message generator) → /Atlantis-Accords; CODEX-2525 (Light Codex image keyfiles)
  * → /light-codex. See cube-launcher.tsx for the shared UI.
@@ -31,12 +31,12 @@ export function Vision2525Launcher() {
     { id: "security", code: "SECURITY-2525", name: "SECURITY", tagline: "Air & Missile Defense C2", color: "#ff4444", unlocked: true, onEnter: () => setVisionView("security") },
     { id: "atlantis", code: "ATLANTIS-2525", name: "ENCODED MESSAGING", tagline: "Compose · Encode · Send", color: "#eab308", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/encrypted-messaging"); } },
     { id: "codex", code: "CODEX-2525", name: "LIGHT CODEX", tagline: "Encode · Image · Key", color: "#e879f9", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/light-codex"); } },
-    { id: "architect", code: "ARCHITECT-2525", name: "ARCHITECT", tagline: "Design · Build · Model", color: "#c084fc", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/main/Architect-2525"); } },
-    { id: "celestial", code: "CELESTIAL-2525", name: "CELESTIAL", tagline: "Sky · Learn · Family", color: "#a78bfa", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/main/Celestial-2525"); } },
+    { id: "architect", code: "ARCHITECT-2525", name: "ARCHITECT", tagline: "Design · Build · Model", color: "#c084fc", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/Architect-2525"); } },
+    { id: "celestial", code: "CELESTIAL-2525", name: "CELESTIAL", tagline: "Sky · Learn · Family", color: "#a78bfa", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/Celestial-2525"); } },
     // SensorFusion-2525 — added to the easter-egg launcher (operator 2026-10-23, DD-151). Its own brand green (#0cff00, the SF UI accent); route /SensorFusion-2525.
     { id: "sensorfusion", code: "SENSORFUSION-2525", name: "SENSOR FUSION", tagline: "Edge · Label · Fuse", color: "#0cff00", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/SensorFusion-2525"); } },
     { id: "manta", code: "MANTA-2525", name: "MANTA", tagline: "Maritime · Subsurface", color: "#38bdf8", unlocked: false },
-    { id: "drone", code: "DRONE-2525", name: "DRONE", tagline: "Wireframe Arena · Capitol Lawn", color: "#f59e0b", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/main/Drone-2525"); } },
+    { id: "drone", code: "DRONE-2525", name: "DRONE", tagline: "Wireframe Arena · Capitol Lawn", color: "#f59e0b", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/drone-2525"); } },
     // Financial-2525 — the MoT Financial System (operator 2026-09-30, v.000_r.001): escrow releases $/min, MoT in A.B..C.
     { id: "financial", code: "FINANCIAL-2525", name: "FINANCIAL", tagline: "MoT · $/min · Escrow", color: "#80ff00", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/financial-2525"); } },
   ];

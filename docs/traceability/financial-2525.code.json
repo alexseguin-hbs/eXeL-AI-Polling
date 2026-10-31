@@ -211,16 +211,12 @@
       {
        "path": "frontend/app/financial-2525/page.tsx",
        "blob": "5c6c8dba77334fcd3c4eb92409c9abb879b2a4d3"
-      },
-      {
-       "path": "frontend/app/main/Financial-2525/page.tsx",
-       "blob": "87ea87af05637f716c0cde56c752d78b6f593a0b"
       }
      ],
-     "add": 18,
+     "add": 9,
      "del": 0,
-     "bytes": 890,
-     "lines": 23,
+     "bytes": 445,
+     "lines": 12,
      "status": "recorded"
     },
     {
