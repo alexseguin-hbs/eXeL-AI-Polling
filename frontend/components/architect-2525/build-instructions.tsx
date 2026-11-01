@@ -17,6 +17,8 @@ import { modelById, DEFAULT_COST, costBreakdown, type CostParams } from "@/lib/a
 import { buildSchedule } from "@/lib/architect-stage-plan";
 import { projectVendorSavings } from "@/lib/architect-vendors";
 import { loadBearing, headerFor } from "@/lib/architect-load-bearing";
+import { laborHoursFor, proLaborRateFor } from "@/lib/architect-sim-options";
+import { deriveM, recognitionU, settlementComparison, LOCAL_WAGES } from "@/lib/architect-labor";
 import type { FormId } from "@/lib/architect-sim-environment";
 import { rainbow } from "@/lib/architect-rainbow";
 
@@ -89,6 +91,41 @@ export function BuildSchedulePanel({ formId, option, cost = DEFAULT_COST }: { fo
   );
 }
 
+const COMPARE_JDS = ["US-AUSTIN", "NG", "MX", "CO", "BR"];
+const JD_LABEL: Record<string, string> = { "US-AUSTIN": "Austin, US", NG: "Nigeria", MX: "Mexico", CO: "Colombia", BR: "Brazil" };
+
+/** §14 ASSEMBLY COMPARE (the FINAL 웃 / labor / project-cost contract) — TIME · 웃 RECOGNITION · LOCAL SETTLEMENT · PROJECT
+ *  COST side by side so they never impersonate one another. THE FIREWALL: switching the comparison region changes ONLY the
+ *  settlement reference — the project labor cost (from the project region's rate) never moves. All from lib/architect-labor. */
+export function LaborRecognitionPanel({ formId, option }: { formId: FormId; option: BuildOption }) {
+  const m = modelById(formId);
+  const [jd, setJd] = useState<string>("NG");
+  if (!m) return null;
+  const totalHours = laborHoursFor(m, option);
+  const carpHours = Math.round(totalHours * 0.4);         // modeled: ~40% of hands-on hours are carpentry
+  const M = deriveM("carpenter");
+  const u = M ? recognitionU(carpHours, M.M) : null;
+  const projRate = Math.round(proLaborRateFor(m, option)); // the PROJECT region's labor basis ($/hr · REFERENCE)
+  const projLabor = Math.round(carpHours * projRate);
+  const cmp = M ? settlementComparison(carpHours, M, [jd])[0] : null;
+  return (
+    <div data-arch-labor-compare className="mt-1 rounded border p-1.5 text-[9px] leading-snug" style={{ borderColor: C.border, background: C.ground, color: C.dim }}>
+      <div className="mb-1 text-[8px] uppercase tracking-wider" style={{ color: C.violet }}>Recognition vs project cost — they never swap</div>
+      <div>⏱ Time · <span style={{ color: C.text }}>{carpHours} h</span> carpentry (≈40% of hands-on hours)</div>
+      {M && <div>♡ Recognition · <span style={{ color: C.gold }}>{u} 웃</span> <span style={{ color: "#4b5a6e" }}>(trade value {M.M}× minimum wage · {M.statistic} ${M.usRefRateUsdHr}/hr ÷ ${M.usMinWageUsdHr})</span></div>}
+      <div>🏗 Project labor · <span style={{ color: C.text }}>{usd(projLabor)}</span> at {usd(projRate)}/hr · project region · REFERENCE</div>
+      <div className="mt-1 flex flex-wrap items-center gap-1">
+        <span>🌍 Settlement reference:</span>
+        {COMPARE_JDS.map((id) => (
+          <button key={id} data-arch-settle={id} onClick={() => setJd(id)} className="rounded border px-1" style={{ borderColor: id === jd ? C.cyan : C.border, color: id === jd ? C.cyan : C.dim }}>{JD_LABEL[id]}</button>
+        ))}
+      </div>
+      {cmp && <div>Same <span style={{ color: C.gold }}>{u} 웃</span> settles locally at <span style={{ color: C.text }}>{cmp.native_currency} {cmp.localSettlementNative?.toLocaleString("en-US")}</span>{cmp.usdInformational != null ? ` (≈ ${usd(cmp.usdInformational)} informational)` : ""}.</div>}
+      <div className="mt-1" style={{ color: "#4b5a6e" }}>Switch the region — only the settlement reference moves. The {usd(projLabor)} project cost holds (recognition is global, settlement is local, project cost stays project cost).</div>
+    </div>
+  );
+}
+
 /** The six-phase build plan for one form + option (used inside each simulate card). */
 export function BuildInstructionsPanel({ formId, option }: { formId: FormId; option: BuildOption }) {
   const bi = buildInstructions(formId, option);
@@ -125,6 +162,7 @@ export function BuildInstructionsPanel({ formId, option }: { formId: FormId; opt
         ))}
       </div>
       <BuildSchedulePanel formId={formId} option={option} />
+      <LaborRecognitionPanel formId={formId} option={option} />
       <div className="mt-1 text-[8px] leading-snug" style={{ color: C.dim }}>{bi.note}</div>
     </div>
   );
