@@ -27,7 +27,9 @@
   then comment, image comment/decision (1 for 1 for all images)": a before image, an after image and a whole-screen capture are
   three cards, each with its own row and comment; decision cards carry real images beside their picks, each with its own
   row and comment; the paired JSON holds one `features[<imageId>]` per image) · §3 12 Ascended Masters · §4 MoT synthesis + risks · §5 QUEUED
-  backlog · HI DECISION + SAVE FEEDBACK → `<stamp>_<FX>_FEEDBACK.json` (schema: `{release,date,stamp,sha,timestamp,
+  backlog · **the H.I. DECISION section sits at the END of the page, in flow — never a panel pinned over the middle of a phone; the only thing
+  pinned at the bottom edge is a one-line bar (reviewed N/M · ↓ decide · SAVE)** (operator 2026-10-31: "recreate feedback file; HI input
+  section should be on bottom and not cover center of screen") · HI DECISION + SAVE FEEDBACK → `<stamp>_<FX>_FEEDBACK.json` (schema: `{release,date,stamp,sha,timestamp,
   verdict,overallNotes,features:{FX:{verdict,comment}}}`). **No chunk is "done" without its FX artifact served to HI.**
   Do NOT make HI reconstruct changes from GitHub, CI logs or chat; do NOT ship a prose-only report. Screenshots are
   REAL captures (local `next dev` + the Playwright `scripts/architect-screens.mjs`, or the Architect-Screens CI job) —

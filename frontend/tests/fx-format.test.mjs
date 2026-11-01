@@ -18,6 +18,7 @@ ok(/operator 2026-10-31: "image\s*\n?\s*then comment, image comment\/decision \(
 ok(/a before image, an after image and a whole-screen capture are\s*\n?\s*three cards/.test(rule), "a before image, an after image and a whole-screen capture are three cards");
 ok(/decision cards carry real images beside their picks/.test(rule), "decision cards carry real images beside their picks, each with its own row");
 ok(/features\[<imageId>\]/.test(rule), "the paired JSON holds one features[<imageId>] per image");
+ok(/the H\.I\. DECISION section sits at the END of the page, in flow — never a panel pinned over the middle of a phone/.test(rule) && /HI input\s*\n?\s*section should be on bottom and not cover center of screen/.test(rule), "the FX rule says: the H.I. DECISION section is at the END of the page, only a one-line bar pinned at the bottom (operator 2026-10-31 20:40)");
 const asks = path.join(REPO, "docs/asks");
 const files = readdirSync(asks).filter((f) => /^2026\.10\.31_.*feedback_format_one_decision_per_image\.md$/.test(f));
 ok(files.length === 1, "his words are persisted once under docs/asks (stamped)");
@@ -26,5 +27,8 @@ for (const f of files) {
   const t = readFileSync(path.join(asks, f), "utf8");
   ok(/1 for 1 for all images/.test(t) && !/\b(opus|sonnet|haiku|fable)\b/i.test(t), `${f} carries his words and no model identifier`);
 }
+const layoutAsk = readdirSync(asks).filter((f) => /^2026\.10\.31_.*fx_hi_input_section_at_the_bottom_never_covering_the_centre\.md$/.test(f));
+ok(layoutAsk.length === 1 && existsSync(path.join(asks, layoutAsk[0] + ".sha256")), "his 20:40 layout words are persisted once with their sha256 sidecar");
+
 console.log(`\nFX-FORMAT ${pass}/${pass + fail} passed — one comment/decision per image is the rule, on the record`);
 if (fail > 0) process.exit(1);
