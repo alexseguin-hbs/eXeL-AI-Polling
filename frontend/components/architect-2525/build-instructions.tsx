@@ -15,6 +15,7 @@ import { buildInstructions, compareTimeline, BUILD_ORDER, type InstructionStep }
 import type { BuildOption, ElementName } from "@/lib/architect-sim-options";
 import { modelById, DEFAULT_COST, type CostParams } from "@/lib/architect-sim-options";
 import { buildSchedule } from "@/lib/architect-stage-plan";
+import { loadBearing, headerFor } from "@/lib/architect-load-bearing";
 import type { FormId } from "@/lib/architect-sim-environment";
 import { rainbow } from "@/lib/architect-rainbow";
 
@@ -86,6 +87,11 @@ export function BuildSchedulePanel({ formId, option, cost = DEFAULT_COST }: { fo
 /** The six-phase build plan for one form + option (used inside each simulate card). */
 export function BuildInstructionsPanel({ formId, option }: { formId: FormId; option: BuildOption }) {
   const bi = buildInstructions(formId, option);
+  const mdl = modelById(formId);
+  // R-LOAD1 — the load-bearing screen for the stud wall (operator 2026-11-01: "load bearing calcs must also be done in
+  // structural/framing elements"). A 2×6 gravity check + the header for a 6-ft opening, shown in the Framing phase.
+  const lb = mdl ? loadBearing(mdl, "2x6", 1) : null;
+  const hdr = headerFor(6);
   return (
     <div data-arch-build-instructions={formId} className="rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
       <div className="mb-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>
@@ -102,6 +108,14 @@ export function BuildInstructionsPanel({ formId, option }: { formId: FormId; opt
             <div className="mt-0.5">
               {ph.steps.map((s) => <StepRow key={s.n} step={s} color={ELEMENT_COLOR[ph.element]} />)}
             </div>
+            {ph.element === "Framing" && lb && (
+              <div data-arch-load-bearing className="mt-1 rounded border px-1.5 py-1 text-[9px] leading-snug" style={{ borderColor: "#0f1724", color: C.dim }}>
+                <span className="font-bold" style={{ color: ELEMENT_COLOR.Framing }}>Load-bearing check (2×6 stud @ 16″ o.c.)</span>
+                <div>Each stud carries ≈ <span style={{ color: C.text }}>{usd(lb.demandLb).replace("$", "")} lb</span> (roof {usd(lb.roofLoadLb).replace("$", "")} + wall {usd(lb.wallLoadLb).replace("$", "")}); it can hold {usd(lb.capacityLb).replace("$", "")} lb — <span style={{ color: lb.pass ? C.green : C.amber }}>{lb.pass ? `holds, ${lb.marginPct}% to spare` : "needs a bigger member"}</span> (demand ÷ capacity {lb.dcr}).</div>
+                <div>Over a {hdr.spanFt}-ft opening use a <span style={{ color: C.text }}>{hdr.header}</span> header.</div>
+                <div style={{ color: "#4b5a6e" }}>Screening check · {lb.source} · {hdr.source} — a licensed engineer + your local code sign the final design.</div>
+              </div>
+            )}
           </div>
         ))}
       </div>
