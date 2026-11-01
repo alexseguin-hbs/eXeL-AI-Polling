@@ -13,6 +13,8 @@
 import { useState } from "react";
 import { buildInstructions, compareTimeline, BUILD_ORDER, type InstructionStep } from "@/lib/architect-build-instructions";
 import type { BuildOption, ElementName } from "@/lib/architect-sim-options";
+import { modelById, DEFAULT_COST, type CostParams } from "@/lib/architect-sim-options";
+import { buildSchedule } from "@/lib/architect-stage-plan";
 import type { FormId } from "@/lib/architect-sim-environment";
 import { rainbow } from "@/lib/architect-rainbow";
 
@@ -47,6 +49,40 @@ function StepRow({ step, color }: { step: InstructionStep; color: string }) {
   );
 }
 
+const usd = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
+
+/** The STAGED SCHEDULE for one form + option — what is built each phase, IN BUILD ORDER, with its cost, its calendar
+ *  days, and how far ahead its modules must be ordered so everything is staged before building (operator 2026-11-01:
+ *  "all work and modules are staged before building with set timeline and schedule per phase"). ONE truth: the per-phase
+ *  cost reconciles EXACTLY to the card headline (lib/architect-stage-plan). */
+export function BuildSchedulePanel({ formId, option, cost = DEFAULT_COST }: { formId: FormId; option: BuildOption; cost?: CostParams }) {
+  const m = modelById(formId);
+  if (!m) return null;
+  const S = buildSchedule(m, option, cost);
+  const color = (el: string) => (el in ELEMENT_COLOR ? ELEMENT_COLOR[el as ElementName] : C.cyan);
+  return (
+    <div data-arch-build-schedule={formId} className="mt-1 rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-1 text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>
+        <span>Build schedule · staged per phase</span>
+        <span style={{ color: C.cyan }}>{S.totalWeeks} weeks · {usd(S.totalCost)}</span>
+      </div>
+      <div className="space-y-0.5">
+        {S.phases.map((p) => (
+          <div key={p.order} data-arch-sched-phase={p.element} className="flex items-baseline gap-1.5 text-[10px]">
+            <span className="flex-shrink-0 rounded px-1 text-[9px] font-bold" style={{ background: C.panel, color: color(p.element), minWidth: 14, textAlign: "center" }}>{p.order}</span>
+            <span className="min-w-0 flex-1 truncate" style={{ color: C.text }}>{p.label} <span style={{ color: C.dim }}>· {p.moduleCount} module{p.moduleCount === 1 ? "" : "s"}</span></span>
+            <span className="flex-shrink-0 tabular-nums" style={{ color: C.dim }}>{p.calDays}d</span>
+            <span className="flex-shrink-0 tabular-nums font-semibold" style={{ color: color(p.element) }}>{usd(p.cost)}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-1 text-[9px] leading-snug" style={{ color: C.dim }}>
+        Order materials <span style={{ color: C.gold }}>{S.leadInDays} days</span> before ground-break so every module is staged before its phase. Longest phase: <span style={{ color: C.text }}>{S.criticalPhase}</span>. Every dollar here adds up to the {usd(S.totalCost)} estimate.
+      </div>
+    </div>
+  );
+}
+
 /** The six-phase build plan for one form + option (used inside each simulate card). */
 export function BuildInstructionsPanel({ formId, option }: { formId: FormId; option: BuildOption }) {
   const bi = buildInstructions(formId, option);
@@ -69,6 +105,7 @@ export function BuildInstructionsPanel({ formId, option }: { formId: FormId; opt
           </div>
         ))}
       </div>
+      <BuildSchedulePanel formId={formId} option={option} />
       <div className="mt-1 text-[8px] leading-snug" style={{ color: C.dim }}>{bi.note}</div>
     </div>
   );
