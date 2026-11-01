@@ -869,6 +869,16 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
     }
     // FURNITURE (full) · FIXTURES (Bath + Kitchen) · OPENINGS — the furniture palette, filtered to the allowed groups.
     const groups = groupPalette(paletteForRoom(room.k)).filter(({ group }) => allowed === "all" || allowed.includes(group));
+    // A room with nothing relevant to the phase (e.g. a bedroom in Plumbing) shows a one-line note, never a blank strip.
+    if (groups.length === 0) {
+      const ph = phaseById(phase);
+      return (
+        <div data-arch-roomdesign-palette data-arch-palette-mode={palMode} className="flex items-center gap-2 text-[10px]" style={{ color: C.dim }}>
+          <span className="shrink-0 rounded border px-2 py-1 text-[9px] font-semibold uppercase tracking-wider" style={{ borderColor: C.border, color: C.cyan }}>{ph?.label ?? phase}</span>
+          <span>no {palMode === "fixtures" ? "fixtures" : "items"} in {room.label} for this phase</span>
+        </div>
+      );
+    }
     return (
       <div data-arch-roomdesign-palette data-arch-palette-mode={palMode} className="flex flex-wrap items-stretch gap-x-2 gap-y-1" style={{ touchAction: "none" }}>{/* S4b: pinch here must not zoom the page */}
         {groups.map(({ group, kinds }) => (
