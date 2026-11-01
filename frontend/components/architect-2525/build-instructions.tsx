@@ -13,8 +13,9 @@
 import { useState } from "react";
 import { buildInstructions, compareTimeline, BUILD_ORDER, type InstructionStep } from "@/lib/architect-build-instructions";
 import type { BuildOption, ElementName } from "@/lib/architect-sim-options";
-import { modelById, DEFAULT_COST, type CostParams } from "@/lib/architect-sim-options";
+import { modelById, DEFAULT_COST, costBreakdown, type CostParams } from "@/lib/architect-sim-options";
 import { buildSchedule } from "@/lib/architect-stage-plan";
+import { projectVendorSavings } from "@/lib/architect-vendors";
 import { loadBearing, headerFor } from "@/lib/architect-load-bearing";
 import type { FormId } from "@/lib/architect-sim-environment";
 import { rainbow } from "@/lib/architect-rainbow";
@@ -60,6 +61,7 @@ export function BuildSchedulePanel({ formId, option, cost = DEFAULT_COST }: { fo
   const m = modelById(formId);
   if (!m) return null;
   const S = buildSchedule(m, option, cost);
+  const vs = projectVendorSavings(costBreakdown(m, option, cost).total.material);
   const color = (el: string) => (el in ELEMENT_COLOR ? ELEMENT_COLOR[el as ElementName] : C.cyan);
   return (
     <div data-arch-build-schedule={formId} className="mt-1 rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
@@ -79,6 +81,9 @@ export function BuildSchedulePanel({ formId, option, cost = DEFAULT_COST }: { fo
       </div>
       <div className="mt-1 text-[9px] leading-snug" style={{ color: C.dim }}>
         Order materials <span style={{ color: C.gold }}>{S.leadInDays} days</span> before ground-break so every module is staged before its phase. Longest phase: <span style={{ color: C.text }}>{S.criticalPhase}</span>. Every dollar here adds up to the {usd(S.totalCost)} estimate.
+      </div>
+      <div data-arch-vendor-sourcing className="mt-1 text-[9px] leading-snug" style={{ color: C.dim }}>
+        <span className="font-bold" style={{ color: C.cyan }}>3-vendor sourcing</span> · the {usd(vs.materialUsd)} material budget is the average of 3 quotes per item. Buying each at the lowest of three could save <span style={{ color: C.green }}>≈ {usd(vs.savingsUsd)} ({vs.savingsPct}%)</span>. <span style={{ color: "#4b5a6e" }}>Planning figure — enter real quotes to lock it.</span>
       </div>
     </div>
   );
