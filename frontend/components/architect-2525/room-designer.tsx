@@ -22,13 +22,14 @@ import { MiniPanel } from "./mini-panel";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import {
   OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
-  footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette,
+  footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette, worldSpan,
   nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setVariantByHeight, setGap, elevOf, setElev,
   defaultObjectsForRoom,
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
 import { annotateObject, chainDims, ftIn } from "@/lib/dim-annot";
+import { doorSymbol, doorSymbolSvg, arcPoints } from "@/lib/door-symbol";
 import { useLexicon } from "@/lib/lexicon-context";
 import { OBJECT_ICON } from "./object-icons";
 import { roomBom } from "@/lib/architect-bom";
@@ -293,10 +294,10 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const outlets = room.outlets ?? 0;
   const water = showWater ? waterRuns(objects) : null;
   const sewer = showSewer ? sewerRuns(objects) : null;
-  const wiring = showWiring ? wiringRuns(outlets) : null;
+  const wiring = showWiring ? wiringRuns(outlets, objects) : null;         // R5c: wiring + markers avoid a door opening
   const duct = showDucts ? ductRuns() : null;
-  const eSpec = showWiring ? electricSpecs(outlets) : null;
-  const outMarks = showWiring ? outletMarkers(outlets) : null;   // FIX-4 wall-mounted outlets
+  const eSpec = showWiring ? electricSpecs(outlets, objects) : null;
+  const outMarks = showWiring ? outletMarkers(outlets, objects) : null;   // FIX-4 wall-mounted outlets
   const MEP_COL = { water: C.cyan, sewer: "#22c55e", wiring: C.gold, duct: "#38bdf8" };
   const anyMep = !!(water || sewer || wiring || duct);
   // 2D: polyline through grid-cell centres (viewBox 0..100). 3D: same path at a system height (floor→ceiling).
@@ -345,16 +346,40 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             const cx = o.gx * 10 + 5, cy = o.gy * 10 + 5;
             const on = o.id === selId;
             const Icon = ICON[o.kind];
+            const col = on ? C.gold : s.color;
+            // R5c — a DOOR is drawn by the standard plan symbol (lib/door-symbol): the wall CUT for its width between the
+            // jambs on the drawn wall line (0.1 ft inside the edge), the LEAF standing open at 90° from the hinge jamb, the
+            // quarter-circle SWING to the strike jamb, into the room. Its group carries no rotation — rot is the hinge side.
+            const ds = o.kind === "door" ? doorSymbolSvg(doorSymbol(o, { inset: 0.1 }), 10, 10, 0, 0) : null;
+            // the door's grip sits 2 ft in from its hinge jamb (a corner hinge would clip the grip at the viewBox edge — AsM)
+            const gripAt = ds ? { x: ds.hinge.x + ds.into.x * 2, y: ds.hinge.y + ds.into.y * 2 } : { x: cx - w * 5, y: cy - d * 5 };
+            // a door's group is not rotated, so its hit pad takes the ROTATION-AWARE span (a W/E door runs along y — AsM)
+            const pad = ds ? worldSpan(o) : { w, d };
+            const iconAt = ds ? { x: (ds.opening.x1 + ds.opening.x2) / 2 + ds.into.x * 4.5, y: (ds.opening.y1 + ds.opening.y2) / 2 + ds.into.y * 4.5 } : { x: cx, y: cy };
             return (
-              <g key={o.id} data-arch-roomobj={o.kind} transform={`rotate(${o.rot} ${cx} ${cy})`} style={{ cursor: interactive ? "grab" : "default" }} onPointerDown={interactive ? objDown(o.id) : undefined}>
+              <g key={o.id} data-arch-roomobj={o.kind} transform={o.kind === "door" ? undefined : `rotate(${o.rot} ${cx} ${cy})`} style={{ cursor: interactive ? "grab" : "default" }} onPointerDown={interactive ? objDown(o.id) : undefined}>
                 {/* R5b — a transparent HIT PAD so a thin wall piece (0.2–0.5 ft sash / mirror) is a finger-sized target */}
-                {interactive && (w < 1 || d < 1) && <rect data-arch-hitpad x={cx - Math.max(w, 1) * 5} y={cy - Math.max(d, 1) * 5} width={Math.max(w, 1) * 10} height={Math.max(d, 1) * 10} fill="transparent" />}
-                <rect x={cx - w * 5} y={cy - d * 5} width={w * 10} height={d * 10} rx={1.5}
-                  fill={`${s.color}${on ? "55" : "2e"}`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.4 : 0.8} />
+                {interactive && (w < 1 || d < 1) && <rect data-arch-hitpad x={cx - Math.max(pad.w, 1) * 5} y={cy - Math.max(pad.d, 1) * 5} width={Math.max(pad.w, 1) * 10} height={Math.max(pad.d, 1) * 10} fill="transparent" />}
+                {/* R5c — a door's tap target is its whole SWING sector (hinge → leaf → arc → strike), not just the opening strip */}
+                {interactive && ds && <path data-arch-hitpad-swing d={`M ${ds.hinge.x} ${ds.hinge.y} L ${ds.leaf.x2} ${ds.leaf.y2} ${ds.arc.replace(/^M [^A]*/, "")} Z`} fill="transparent" />}
+                {o.kind === "door" && ds ? (
+                  <>
+                    <line data-arch-door-opening x1={ds.opening.x1} y1={ds.opening.y1} x2={ds.opening.x2} y2={ds.opening.y2} stroke="#070b12" strokeWidth={2.4} />
+                    {[ds.opening, { x1: ds.opening.x2, y1: ds.opening.y2 }].map((j, i) => (
+                      <line key={`j${i}`} x1={j.x1 - ds.into.x * 0.6} y1={j.y1 - ds.into.y * 0.6} x2={j.x1 + ds.into.x * 0.6} y2={j.y1 + ds.into.y * 0.6} stroke={col} strokeWidth={0.8} />
+                    ))}
+                    <line data-arch-door-leaf x1={ds.leaf.x1} y1={ds.leaf.y1} x2={ds.leaf.x2} y2={ds.leaf.y2} stroke={col} strokeWidth={on ? 1.4 : 1.1} strokeLinecap="round" />
+                    <path data-arch-door-arc d={ds.arc} fill="none" stroke={col} strokeWidth={on ? 0.7 : 0.5} strokeDasharray="1.2 0.8" />
+                  </>
+                ) : (
+                  <rect x={cx - w * 5} y={cy - d * 5} width={w * 10} height={d * 10} rx={1.5}
+                    fill={`${s.color}${on ? "55" : "2e"}`} stroke={col} strokeWidth={on ? 1.4 : 0.8} />
+                )}
                 {/* upper-left DRAG GRIP — the standard 6-dot handle (2 cols × 3 rows, ⠿) so it reads as "grab to move",
-                    matching the mini-map grip (operator IMG_7593). Visual only; the whole group drags. */}
+                    matching the mini-map grip (operator IMG_7593). Visual only; the whole group drags. A door's grip sits
+                    at its hinge jamb. */}
                 {interactive && (() => {
-                  const gx0 = cx - w * 5, gy0 = cy - d * 5, col = on ? C.gold : s.color;
+                  const gx0 = gripAt.x, gy0 = gripAt.y;
                   return (
                     <g style={{ pointerEvents: "none" }}>
                       <rect x={gx0 - 1.15} y={gy0 - 1.65} width={2.3} height={3.3} rx={0.6} fill="#070b12dd" stroke={col} strokeWidth={0.3} />
@@ -364,9 +389,10 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                     </g>
                   );
                 })()}
-                {/* center ICON when unselected; when SELECTED the NAME BADGE below names it instead (operator 2026-10-25). */}
+                {/* center ICON when unselected; when SELECTED the NAME BADGE below names it instead (operator 2026-10-25).
+                    A door's icon sits just inside the room off the centre of its opening. */}
                 {!on && (
-                <foreignObject x={cx - 4} y={cy - 4} width={8} height={8} style={{ pointerEvents: "none" }}>
+                <foreignObject x={iconAt.x - 4} y={iconAt.y - 4} width={8} height={8} style={{ pointerEvents: "none" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 8, height: 8 }}>
                     <Icon style={{ width: 6, height: 6, color: s.color }} />
                   </div>
@@ -580,6 +606,28 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
               if (o.rot === 270) return { x: 1 - (p.y + p.d), y: p.x, w: p.d, d: p.w };
               return { x: p.x, y: p.y, w: p.w, d: p.d };
             };
+            // R5c — a DOOR in 3D is its LEAF standing open at 90° from the hinge jamb (door-width long, door-height tall, a
+            // thin panel) with the swing arc on the floor — never a slab in the wall.
+            if (o.kind === "door") {
+              const sym = doorSymbol(o), t = 0.15;
+              const ux = (sym.leafEnd.x - sym.hinge.x) / sym.r, uy = (sym.leafEnd.y - sym.hinge.y) / sym.r;
+              const px = -uy * t / 2, py = ux * t / 2;
+              const cs: [number, number][] = [[sym.hinge.x + px, sym.hinge.y + py], [sym.leafEnd.x + px, sym.leafEnd.y + py], [sym.leafEnd.x - px, sym.leafEnd.y - py], [sym.hinge.x - px, sym.hinge.y - py]];
+              const base = cs.map(([x, y]) => iso(x, y, 0)), top = cs.map(([x, y]) => iso(x, y, hgt));
+              const arc = arcPoints(sym, 12).map((p) => iso(p.x, p.y, 0));
+              const fcol = (k: keyof typeof FACE_SHADE) => (on ? shade(C.gold, FACE_SHADE[k]) : shade(s.color, FACE_SHADE[k]));
+              return (
+                <g key={o.id} data-arch-roomobj3d={o.kind} data-arch-roomobj3d-door style={{ cursor: "pointer" }}
+                  onPointerDown={(e) => { e.stopPropagation(); setSelId(o.id); }}>
+                  <polyline points={poly(arc)} fill="none" stroke={on ? C.gold : s.color} strokeWidth={0.7} strokeDasharray="2 1.5" opacity={0.9} />
+                  <line x1={iso(sym.hinge.x, sym.hinge.y, 0)[0]} y1={iso(sym.hinge.x, sym.hinge.y, 0)[1]} x2={iso(sym.strike.x, sym.strike.y, 0)[0]} y2={iso(sym.strike.x, sym.strike.y, 0)[1]} stroke={on ? C.gold : s.color} strokeWidth={0.5} opacity={0.5} />
+                  <polygon points={poly([base[0], base[1], top[1], top[0]])} fill={fcol("front")} stroke={on ? C.gold : s.color} strokeWidth={on ? 1 : 0.5} />
+                  <polygon points={poly([base[1], base[2], top[2], top[1]])} fill={fcol("side")} stroke={on ? C.gold : s.color} strokeWidth={on ? 1 : 0.5} />
+                  <polygon points={poly([base[2], base[3], top[3], top[2]])} fill={fcol("front")} stroke={on ? C.gold : s.color} strokeWidth={on ? 1 : 0.5} />
+                  <polygon points={poly(top)} fill={fcol("top")} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.2 : 0.6} />
+                </g>
+              );
+            }
             return (
               // FIX-E — click an object in 3D to select it (stopPropagation so it selects instead of orbiting the camera).
               <g key={o.id} data-arch-roomobj3d={o.kind} style={{ cursor: "pointer" }}

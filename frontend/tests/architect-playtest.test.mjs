@@ -34,7 +34,7 @@ ok(waterFrame.totals.waterFt === waterRuns(waterFrame.objects).totalFt && waterF
 const sewerFrame = a.find((f) => f.step.id === "sewer");
 ok(sewerFrame.totals.sewerFt === sewerRuns(sewerFrame.objects).totalFt && sewerFrame.totals.sewerFt > 0, "sewer step total = sewerRuns(objects).totalFt (>0)");
 const elecFrame = a.find((f) => f.step.id === "electric");
-ok(elecFrame.totals.wireFt === electricSpecs(4).wireFt && elecFrame.totals.circuits === electricSpecs(4).circuits && elecFrame.totals.amps === electricSpecs(4).amps, "electric step totals = electricSpecs(outlets)");
+ok(elecFrame.totals.wireFt === electricSpecs(4, elecFrame.objects).wireFt && elecFrame.totals.circuits === electricSpecs(4, elecFrame.objects).circuits && elecFrame.totals.amps === electricSpecs(4, elecFrame.objects).amps, "electric step totals = electricSpecs(outlets, objects) — door-aware (R5c)");
 const hvacFrame = a.find((f) => f.step.id === "hvac");
 ok(hvacFrame.totals.ductFt === ductRuns().totalFt && hvacFrame.totals.ductFt > 0, "hvac step total = ductRuns().totalFt (>0)");
 
@@ -42,7 +42,8 @@ ok(hvacFrame.totals.ductFt === ductRuns().totalFt && hvacFrame.totals.ductFt > 0
 ok(a[0].totals.waterFt === 0 && a[0].totals.ductFt === 0 && a[0].totals.wireFt === 0, "no system totals before their steps enable them");
 
 // ── outlets parameter flows through ──
-ok(runPlaytest(PLAYTEST_STEPS, 8).find((f) => f.step.id === "electric").totals.wireFt === electricSpecs(8).wireFt, "outlets param feeds electricSpecs");
+const e8 = runPlaytest(PLAYTEST_STEPS, 8).find((f) => f.step.id === "electric");
+ok(e8.totals.wireFt === electricSpecs(8, e8.objects).wireFt, "outlets param feeds electricSpecs");
 
 console.log(`\nARCHITECT-PLAYTEST ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

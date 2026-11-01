@@ -31,6 +31,15 @@ export const ROOM_FT = 10;        // each cell edge = 10 ft
 export const TINY_GRID = 3;       // 3×3
 export const TINY_SIDE_FT = ROOM_FT * TINY_GRID; // 30 ft
 
+/** THE VOXEL PROPORTION LAW (operator 2026-10-31: "remember voxel pixel height and width for 3x3x3 is to be realistically
+ * proportional"; 2026-10-25: "3x3x3 shape is same pixels tall, wide, and long"). ONE scale for the plan and every vertical:
+ * the land cell (the 30-ft house) is 66 px, so 2.2 px/ft; a storey is one room edge — 10 ft — so the 3×3×3 cube is the HOUSE
+ * (3 rooms × 3 rooms × 3 storeys of 10-ft voxels = 30 × 30 × 30 ft = 66 × 66 × 66 px), the house its level 1. Gated by
+ * tests/architect-voxel-proportion.test.mjs; STOREY_FT must equal TINY_HOME.ceilingFt (room-program) and the room designer's N. */
+export const VOXEL_PX_PER_FT = 66 / TINY_SIDE_FT;   // 2.2 px per foot
+export const STOREY_FT = ROOM_FT;                     // 10 ft — one storey = one room edge = one ceiling
+export const STEP_RISE_FT = 7 / 12;                   // a 7-in riser (IRC R311.7.5.1 allows up to 7¾ in)
+
 /** Finalized Tiny Home (operator design) — index = row*3 + col, read top→bottom / left→right.
  * Element seeds: perimeter rooms get a window; the center Kitchen has no exterior wall (0). */
 export const TINY_ROOM_LAYOUT: RoomCell[] = [

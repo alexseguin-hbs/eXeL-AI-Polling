@@ -13,6 +13,9 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { TINY_ROOM_LAYOUT, TINY_GRID, ROOM_FT, TINY_SIDE_FT } from "@/lib/room-layout";
+import { defaultObjectsForRoom, ROOM_GRID } from "@/lib/room-objects";
+import { outletPositions } from "@/lib/mep-runs";
+import { doorSymbol, doorSymbolSvg, symbolForSpan, type DoorSymbol } from "@/lib/door-symbol";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400" };
 const TRADE_COLOR: Record<string, string> = { Concrete: "#8a8f98", Framing: "#19c8cf", Plumbing: "#38bdf8", Electrical: "#ffd400", Finish: "#22c55e" };
@@ -125,8 +128,9 @@ export function ArchitectBuild() {
               <line x1="8" y1="18" x2="8" y2="66" stroke="#556" strokeWidth="0.5" />
               <polyline points={`8,20 14,24 10,28 ${X0 - 2},34 ${X0},36`} fill="none" stroke={TRADE_COLOR.Electrical} strokeWidth="0.6" />
               <rect x={X0 + 0.8} y={Y0 + HOUSE / 2 + 1.5} width={2.6} height={3.2} fill="none" stroke={TRADE_COLOR.Electrical} strokeWidth="0.4" />
-              {rooms.map((r) => Array.from({ length: Math.min(4, r.outlets) }, (_, i) => (
-                <circle key={`${r.id}${i}`} cx={cx(r.col) + 3 + i * ((CELL - 6) / 3)} cy={cy(r.row) + CELL - 2.4} r={0.55} fill={TRADE_COLOR.Electrical} />
+              {/* R5c: outlets at the SAME door-aware wall cells the room designer wires (never inside a door opening) */}
+              {rooms.map((r) => outletPositions(Math.min(4, r.outlets), r.objects ?? defaultObjectsForRoom(r.k)).map((p, i) => (
+                <circle key={`${r.id}${i}`} cx={cx(r.col) + (p.gx + 0.5) * (CELL / ROOM_GRID)} cy={cy(r.row) + (p.gy + 0.5) * (CELL / ROOM_GRID)} r={0.55} fill={TRADE_COLOR.Electrical} />
               )))}
             </g>
           )}
@@ -148,10 +152,26 @@ export function ArchitectBuild() {
                   return <rect key={`${r.id}w${i}`} x={x} y={y} width={horiz ? w : t} height={horiz ? t : w} fill="#0b2a2e" stroke={C.cyan} strokeWidth="0.35" />;
                 });
               })}
-              {/* the Entry's doors (up to two): the front door at the W end of the south edge — clear of the window's centre slot — and a second (porch) door on the east edge */}
-              {rooms.filter((r) => r.k === "E").map((r) => Array.from({ length: Math.min(2, r.doors) }, (_, i) => i === 0
-                ? <rect key={`${r.id}d0`} x={cx(r.col) + 2.5} y={cy(r.row) + CELL - 0.6} width={4} height={1.4} fill="#1a2a1f" stroke="#22c55e" strokeWidth="0.35" />
-                : <rect key={`${r.id}d1`} x={cx(r.col) + CELL - 0.6} y={cy(r.row) + CELL / 2 - 2} width={1.4} height={4} fill="#1a2a1f" stroke="#22c55e" strokeWidth="0.35" />))}
+              {/* DOORS by the standard convention (R5c, lib/door-symbol): the wall cut for the width, the leaf open at 90° from the
+                  hinge jamb, the quarter-circle swing into the room. Every room's OWN doors (the bedroom's door-1 on its S wall)
+                  and, for the Entry, its two canned exterior doors — the front door at 0.5–3.5 ft on the S edge (hinge at the corner,
+                  clear of the window's centre slot) and the porch door at 3.5–6.5 ft on the E edge. */}
+              {rooms.map((r) => {
+                const k = CELL / ROOM_GRID, inset = 0.6 / k;   // the studs' room rect sits 0.6 px inside the cell edge
+                const own = (r.objects ?? defaultObjectsForRoom(r.k)).filter((o) => o.kind === "door");
+                const syms: DoorSymbol[] = own.length ? own.map((o) => doorSymbol(o, { inset }))
+                  : r.k === "E" ? [symbolForSpan("S", 0.5, 3.5, { inset }), symbolForSpan("E", 3.5, 6.5, { inset })].slice(0, Math.min(2, r.doors)) : [];
+                return syms.map((sym, i) => {
+                  const d = doorSymbolSvg(sym, k, k, cx(r.col), cy(r.row));
+                  return (
+                    <g key={`${r.id}d${i}`} data-arch-build-door={r.k}>
+                      <line x1={d.opening.x1} y1={d.opening.y1} x2={d.opening.x2} y2={d.opening.y2} stroke="#070b12" strokeWidth="1.1" />
+                      <line x1={d.leaf.x1} y1={d.leaf.y1} x2={d.leaf.x2} y2={d.leaf.y2} stroke="#22c55e" strokeWidth="0.45" strokeLinecap="round" />
+                      <path d={d.arc} fill="none" stroke="#22c55e" strokeWidth="0.3" opacity="0.85" />
+                    </g>
+                  );
+                });
+              })}
             </g>
           )}
         </svg>

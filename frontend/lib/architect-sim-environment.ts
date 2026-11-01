@@ -4,7 +4,7 @@
  * Pressing a form's SIMULATE "creates that environment": this produces, deterministically, WHERE each room (and
  * therefore its furniture) lands in each form:
  *   • Cube        — the nine rooms on a 3×3 grid (900 ft²).
- *   • Tiny Home   — a REAL standard 8.5 × 40 ft THOW (~340 ft²): a long single-level plan with a realistic SUBSET of
+ *   • Tiny Home   — a REAL standard 8.5 × 24 ft THOW (~204 ft²): a long single-level plan with a realistic SUBSET of
  *                   rooms (an open Living·Kitchen·Dining great room up front, Bath + Bedroom/loft at the rear). A tiny
  *                   home genuinely has fewer rooms — so, unlike the two full-size forms, it does NOT carry all nine
  *                   (operator FX-01: "Tiny home is usually 20 or 40 ft rectangular; look up standard size and pick one").
@@ -52,7 +52,7 @@ export function gridEnvironment(): SimEnvironment {
   return { formId: "3x3-grid", view: VIEW, shell: "grid", placements };
 }
 
-// ── Tiny Home — a real standard 8.5 × 40 ft THOW (~340 ft²), drawn as a long horizontal rectangle (true proportion).
+// ── Tiny Home — a real standard 8.5 × 24 ft THOW (~204 ft²), drawn as a long horizontal rectangle (true proportion).
 //    A realistic THOW layout front→rear: an OPEN great room (Living · Kitchen · Dining nook), then Bath + Bedroom/loft. ─
 // 8.5 × 24 ft — the standard THOW size (industry consensus across ~30 builds: 8.5 ft road-legal width, 24 ± ~5 ft length).
 const TINY_LEN_FT = 24, TINY_WID_FT = 8.5;

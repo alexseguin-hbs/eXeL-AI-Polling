@@ -68,7 +68,7 @@ export function runPlaytest(steps: PlayStep[] = PLAYTEST_STEPS, outlets = 4): Pl
   steps.forEach((step, index) => {
     for (const p of step.place) objects = placeObject(objects, p.kind, p.gx, p.gy);
     toggles = { ...toggles, ...step.toggles };
-    const wSpec = toggles.electric ? electricSpecs(outlets) : null;
+    const wSpec = toggles.electric ? electricSpecs(outlets, objects) : null;   // R5c: door-aware, as the designer
     frames.push({
       step, index, objects, toggles,
       totals: {

@@ -1,6 +1,6 @@
 // ARCHITECT-2525 · SIMULATE ENVIRONMENT gate (operator 2026-10-27/28): pressing SIMULATE "creates that environment".
 // The two FULL-SIZE forms (Cube · Eco-Sphere) conserve all nine room keys + all 44 real furniture pieces (R5b: no rugs by default); the Tiny Home
-// is a REAL standard 8.5×40 THOW (~340 ft²) with its own realistic subset, every piece in-bounds. Furniture is the REAL
+// is a REAL standard 8.5×24 THOW (~204 ft²) with its own realistic subset, every piece in-bounds. Furniture is the REAL
 // set from defaultObjectsForRoom — nothing invented. Generators are deterministic (replay-safe).
 import { environmentFor, gridEnvironment, tinyEnvironment, hexEnvironment, conservedKeys, totalObjectCount, environmentObjects, hexPoints, ALL_ROOM_KEYS, VIEW, MARGIN } from "@/lib/architect-sim-environment";
 import { defaultObjectsForRoom, projectPlaced } from "@/lib/room-objects";

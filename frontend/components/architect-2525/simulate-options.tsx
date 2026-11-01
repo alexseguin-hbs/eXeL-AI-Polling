@@ -2,7 +2,7 @@
 
 /**
  * ARCHITECT-2525 · SIMULATE — ALTERNATIVE DESIGN OPTIONS (operator 2026-10-25/27/28).
- * Three ways to build — Cube (3×3, 900 ft²) · Tiny Home (real 8.5×40 THOW ≈340 ft²) · Eco-Sphere (7-hex dome, 900 ft²).
+ * Three ways to build — Cube (3×3, 900 ft²) · Tiny Home (real 8.5×24 THOW ≈204 ft²) · Eco-Sphere (7-hex dome, 900 ft²).
  * Pressing a form's SIMULATE **creates that environment** (the real furnished floor-plan mockup) AND runs the original
  * 13-sim battery (0–5 + metrics). Each card carries the four build dimensions the operator asked for:
  *   • method dropdown — Stick-framed / 3D Print / Hex-panel (the Eco's shell) — the ICON hook.

@@ -9,7 +9,8 @@
  * read one source. Clicking a room selects it (lifts to the app so the right panel + 3D agree).
  */
 import { TINY_ROOM_LAYOUT, ROOM_FT, TINY_GRID, type RoomCell } from "@/lib/room-layout";
-import { projectPlaced, OBJECT_SPEC, defaultObjectsForRoom, type PlacedObject } from "@/lib/room-objects";
+import { projectPlaced, OBJECT_SPEC, defaultObjectsForRoom, ROOM_GRID, type PlacedObject } from "@/lib/room-objects";
+import { doorSymbol, doorSymbolSvg, symbolForSpan, type DoorSymbol } from "@/lib/door-symbol";
 import { useRCoreGestures } from "./use-rcore-gestures";
 import { Compass2525 } from "./compass-2525";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -25,11 +26,12 @@ const VB = SIDE + PAD * 2;
 
 // ACTUAL placed contents — projects each object the user placed in the room (via the in-room designer) into the room
 // cell, so the whole-house plan models what's REALLY inside, matching the entered-room view (operator IMG_7568/7569).
+// (R5c: a DOOR is not a rect — it is drawn by the standard symbol in the openings pass below, after every room's walls.)
 function placedContents(objects: PlacedObject[], rx: number, ry: number, rw: number, rh: number) {
-  return objects.map((o, i) => {
+  return objects.filter((o) => o.kind !== "door").map((o, i) => {
     const p = projectPlaced(o, rx, ry, rw, rh);
-    const opening = o.kind === "door" || o.kind === "window";
-    const col = opening ? (o.kind === "door" ? C.door : C.cyan) : (OBJECT_SPEC[o.kind]?.color ?? C.dim);
+    const opening = o.kind === "window";
+    const col = opening ? C.cyan : (OBJECT_SPEC[o.kind]?.color ?? C.dim);
     return <rect key={`o${i}`} x={p.x} y={p.y} width={Math.max(0.7, p.w)} height={Math.max(0.7, p.h)} rx={opening ? 0 : 0.6}
       fill={opening ? col : "none"} stroke={col} strokeWidth={opening ? 0.3 : 0.5} opacity={opening ? 0.95 : 0.85} />;
   });
@@ -73,12 +75,10 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
               const objs = r.objects ?? defaultObjectsForRoom(r.k);   // SAME predicate as voxel + designer — an emptied room ([]) stays empty in all three (AsM-caught divergence)
               // R5: a room whose objects carry their OWN openings (the Master Bedroom's Layout A places its two windows
               // and its door) draws those, not ALSO the canned count ticks + door arc (which doubled them — AsM-caught).
-              const ownWindows = objs.some((o) => o.kind === "window"), ownDoors = objs.some((o) => o.kind === "door");   // R5b: two flags — a room with only a door keeps its window ticks
+              const ownWindows = objs.some((o) => o.kind === "window");   // R5b: a room with only a door keeps its window ticks; its doors draw in the openings pass
               return (<>
                 {!ownWindows && Array.from({ length: r.windows }).map((_, wi) => { const wxp = rx + (rw * (wi + 1)) / (r.windows + 1); return <line key={`win${wi}`} x1={wxp - 2.6} y1={ry} x2={wxp + 2.6} y2={ry} stroke={C.cyan} strokeWidth="1.4" />; })}
                 {showFurniture && placedContents(objs, rx, ry, rw, rh)}
-                {!ownDoors && <line x1={rx + rw * 0.55} y1={ry + rh} x2={rx + rw * 0.85} y2={ry + rh} stroke={C.bg} strokeWidth="1.6" />}
-                {!ownDoors && <path d={`M ${rx + rw * 0.55} ${ry + rh} A ${rw * 0.3} ${rw * 0.3} 0 0 1 ${rx + rw * 0.55} ${ry + rh - rw * 0.3}`} fill="none" stroke={C.door} strokeWidth="0.3" opacity="0.7" />}
               </>);
             })()}
             {/* label */}
@@ -88,6 +88,29 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
           </g>
         );
       })}
+
+      {/* R5c — DOORS by the standard convention (lib/door-symbol), drawn AFTER every room so no neighbour re-strokes the cut:
+          the wall CUT for the door's width, the LEAF standing open at 90° from the hinge jamb, the quarter-circle SWING to the
+          strike jamb, into the room. A room's OWN doors (Layout A′'s door-1 on the Master Bedroom's S wall) or, for a room
+          without its own, the canned 3-ft door at 5.5–8.5 ft on its S wall (hinge at the jamb nearer the corner). */}
+      <g data-arch-floorplan-openings>
+        {layout.map((r) => {
+          const rx = x(r.col), ry = y(r.row), rw = U * r.w, rh = U * r.d;
+          const objs = r.objects ?? defaultObjectsForRoom(r.k);
+          const ownDoors = objs.some((o) => o.kind === "door");
+          const syms: DoorSymbol[] = ownDoors ? objs.filter((o) => o.kind === "door").map((o) => doorSymbol(o, { room: ROOM_GRID })) : [symbolForSpan("S", 5.5, 8.5)];
+          return syms.map((sym, i) => {
+            const d = doorSymbolSvg(sym, rw / ROOM_GRID, rh / ROOM_GRID, rx, ry);
+            return (
+              <g key={`${r.id}door${i}`} data-arch-floorplan-door={r.k}>
+                <line x1={d.opening.x1} y1={d.opening.y1} x2={d.opening.x2} y2={d.opening.y2} stroke={C.bg} strokeWidth="1.8" />
+                <line x1={d.leaf.x1} y1={d.leaf.y1} x2={d.leaf.x2} y2={d.leaf.y2} stroke={C.door} strokeWidth="0.45" strokeLinecap="round" />
+                <path d={d.arc} fill="none" stroke={C.door} strokeWidth="0.3" opacity="0.8" />
+              </g>
+            );
+          });
+        })}
+      </g>
 
       {/* front porch stair off the Entry room (bottom-right), mirroring the reference */}
       {(() => { const e = layout.find((r) => r.k === "E"); if (!e) return null; const ex = x(e.col) + U * e.w * 0.5, ey = y(e.row) + U * e.d;

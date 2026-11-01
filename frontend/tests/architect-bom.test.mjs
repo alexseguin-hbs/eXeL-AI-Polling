@@ -21,9 +21,9 @@ const line = (id) => bom.lines.find((l) => l.id === id);
 // MEP quantities EQUAL the live libs (quotable = the same numbers the designer shows).
 ok(line("water-pipe").qty === waterRuns(objs).totalFt && line("water-pipe").unit === "ft", "water pipe qty == waterRuns total, in ft");
 ok(line("sewer-pipe").qty === sewerRuns(objs).totalFt, "sewer pipe qty == sewerRuns total");
-ok(line("wire").qty === electricSpecs(OUTLETS).wireFt, "wire qty == electricSpecs wireFt");
+ok(line("wire").qty === electricSpecs(OUTLETS, objs).wireFt, "wire qty == electricSpecs(outlets, objects) wireFt — door-aware, the on-screen number (R5c)");
 ok(line("outlet").qty === 4 && line("outlet").unit === "ea", "outlet line = 4 ea");
-ok(line("breaker").qty === electricSpecs(OUTLETS).circuits, "breaker qty == circuits");
+ok(line("breaker").qty === electricSpecs(OUTLETS, objs).circuits, "breaker qty == circuits");
 ok(line("duct").qty === ductRuns().totalFt, "duct qty == ductRuns total");
 
 // Object counts + categories.

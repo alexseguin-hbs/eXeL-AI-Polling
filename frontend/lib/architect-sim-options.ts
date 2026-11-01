@@ -1,7 +1,7 @@
 /**
  * ARCHITECT-2525 · SIMULATE — ALTERNATIVE DESIGN OPTIONS (operator 2026-10-25/27/28).
  * ============================================================================================================
- * THREE ways to build a home — Cube (3×3 grid, 900 ft²) · Tiny Home (a real standard 8.5×40 ft THOW ≈340 ft²) ·
+ * THREE ways to build a home — Cube (3×3 grid, 900 ft²) · Tiny Home (a real standard 8.5×24 ft THOW ≈204 ft²) ·
  * Eco-Sphere (7-hex dome, 900 ft²). Pressing a form's SIMULATE generates its environment AND runs the SAME original
  * 13-sim battery, scored 0–5 with detailed metrics; the matrix scores them side by side; COMPARE gives one pick.
  *
@@ -13,7 +13,7 @@
  *
  * PRODUCT TRUTH — ONE ENGINE: every cost DERIVES from the real estimate engine (DEFAULT_SECTIONS), area-scaled and
  * adjusted by the chosen option, so the per-element breakdown always reconciles EXACTLY to the card total (no blanket
- * fudge factor). The Cube at its native option = the engine's $440,000 unchanged. Tiny + Eco are DECLARED PARAMETRIC
+ * fudge factor). The Cube at its native option = the engine's $240,000 unchanged (R4 real-market recalibration). Tiny + Eco are DECLARED PARAMETRIC
  * (ASSUMED area/months/envelope). Scores are a deterministic design PREVIEW (no Date.now/Math.random), not an
  * engineering analysis. Energy/Carbon are DESIGN ASSUMPTIONS. Material strength/carbon figures are vendor ESTIMATES.
  */

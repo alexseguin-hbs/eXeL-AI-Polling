@@ -4,7 +4,7 @@
  * ARCHITECT-2525 · SIMULATE — ENVIRONMENT VIEW (operator 2026-10-27/28). A real, readable floor-plan MOCKUP of one
  * build form, drawn with the HOME'S OWN furniture (defaultObjectsForRoom, placed via projectPlaced — nothing invented):
  *   • Cube        — the nine rooms on a 3×3 grid (solid interior walls).
- *   • Tiny Home   — a long 8.5×40 ft THOW: one shell, an open great room up front, Bath + Bedroom at the rear.
+ *   • Tiny Home   — a long 8.5×24 ft THOW: one shell, an open great room up front, Bath + Bedroom at the rear.
  *   • Eco-Sphere  — seven hexagons (1 centre + 6) under a hex-panel dome.
  * The build option drives the drawing: method switches the walls (stick = thin cyan · 3D Print = thick stone, tinted by
  * material) and the roof is drawn per the chosen roof type — a gable/hip/flat cue over the rectilinear forms, the
@@ -13,7 +13,8 @@
  */
 import { useMemo } from "react";
 import { environmentFor, environmentObjects, hexPoints, VIEW, MARGIN, type FormId, type Rect } from "@/lib/architect-sim-environment";
-import { projectPlaced, OBJECT_SPEC } from "@/lib/room-objects";
+import { projectPlaced, OBJECT_SPEC, ROOM_GRID } from "@/lib/room-objects";
+import { doorSymbol, doorSymbolSvg } from "@/lib/door-symbol";
 import { ROOFS, FRAME_MATERIALS, type BuildOption, type RoofType } from "@/lib/architect-sim-options";
 
 const C = { ground: "#070b12", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", dim: "#5f7186", cement: "#9aa7b4", composite: "#7fd4a8", hexpanel: "#8aa0b8" };
@@ -85,7 +86,7 @@ export function SimEnvironmentView({ formId, opt, size = 220 }: { formId: FormId
       )}
       {env.shell === "tiny" && (
         <g fill="none" vectorEffect="non-scaling-stroke">
-          {/* the long 8.5×40 THOW outline */}
+          {/* the long 8.5×24 THOW outline */}
           <rect x={shellRect.x} y={shellRect.y} width={shellRect.w} height={shellRect.h} rx={1} stroke={wall} strokeWidth={wallW} />
           {/* the OPEN GREAT ROOM — one zone, NO interior dividers (genuinely open — Enki) */}
           {(() => {
@@ -136,9 +137,23 @@ export function SimEnvironmentView({ formId, opt, size = 220 }: { formId: FormId
       {/* ── the furniture — the home's REAL objects, placed in this geometry ── */}
       {placed.map(({ roomKey, rect, objects }) =>
         objects.map((o) => {
-          const p = projectPlaced(o, rect.x, rect.y, rect.w, rect.h);
           const spec = OBJECT_SPEC[o.kind];
-          const opening = o.kind === "door" || o.kind === "window";
+          if (o.kind === "door") {   // R5c — the standard symbol: opening · leaf · swing, into the room (lib/door-symbol)
+            const d = doorSymbolSvg(doorSymbol(o), rect.w / ROOM_GRID, rect.h / ROOM_GRID, rect.x, rect.y);
+            // the cut is skipped where the opening lies ON the THOW shell (the bedroom's S wall is the exterior long wall there —
+            // a cut would read as a door to the outside; the leaf + swing still mark the door)
+            const sh = env.shellRect, eps = 0.01;
+            const onShell = !!sh && (Math.abs(d.opening.y1 - sh.y) < eps || Math.abs(d.opening.y1 - (sh.y + sh.h)) < eps || Math.abs(d.opening.x1 - sh.x) < eps || Math.abs(d.opening.x1 - (sh.x + sh.w)) < eps);
+            return (
+              <g key={`${roomKey}-${o.id}`} data-arch-sim-env-door={roomKey}>
+                {!onShell && <line x1={d.opening.x1} y1={d.opening.y1} x2={d.opening.x2} y2={d.opening.y2} stroke={C.ground} strokeWidth={2.6} vectorEffect="non-scaling-stroke" />}
+                <line x1={d.leaf.x1} y1={d.leaf.y1} x2={d.leaf.x2} y2={d.leaf.y2} stroke={spec.color} strokeWidth={1} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                <path d={d.arc} fill="none" stroke={spec.color} strokeWidth={0.7} strokeDasharray="2 1.5" vectorEffect="non-scaling-stroke" opacity={0.9} />
+              </g>
+            );
+          }
+          const p = projectPlaced(o, rect.x, rect.y, rect.w, rect.h);
+          const opening = o.kind === "window";
           return (
             <rect key={`${roomKey}-${o.id}`} x={p.x} y={p.y} width={Math.max(0.6, p.w)} height={Math.max(0.6, p.h)} rx={0.3}
               fill={opening ? spec.color : "none"} fillOpacity={opening ? 0.5 : 1} stroke={spec.color} strokeWidth={0.4}

@@ -34,12 +34,15 @@ export const BED_VARIANTS: SizeVariant[] = [
   { id: "queen", label: "Queen", w: 5,    d: 6.67 },
   { id: "king",  label: "King",  w: 6.33, d: 6.67 },
 ];
-// FIX-1 — standard door sizes (width × 6'8" or 8'0"), depth = thin panel.
+// FIX-1 — standard door sizes (width × 6'8" or 8'0"), depth = thin panel. R5c: the ids are inches and the labels now tell the
+// truth about the widths (28 in = 2'-4", 30 in = 2'-6"); the common 2'-8" interior door is added; "d32" keeps its 3-ft width
+// so a saved "3'-0"" door keeps its size. Gated: every label equals the feet-inches of its width (tests/door-convention).
 export const DOOR_VARIANTS: SizeVariant[] = [
-  { id: "d28", label: `2'-8"`, w: 2.33, d: 0.4, h: 6.67 },
-  { id: "d30", label: `2'-10"`, w: 2.5, d: 0.4, h: 6.67 },
-  { id: "d32", label: `3'-0"`, w: 3,    d: 0.4, h: 6.67 },
-  { id: "d36", label: `3'-0"×8'`, w: 3, d: 0.4, h: 8 },
+  { id: "d28",  label: `2'-4"`,    w: 2.33, d: 0.4, h: 6.67 },
+  { id: "d30",  label: `2'-6"`,    w: 2.5,  d: 0.4, h: 6.67 },
+  { id: "d32w", label: `2'-8"`,    w: 2.67, d: 0.4, h: 6.67 },
+  { id: "d32",  label: `3'-0"`,    w: 3,    d: 0.4, h: 6.67 },
+  { id: "d36",  label: `3'-0"×8'`, w: 3,    d: 0.4, h: 8 },
 ];
 // FIX-1 — standard window sizes (width × height), depth = thin sash.
 export const WINDOW_VARIANTS: SizeVariant[] = [
@@ -645,6 +648,8 @@ export function mirrorObjects(objs: PlacedObject[], axis: "h" | "v"): PlacedObje
     const c = axis === "h"
       ? clampFootprint(ROOM_GRID - 1 - o.gx, o.gy, fp.w, fp.d, o.rot, false)
       : clampFootprint(o.gx, ROOM_GRID - 1 - o.gy, fp.w, fp.d, o.rot, false);
-    return { ...o, rot: flipRot(o.rot), gx: c.gx, gy: c.gy };
+    // R5c: a DOOR keeps its rot — its rot is the hinge side, and the door symbol's nearest-corner rule already reflects the
+    // hinge with the position; flipping it too put the hinge on the wrong jamb for mirror v of an N/S door (AsM-caught).
+    return { ...o, rot: o.kind === "door" ? o.rot : flipRot(o.rot), gx: c.gx, gy: c.gy };
   });
 }

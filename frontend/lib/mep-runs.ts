@@ -9,7 +9,7 @@
  * Pure + deterministic (replay law): Manhattan L-routes (horizontal then vertical), fixed source anchors, no
  * Math.random, no I/O. 1 grid cell = 1 ft (matches ROOM_GRID = 10 → a 10'×10' room).
  */
-import { ROOM_GRID, wallOf, type ObjectKind, type PlacedObject, type Wall } from "./room-objects";
+import { ROOM_GRID, wallOf, wallOfObject, worldSpan, type ObjectKind, type PlacedObject, type Wall } from "./room-objects";
 
 export const MEP_GRID = ROOM_GRID; // 10 — one cell per foot
 
@@ -87,11 +87,27 @@ export function sewerRuns(objects: PlacedObject[]): SystemRuns {
   return { runs, totalFt: runs.reduce((a, r) => a + r.lengthFt, 0) };
 }
 
+/** The perimeter cells a door's opening covers (R5c: no receptacle sits in a door opening — NEC 210.52 measures the wall
+ *  space from the door's edge). Keyed "gx,gy". */
+export function doorOpeningCells(objects: readonly PlacedObject[]): Set<string> {
+  const g = MEP_GRID - 1, cells = new Set<string>();
+  for (const o of objects) {
+    if (o.kind !== "door") continue;
+    const wall = wallOfObject(o), s = worldSpan(o), horiz = wall === "N" || wall === "S";
+    const a1 = horiz ? s.x1 : s.y1, a2 = horiz ? s.x2 : s.y2;
+    for (let a = Math.max(0, Math.floor(a1 + 1e-9)); a < Math.min(MEP_GRID, Math.ceil(a2 - 1e-9)); a++) {
+      cells.add(horiz ? `${a},${wall === "N" ? 0 : g}` : `${wall === "W" ? 0 : g},${a}`);
+    }
+  }
+  return cells;
+}
+
 /**
  * Deterministic outlet positions — `count` outlets spread evenly around the room perimeter (clockwise from NW).
  * (room-objects has no placeable outlet; the per-room count drives their positions so wiring is reproducible.)
+ * With the room's `objects`, the cells under a door opening are skipped (R5c) — the spread runs over the wall that is left.
  */
-export function outletPositions(count: number): MepPt[] {
+export function outletPositions(count: number, objects?: readonly PlacedObject[]): MepPt[] {
   const n = Math.max(0, Math.min(24, Math.floor(count)));
   if (n === 0) return [];
   const g = MEP_GRID - 1;
@@ -100,15 +116,27 @@ export function outletPositions(count: number): MepPt[] {
   for (let y = 1; y <= g; y++) perim.push({ gx: g, gy: y });        // right T→B
   for (let x = g - 1; x >= 0; x--) perim.push({ gx: x, gy: g });    // bottom R→L
   for (let y = g - 1; y >= 1; y--) perim.push({ gx: 0, gy: y });    // left B→T
-  const step = perim.length / n;
+  const blocked = objects && objects.length ? doorOpeningCells(objects) : null;
+  const wall = blocked ? perim.filter((p) => !blocked.has(`${p.gx},${p.gy}`)) : perim;
+  const ring = wall.length ? wall : perim;
+  const step = ring.length / n;
   const out: MepPt[] = [];
-  for (let i = 0; i < n; i++) out.push(perim[Math.floor(i * step) % perim.length]);
+  for (let i = 0; i < n; i++) out.push(ring[Math.floor(i * step) % ring.length]);
   return out;
 }
 
 /** ELECTRIC WIRING runs — from the panel to every outlet. */
-export function wiringRuns(outletCount: number): SystemRuns {
-  return runsToEndpoints(MEP_SOURCE.panel, outletPositions(outletCount));
+/** The service panel's cell — the SW anchor, or (R5c) the first free cell up the W wall when a door opening covers it
+ *  (Layout A′'s door-1 spans x 0–3 on the S wall, so the panel moves to (0,8)). */
+export function panelAt(objects?: readonly PlacedObject[]): MepPt {
+  if (!objects || !objects.length) return MEP_SOURCE.panel;
+  const blocked = doorOpeningCells(objects);
+  let p = { ...MEP_SOURCE.panel };
+  while (blocked.has(`${p.gx},${p.gy}`) && p.gy > 0) p = { gx: p.gx, gy: p.gy - 1 };
+  return p;
+}
+export function wiringRuns(outletCount: number, objects?: readonly PlacedObject[]): SystemRuns {
+  return runsToEndpoints(panelAt(objects), outletPositions(outletCount, objects));
 }
 
 /**
@@ -118,14 +146,14 @@ export function wiringRuns(outletCount: number): SystemRuns {
  */
 export const OUTLET_AFF_FT = 1.5; // standard receptacle height above finished floor
 export interface OutletMarker { gx: number; gy: number; wall: Wall; affFt: number }
-export function outletMarkers(outletCount: number): OutletMarker[] {
-  return outletPositions(outletCount).map((p) => ({ gx: p.gx, gy: p.gy, wall: wallOf(p.gx, p.gy), affFt: OUTLET_AFF_FT }));
+export function outletMarkers(outletCount: number, objects?: readonly PlacedObject[]): OutletMarker[] {
+  return outletPositions(outletCount, objects).map((p) => ({ gx: p.gx, gy: p.gy, wall: wallOf(p.gx, p.gy), affFt: OUTLET_AFF_FT }));
 }
 
 /** ELECTRIC specs from the outlet count — total wire ft, circuits (≤8 outlets/circuit), and service amps. */
-export function electricSpecs(outletCount: number): { wireFt: number; circuits: number; amps: number } {
+export function electricSpecs(outletCount: number, objects?: readonly PlacedObject[]): { wireFt: number; circuits: number; amps: number } {
   const n = Math.max(0, Math.floor(outletCount));
-  const wireFt = wiringRuns(n).totalFt;
+  const wireFt = wiringRuns(n, objects).totalFt;
   const circuits = n === 0 ? 0 : Math.ceil(n / 8);   // NEC-style: cap ~8 general-purpose outlets per 15A circuit
   const amps = circuits * 15;
   return { wireFt, circuits, amps };

@@ -1,4 +1,4 @@
-// ARCHITECT-2525 · SIMULATE OPTIONS gate (operator 2026-10-25/27/28): three forms (Cube 900 ft² · Tiny Home 340 ft² THOW ·
+// ARCHITECT-2525 · SIMULATE OPTIONS gate (operator 2026-10-25/27/28): three forms (Cube 900 ft² · Tiny Home 204 ft² THOW ·
 // Eco-Sphere 900 ft²), the 13-sim battery scored 0–5 with detailed metrics, a side-by-side matrix, and the four build
 // dimensions — method (stick / 3D Print / hex-panel) · material (cement/composite · wood/steel/aluminum) · roof · cost
 // BY ELEMENT — all derived from ONE engine (DEFAULT_SECTIONS) so the element breakdown reconciles to the card cost.

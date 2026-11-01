@@ -24,7 +24,7 @@ export function roomBom(objects: PlacedObject[], outlets: number): Bom {
   const lines: BomLine[] = [];
   const water = waterRuns(objects).totalFt;
   const sewer = sewerRuns(objects).totalFt;
-  const e = electricSpecs(outlets);
+  const e = electricSpecs(outlets, objects);   // R5c: the same door-aware outlets the designer shows
   const duct = ductRuns().totalFt;
   if (water > 0) lines.push({ id: "water-pipe", category: "Plumbing", item: "Water supply pipe", qty: water, unit: "ft" });
   if (sewer > 0) lines.push({ id: "sewer-pipe", category: "Plumbing", item: "Sewer / DWV pipe", qty: sewer, unit: "ft" });
