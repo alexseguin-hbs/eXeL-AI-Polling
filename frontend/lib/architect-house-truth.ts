@@ -51,16 +51,25 @@ export interface MasterBuildPhase {
 /** One material take-off line — derived from the one geometry + the one stud spacing. */
 export interface MasterMaterialLine { item: string; qty: number; unit: "ft²" | "lin ft" | "ea"; note?: string; }
 
+/** One room cell on the 3×3 grid — col/row (0..2), its label, and whether it is a wet room (plumbing). The 2D
+ *  top-down plan and the 3D view both render from THIS (one geometry, two views — the 2D⇄3D mirror, FX01b). */
+export interface MasterRoomCell { col: number; row: number; label: string; wet: boolean; }
+
 export interface CanonicalHouseTruth {
-  areaSqft: number;            // 900 — from the seed geometry (netProgramAreaUm2)
+  areaSqft: number;            // 900 — NET program (interior); === netSqft, kept for the one-cost-truth gate
+  netSqft: number;             // 900 — interior livable (9 rooms × 10×10), the cost basis
+  grossSqft: number;           // 1,296 — the built shell footprint (9 cubes × 12×12)
   rooms: number;               // 9 — space count
-  dims: { widthFt: number; depthFt: number; wallHeightFt: number }; // 30 × 30 × 10
+  // operator 2026-11-01 (FX01a): the 3×3 is SQUARE rooms — 10′ interior, 12′ cube (a 1′ service cavity each side,
+  // wall + a chase for wiring/plumbing so a repair never cuts drywall → lower maintenance). Shell = 3 cubes = 36′.
+  dims: { roomFt: number; cubeFt: number; cavityFt: number; shellWidthFt: number; shellDepthFt: number; wallHeightFt: number };
   costUsd: number;             // 240,000 — the one-cost-truth (costFor)
   months: number;              // build months (monthsFor)
   laborHours: number;          // total labour hours (laborHoursFor)
-  costPerFt2: number;          // $/ft² = cost ÷ area (honest, from the two master facts)
+  costPerFt2: number;          // $/ft² = cost ÷ NET area (the cost basis)
   build: MasterBuildPhase[];   // the real build, grouped by install phase — Σ usd === costUsd
-  materials: MasterMaterialLine[]; // the framing & envelope take-off (length of material)
+  materials: MasterMaterialLine[]; // the framing & envelope take-off (length of material), on the shell
+  roomCells: MasterRoomCell[]; // the 9 rooms on the 3×3 grid — the shared geometry for the 2D plan + 3D view
 }
 
 // Which install phase each priced element is built in (architect-house PHASES ids). The six costBreakdown elements
@@ -89,9 +98,25 @@ export function canonicalHouseTruth(): CanonicalHouseTruth {
   // ── DIMENSIONS — from the µm geometry (the same the Design surface draws) ──
   const geomSqft = Math.round(sqftFromUm2(netProgramAreaUm2(project)));   // 900
   const rooms = spaceCount(project);                                      // 9
-  const widthFt = Math.round(ftFromUm(Math.max(...spaces.map((s) => s.x_um + s.width_um))));  // 30
-  const depthFt = Math.round(ftFromUm(Math.max(...spaces.map((s) => s.y_um + s.depth_um))));  // 30
   const wallHeightFt = storey ? Math.round(ftFromUm(storey.height_um)) : 10;                  // 10
+  // operator 2026-11-01 (FX01a): the 3×3 is SQUARE rooms — 10′ interior; each CUBE adds a 1′ service cavity each
+  // side (wall + a chase for wiring/plumbing so a repair never cuts drywall → lower maintenance) → a 12′ cube.
+  // The built SHELL is the 3×3 of cubes → 36′. NET (interior) program stays 900 ft²; GROSS (shell) = 1,296 ft².
+  const gridN = Math.round(Math.sqrt(rooms));                                                 // 3
+  const roomFt = Math.round(ftFromUm(spaces[0].width_um));                                    // 10 (interior room edge)
+  const CAVITY_FT = 2;                                                                        // 1′ each side
+  const cubeFt = roomFt + CAVITY_FT;                                                          // 12
+  const shellWidthFt = cubeFt * gridN;                                                        // 36
+  const shellDepthFt = cubeFt * gridN;                                                        // 36
+  const netSqft = geomSqft;                                                                   // 900 (interior)
+  const grossSqft = shellWidthFt * shellDepthFt;                                              // 1,296 (shell)
+  // The 9 rooms on the 3×3 grid (col/row 0..2) — the ONE shared geometry the 2D plan + 3D view both render (FX01b).
+  const roomCells = spaces.map((s) => ({
+    col: Math.round(ftFromUm(s.x_um) / roomFt),
+    row: Math.round(ftFromUm(s.y_um) / roomFt),
+    label: s.legacy_slug ?? s.function.toLowerCase(),
+    wet: s.wet_class === "WET",
+  }));
 
   // ── COST — from the one-cost-truth engine (triple-check: cost-model area must equal the geometry area) ──
   const m = canonicalModel();
@@ -124,38 +149,41 @@ export function canonicalHouseTruth(): CanonicalHouseTruth {
   // ── MATERIAL — the framing & envelope take-off, from the one geometry + the one stud spacing ──
   const gauge = STUD_GAUGES.find((g) => g.id === DEFAULT_STUD_GAUGE) ?? STUD_GAUGES[0]; // 2×6 envelope default
   const stepFt = STUD_SPACING_IN / 12;                                   // 16" o.c. → 1.333 ft
-  // The 3×3 grid gives 2 internal gridlines on each axis. Derive the wall runs from the geometry, not a guess:
-  const gridN = Math.round(Math.sqrt(rooms));                            // 3 (3×3)
-  const extRuns = [widthFt, widthFt, depthFt, depthFt];                  // 4 exterior walls (perimeter)
+  // The take-off is on the BUILT SHELL (36×36), at the 12′ cube grid: exterior = shell perimeter; interior
+  // partitions = the (gridN-1) lines on each axis at the cube boundaries.
+  const extRuns = [shellWidthFt, shellWidthFt, shellDepthFt, shellDepthFt];  // 4 exterior walls (perimeter)
   const intRuns = [
-    ...Array.from({ length: Math.max(0, gridN - 1) }, () => depthFt),    // vertical internal gridlines span the depth
-    ...Array.from({ length: Math.max(0, gridN - 1) }, () => widthFt),    // horizontal internal gridlines span the width
+    ...Array.from({ length: Math.max(0, gridN - 1) }, () => shellDepthFt),   // vertical internal gridlines
+    ...Array.from({ length: Math.max(0, gridN - 1) }, () => shellWidthFt),   // horizontal internal gridlines
   ];
   const runs = [...extRuns, ...intRuns];
-  const extWallFt = extRuns.reduce((a, b) => a + b, 0);                  // 120
-  const intWallFt = intRuns.reduce((a, b) => a + b, 0);                  // 120
-  const totalWallFt = extWallFt + intWallFt;                            // 240
+  const extWallFt = extRuns.reduce((a, b) => a + b, 0);                  // 144
+  const intWallFt = intRuns.reduce((a, b) => a + b, 0);                  // 144
+  const totalWallFt = extWallFt + intWallFt;                            // 288
   const studs = runs.reduce((a, L) => a + Math.floor(L / stepFt) + 1, 0); // per-run studs @16" o.c.
   const plateFt = r0(totalWallFt * 3);                                   // bottom + double top plate = 3 runs
-  const slabFt2 = geomSqft;                                              // 900
-  const roofFt2 = geomSqft;                                              // plan-area roof sheathing (estimate)
+  const slabFt2 = grossSqft;                                             // 1,296 (shell footprint)
+  const roofFt2 = grossSqft;                                             // 1,296 (shell roof, plan area)
   const materials: MasterMaterialLine[] = [
-    { item: "Concrete slab", qty: slabFt2, unit: "ft²", note: "foundation" },
-    { item: "Wall framing", qty: r0(totalWallFt), unit: "lin ft", note: `${r0(extWallFt)} exterior + ${r0(intWallFt)} interior` },
+    { item: "Concrete slab", qty: slabFt2, unit: "ft²", note: "shell footprint" },
+    { item: "Wall framing", qty: r0(totalWallFt), unit: "lin ft", note: `${r0(extWallFt)} exterior + ${r0(intWallFt)} interior · 12′ cube grid` },
     { item: `${gauge.label} studs`, qty: studs, unit: "ea", note: `@${STUD_SPACING_IN}" o.c. · ${wallHeightFt}′ walls` },
     { item: "Plate lumber", qty: plateFt, unit: "lin ft", note: "bottom + double top" },
-    { item: "Roof sheathing", qty: roofFt2, unit: "ft²", note: "plan area (estimate)" },
+    { item: "Roof sheathing", qty: roofFt2, unit: "ft²", note: "shell plan area" },
   ];
 
   return {
-    areaSqft: geomSqft,
+    areaSqft: netSqft,
+    netSqft,
+    grossSqft,
     rooms,
-    dims: { widthFt, depthFt, wallHeightFt },
+    dims: { roomFt, cubeFt, cavityFt: CAVITY_FT, shellWidthFt, shellDepthFt, wallHeightFt },
     costUsd,
     months,
     laborHours,
     costPerFt2,
     build,
     materials,
+    roomCells,
   };
 }

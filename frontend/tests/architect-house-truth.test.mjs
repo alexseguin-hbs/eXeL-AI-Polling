@@ -20,11 +20,17 @@ const m = canonicalModel();
 const project = buildProjectFromSeed(TINY_HOME_V1);
 const geomSqft = Math.round(sqftFromUm2(netProgramAreaUm2(project)));
 
-// ── DIMENSIONS — one source: the seed geometry ──
-ok(h.areaSqft === 900, `master area = 900 ft² from geometry (got ${h.areaSqft})`);
+// ── DIMENSIONS — one source: the seed geometry + the FX01a cube/shell model ──
+ok(h.areaSqft === 900, `master area = 900 ft² NET from geometry (got ${h.areaSqft})`);
 ok(geomSqft === 900, `geometry netProgramArea = 900 ft² (got ${geomSqft})`);
+ok(h.netSqft === 900, `net (interior) = 900 ft² (got ${h.netSqft})`);
 ok(h.rooms === 9 && spaceCount(project) === 9, `master rooms = 9 (got ${h.rooms})`);
-ok(h.dims.widthFt === 30 && h.dims.depthFt === 30, `master dims = 30 × 30 ft (got ${h.dims.widthFt}×${h.dims.depthFt})`);
+// operator FX01a: 10′ interior rooms · 12′ cube (1′ service cavity each side) · 36′ shell · 1,296 ft² gross
+ok(h.dims.roomFt === 10, `interior room = 10′ (got ${h.dims.roomFt})`);
+ok(h.dims.cavityFt === 2, `service cavity = 2′ per cube, 1′ each side (got ${h.dims.cavityFt})`);
+ok(h.dims.cubeFt === 12, `cube = 12′ (10′ interior + 1′ each side) (got ${h.dims.cubeFt})`);
+ok(h.dims.shellWidthFt === 36 && h.dims.shellDepthFt === 36, `shell = 36′ × 36′ (3 cubes) (got ${h.dims.shellWidthFt}×${h.dims.shellDepthFt})`);
+ok(h.grossSqft === 1296, `gross (shell) = 1,296 ft² (got ${h.grossSqft})`);
 ok(h.dims.wallHeightFt === 10, `master wall height = 10 ft (got ${h.dims.wallHeightFt})`);
 
 // ── TRIPLE-CHECK — the geometry area and the cost-model area AGREE (one house, never two) ──
@@ -48,15 +54,20 @@ const bd = costBreakdown(m, m.native);
 const bdSum = bd.elements.reduce((a, e) => a + e.usd, 0) + bd.remainder.usd + (bd.fixed?.usd ?? 0);
 ok(bdSum === 240000, `costBreakdown reconciles to $240,000 (got $${bdSum}) — the master's one source`);
 
-// ── MATERIAL — the take-off (length of material) from the one geometry ──
+// ── MATERIAL — the take-off (length of material) on the BUILT SHELL (36×36) ──
 const slab = h.materials.find((x) => x.item === "Concrete slab");
 const wall = h.materials.find((x) => x.item === "Wall framing");
 const studs = h.materials.find((x) => /studs/.test(x.item));
 const plate = h.materials.find((x) => x.item === "Plate lumber");
-ok(slab && slab.qty === 900 && slab.unit === "ft²", `slab take-off = 900 ft² (got ${slab?.qty})`);
-ok(wall && wall.qty === 240 && wall.unit === "lin ft", `wall framing = 240 lin ft (120 ext + 120 int) (got ${wall?.qty})`);
-ok(studs && studs.qty > 0 && studs.unit === "ea", `studs counted from the geometry @16" o.c. (got ${studs?.qty})`);
-ok(plate && plate.qty === 720 && plate.unit === "lin ft", `plate lumber = 720 lin ft (got ${plate?.qty})`);
+ok(slab && slab.qty === 1296 && slab.unit === "ft²", `slab take-off = 1,296 ft² (shell footprint) (got ${slab?.qty})`);
+ok(wall && wall.qty === 288 && wall.unit === "lin ft", `wall framing = 288 lin ft (144 ext + 144 int, 12′ cube grid) (got ${wall?.qty})`);
+ok(studs && studs.qty > 0 && studs.unit === "ea", `studs counted from the shell @16" o.c. (got ${studs?.qty})`);
+ok(plate && plate.qty === 864 && plate.unit === "lin ft", `plate lumber = 864 lin ft (288 × 3) (got ${plate?.qty})`);
+
+// ── ROOM CELLS — the shared geometry for the 2D plan + 3D view (FX01b: one house, two views) ──
+ok(h.roomCells.length === 9, `9 room cells for the 2D⇄3D view (got ${h.roomCells.length})`);
+ok(h.roomCells.every((c) => c.col >= 0 && c.col <= 2 && c.row >= 0 && c.row <= 2), "every room cell is on the 3×3 grid (col/row 0..2)");
+ok(h.roomCells.filter((c) => c.wet).length === 3, `3 wet rooms (utility · kitchen · bath) marked (got ${h.roomCells.filter((c) => c.wet).length})`);
 
 // ── FIREWALL — the shared legacy default is UNCHANGED (canonical surfaces read 900 from canonical, not the default) ──
 ok(DEFAULT_PARAMS.areaSqft === 2000, `DEFAULT_PARAMS.areaSqft stays 2000 (firewall — architect-product-truth untouched)`);

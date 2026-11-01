@@ -11,6 +11,7 @@ import { X, Home, Layers } from "lucide-react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { houseEstimate, houseSchedule, componentEstimate } from "@/lib/architect-house";
 import { canonicalHouseTruth } from "@/lib/architect-house-truth";
+import { CanonicalHouseView } from "./canonical-house-view";
 import { projectRollup, styleEquivalence } from "@/lib/architect-project";
 import { findLayer, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
@@ -36,13 +37,20 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLo
       className="rounded-lg border p-2" style={{ borderColor: C.violet, background: C.panel }}>
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
         <span className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider" style={{ color: C.violet }}><Home className="h-4 w-4" /> THE 3×3 HOUSE · MASTER</span>
-        <span style={{ color: C.dim }}>Area <span className="tabular-nums font-semibold" style={{ color: C.text }}>{master.areaSqft.toLocaleString()} ft²</span></span>
-        <span style={{ color: C.dim }}>Rooms <span className="tabular-nums font-semibold" style={{ color: C.text }}>{master.rooms}</span></span>
-        <span style={{ color: C.dim }}>Footprint <span className="tabular-nums font-semibold" style={{ color: C.text }}>{master.dims.widthFt}′ × {master.dims.depthFt}′</span></span>
+        <span style={{ color: C.dim }}>Rooms <span className="tabular-nums font-semibold" style={{ color: C.text }}>{master.rooms} · {master.dims.roomFt}′×{master.dims.roomFt}′ interior</span></span>
+        <span style={{ color: C.dim }}>Cube <span className="tabular-nums font-semibold" style={{ color: C.text }}>{master.dims.cubeFt}′×{master.dims.cubeFt}′</span></span>
+        <span style={{ color: C.dim }}>Shell <span className="tabular-nums font-semibold" style={{ color: C.text }}>{master.dims.shellWidthFt}′ × {master.dims.shellDepthFt}′</span></span>
+      </div>
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <span style={{ color: C.dim }}>Net <span className="tabular-nums font-semibold" style={{ color: C.text }}>{master.netSqft.toLocaleString()} ft²</span></span>
+        <span style={{ color: C.dim }}>Gross (shell) <span className="tabular-nums font-semibold" style={{ color: C.text }}>{master.grossSqft.toLocaleString()} ft²</span></span>
         <span style={{ color: C.dim }}>Est. cost <span className="tabular-nums font-bold" style={{ color: C.gold }}>{fmtUsd(master.costUsd)}</span></span>
         <span style={{ color: C.dim }}>Build <span className="tabular-nums font-semibold" style={{ color: C.green }}>~{master.months} mo</span></span>
-        <span style={{ color: C.dim }}>$/ft² <span className="tabular-nums" style={{ color: C.text }}>{fmtUsd(master.costPerFt2)}</span></span>
+        <span style={{ color: C.dim }}>$/ft² net <span className="tabular-nums" style={{ color: C.text }}>{fmtUsd(master.costPerFt2)}</span></span>
       </div>
+      <div className="text-[9px]" style={{ color: C.cyan }}>1′ service cavity in every cube wall — wiring &amp; plumbing access, no wall-cutting on repairs (lower maintenance).</div>
+      {/* FX01b — the 2D top-down ⇄ 3D isometric mirror, both from the one geometry (operator 2026-11-01) */}
+      <CanonicalHouseView master={master} />
       {/* the real build, grouped by install phase — Σ cost === the $240,000 headline (one cost truth) */}
       <div className="mt-2 flex flex-col gap-1">
         {master.build.map((p) => (
