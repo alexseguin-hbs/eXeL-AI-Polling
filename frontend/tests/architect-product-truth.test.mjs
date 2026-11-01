@@ -20,10 +20,13 @@ ok(!/>\s*G6\s*</.test(ux), "no bare 'G6' rendered on the surface");
 ok(!/>\s*G\d+\s*</.test(ux.replace(/G\d+\s+\w/g, "")), "no bare G<n> stage token rendered (GATES labels like 'G2 Site' excluded)");
 ok(/\{canonStageWord\} · \{canonPlanState\}/.test(ux), "the stage reads the canonical WORD · plan state");
 
-// ── SPIRAL / R-CORE / SSSES / Replay read NOT_RUN, never a fabricated green/SYNC (advisory §5) ──
-ok(!/SPIRAL <span[^>]*>green</.test(ux) && !/>\s*green\s*<\/span>/.test(ux), "SPIRAL does not render a fabricated 'green'");
-ok(!/R-CORE <span[^>]*>SYNC</.test(ux), "R-CORE does not render a fabricated 'SYNC'");
-ok(/SPIRAL <span[^>]*>NOT_RUN</.test(ux) && /R-CORE <span[^>]*>NOT_RUN</.test(ux), "SPIRAL and R-CORE read NOT_RUN");
+// ── R-UX6 D1b (operator 2026-11-01: "remove SSSES SPIRAL R-CORE from header text … should not be referenced within
+//    Architect-2525"): the platform/dev terms are GONE from the product shell — removed, not reworded. They remain legal
+//    in CODE (the RCoreBadge version-history feature, the ledger import), never as rendered copy. Still no fabricated status. ──
+ok(!/SPIRAL <span[^>]*>green</.test(ux) && !/>\s*green\s*<\/span>/.test(ux), "no fabricated 'green' status is rendered");
+ok(!/R-CORE <span[^>]*>SYNC</.test(ux), "no fabricated 'SYNC' status is rendered");
+ok(!/SSSES <span|>SSSES</.test(ux) && !/SPIRAL <span/.test(ux) && !/R-CORE <span/.test(ux), "the ribbon/Overview no longer render SSSES / SPIRAL / R-CORE chips (R-UX6 D1b)");
+ok(!/SSSES · SPIRAL · R-CORE/.test(ux), "the ADV/More grids no longer list 'SSSES · SPIRAL · R-CORE'");
 
 // ── project cost is NOT CALCULATED; the economy is not presented as a construction cost (§XI) ──
 ok(!/Project Cost" value=\{fmtUsd\(econ\.totalUsd\)/.test(ux), "Project Cost tile no longer reads econ.totalUsd");

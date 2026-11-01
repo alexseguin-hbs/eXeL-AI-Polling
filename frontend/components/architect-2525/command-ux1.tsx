@@ -91,7 +91,7 @@ const SUBNAV: Record<string, string[]> = {
 };
 // Per-tab "•••" advanced menu (Security-2525 "•••" method) — a persisted expander on every major tab.
 const ADV_MENU: Record<string, [string, string][]> = {
-  Overview: [["Health", "SSSES · SPIRAL · R-CORE"], ["Readiness", "Gates · Human Authority"], ["Activity", "Feed · Notifications"], ["Digital Twin", "Live model · Sensors"]],
+  Overview: [["Health", "Status · quality checks"], ["Readiness", "Gates · Human Authority"], ["Activity", "Feed · Notifications"], ["Digital Twin", "Live model · Sensors"]],
   Design: [["Layers", "Systems · MEP · Structure"], ["Compare", "Variants · Diff"], ["Coordinate", "MGRS · UCRS · Site"], ["Import", "IFC · DWG · GIS"]],
   Simulate: [["Analysis", "Energy · Structural · CFD"], ["Validation", "Clash · Code check"], ["Twin", "Live vs model"], ["Confidence", "Cone · AACE class"]],
   Review: [["Decisions", "Log · Approvals"], ["Issues", "Punch · RFI"], ["Approvals", "Gov · Edu · Innovation"], ["Contributions", "SoI · MoT · Trinity"]],
@@ -317,11 +317,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           <span style={{ color: C.dim }}>PROJECT <span style={{ color: C.text }}>V2525-000842</span></span>
           <span style={{ color: C.dim }}>{t("arch.cmd.stage_gate")} <span style={{ color: C.gold }}>{canonStageWord} · {canonPlanState} · HI Review Required</span></span>
           <span style={{ color: C.dim }}>Iteration <span style={{ color: C.dim }}>— / 33</span></span>
-          <span style={{ color: C.dim }}>SSSES <span style={{ color: C.dim }}>NOT_RUN</span></span>
-          <span style={{ color: C.dim }}>SPIRAL <span style={{ color: C.dim }}>NOT_RUN</span></span>
-          <span style={{ color: C.dim }}>R-CORE <span style={{ color: C.dim }}>NOT_RUN</span></span>
           <span style={{ color: C.dim }}>{t("arch.cmd.human_authority")} <span style={{ color: C.violet }}>Homeowner</span></span>
-          <span style={{ color: C.dim }}>Replay <span style={{ color: C.dim }}>NOT_RUN</span></span>
         </div>
         )}
         {/* SUBNAV — inner (secondary) tabs for the active primary tab */}
@@ -408,12 +404,6 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               <Tile label="Iteration" value="— / 33" sub="20–33 loop · not started" color={C.dim} />
               <Tile label="Model" value={`${canonSpaces} Spaces`} sub="PLAN + VECTOR 3D · boundaries, no walls" color={C.cyan} />
             </div>
-            <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>SSSES</div>
-            <div className="grid grid-cols-5 gap-2">
-              {["Security", "Stability", "Scalability", "Efficiency", "Succinctness"].map((p) => (
-                <Tile key={p} label={p} value="—" sub="pending" color={C.dim} />
-              ))}
-            </div>
             <Expander id="kg" title={t("arch.cmd.knowledge_graph")} sub="every project improves the next">
               <div className="rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel, color: C.dim }}>
                 Foundation → Concrete → Climate → Drainage → Best Practices → Future Recommendations.
@@ -490,7 +480,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {[
                 ["Coordination", "Participants · Tasks · Votes · Risks"],
-                ["Governance", "SSSES · SPIRAL · R-CORE · Human Authority"],
+                ["Governance", "Reviews · approvals · Human Authority"],
                 ["Intelligence", "AI Agents · Knowledge Graph · Patterns"],
                 ["Economy", "MoT · Time Capital · Trinity · Reputation"],
                 ["Data", "IFC · DWG · GIS · Import · Export"],
