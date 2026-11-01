@@ -1,0 +1,23 @@
+{
+  "release": "R-UX6 P1a",
+  "date": "2026.11.01_08.07..21",
+  "stamp": "2026.11.01_08.07..21",
+  "sha": "799810597",
+  "timestamp": "2026-11-01T14:10:00.957Z",
+  "verdict": null,
+  "overallNotes": "update per approvals and my edits",
+  "features": {
+    "design-model": {
+      "verdict": "APPROVE"
+    },
+    "sim-cube": {
+      "comment": "not sure why dotted yellow line goesnin middle of house"
+    },
+    "design-model-edited": {
+      "verdict": "APPROVE"
+    },
+    "sim-cube-edited": {
+      "verdict": "APPROVE"
+    }
+  }
+}
