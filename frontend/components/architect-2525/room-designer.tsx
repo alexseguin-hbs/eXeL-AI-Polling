@@ -28,7 +28,11 @@ import {
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
-import { phaseDraw } from "@/lib/architect-phases";
+import { phaseDraw, phaseById } from "@/lib/architect-phases";
+import {
+  phasePaletteMode, phaseAllowedGroups, STUD_GAUGES, studGaugeById, roomStudSkeleton, STUD_SPACING_IN,
+  type PhasePaletteMode,
+} from "@/lib/architect-phase-palette";
 import { annotateObject, chainDims, ftIn } from "@/lib/dim-annot";
 import { doorSymbol, doorSymbolSvg, arcPoints } from "@/lib/door-symbol";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -87,6 +91,21 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
     return pdraw.furniture;   // Sleep / Living furniture
   };
   const visible = objects.filter(showInPhase);
+  // R-PAL1 — THE PHASE MENU shows only the selected phase's items (operator 2026-11-01: "Phase menu should only show
+  // relevant items for framing; show 2x4 and 2x6 · remove non standard menus · the visual window is key focus like
+  // security 2525, all other menus support this"). ONE source: phasePaletteMode(phase). No phase / Interior Design →
+  // the full furniture palette (unchanged); Framing → the 2×4 / 2×6 stud selector; Plumbing/Sewer → the fixtures it
+  // serves; Finish → openings; every other construction phase → no placement menu (the model window is the key focus,
+  // a one-line note names the phase's work — removing the furniture menus declutters so the model is the hero).
+  const palMode: PhasePaletteMode = phasePaletteMode(phase);
+  // The framing stud gauge (2×4 / 2×6) the operator picks in the Framing phase — persisted; drives the stud skeleton.
+  const [studGaugeId, setStudGaugeId] = useState<"2x4" | "2x6">(() => {
+    if (typeof window === "undefined") return "2x6";
+    try { const v = localStorage.getItem("arch2525.studGauge"); return v === "2x4" || v === "2x6" ? v : "2x6"; } catch { return "2x6"; }
+  });
+  const setStudGauge = (id: "2x4" | "2x6") => { setStudGaugeId(id); try { localStorage.setItem("arch2525.studGauge", id); } catch {} };
+  const studGauge = studGaugeById(studGaugeId);
+  const studSkel = roomStudSkeleton(studGaugeId);   // the framing stud layout (16" o.c.) — drawn in plan2D when Framing
   const [tool, setTool] = useState<ObjectKind | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -345,6 +364,17 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
           ))}
           {interactive && <rect x={0} y={0} width={100} height={100} fill="transparent" style={{ cursor: tool ? "copy" : "default", pointerEvents: "none" }} />}
           <rect x={1} y={1} width={98} height={98} fill="none" stroke={C.violet} strokeWidth={1.2} />
+          {/* R-PAL1 — the FRAMING phase draws the stud skeleton (2×4 / 2×6 at 16" o.c.) in the model window — the key
+              focus (operator 2026-11-01). One source: lib/architect-phase-palette studSkeleton; the gauge reads deeper
+              for 2×6 than 2×4 so the choice is visible. */}
+          {palMode === "framing" && (
+            <g data-arch-framing-studs style={{ pointerEvents: "none" }}>
+              {studSkel.ticks.map((s, i) => (
+                <line key={`st${i}`} x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={C.cyan} strokeWidth={studSkel.thick} strokeLinecap="round" opacity={0.9} />
+              ))}
+              <text x={4} y={7} fontSize={3} fill={C.cyan} stroke="#070b12" strokeWidth={0.7} style={{ paintOrder: "stroke" }}>{studGauge.label} @ {STUD_SPACING_IN}″ o.c.</text>
+            </g>
+          )}
           {run2d(water?.runs, MEP_COL.water, "water")}
           {run2d(sewer?.runs, MEP_COL.sewer, "sewer")}
           {run2d(wiring?.runs, MEP_COL.wiring, "wiring")}
@@ -804,16 +834,52 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
       </button>
     );
   };
-  const paletteEl = (
-    <div data-arch-roomdesign-palette className="flex flex-wrap items-stretch gap-x-2 gap-y-1" style={{ touchAction: "none" }}>{/* S4b: pinch here must not zoom the page */}
-      {groupPalette(paletteForRoom(room.k)).map(({ group, kinds }) => (
-        <div key={group} data-arch-palette-group={group} className="flex items-center gap-1">
-          <span className="shrink-0 text-[7px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{group}</span>
-          {kinds.map(toolBtn)}
+  // R-PAL1 — THE PHASE MENU: the palette shows only the selected phase's items (operator 2026-11-01). One source,
+  // phasePaletteMode(phase) → the menu; a slim SUPPORTING strip so the model window stays the key focus (Security-2525).
+  const paletteEl = (() => {
+    const allowed = phaseAllowedGroups(palMode);
+    // FRAMING — the 2×4 / 2×6 stud selector the operator named ("show 2x4 and 2x6"). No furniture menus.
+    if (palMode === "framing") {
+      return (
+        <div data-arch-roomdesign-palette data-arch-palette-mode="framing" className="flex flex-wrap items-center gap-x-2 gap-y-1" style={{ touchAction: "none" }}>
+          <span data-arch-framing-gauge className="shrink-0 text-[7px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Framing · {STUD_SPACING_IN}″ o.c.</span>
+          {STUD_GAUGES.map((g) => {
+            const on = g.id === studGaugeId;
+            return (
+              <button key={g.id} data-arch-stud={g.id} onClick={() => setStudGauge(g.id)} title={g.use}
+                className="flex min-h-[44px] items-center gap-1 rounded border px-3 py-0.5 text-[12px] font-semibold"
+                style={{ borderColor: on ? C.gold : C.border, background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
+                <Columns2 className="h-3.5 w-3.5" style={{ color: on ? C.gold : C.cyan }} />{g.label}
+              </button>
+            );
+          })}
+          <span className="text-[9px]" style={{ color: C.dim }}>{studGauge.use}</span>
         </div>
-      ))}
-    </div>
-  );
+      );
+    }
+    // A construction phase with no placement menu — name its work in one line; the model window is the focus.
+    if (palMode === "none") {
+      const ph = phaseById(phase);
+      return (
+        <div data-arch-roomdesign-palette data-arch-palette-mode="none" className="flex items-center gap-2 text-[10px]" style={{ color: C.dim }}>
+          <span className="shrink-0 rounded border px-2 py-1 text-[9px] font-semibold uppercase tracking-wider" style={{ borderColor: C.border, color: C.cyan }}>{ph?.label ?? phase}</span>
+          <span>{ph?.draw.note ?? pdraw.note} — shown in the model</span>
+        </div>
+      );
+    }
+    // FURNITURE (full) · FIXTURES (Bath + Kitchen) · OPENINGS — the furniture palette, filtered to the allowed groups.
+    const groups = groupPalette(paletteForRoom(room.k)).filter(({ group }) => allowed === "all" || allowed.includes(group));
+    return (
+      <div data-arch-roomdesign-palette data-arch-palette-mode={palMode} className="flex flex-wrap items-stretch gap-x-2 gap-y-1" style={{ touchAction: "none" }}>{/* S4b: pinch here must not zoom the page */}
+        {groups.map(({ group, kinds }) => (
+          <div key={group} data-arch-palette-group={group} className="flex items-center gap-1">
+            <span className="shrink-0 text-[7px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{group}</span>
+            {kinds.map(toolBtn)}
+          </div>
+        ))}
+      </div>
+    );
+  })();
 
   return (
     <div data-arch-room-designer className="flex min-h-0 flex-1 flex-col gap-2" style={{ touchAction: "pan-y" }}>{/* S4b: page still scrolls vertically, but a pinch inside the designer can't zoom the whole page */}
