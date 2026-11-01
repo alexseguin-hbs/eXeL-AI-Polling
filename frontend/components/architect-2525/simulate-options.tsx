@@ -33,6 +33,9 @@ const ROOM_LEGEND = TINY_ROOM_LAYOUT.map((r) => ({ k: r.k, label: r.label }));
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b", red: "#f87171", ground: "#070b12", cement: "#9aa7b4", composite: "#7fd4a8" };
 const usd = (n: number) => "$" + n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 const stars = (n: number) => "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
+// R5h — RED → GREEN for a 1–5 rating (operator 2026-10-31: "use: Red to Green for 1-5 star"). 1 red · 2 orange · 3 amber · 4 lime · 5 green.
+const SCORE_COLORS = ["#ef4444", "#ef4444", "#f59e0b", "#eab308", "#84cc16", "#22c55e"]; // index 0..5 (0 and 1 both red)
+const scoreColor = (n: number) => SCORE_COLORS[Math.max(0, Math.min(5, Math.round(n)))];
 const selectStyle = { background: C.ground, color: C.text, border: `1px solid ${C.border}`, borderRadius: 4, padding: "1px 4px", fontSize: 9 } as const;
 
 /** The tiny form glyph for the matrix column heads (the big furnished mockups live in the cards).
@@ -93,7 +96,7 @@ function FormGlyph({ id, size = 26 }: { id: string; size?: number }) {
 }
 
 export function SimulateOptions() {
-  const [simulated, setSimulated] = useState<Set<string>>(new Set());
+  const [simulated, setSimulated] = useState<Set<string>>(() => new Set(SIM_MODELS.map((m) => m.id)));   // R5h: SIMULATE ALL by default (operator 2026-10-31)
   const [upperBy, setUpperBy] = useState<Record<string, UpperKind>>({});   // R5f: the catalog preset's LOFT / SECOND FLOOR switch
   const [optsBy, setOptsBy] = useState<Record<string, BuildOption>>(() => Object.fromEntries(SIM_MODELS.map((m) => [m.id, optFor(m)])));
   const [compare, setCompare] = useState(false);
@@ -152,7 +155,7 @@ export function SimulateOptions() {
         {SIM_MODELS.map((m) => { const sim = simulated.has(m.id); const sc = overallScore(m.id, optsBy[m.id]); return (
           m.catalogPreset
             ? <span key={m.id}><b style={{ color: C.cyan }}>{m.label.split(" ")[0]}</b> <span style={{ color: C.dim }}>catalog · {usd(catalogSum(m.catalogPreset))} · ASSUMED</span></span>
-            : <span key={m.id}><b style={{ color: C.cyan }}>{m.label.split(" ")[0]}</b> <span style={{ color: sim ? C.gold : C.dim }}>{sim ? `${stars(Math.round(sc))} ${sc.toFixed(1)}` : "— run"}</span>{sim ? <span style={{ color: C.dim }}> · {usd(costFor(m, optsBy[m.id], costBy[m.id]))}</span> : null}</span>
+            : <span key={m.id}><b style={{ color: C.cyan }}>{m.label.split(" ")[0]}</b> <span style={{ color: sim ? scoreColor(sc) : C.dim }}>{sim ? `${stars(Math.round(sc))} ${sc.toFixed(1)}` : "— run"}</span>{sim ? <span style={{ color: C.dim }}> · {usd(costFor(m, optsBy[m.id], costBy[m.id]))}</span> : null}</span>
         ); })}
         <button data-arch-sim-compare-top disabled={!allSimulated} onClick={() => { setCompare(true); if (typeof document !== "undefined") document.querySelector("[data-arch-sim-compare]")?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
           className="rounded border px-2 py-0.5 font-semibold" style={{ borderColor: allSimulated ? C.gold : C.border, color: allSimulated ? C.gold : C.dim, background: allSimulated ? "#1a1405" : "transparent" }}>
@@ -240,8 +243,8 @@ export function SimulateOptions() {
                 {row("Area", `${m.areaFt2.toLocaleString()} ft² · ${m.layoutLabel}`)}
                 {row("Cost", `${usd(cardTotal)} · ${usd(perFt2)}/ft²`, "Cost")}
                 {row("Build", `${monthsFor(m, opt)} mo`, "Build time")}
-                {row("Energy", stars(m.energyScore), "Energy")}
-                {row("Carbon", stars(carbonFor(m, opt)), "Carbon")}
+                <div className="flex items-baseline justify-between text-[11px]"><span style={{ color: C.dim }}>Energy</span><span style={{ color: scoreColor(m.energyScore) }}>{stars(m.energyScore)}</span></div>
+                <div className="flex items-baseline justify-between text-[11px]"><span style={{ color: C.dim }}>Carbon</span><span style={{ color: scoreColor(carbonFor(m, opt)) }}>{stars(carbonFor(m, opt))}</span></div>
               </div>
               <div className="mt-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: basisCol }}>
                 <span>{m.basis === "DERIVED" ? "cost · derived · engine" : "cost · assumed · parametric"}</span>
@@ -514,7 +517,7 @@ export function SimulateOptions() {
                 <div key={m.id} className="flex flex-col items-center gap-0.5">
                   <span className="rounded border p-1" style={{ borderColor: C.border, background: C.ground }}><FormGlyph id={m.id} size={26} /></span>
                   <span className="text-center text-[9px] font-bold leading-tight" style={{ color: C.cyan }}>{m.label}</span>
-                  <span className="text-[8px]" style={{ color: simulated.has(m.id) ? C.dim : C.amber }}>{simulated.has(m.id) ? `avg ${overallScore(m.id, optsBy[m.id]).toFixed(1)}` : "NOT_RUN"}</span>
+                  <span className="text-[8px]" style={{ color: simulated.has(m.id) ? scoreColor(overallScore(m.id, optsBy[m.id])) : C.amber }}>{simulated.has(m.id) ? `avg ${overallScore(m.id, optsBy[m.id]).toFixed(1)}` : "NOT_RUN"}</span>
                 </div>
               ))}
             </div>
@@ -529,8 +532,8 @@ export function SimulateOptions() {
                       const win = shown && c.modelId === rw.winnerId;
                       return (
                         <span key={c.modelId} data-arch-sim-cell className="flex flex-col items-center leading-none">
-                          <span className="text-[11px] font-semibold" style={{ color: !shown ? C.dim : win ? C.gold : c.status === "PASS" ? C.green : C.amber }}>{shown ? `${win ? "✦ " : ""}${c.score.toFixed(1)}` : "—"}</span>
-                          {shown && <span className="mt-0.5 text-[8px]" style={{ color: win ? C.gold : C.dim }}>{stars(c.stars)}</span>}
+                          <span className="text-[11px] font-semibold" style={{ color: !shown ? C.dim : scoreColor(c.score) }}>{shown ? `${win ? "✦ " : ""}${c.score.toFixed(1)}` : "—"}</span>
+                          {shown && <span className="mt-0.5 text-[8px]" style={{ color: scoreColor(c.stars) }}>{stars(c.stars)}</span>}
                         </span>
                       );
                     })}
