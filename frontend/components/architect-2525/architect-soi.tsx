@@ -29,7 +29,9 @@ export function ArchitectSoI({ econ }: { econ: EconomyResult }) {
   const update = (next: SoiFramework) => { setSoi(next); saveSoI(next); setPublished(false); };
   // §2 (FINAL 웃 contract): HI is RECOGNITION (웃 = hours × M), never money. recognitionU(active hours, base M=1).
   const recogU = recognitionU(econ.trinity.heart / 60, U_BASE_HOURS) ?? 0;
-  const liveFor = (key: string) => key === "SI" ? `${econ.trinity.heart} ♡` : key === "HI" ? `${recogU} 웃` : `${econ.trinity.unity} ◬`;
+  // §2b (operator 2026-11-01): volunteers get tracked hours in terms of SI heart tokens — ♡ SI = tracked hours.
+  const siHours = Math.round((econ.trinity.heart / 60) * 10) / 10;
+  const liveFor = (key: string) => key === "SI" ? `${siHours} ♡` : key === "HI" ? `${recogU} 웃` : `${econ.trinity.unity} ◬`;
   const doPublish = () => { publishSoI(soi); setPublished(true); };
 
   return (
@@ -84,7 +86,7 @@ export function ArchitectSoI({ econ }: { econ: EconomyResult }) {
         {/* contribution reputation (live) */}
         <div className="space-y-1 rounded-lg border p-2" style={{ borderColor: C.border, background: "#0c1420" }}>
           <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>CONTRIBUTION REPUTATION <span style={{ color: C.dim }}>{t("arch.soi.portable_identity_of_service")}</span></div>
-          <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.gold }}>♡</span><span style={{ color: C.dim }}>presence — how you show up ({econ.trinity.heart})</span></div>
+          <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.gold }}>♡</span><span style={{ color: C.dim }}>shared intent — tracked hours; volunteers recognized here ({siHours}h)</span></div>
           <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.violet }}>웃</span><span style={{ color: C.dim }}>skill — recognition ({recogU} 웃)</span></div>
           <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.cyan }}>◬</span><span style={{ color: C.dim }}>scalability — leverage created ({econ.trinity.unity})</span></div>
           <div className="border-t pt-1 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>{t("arch.soi.time_capital")} <span style={{ color: C.gold }}>{fmtUsd(econ.timeCapitalUsd)}</span> {t("arch.soi.learning_pts")} <span style={{ color: C.violet }}>{econ.learningPoints}</span>.</div>

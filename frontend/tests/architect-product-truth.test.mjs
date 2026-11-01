@@ -42,7 +42,11 @@ ok(!/웃 HI" value=\{fmtUsd\(econ\.trinity\.human\)\}/.test(ux), "the 웃 HI til
   const soi = read("../components/architect-2525/architect-soi.tsx");
   ok(/recognitionU\(econ\.trinity\.heart \/ 60, U_BASE_HOURS\)/.test(soi), "architect-soi renders 웃 via recognitionU (hours × M)");
   ok(!/fmtUsd\(econ\.trinity\.human\)/.test(soi), "architect-soi no longer renders 웃 through fmtUsd (recognition ≠ money)");
+  // ── §2b (operator 2026-11-01): volunteers get tracked hours in terms of SI heart tokens — ♡ SI = tracked hours ──
+  ok(/const siHours = Math\.round\(\(econ\.trinity\.heart \/ 60\)/.test(soi) && /\$\{siHours\} ♡/.test(soi), "architect-soi ♡ SI is tracked hours (heart ÷ 60), not the raw minutes count");
+  ok(/tracked hours; volunteers recognized here/.test(soi), "the SoI line names volunteers' tracked hours as shared intent");
 }
+ok(/label="♡ SI" value=\{`\$\{Math\.round\(\(econ\.trinity\.heart \/ 60\)/.test(ux) && /sub="tracked hrs · volunteers"/.test(ux), "command-ux1 ♡ SI tile renders tracked hours (volunteers → SI heart tokens), not raw minutes");
 
 // ── risk + walls are quarantined ──
 ok(!/Risk" value="LOW"/.test(ux), "no 'Risk LOW' claim");

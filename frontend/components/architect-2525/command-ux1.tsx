@@ -445,7 +445,9 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <Tile label="◬ AI" value={String(econ.trinity.unity)} color={C.cyan} />
-                <Tile label="♡ SI" value={String(econ.trinity.heart)} color={C.red} />
+                {/* operator 2026-11-01: volunteers get tracked hours in terms of SI heart tokens — ♡ SI = tracked hours
+                    (active time ÷ 60), how a volunteer is recognized (their hours, never money). */}
+                <Tile label="♡ SI" value={`${Math.round((econ.trinity.heart / 60) * 10) / 10}`} sub="tracked hrs · volunteers" color={C.red} />
                 {/* §2 (FINAL 웃 contract): 웃 is RECOGNITION (hours × M), never money — so it does not move with the Rate
                     slider. recognitionU(active hours, base M=1); the $ economy stays on the Labor/Total tiles above. */}
                 <Tile label="웃 HI" value={`${recognitionU(econ.trinity.heart / 60, U_BASE_HOURS) ?? 0} 웃`} color={C.green} />
