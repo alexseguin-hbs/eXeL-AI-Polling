@@ -69,5 +69,13 @@ ok(gridM.rooms === 9 && /9 rooms/.test(gridM.layoutLabel), "the Cube is 9 rooms 
 ok(ecoM.rooms === 7 && /7 hex · 7 rooms/.test(ecoM.layoutLabel) && !/9 rooms/.test(ecoM.layoutLabel), "the Eco-Sphere is 7 rooms (7 hexagons) — the card never shows the Cube's 9 (operator 2026-11-01)");
 ok(tinyM.rooms === 5, "the Tiny is 5 zones (model room count)");
 
-console.log(`\narchitect-consistency: ${pass} passed, ${fail} failed · one ceiling constant · one phase order · square footage scoped · presets isolated from canonical · room count = cells`);
+// ── 6. THE DESIGN PHASE BAR READS THE ONE ORDER SOURCE (operator 2026-11-01 "match design tab order to simulate order") ──
+// The Design tab's PhaseBar maps DEV_PHASES directly, so its order IS the one build order (roofing right after framing) —
+// it cannot diverge from the Simulate schedule / Build-Instructions order, which read the same PHASE_ORDER / BUILD_PHASES.
+const pbar = read("../components/architect-2525/phase-bar.tsx");
+ok(/DEV_PHASES\.map\(/.test(pbar), "the Design PhaseBar renders DEV_PHASES directly (the one order source) — Design order === Simulate/Build order");
+ok(/Phase \{active\.order\}/.test(pbar), "the PhaseBar shows each phase's canonical build-order number (one source), never a parallel list");
+ok(!/\beight development phases\b/.test(pbar), "the stale 'eight development phases' note is gone (there are 11)");
+
+console.log(`\narchitect-consistency: ${pass} passed, ${fail} failed · one ceiling constant · one phase order (Design === Simulate) · square footage scoped · presets isolated · room count = cells`);
 process.exit(fail ? 1 : 0);

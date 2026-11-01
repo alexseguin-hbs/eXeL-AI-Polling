@@ -2,7 +2,8 @@
 
 /**
  * ARCHITECT-2525 · PHASE MODE BAR (operator 2026-10-25: "there needs to be modes of phases of development").
- * A horizontal, build-ordered row of the eight development phases. Tap one to enter that MODE: the model shows
+ * A horizontal, build-ordered row of the eleven development phases (DEV_PHASES — the ONE order source; the Design bar
+ * therefore matches the Simulate/Build order, roofing right after framing). Tap one to enter that MODE: the model shows
  * that phase's system layer (for the four with a wireframe layer) and a spec card names the phase + its specs.
  * Tap the active phase again to clear. Pure presentational; the parent owns the selection + drives the toggles.
  */
