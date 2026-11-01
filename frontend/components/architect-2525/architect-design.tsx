@@ -349,7 +349,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
         {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} /> : designable && focusRoom ? (
           // EXPLODED single-room designer (operator IMG_7489: Enter → just this 10×10 in 2D + 10×10×10 in 3D)
           <div data-arch-tiny-view className="relative">
-            <RoomDesigner room={focusRoom} onChange={setObjects} onBack={() => setFocusRoomId(null)}
+            <RoomDesigner room={focusRoom} onChange={setObjects} onBack={() => setFocusRoomId(null)} phase={phase}
               showWater={showWater} showSewer={showSewer} showWiring={showWiring} showDucts={hvac}
               topView={view3d ? "3D" : "2D"} onTopView={(v) => setView3d(v === "3D")} />
           </div>

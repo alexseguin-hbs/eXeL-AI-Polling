@@ -7,10 +7,11 @@
  * Tap the active phase again to clear. Pure presentational; the parent owns the selection + drives the toggles.
  */
 import { DEV_PHASES, phaseById } from "@/lib/architect-phases";
-import { Layers, Frame, Zap, Droplets, Waves, Wifi, Camera, Triangle, type LucideIcon } from "lucide-react";
+import { Layers, Frame, Zap, Droplets, Waves, Wifi, Camera, Triangle, Shield, Paintbrush, Sofa, type LucideIcon } from "lucide-react";
 
 const ICON: Record<string, LucideIcon> = {
   layers: Layers, frame: Frame, zap: Zap, droplets: Droplets, waves: Waves, wifi: Wifi, camera: Camera, triangle: Triangle,
+  shield: Shield, paintbrush: Paintbrush, sofa: Sofa,
 };
 const C = { border: "#1e2b3a", dim: "#5f7186", text: "#c8d6e5", panel: "#0a0f16" };
 

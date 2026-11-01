@@ -24,10 +24,11 @@ import {
   OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
   footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette, worldSpan,
   nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setVariantByHeight, setGap, elevOf, setElev,
-  defaultObjectsForRoom,
+  defaultObjectsForRoom, groupOf,
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
+import { phaseDraw } from "@/lib/architect-phases";
 import { annotateObject, chainDims, ftIn } from "@/lib/dim-annot";
 import { doorSymbol, doorSymbolSvg, arcPoints } from "@/lib/door-symbol";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -64,8 +65,9 @@ function wallSnap(gx: number, gy: number): { gx: number; gy: number } {
   return { gx: N - 1, gy };
 }
 
-export function RoomDesigner({ room, onChange, onBack, showWater = false, showSewer = false, showWiring = false, showDucts = false, topView, onTopView }: {
+export function RoomDesigner({ room, onChange, onBack, phase = null, showWater = false, showSewer = false, showWiring = false, showDucts = false, topView, onTopView }: {
   room: RoomCell; onChange: (o: PlacedObject[]) => void; onBack: () => void;
+  phase?: string | null;   // R5d: the selected development phase — a phase shows ONLY its own layer (furniture only on Interior Design)
   showWater?: boolean; showSewer?: boolean; showWiring?: boolean; showDucts?: boolean;
   topView?: "2D" | "3D"; onTopView?: (v: "2D" | "3D") => void; // engine 2D/3D toggle drives the TOP pane (one source)
 }) {
@@ -73,6 +75,18 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // IMG-02 — a room with no saved objects shows its DEFAULT furniture (it was opening empty). Same source the 2D plan
   // and the 3D voxel use, so all three mirror; the first edit commits the full set (onChange) so it persists.
   const objects = room.objects ?? defaultObjectsForRoom(room.k);
+  // R5d — A PHASE SHOWS ONLY ITS LAYER (operator 2026-10-31: "mode should only show that layer of key elements (not
+  // furniture. add Interior Design one element for toggle"). No phase selected → the full design view (everything).
+  // Openings draw on framing/finish/interior; fixtures on the plumbing/sewer phases; furniture ONLY on Interior Design.
+  const pdraw = phaseDraw(phase);
+  const showInPhase = (o: PlacedObject): boolean => {
+    const g = groupOf(o.kind);
+    if (g === "Openings") return pdraw.openings;
+    if (g === "Shell") return pdraw.structure || pdraw.furniture;
+    if (g === "Bath" || g === "Kitchen") return pdraw.fixtures || pdraw.furniture;   // plumbing fixtures
+    return pdraw.furniture;   // Sleep / Living furniture
+  };
+  const visible = objects.filter(showInPhase);
   const [tool, setTool] = useState<ObjectKind | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -340,7 +354,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             <rect key={`out${i}`} data-arch-outlet2d x={c2(m.gx) - 1.4} y={c2(m.gy) - 1.4} width={2.8} height={2.8} rx={0.4}
               fill={MEP_COL.wiring} stroke="#070b12" strokeWidth={0.4} />
           ))}
-          {objects.map((o) => {
+          {visible.map((o) => {
             const s = OBJECT_SPEC[o.kind];
             const { w, d } = footprintOf(o);
             const cx = o.gx * 10 + 5, cy = o.gy * 10 + 5;
@@ -594,7 +608,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     const floor = [iso(0, 0, 0), iso(N, 0, 0), iso(N, N, 0), iso(0, N, 0)];
     const ceil = [iso(0, 0, N), iso(N, 0, N), iso(N, N, N), iso(0, N, N)];
     const depthKey = (gx: number, gy: number) => (gx - cx) * sinB + (gy - cy) * cosB;
-    const objs = [...objects].sort((a, b) => depthKey(a.gx, a.gy) - depthKey(b.gx, b.gy));
+    const objs = [...visible].sort((a, b) => depthKey(a.gx, a.gy) - depthKey(b.gx, b.gy));
     const r3 = (runs: MepRun[] | undefined, col: string, z: number, key: string) => runs?.map((r, i) => (
       <polyline key={`${key}3d${i}`} data-arch-mep3d={key} points={r.path.map((p) => iso(p.gx + 0.5, p.gy + 0.5, z).join(",")).join(" ")}
         fill="none" stroke={col} strokeWidth={1} strokeDasharray="2 1.5" strokeLinecap="round" opacity={0.9} />
@@ -888,24 +902,24 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
       {/* MEP length totals (operator: "sub-menu to show length of total pipe / electrical specs") — one source (lib/mep-runs) */}
       {anyMep && (
         <div data-arch-mep-readout className="flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded border px-2 py-1 text-[9px]" style={{ borderColor: C.border, background: "#070b12" }}>
-          {water && <span data-arch-mep-water style={{ color: MEP_COL.water }}>Water {water.totalFt} ft</span>}
-          {sewer && <span data-arch-mep-sewer style={{ color: MEP_COL.sewer }}>Sewer {sewer.totalFt} ft</span>}
-          {wiring && eSpec && <span data-arch-mep-wire style={{ color: MEP_COL.wiring }}>Wire {eSpec.wireFt} ft · {eSpec.circuits} circ · {eSpec.amps}A</span>}
-          {duct && <span data-arch-mep-duct style={{ color: MEP_COL.duct }}>Duct {duct.totalFt} ft</span>}
+          {water && <span data-arch-mep-water style={{ color: MEP_COL.water }}>Water {water.totalFt} ft · {water.runs.length} fixtures</span>}
+          {sewer && <span data-arch-mep-sewer style={{ color: MEP_COL.sewer }}>Sewer {sewer.totalFt} ft · {sewer.runs.length} drains</span>}
+          {wiring && eSpec && <span data-arch-mep-wire style={{ color: MEP_COL.wiring }}>Wire {eSpec.wireFt} ft · {outlets} outlets · {eSpec.circuits} circ · {eSpec.amps}A</span>}
+          {duct && <span data-arch-mep-duct style={{ color: MEP_COL.duct }}>Duct {duct.totalFt} ft · {duct.runs.length} registers</span>}
         </div>
       )}
 
       {/* ELEMENTS — merged Active list + Selected detail (operator IMG_7544): the room's items list on top (~1/3,
           scrolls when one is selected), the SELECTED item's full controls expand below (~2/3). Scoped to THIS room's
           objects (bedroom mode → only bedroom items). Click a row to select → details expand; click again to deselect. */}
-      {objects.length > 0 && (
+      {visible.length > 0 && (
         <div data-arch-room-active className="rounded border p-1" style={{ borderColor: C.border, background: "#070b12" }}>
           <div className="mb-1 flex items-center justify-between px-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>
-            <span>Elements · {objects.length}</span>{sel && <span style={{ color: C.gold }}>1 selected</span>}
+            <span>Elements · {visible.length}{phase && visible.length !== objects.length ? ` of ${objects.length}` : ""}</span>{sel && <span style={{ color: C.gold }}>1 selected</span>}
           </div>
           {/* list — shrinks to a scroll pane when an item is selected so the detail gets the bottom ~2/3 */}
           <div className="flex flex-col gap-0.5 overflow-y-auto" style={sel ? { maxHeight: 88 } : undefined}>
-            {objects.map((o) => {
+            {visible.map((o) => {
               const s = OBJECT_SPEC[o.kind], RowIcon = ICON[o.kind], on = o.id === selId;
               const vLabel = VARIANTS[o.kind]?.find((v) => v.id === o.variant)?.label;
               const fp = footprintOf(o);

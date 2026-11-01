@@ -198,10 +198,10 @@ ok(/basis (DERIVED|ASSUMED)/.test(rec.reason) && /top 13-sim average/.test(rec.r
 ok(modelById("nope") === null && overallScore("nope") === 0, "unknown model → null / 0 (no crash)");
 
 // TIME TO BUILD, BY PHASE
-const PHASE_ORDER = ["foundation", "framing", "electrical", "plumbing", "sewer", "internet", "security", "roofing"];
+const PHASE_ORDER = ["foundation", "framing", "roofing", "plumbing", "sewer", "electrical", "internet", "security", "insulation", "finish"]; // BUILD_PHASES order (R5d: roofing after framing; insulation; interior design excluded — staging)
 for (const m of SIM_MODELS) {
   const sched = phaseSchedule(m.id);
-  ok(sched.length === 8 && JSON.stringify(sched.map((p) => p.id)) === JSON.stringify(PHASE_ORDER), `${m.id} schedule = 8 phases in build order`);
+  ok(sched.length === 10 && JSON.stringify(sched.map((p) => p.id)) === JSON.stringify(PHASE_ORDER), `${m.id} schedule = 10 build phases in build order (interior design is staging, excluded)`);
   ok(sched.every((p) => p.weeks >= 0 && p.label && p.color), `${m.id} every phase has weeks + label + color`);
   const totalW = sched.reduce((s, p) => s + p.weeks, 0);
   const target = Math.round(monthsFor(m, optFor(m)) * 4.345 * 2) / 2;

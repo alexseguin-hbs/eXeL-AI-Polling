@@ -18,7 +18,7 @@
  * engineering analysis. Energy/Carbon are DESIGN ASSUMPTIONS. Material strength/carbon figures are vendor ESTIMATES.
  */
 import { DEFAULT_SECTIONS } from "@/lib/architect-estimate";
-import { DEV_PHASES } from "@/lib/architect-phases";
+import { BUILD_PHASES } from "@/lib/architect-phases";
 import type { FormId } from "@/lib/architect-sim-environment";
 
 // The ORIGINAL 13-sim battery (exact list) — the single source; every model runs all of it.
@@ -463,10 +463,13 @@ export function simMatrix(models: SimModel[] = SIM_MODELS, optsBy?: Record<strin
 
 // ── TIME TO BUILD, BY PHASE — the build split across the eight DEV_PHASES (in build order). 3D Print collapses the
 //    Framing phase (the printed shell goes up fast) and speeds Roofing, shifting share to MEP + finish. ──────────────
+// IN BUILD ORDER (operator 2026-10-31: roofing right after framing; insulation after the rough-ins). Keyed by phase id;
+// phaseSchedule maps BUILD_PHASES (the 10 construction phases — Interior Design is staging, not a build-time phase).
+// 3D Print collapses Framing (the printed shell goes up fast) and speeds Roofing; cement cuts the finish a touch.
 const PHASE_WEIGHTS: Record<Method, Record<string, number>> = {
-  "stick-framed": { foundation: 0.15, framing: 0.24, electrical: 0.14, plumbing: 0.12, sewer: 0.07, internet: 0.05, security: 0.05, roofing: 0.18 },
-  "3d-print":     { foundation: 0.18, framing: 0.10, electrical: 0.16, plumbing: 0.14, sewer: 0.08, internet: 0.06, security: 0.06, roofing: 0.22 },
-  "hex-panel":    { foundation: 0.16, framing: 0.14, electrical: 0.15, plumbing: 0.13, sewer: 0.07, internet: 0.05, security: 0.05, roofing: 0.25 },
+  "stick-framed": { foundation: 0.13, framing: 0.20, roofing: 0.15, plumbing: 0.10, sewer: 0.06, electrical: 0.12, internet: 0.04, security: 0.04, insulation: 0.06, finish: 0.10 },
+  "3d-print":     { foundation: 0.16, framing: 0.08, roofing: 0.18, plumbing: 0.11, sewer: 0.07, electrical: 0.14, internet: 0.05, security: 0.05, insulation: 0.06, finish: 0.10 },
+  "hex-panel":    { foundation: 0.14, framing: 0.12, roofing: 0.20, plumbing: 0.11, sewer: 0.06, electrical: 0.13, internet: 0.04, security: 0.04, insulation: 0.06, finish: 0.10 },
 };
 const FORM_PHASE_TWEAK: Record<string, Record<string, number>> = {
   "eco-sphere": { roofing: +0.06, framing: -0.03, foundation: -0.03 },
@@ -482,12 +485,12 @@ export function phaseSchedule(modelId: string, opt?: BuildOption): PhaseTime[] {
   const o = opt ?? m.native;
   const totalWeeks = Math.round(monthsFor(m, o) * 4.345 * 2) / 2;
   const tweak = FORM_PHASE_TWEAK[m.id] ?? {};
-  const raw = DEV_PHASES.map((p) => Math.max(0, (PHASE_WEIGHTS[o.method][p.id] ?? 0) + (tweak[p.id] ?? 0)));
+  const raw = BUILD_PHASES.map((p) => Math.max(0, (PHASE_WEIGHTS[o.method][p.id] ?? 0) + (tweak[p.id] ?? 0)));
   const sumW = raw.reduce((s, x) => s + x, 0) || 1;
   const weeks = raw.map((x) => Math.round((totalWeeks * x / sumW) * 2) / 2);
   const drift = Math.round((totalWeeks - weeks.reduce((s, x) => s + x, 0)) * 2) / 2;
   weeks[weeks.length - 1] = Math.max(0, weeks[weeks.length - 1] + drift);
-  return DEV_PHASES.map((p, i) => ({ id: p.id, label: p.label, color: p.color, weeks: weeks[i] }));
+  return BUILD_PHASES.map((p, i) => ({ id: p.id, label: p.label, color: p.color, weeks: weeks[i] }));
 }
 
 // ── one reconciled recommendation, not a per-axis scoreboard (Asar) — the top 13-sim average across the forms ────────
