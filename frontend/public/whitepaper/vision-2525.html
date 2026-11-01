@@ -1157,7 +1157,7 @@ body.qrlead #qrAbout{display:inline-block}
   border-radius:999px;background:transparent;color:var(--ink-2);font:inherit;
   font-size:12.5px;cursor:pointer;letter-spacing:.04em}
 #qrAbout:hover{color:var(--ink)}
-.seed-mark{display:inline-block;width:1em;height:1em;vertical-align:-0.18em;margin:0 .16em 0 .02em;color:var(--ai)}
+.seed-mark{display:inline-block;width:1em;height:1em;vertical-align:-0.18em;margin:0 .16em 0 .02em;color:var(--ai)}.v-bull{color:var(--ai)}
 </style>
 
 <div class="deck" role="region" aria-label="Version replay controls">
@@ -20495,8 +20495,17 @@ function markSeedRefs(root){
     re.lastIndex = 0;
     while((m=re.exec(text))){
       if(m.index>last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
-      if(!(m.index===0 && skip0)) frag.appendChild(seedMarkEl());
-      frag.appendChild(document.createTextNode(m[0]));
+      var vm = m[0].match(/^(.*?)([•·∙])(.*)$/);
+      if(vm && /vision/i.test(m[0])){
+        /* operator 2026-11-01: NO seed-of-life before Vision • 2525 — the cyan bullet (var(--ai)) carries the symbology. */
+        if(vm[1]) frag.appendChild(document.createTextNode(vm[1]));
+        var bull = document.createElement("span"); bull.className = "v-bull"; bull.textContent = vm[2];
+        frag.appendChild(bull);
+        if(vm[3]) frag.appendChild(document.createTextNode(vm[3]));
+      } else {
+        if(!(m.index===0 && skip0)) frag.appendChild(seedMarkEl());
+        frag.appendChild(document.createTextNode(m[0]));
+      }
       last = m.index + m[0].length;
     }
     if(last<text.length) frag.appendChild(document.createTextNode(text.slice(last)));
