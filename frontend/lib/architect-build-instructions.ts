@@ -87,6 +87,38 @@ export function formGeometry(m: SimModel): FormGeo {
 const cubicYards = (ft2: number, inches: number) => Math.round((ft2 * (inches / 12) / 27) * 10) / 10;
 const studs = (lf: number) => r0(lf / (16 / 12) * 1.15);        // @16" o.c. + 15% for corners / openings
 const sheets = (ft2: number) => r0(ft2 / 32 + 0.5);             // 4×8 = 32 ft² panels, round up
+const commas = (n: number) => String(r0(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");  // deterministic thousands (no locale)
+
+// ── FRAME WEIGHT (operator 2026-11-01: "weight of frame … steel vs wood vs concrete … strength/weight ratio … aircraft
+//    standards"). Real structural densities → lb per ft² of WALL by building system (structural frame + sheathing; interior
+//    finishes excluded): concrete 150 lb/ft³ → a 6" printed wall = 75 psf; wood 2×6 framing + OSB ~7; light-gauge steel
+//    ~4; aluminium (⅓ steel density) ~3. The strength-to-weight note is the ladder toward sheet-metal/aircraft. ──
+export interface FrameWeightSystem { label: string; wallPsf: number; sw: string; }
+export const FRAME_WEIGHT: Record<string, FrameWeightSystem> = {
+  wood:              { label: "Wood frame",          wallPsf: 7,  sw: "moderate strength-to-weight" },
+  "steel-corners":   { label: "Steel-corner frame",  wallPsf: 7.5, sw: "moderate+ · steel corner load path" },
+  "all-steel":       { label: "All-steel frame",     wallPsf: 4,  sw: "high strength-to-weight · non-combustible" },
+  aluminum:          { label: "Aluminium frame",     wallPsf: 3,  sw: "highest strength-to-weight · aircraft-grade" },
+  "print-cement":    { label: "Printed cement",      wallPsf: 75, sw: "very strong, LOW strength-to-weight (heavy)" },
+  "print-composite": { label: "Printed composite",   wallPsf: 52, sw: "stronger + ~30% lighter than cement" },
+  "hex-panel":       { label: "Hex-panel shell",     wallPsf: 4,  sw: "light geodesic panel shell" },
+};
+const ROOF_STRUCT_PSF = 8;   // pitched wood trusses + deck baseline (metal / dome lighter; kept as the structural reference)
+/** The building-system key for the chosen method/material (one source for weight + the framing label). */
+export function frameSystemKey(opt: BuildOption): string {
+  if (opt.method === "3d-print") return `print-${opt.printMaterial}`;
+  if (opt.method === "hex-panel") return "hex-panel";
+  return opt.frameMaterial;
+}
+export interface FrameWeight { key: string; label: string; wallPsf: number; wallLb: number; roofLb: number; totalLb: number; sw: string; }
+/** The structural frame weight for a form at a build option — walls (system psf × wall area) + roof structure. Lets the
+ *  builder compare steel vs wood vs concrete by weight, and read the strength-to-weight note. Pure + geometry-derived. */
+export function frameWeight(m: SimModel, opt: BuildOption, g: FormGeo = formGeometry(m)): FrameWeight {
+  const sys = FRAME_WEIGHT[frameSystemKey(opt)] ?? FRAME_WEIGHT.wood;
+  const wallLb = r0(sys.wallPsf * g.wallAreaFt2);
+  const roofLb = r0(ROOF_STRUCT_PSF * g.roofAreaFt2);
+  return { key: frameSystemKey(opt), label: sys.label, wallPsf: sys.wallPsf, wallLb, roofLb, totalLb: wallLb + roofLb, sw: sys.sw };
+}
 
 // ── FOUNDATION ──────────────────────────────────────────────────────────────────────────────────────────────────────
 function foundationSteps(m: SimModel, g: FormGeo): Omit<InstructionStep, "n">[] {
@@ -345,6 +377,12 @@ export function buildInstructions(formId: FormId, opt?: BuildOption): BuildInstr
     const steps = withN(STEP_FN[element](m, o, g));
     return { element, label: phaseLabel(element, m, o), steps, crewDays: steps.reduce((s, x) => s + x.crewDays, 0) };
   });
+  // FRAME WEIGHT on the Framing phase — steel vs wood vs concrete, with the strength-to-weight note (operator 2026-11-01).
+  const framingPhase = phases.find((p) => p.element === "Framing");
+  if (framingPhase && framingPhase.steps[0]) {
+    const wt = frameWeight(m, o, g);
+    framingPhase.steps[0].items.push(mi("Frame weight", `${wt.label} · ${wt.wallPsf} lb/ft² wall · ${wt.sw}`, `≈ ${commas(wt.totalLb)} lb`));
+  }
   const totalCrewDays = phases.reduce((s, p) => s + p.crewDays, 0);
   const weeks = Math.round((totalCrewDays / (CREW * DAYS_PER_WEEK)) * 2) / 2;
   return {

@@ -3,7 +3,7 @@
 // wood vs steel and aluminum … Hex Panels for Shell of Eco-Sphere"). Every build path yields six measured, crew-day-timed
 // phases; the Framing/Shell phase is method-aware; every rule-of-thumb carries a verify-local-code flag; the four compare
 // paths are present and the tiny home is the shortest.
-import { buildInstructions, compareTimeline, COMPARE_PATHS, BUILD_ORDER, phaseLabel, CREW, DAYS_PER_WEEK } from "@/lib/architect-build-instructions";
+import { buildInstructions, compareTimeline, COMPARE_PATHS, BUILD_ORDER, phaseLabel, CREW, DAYS_PER_WEEK, frameWeight, frameSystemKey } from "@/lib/architect-build-instructions";
 import { SIM_MODELS, modelById, optFor } from "@/lib/architect-sim-options";
 
 let pass = 0, fail = 0;
@@ -92,6 +92,27 @@ const hexFrame = timeline.find((t) => t.id === "eco-hex").perPhase.find((p) => p
 const printFrame = timeline.find((t) => t.id === "eco-print").perPhase.find((p) => p.element === "Framing").crewDays;
 ok(hexFrame !== printFrame, "the Eco's hex-panel vs 3D-print shells take different crew-days (honest compare)");
 ok(timeline.find((t) => t.id === "tiny").totalCrewDays === Math.min(...timeline.map((t) => t.totalCrewDays)), "the Tiny Home is the shortest build of the four");
+
+// ── R-TO2 — FRAME WEIGHT (operator 2026-11-01: "weight of frame … steel vs wood vs concrete … strength/weight ratio") ──
+// (reuses the `grid` model declared earlier in this file)
+const framingItems = (opt) => buildInstructions("3x3-grid", opt).phases.find((p) => p.element === "Framing").steps.flatMap((s) => s.items);
+ok(framingItems(optFor(grid)).some((it) => /frame weight/i.test(it.equipment) && /lb/.test(it.count)), "the Framing phase carries a Frame-weight line (in lb)");
+ok(framingItems(optFor(grid)).some((it) => /strength-to-weight/i.test(it.dimensions)), "the Frame-weight line names the strength-to-weight (the aircraft-standard ladder)");
+// steel vs wood vs concrete: a 3D-printed CONCRETE shell is far heavier than wood; aluminium is the lightest (best strength/weight)
+const wWood  = frameWeight(grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "wood" }).totalLb;
+const wSteel = frameWeight(grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "all-steel" }).totalLb;
+const wAlum  = frameWeight(grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "aluminum" }).totalLb;
+const wCement= frameWeight(grid, { ...optFor(grid), method: "3d-print", printMaterial: "cement" }).totalLb;
+ok(wCement > wWood && wWood > wSteel && wSteel > wAlum, `frame weight: concrete (${wCement}) > wood (${wWood}) > steel (${wSteel}) > aluminium (${wAlum}) lb — steel/aluminium beat concrete on weight`);
+ok(frameSystemKey({ ...optFor(grid), method: "3d-print", printMaterial: "cement" }) === "print-cement" && frameWeight(grid, { ...optFor(grid), frameMaterial: "aluminum" }).sw.includes("aircraft"), "aluminium reads aircraft-grade strength-to-weight; the system key is one source");
+
+// ── R-TO2 — PHASE ⇄ INSTRUCTIONS STAY ALIGNED AFTER CHANGES (operator 2026-11-01) — the phases always map BUILD_ORDER,
+//    and the Framing step reflects the chosen material (weight updates), for EVERY option (no drift after a change) ──
+for (const opt of [optFor(grid), { ...optFor(grid), frameMaterial: "all-steel" }, { ...optFor(grid), method: "3d-print", printMaterial: "cement" }, { ...optFor(grid), roof: "flat" }]) {
+  const ph = buildInstructions("3x3-grid", opt).phases;
+  ok(JSON.stringify(ph.map((p) => p.element)) === JSON.stringify(BUILD_ORDER), "phases always align to BUILD_ORDER after any option change");
+}
+ok(frameWeight(grid, { ...optFor(grid), frameMaterial: "wood" }).totalLb !== frameWeight(grid, { ...optFor(grid), frameMaterial: "all-steel" }).totalLb, "changing the frame material changes the frame weight (instructions track the design)");
 
 // determinism (replay law)
 ok(JSON.stringify(buildInstructions("eco-sphere")) === JSON.stringify(buildInstructions("eco-sphere")), "buildInstructions is deterministic");
