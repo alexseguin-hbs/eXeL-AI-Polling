@@ -23,6 +23,14 @@ const vox = read("../components/architect-2525/voxel-house.tsx");
 ok(/STOREY_FT \* VOXEL_PX_PER_FT/.test(vox) && VOXEL_PX_PER_FT === 66 / 30, "the voxel derives its storey height from STOREY_FT × VOXEL_PX_PER_FT (one source)");
 // DEFAULT_PROGRAM.ceilingFt (9) is a DIFFERENT scope — the generic multi-style home program default, not the Tiny/canonical storey. Declared, not a drift.
 ok(DEFAULT_PROGRAM.ceilingFt === 9, "DEFAULT_PROGRAM ceiling 9 ft is the generic-home default (a DECLARED different scope, not the Tiny storey)");
+// NEGATIVE pin (AsM 2026-10-31, Aset V4): no THIRD ceiling/storey value may reappear in the geometry/voxel sources — only the
+// two DECLARED scopes (10 ft canonical/Tiny · 9 ft generic-home). Catches a stray 8-ft ceiling re-entering while the suite is green.
+const CEIL_RE = /(?:ceilingFt|storeyFt|STOREY_FT|wallHeightFt|WALL_H)\s*[=:]\s*(\d{1,2})\b/g;
+for (const f of ["../lib/room-layout.ts", "../lib/room-program.ts", "../components/architect-2525/voxel-house.tsx"]) {
+  const src = read(f); let mt; const bad = [];
+  while ((mt = CEIL_RE.exec(src))) { const n = Number(mt[1]); if (n >= 6 && n <= 16 && n !== 10 && n !== 9) bad.push(`${n} @ "${mt[0].trim()}"`); }
+  ok(bad.length === 0, `${f.replace("../", "")} carries no third ceiling/storey value (only 10 canonical/Tiny · 9 generic-home) — got ${bad.join(", ") || "none"}`);
+}
 
 // ── 2. ONE PHASE ORDER (operator: "double check order of phases throughout") ──
 ok(PHASE_ORDER[0] === "foundation" && PHASE_ORDER[1] === "framing" && PHASE_ORDER[2] === "roofing", "the phase order starts Foundation → Framing → Roofing (roofing right after framing, not last)");

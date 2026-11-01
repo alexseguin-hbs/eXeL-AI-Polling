@@ -495,7 +495,7 @@ export function simMatrix(models: SimModel[] = SIM_MODELS, optsBy?: Record<strin
   });
 }
 
-// ── TIME TO BUILD, BY PHASE — the build split across the eight DEV_PHASES (in build order). 3D Print collapses the
+// ── TIME TO BUILD, BY PHASE — the build split across the ten BUILD_PHASES (in build order; Interior Design is staging, excluded). 3D Print collapses the
 //    Framing phase (the printed shell goes up fast) and speeds Roofing, shifting share to MEP + finish. ──────────────
 // IN BUILD ORDER (operator 2026-10-31: roofing right after framing; insulation after the rough-ins). Keyed by phase id;
 // phaseSchedule maps BUILD_PHASES (the 10 construction phases — Interior Design is staging, not a build-time phase).
@@ -511,7 +511,7 @@ const FORM_PHASE_TWEAK: Record<string, Record<string, number>> = {
   "3x3-grid":   {},
 };
 export interface PhaseTime { id: string; label: string; color: string; weeks: number; }
-/** The build time split across the eight construction phases for a model at an option (weeks per phase; the eight sum
+/** The build time split across the ten construction phases for a model at an option (weeks per phase; the ten sum
  *  EXACTLY to the rounded total — Sofia). Per-form weighting differentiates the hex dome from the Cube (Pangu). */
 export function phaseSchedule(modelId: string, opt?: BuildOption): PhaseTime[] {
   const m = modelById(modelId);

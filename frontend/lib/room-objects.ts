@@ -35,6 +35,9 @@ export const BED_VARIANTS: SizeVariant[] = [
   { id: "king",  label: "King",  w: 6.33, d: 6.67 },
 ];
 // FIX-1 — standard door sizes (width × 6'8" or 8'0"), depth = thin panel. R5c: the ids are inches and the labels now tell the
+// truth about the widths (28 in = 2'-4", 30 in = 2'-6"); the common 2'-8" interior door is added as "d32w" (2.67 ft). The
+// id "d32" is a FROZEN LEGACY ALIAS for a 3'-0" door (w 3) — its number no longer means its width, so NEVER derive a width
+// from a variant id anywhere; width comes ONLY from `.w` (AsM 2026-10-31, Aset/Christo). Renaming d32 would orphan saved doors.
 // truth about the widths (28 in = 2'-4", 30 in = 2'-6"); the common 2'-8" interior door is added; "d32" keeps its 3-ft width
 // so a saved "3'-0"" door keeps its size. Gated: every label equals the feet-inches of its width (tests/door-convention).
 export const DOOR_VARIANTS: SizeVariant[] = [

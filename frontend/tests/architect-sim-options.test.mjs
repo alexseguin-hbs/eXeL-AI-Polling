@@ -9,6 +9,8 @@ import {
   monthsFor, optFor, framingFactor, phaseSchedule, runBattery, simResult, simMatrix, overallScore, recommendation, modelById,
 } from "@/lib/architect-sim-options";
 import { DEFAULT_SECTIONS } from "@/lib/architect-estimate";
+import { BUILD_PHASES } from "@/lib/architect-phases";
+import fs from "node:fs";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -230,6 +232,20 @@ for (const m of SIM_MODELS) {
   ok(carbonFor(m, { ...base, method: "3d-print", printMaterial: "cement" }) <= m.carbonScore, `${m.id} 3D-print cement lowers the headline carbon`);
 }
 ok(carbonFor(eco, { ...optFor(eco), method: "3d-print", printMaterial: "cement" }) < carbonFor(eco, optFor(eco)), "converting the Eco to 3D-print cement costs it a carbon star (hex-panel → cement)");
+
+// R5m (AsM Odin V2) — PHASE_WEIGHTS completeness: every build method covers every BUILD_PHASE id, so phaseSchedule's
+// `?? 0` fallback never actually fires (no phase is silently zero-weighted).
+{
+  const soSrc = fs.readFileSync(new URL("../lib/architect-sim-options.ts", import.meta.url), "utf8");
+  const pwBlock = soSrc.match(/const PHASE_WEIGHTS[\s\S]*?\n\};/);
+  const buildIds = BUILD_PHASES.map((p) => p.id);
+  for (const method of ["stick-framed", "3d-print", "hex-panel"]) {
+    const line = pwBlock[0].match(new RegExp(`"${method}":\\s*\\{([^}]*)\\}`));
+    const keys = line ? (line[1].match(/(\w+):/g) || []).map((x) => x.replace(":", "")) : [];
+    const missing = buildIds.filter((id) => !keys.includes(id));
+    ok(!!line && missing.length === 0, `PHASE_WEIGHTS["${method}"] covers every build phase (missing: ${missing.join(",") || "none"})`);
+  }
+}
 
 console.log(`\narchitect-sim-options: ${pass} passed, ${fail} failed · 3 forms · one cost engine · method/material/frame/roof · cost-by-element · 13-sim battery`);
 process.exit(fail ? 1 : 0);
