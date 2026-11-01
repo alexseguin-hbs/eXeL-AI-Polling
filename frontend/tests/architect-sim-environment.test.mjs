@@ -71,6 +71,25 @@ for (const env of [grid, tiny, hex]) {
   ok(inRoom, `${env.formId} every footprint stays inside its room rect (no spill into neighbours)`);
 }
 
+// ── P1 (operator 2026-11-01: "SIMULATE MUST MATCH DESIGN TAB") — with a design layout, every form draws the user's
+//    ACTUAL placed furniture (room.objects ?? defaultObjectsForRoom), the SAME universal rule the voxel + floor plan use ──
+{
+  // a live Design-tab layout: the Kitchen holds ONE custom piece, the Office is emptied ([]), the rest have no `objects`.
+  const layout = [
+    { k: "K", objects: [{ id: "counter-1", kind: "counter", gx: 1, gy: 1, rot: 0 }] },
+    { k: "O", objects: [] },
+  ];
+  const byKey = (env, k) => environmentObjects(env, layout).find((p) => p.roomKey === k);
+  ok(byKey(grid, "K").objects.length === 1 && byKey(grid, "K").objects[0].id === "counter-1", "Cube draws the user's ACTUAL placed furniture for a designed room (Kitchen = the one placed counter)");
+  ok(byKey(grid, "O").objects.length === 0, "an emptied room ([]) stays empty in Simulate (never re-seeds — matches the voxel/plan predicate)");
+  ok(byKey(grid, "M").objects.length === defaultObjectsForRoom("M").length, "a room with no saved objects falls back to its defaults (Master Bedroom = Layout A′)");
+  // the same furniture reaches the Eco-Sphere (it carries key K too) and the Tiny (its L/K/D/B/M subset)
+  ok(byKey(hex, "K").objects[0].id === "counter-1", "the Eco-Sphere draws the SAME designed furniture (matches Design)");
+  ok(byKey(tiny, "K").objects[0].id === "counter-1", "the Tiny Home draws the SAME designed furniture for the keys it carries");
+  // no layout → the canonical defaults are untouched (the conservation gate above still holds)
+  ok(environmentObjects(grid).every((p, i) => p.objects.length === environmentObjects(grid, null)[i].objects.length), "with no design layout, Simulate falls back to the canonical defaults (unchanged)");
+}
+
 // hex geometry
 ok(hexPoints(60, 60, 18).length === 6, "a hexagon has 6 vertices");
 

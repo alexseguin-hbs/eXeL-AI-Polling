@@ -26,7 +26,7 @@ import {
 import { SimEnvironmentView } from "./sim-environment-view";
 import { BuildInstructionsPanel, BuildTimelineCompare } from "./build-instructions";
 import { type FormId } from "@/lib/architect-sim-environment";
-import { TINY_ROOM_LAYOUT } from "@/lib/room-layout";
+import { TINY_ROOM_LAYOUT, type RoomCell } from "@/lib/room-layout";
 import { rainbow } from "@/lib/architect-rainbow";
 
 const ROOM_LEGEND = TINY_ROOM_LAYOUT.map((r) => ({ k: r.k, label: r.label }));
@@ -117,9 +117,11 @@ function FormGlyph({ id, size = 26 }: { id: string; size?: number }) {
   );
 }
 
-export function SimulateOptions() {
+export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = {}) {
   // R-UX6 (operator 2026-11-01: "remove simulate button … comparison should always be live"): NO run state — every design
   // is scored live from its options at render; the per-card EXPAND toggle only shows/hides the extra detail below.
+  // P1 (operator 2026-11-01: "SIMULATE MUST MATCH DESIGN TAB"): `designRooms` is the live Design-tab room layout — every
+  // form's drawing uses the user's ACTUAL placed furniture from it (threaded into SimEnvironmentView below).
   const [expanded, setExpanded] = useState<Set<string>>(new Set());   // which cards show their full detail (collapsed by default)
   const [upperBy, setUpperBy] = useState<Record<string, UpperKind>>({});   // R5f: the catalog preset's LOFT / SECOND FLOOR switch
   const [optsBy, setOptsBy] = useState<Record<string, BuildOption>>(() => Object.fromEntries(SIM_MODELS.map((m) => [m.id, optFor(m)])));
@@ -273,8 +275,8 @@ export function SimulateOptions() {
               </button>
               {expanded.has(m.id) && (
                 <div className="mt-2 space-y-1.5" data-arch-sim-generated={m.id}>
-                  {/* the GENERATED environment */}
-                  <SimEnvironmentView formId={m.id as FormId} opt={opt} size={240} />
+                  {/* the GENERATED environment — drawn with the user's ACTUAL placed furniture from the Design tab (P1) */}
+                  <SimEnvironmentView formId={m.id as FormId} opt={opt} size={240} rooms={designRooms} />
 
                   {/* ── build option: method · material/frame · roof ── */}
                   <div className="space-y-1 rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>

@@ -133,9 +133,20 @@ export function environmentFor(formId: FormId): SimEnvironment {
 export function conservedKeys(env: SimEnvironment): string[] {
   return [...new Set(env.placements.map((p) => p.roomKey))].sort();
 }
-/** Each placement's REAL furniture (the single source, defaultObjectsForRoom) — nothing invented. */
-export function environmentObjects(env: SimEnvironment): { roomKey: string; rect: Rect; objects: PlacedObject[] }[] {
-  return env.placements.map((p) => ({ roomKey: p.roomKey, rect: p.rect, objects: defaultObjectsForRoom(p.roomKey) }));
+/** A light design-room shape (the Design tab's RoomCell, structurally): the room key + its placed furniture. */
+export interface DesignRoomLite { k: string; objects?: PlacedObject[]; }
+/**
+ * Each placement's REAL furniture. With a design `layout` (the live Design-tab rooms), every room draws the user's
+ * ACTUAL placed furniture — `room.objects ?? defaultObjectsForRoom(k)`, the SAME universal rule the house voxel and the
+ * whole-house floor plan use — so the Simulate forms MATCH the Design tab (operator 2026-11-01: "SIMULATE MUST MATCH
+ * DESIGN TAB"). With no layout it falls back to the canonical defaults (the conservation gate's 9/44 baseline). An
+ * emptied room ([]) stays empty in all three views (never re-seeds), exactly as the voxel/plan predicate does.
+ */
+export function environmentObjects(env: SimEnvironment, layout?: DesignRoomLite[] | null): { roomKey: string; rect: Rect; objects: PlacedObject[] }[] {
+  return env.placements.map((p) => {
+    const room = layout?.find((r) => r.k === p.roomKey);
+    return { roomKey: p.roomKey, rect: p.rect, objects: room?.objects ?? defaultObjectsForRoom(p.roomKey) };
+  });
 }
 /** Total furniture pieces across the whole environment (Cube == Eco == 46; the Tiny carries its own smaller set). */
 export function totalObjectCount(env: SimEnvironment): number {

@@ -14,6 +14,7 @@
  */
 import { useLexicon } from "@/lib/lexicon-context";
 import { SimulateOptions } from "./simulate-options";
+import { type RoomCell } from "@/lib/room-layout";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b" };
 
@@ -21,8 +22,9 @@ const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186"
 // original" + the standing rule "simulate = come up with options"). The flat 13-engine catalog is superseded by the
 // 3-model alternative-design chooser: each design option runs the SAME original 13-sim battery; COMPARE ALL ranks them.
 // Product-truth (NOT_RUN until run; DERIVED vs ASSUMED; estimates not quotes) lives in SimulateOptions.
-export function SimulatePanel() {
-  return <SimulateOptions />;
+export function SimulatePanel({ designRooms }: { designRooms?: RoomCell[] } = {}) {
+  // P1 (operator 2026-11-01): the live Design-tab layout flows to Simulate so every form matches the Design tab.
+  return <SimulateOptions designRooms={designRooms} />;
 }
 
 export function ReviewPanel() {

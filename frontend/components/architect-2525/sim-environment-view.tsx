@@ -12,7 +12,7 @@
  * Pure inline SVG, deterministic, legible at 375px and in a PNG screenshot.
  */
 import { useMemo } from "react";
-import { environmentFor, environmentObjects, hexPoints, VIEW, MARGIN, type FormId, type Rect } from "@/lib/architect-sim-environment";
+import { environmentFor, environmentObjects, hexPoints, VIEW, MARGIN, type FormId, type Rect, type DesignRoomLite } from "@/lib/architect-sim-environment";
 import { projectPlaced, OBJECT_SPEC, ROOM_GRID } from "@/lib/room-objects";
 import { doorSymbol, doorSymbolSvg } from "@/lib/door-symbol";
 import { ROOFS, FRAME_MATERIALS, type BuildOption, type RoofType } from "@/lib/architect-sim-options";
@@ -55,9 +55,11 @@ function RoofCue({ rect, roof, color }: { rect: Rect; roof: RoofType; color: str
   );
 }
 
-export function SimEnvironmentView({ formId, opt, size = 220 }: { formId: FormId; opt: BuildOption; size?: number }) {
+export function SimEnvironmentView({ formId, opt, size = 220, rooms }: { formId: FormId; opt: BuildOption; size?: number; rooms?: DesignRoomLite[] | null }) {
   const env = useMemo(() => environmentFor(formId), [formId]);
-  const placed = useMemo(() => environmentObjects(env), [env]);
+  // the user's ACTUAL placed furniture from the live Design tab (rooms) drives the drawing — Simulate matches Design
+  // (operator 2026-11-01); no rooms → the canonical defaults.
+  const placed = useMemo(() => environmentObjects(env, rooms), [env, rooms]);
   const printed = opt.method === "3d-print";
   const hexp = opt.method === "hex-panel";
   const cement = printed && opt.printMaterial === "cement";

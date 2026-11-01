@@ -467,7 +467,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         ) : activeTab === "Review" && sub("Review") === "Qualification" ? (
           <QualifyPanel />
         ) : activeTab === "Simulate" ? (
-          <SimulatePanel />
+          <SimulatePanel designRooms={designRooms} />
         ) : activeTab === "Review" ? (
           <ReviewPanel />
         ) : activeTab === "Lifecycle" && sub("Lifecycle") === "Replay" ? (
