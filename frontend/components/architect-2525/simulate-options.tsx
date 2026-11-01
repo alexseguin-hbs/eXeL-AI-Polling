@@ -36,8 +36,9 @@ const SIM_RAINBOW = rainbow(SIMS.length);
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b", red: "#f87171", ground: "#070b12", cement: "#9aa7b4", composite: "#7fd4a8" };
 const usd = (n: number) => "$" + n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 const stars = (n: number) => "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
-// R5h — RED → GREEN for a 1–5 rating (operator 2026-10-31: "use: Red to Green for 1-5 star"). 1 red · 2 orange · 3 amber · 4 lime · 5 green.
-const SCORE_COLORS = ["#ef4444", "#ef4444", "#f59e0b", "#eab308", "#84cc16", "#22c55e"]; // index 0..5 (0 and 1 both red)
+// RED → GREEN for a 1–5 rating (operator 2026-10-31 "use: Red to Green for 1-5 star" · 2026-11-01 "1 star is red, 4-5 star
+// is green"). 1 red · 2 orange · 3 amber · 4 green · 5 deep green — so 4 AND 5 read clearly green, not lime.
+const SCORE_COLORS = ["#ef4444", "#ef4444", "#f97316", "#eab308", "#22c55e", "#15803d"]; // index 0..5 (0 and 1 both red; 4 & 5 both green)
 const scoreColor = (n: number) => SCORE_COLORS[Math.max(0, Math.min(5, Math.round(n)))];
 const selectStyle = { background: C.ground, color: C.text, border: `1px solid ${C.border}`, borderRadius: 4, padding: "1px 4px", fontSize: 9 } as const;
 // R-UX6 (operator 2026-11-01, human-first): each of the 13 checks in plain words — what it protects for the people who

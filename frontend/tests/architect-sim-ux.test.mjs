@@ -18,7 +18,12 @@ ok(!/data-arch-sim-run|◉ SIMULATE|NOT_RUN|run all 3 first/.test(so), "the SIMU
 ok(/data-arch-sim-expand=\{m\.id\}/.test(so), "each card has an EXPAND control (See details / Hide details)");
 
 // RED → GREEN for a 1–5 rating — one scale, applied to the matrix number, the matrix stars, the column avg, the ratings strip, the card Energy/Carbon
-ok(/const scoreColor = \(n: number\) => SCORE_COLORS\[/.test(so) && /const SCORE_COLORS = \["#ef4444", "#ef4444", "#f59e0b", "#eab308", "#84cc16", "#22c55e"\]/.test(so), "one red→green scale: 1 red · 2 orange · 3 amber · 4 lime · 5 green");
+ok(/const scoreColor = \(n: number\) => SCORE_COLORS\[/.test(so) && /const SCORE_COLORS = \["#ef4444", "#ef4444", "#f97316", "#eab308", "#22c55e", "#15803d"\]/.test(so), "one red→green scale: 1 red · 2 orange · 3 amber · 4 green · 5 deep green (operator 2026-11-01: 1 red, 4–5 green)");
+// 1-star must be RED and 4/5-star GREEN (operator 2026-11-01) — assert by hue, not just the literal
+{ const grp = so.match(/SCORE_COLORS = \[([^\]]*)\]/); const cols = grp ? grp[1].split(",").map((x) => x.replace(/[^#0-9a-f]/gi, "")) : [];
+  const hue = (hex) => { const m = /#(..)(..)(..)/.exec(hex); if (!m) return NaN; const r = parseInt(m[1],16)/255,g=parseInt(m[2],16)/255,b=parseInt(m[3],16)/255; const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn; if(!d)return 0; let h = mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4; h*=60; return h<0?h+360:h; };
+  ok(cols.length === 6 && (hue(cols[1]) <= 20 || hue(cols[1]) >= 340), `1-star is red (hue ${hue(cols[1]).toFixed(0)}°)`);
+  ok(hue(cols[4]) >= 90 && hue(cols[4]) <= 160 && hue(cols[5]) >= 90 && hue(cols[5]) <= 160, `4-star and 5-star are green (hues ${hue(cols[4]).toFixed(0)}° / ${hue(cols[5]).toFixed(0)}°)`); }
 ok((so.match(/scoreColor\(/g) || []).length >= 6, `scoreColor is applied in every star/score site (got ${(so.match(/scoreColor\(/g) || []).length})`);
 ok(/style=\{\{ color: scoreColor\(c\.score\) \}\}/.test(so) && !/!shown/.test(so), "the matrix cell number is red→green by score, always shown (no run gate)");
 ok(/style=\{\{ color: scoreColor\(c\.stars\) \}\}>\{stars\(c\.stars\)\}/.test(so), "the matrix cell stars are red→green by score");
