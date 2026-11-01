@@ -14,6 +14,8 @@
  *
  * Pure data + pure helpers, no React → replayable and gate-checked.
  */
+import { rainbow } from "./architect-rainbow";
+
 export type PhaseLayer = "structure" | "wiring" | "water" | "sewer" | null;
 
 /** What a phase DRAWS in the room designer — only its own layer. One source for the layer filter (R5d). */
@@ -47,7 +49,9 @@ export interface DevPhase {
 
 const L = (p: Partial<PhaseDraw>): PhaseDraw => ({ mep: null, structure: false, openings: false, fixtures: false, furniture: false, note: "", ...p });
 
-export const DEV_PHASES: DevPhase[] = [
+// R-UX6 (operator 2026-11-01): phase colours run RED → VIOLET in build order, from the one rainbow() source. The inline
+// `color` on each entry below is OVERRIDDEN by the rainbow map at the export (kept only so each entry type-checks).
+const DEV_PHASES_SRC: DevPhase[] = [
   {
     id: "foundation", label: "Foundation", order: 1, icon: "layers", color: "#9ca3af",
     blurb: "Cement and base — the slab and footings the whole home stands on.",
@@ -170,6 +174,10 @@ export const DEV_PHASES: DevPhase[] = [
     ],
   },
 ];
+
+// RED → VIOLET across the 11 phases in build order: Foundation = red … Interior Design = violet (one rainbow() source).
+const _PHASE_RB = rainbow(DEV_PHASES_SRC.length);
+export const DEV_PHASES: DevPhase[] = DEV_PHASES_SRC.map((p, i) => ({ ...p, color: _PHASE_RB[i] }));
 
 export const phaseById = (id: string | null | undefined): DevPhase | null =>
   DEV_PHASES.find((p) => p.id === id) ?? null;

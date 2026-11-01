@@ -27,8 +27,11 @@ import { SimEnvironmentView } from "./sim-environment-view";
 import { BuildInstructionsPanel, BuildTimelineCompare } from "./build-instructions";
 import { type FormId } from "@/lib/architect-sim-environment";
 import { TINY_ROOM_LAYOUT } from "@/lib/room-layout";
+import { rainbow } from "@/lib/architect-rainbow";
 
 const ROOM_LEGEND = TINY_ROOM_LAYOUT.map((r) => ({ k: r.k, label: r.label }));
+// RED → VIOLET across the 13 checks (operator 2026-11-01: "rainbow order of trinity 13 · colors from Red to violet").
+const SIM_RAINBOW = rainbow(SIMS.length);
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b", red: "#f87171", ground: "#070b12", cement: "#9aa7b4", composite: "#7fd4a8" };
 const usd = (n: number) => "$" + n.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -583,8 +586,8 @@ export function SimulateOptions() {
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         <div className="mb-1 text-[9px] uppercase tracking-wider" style={{ color: C.dim }}>The 13 checks · run on every design</div>
         <div className="flex flex-wrap gap-1">
-          {SIMS.map((s) => (
-            <span key={s} data-sim title={SIM_MEANING[s]} className="rounded border px-1.5 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>{s}</span>
+          {SIMS.map((s, i) => (
+            <span key={s} data-sim title={SIM_MEANING[s]} className="rounded border px-1.5 py-0.5 text-[9px]" style={{ borderColor: `${SIM_RAINBOW[i]}66`, color: SIM_RAINBOW[i] }}>{s}</span>
           ))}
         </div>
       </div>

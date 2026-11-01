@@ -14,11 +14,13 @@ import { useState } from "react";
 import { buildInstructions, compareTimeline, BUILD_ORDER, type InstructionStep } from "@/lib/architect-build-instructions";
 import type { BuildOption, ElementName } from "@/lib/architect-sim-options";
 import type { FormId } from "@/lib/architect-sim-environment";
+import { rainbow } from "@/lib/architect-rainbow";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", measure: "#9fb3c8", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b", ground: "#070b12" };
-const ELEMENT_COLOR: Record<ElementName, string> = {
-  Foundation: "#9ca3af", Framing: "#c084fc", Roofing: "#f59e0b", Plumbing: "#19c8cf", Electrical: "#ffd400", HVAC: "#22c55e",
-};
+// RED → VIOLET across the build order (operator 2026-11-01: "color order of visuals should be RED—> Violet · pick 6 colors
+// where red is first and violet is last"). Foundation = red … HVAC = violet, from the one rainbow() source.
+const _RB = rainbow(BUILD_ORDER.length);
+const ELEMENT_COLOR = Object.fromEntries(BUILD_ORDER.map((el, i) => [el, _RB[i]])) as Record<ElementName, string>;
 
 function StepRow({ step, color }: { step: InstructionStep; color: string }) {
   return (
