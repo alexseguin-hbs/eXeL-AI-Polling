@@ -11,6 +11,7 @@ import { systemFirstLeaf, type BimImport, type ImportedObject } from "@/lib/arch
 import { type AssetOverrides } from "@/lib/architect-assets";
 import { cloudEnabled, loadSnapshot, saveSnapshot, type ArchitectSnapshot, type CloudStatus } from "@/lib/architect-saved-files";
 import { DEFAULT_PARAMS, type GlobalParams } from "@/lib/architect-project";
+import { canonicalHouseTruth } from "@/lib/architect-house-truth";
 import { DEFAULT_PROGRAM, type RoomProgram } from "@/lib/room-program";
 import { sanitizeParams, sanitizeProgram, strList, objArray, objMap, objOrNull } from "@/lib/architect-guard";
 
@@ -142,7 +143,10 @@ export function useLayerState(): LayerState {
   });
 
   // Global building params (S5) — persisted; each change recomputes the rollup live and logs Replay.
-  const [globalParams, setGlobalParamsRaw] = useState<GlobalParams>(DEFAULT_PARAMS);
+  // The live what-if params START AT THE MASTER (operator 2026-11-01: the 900 ft² 3×3 is the house; the Building
+  // what-if box must open on it, not a stray 2,000 ft²). DEFAULT_PARAMS (the shared lib default) stays 2,000 — the
+  // firewall (architect-product-truth) is untouched; only this live seat reads the canonical master's area.
+  const [globalParams, setGlobalParamsRaw] = useState<GlobalParams>(() => ({ ...DEFAULT_PARAMS, areaSqft: canonicalHouseTruth().areaSqft }));
   // WireGuard: clamp area/stories + whitelist finish/style at the boundary (not incidentally downstream).
   useEffect(() => { try { const v = localStorage.getItem("arch2525.globalParams"); if (v) setGlobalParamsRaw(sanitizeParams(JSON.parse(v))); } catch {} }, []);
   const setGlobalParams = (patch: Partial<GlobalParams>) => setGlobalParamsRaw((p) => {

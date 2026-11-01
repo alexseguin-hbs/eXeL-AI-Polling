@@ -6,9 +6,11 @@
  * a per-phase rollup, and the chosen components grouped by install phase, each removable. Parallel
  * install time (overlapping phases) is shown alongside the naive sequential total.
  */
+import { useMemo } from "react";
 import { X, Home, Layers } from "lucide-react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { houseEstimate, houseSchedule, componentEstimate } from "@/lib/architect-house";
+import { canonicalHouseTruth } from "@/lib/architect-house-truth";
 import { projectRollup, styleEquivalence } from "@/lib/architect-project";
 import { findLayer, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
@@ -23,9 +25,57 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLo
   const ids = Array.from(state.spec);
   const est = houseEstimate(ids);
 
+  // THE ONE MASTER (operator 2026-11-01: "master source of data that flows through to all components") — the
+  // canonical 3×3 house: 900 ft² / 9 rooms / 30×30 from the seed GEOMETRY, $240,000 + the real build-by-phase from
+  // the ONE-COST-TRUTH engine, and the framing/envelope material take-off. Every number below reads THIS, so the
+  // HOUSE BUILD SPEC can never again disagree with the Design surface (the 2,000 ft²/$2,000 defect this closes).
+  const master = useMemo(() => canonicalHouseTruth(), []);
+  const maxBuildUsd = Math.max(...master.build.map((p) => p.usd), 1);
+  const masterBlock = (
+    <div data-arch-master-truth data-master-area={master.areaSqft} data-master-cost={master.costUsd} data-master-rooms={master.rooms}
+      className="rounded-lg border p-2" style={{ borderColor: C.violet, background: C.panel }}>
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <span className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider" style={{ color: C.violet }}><Home className="h-4 w-4" /> THE 3×3 HOUSE · MASTER</span>
+        <span style={{ color: C.dim }}>Area <span className="tabular-nums font-semibold" style={{ color: C.text }}>{master.areaSqft.toLocaleString()} ft²</span></span>
+        <span style={{ color: C.dim }}>Rooms <span className="tabular-nums font-semibold" style={{ color: C.text }}>{master.rooms}</span></span>
+        <span style={{ color: C.dim }}>Footprint <span className="tabular-nums font-semibold" style={{ color: C.text }}>{master.dims.widthFt}′ × {master.dims.depthFt}′</span></span>
+        <span style={{ color: C.dim }}>Est. cost <span className="tabular-nums font-bold" style={{ color: C.gold }}>{fmtUsd(master.costUsd)}</span></span>
+        <span style={{ color: C.dim }}>Build <span className="tabular-nums font-semibold" style={{ color: C.green }}>~{master.months} mo</span></span>
+        <span style={{ color: C.dim }}>$/ft² <span className="tabular-nums" style={{ color: C.text }}>{fmtUsd(master.costPerFt2)}</span></span>
+      </div>
+      {/* the real build, grouped by install phase — Σ cost === the $240,000 headline (one cost truth) */}
+      <div className="mt-2 flex flex-col gap-1">
+        {master.build.map((p) => (
+          <div key={p.phase} data-master-phase={p.phase} className="flex items-center gap-2">
+            <span className="w-16 shrink-0 truncate text-[9px] font-semibold" style={{ color: p.color }}>{p.label}</span>
+            <div className="h-2.5 flex-1 overflow-hidden rounded" style={{ background: "#0c1420" }}>
+              <div className="h-full rounded" style={{ width: `${(p.usd / maxBuildUsd) * 100}%`, background: p.color, opacity: 0.8 }} />
+            </div>
+            <span className="w-20 shrink-0 text-right text-[9px] tabular-nums font-semibold" style={{ color: C.gold }}>{fmtUsd(p.usd)}</span>
+            <span className="hidden min-w-0 flex-1 truncate text-[8px] sm:block" style={{ color: C.dim }} title={p.components.join(" · ")}>{p.components.join(" · ")}</span>
+          </div>
+        ))}
+      </div>
+      {/* material take-off (length of material) — from the one geometry + the one stud spacing */}
+      <div className="mt-2 border-t pt-1" style={{ borderColor: C.border }}>
+        <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Material take-off</span>
+        <span className="ml-1 text-[8px]" style={{ color: C.dim }}>· framing &amp; envelope (MEP take-off to follow)</span>
+        <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
+          {master.materials.map((x) => (
+            <span key={x.item} data-master-material={x.item} className="text-[9px]" style={{ color: C.dim }}>
+              {x.item} <span className="tabular-nums font-semibold" style={{ color: C.text }}>{x.qty.toLocaleString()} {x.unit}</span>
+              {x.note && <span className="text-[8px]"> ({x.note})</span>}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   if (est.count === 0) {
     return (
       <div data-arch-house-spec data-house-count="0" className="flex flex-col gap-3 text-[11px]" style={{ color: C.dim }}>
+        {masterBlock}
         <div className="flex flex-wrap items-center gap-4">
           <HouseSchematic state={state} selectedId={selectedId} onSelect={onSelect} />
           <div className="flex-1">
@@ -48,9 +98,10 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLo
     <div data-arch-house-spec data-house-count={est.count} className="flex flex-col gap-3 text-[11px] md:flex-row md:items-start md:gap-4">
       <div className="shrink-0"><HouseSchematic state={state} selectedId={selectedId} onSelect={onSelect} /></div>
       <div className="flex min-w-0 flex-1 flex-col gap-3">
-      {/* totals */}
+      {masterBlock}
+      {/* EXTRAS — components you've added beyond the base 3×3 house (à-la-carte; the master above is the house) */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
-        <span className="flex items-center gap-1.5 font-semibold" style={{ color: C.violet }}><Home className="h-4 w-4" /> HOUSE BUILD SPEC</span>
+        <span className="flex items-center gap-1.5 font-semibold" style={{ color: C.violet }}><Home className="h-4 w-4" /> ADDED COMPONENTS <span className="text-[9px] font-normal" style={{ color: C.dim }}>(beyond the base house)</span></span>
         <span style={{ color: C.dim }}>Components <span className="tabular-nums" style={{ color: C.text }}>{est.count}</span></span>
         <span style={{ color: C.dim }}>Est. cost <span className="tabular-nums" style={{ color: C.gold }}>{fmtUsd(est.cost)}</span></span>
         <span style={{ color: C.dim }}>Parallel <span className="tabular-nums" style={{ color: C.green }}>~{est.parallelDays} days</span></span>
@@ -60,7 +111,8 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLo
 
       {/* GLOBAL BUILDING PARAMS (S5) — whole-project inputs that LIVE-RECALCULATE the rollup below. */}
       <div data-arch-global-params className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded border px-2 py-1" style={{ borderColor: C.border }}>
-        <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Building</span>
+        <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Building · what-if</span>
+        <span className="text-[8px]" style={{ color: C.dim }}>scale from the {master.areaSqft.toLocaleString()} ft² base</span>
         <label className="flex items-center gap-1" style={{ color: C.dim }}>Area
           <input data-param-area type="number" min={200} max={100000} step={100} value={state.globalParams.areaSqft}
             onChange={(e) => state.setGlobalParams({ areaSqft: Math.max(200, Math.min(100000, Math.round(Number(e.target.value) || 200))) })}

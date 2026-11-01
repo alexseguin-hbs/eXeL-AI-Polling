@@ -8,6 +8,7 @@ import { costFor, modelById, SIM_MODELS } from "@/lib/architect-sim-options";
 import { rollupProject, DEFAULT_SECTIONS } from "@/lib/architect-estimate";
 import { projectHeadline, materialCost, projectLaborCost, settlementComparison, deriveM } from "@/lib/architect-labor";
 import { modeledQuotes } from "@/lib/architect-vendors";
+import { canonicalHouseTruth } from "@/lib/architect-house-truth";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -42,6 +43,16 @@ ok(simHeadline === estHeadline, `the Simulate and Estimate headlines AGREE ($${s
   ok(austin.localSettlementNative !== nigeria.localSettlementNative || austin.native_currency !== nigeria.native_currency, "the settlement reference differs by jurisdiction (settlement is local)");
   // … but the house-price headlines are unchanged (they read no jurisdiction/FX at all)
   ok(costFor(cube, cube.native) === simHeadline && rollupProject(DEFAULT_SECTIONS, 3).costUsd === estHeadline, "the Simulate + Estimate headlines are invariant — settlement/FX/recognition never move the house price (the firewall)");
+}
+
+// ── the HOUSE BUILD SPEC master is the SAME truth (operator 2026-11-01: "master source … flows to all components") ──
+// The 4th surface that used to disagree ($2,000 / 2,000 ft² / 1 component) now reads the one cost truth + the one geometry.
+{
+  const h = canonicalHouseTruth();
+  ok(h.costUsd === simHeadline, `HOUSE BUILD SPEC master cost === the one cost truth ($${h.costUsd} === $${simHeadline})`);
+  ok(h.areaSqft === 900, `HOUSE BUILD SPEC master area === the canonical 900 ft² (got ${h.areaSqft})`);
+  const buildSum = h.build.reduce((a, p) => a + p.usd, 0);
+  ok(Math.abs(buildSum - h.costUsd) <= h.build.length, `the master build-by-phase reconciles to the headline ($${buildSum} ≈ $${h.costUsd})`);
 }
 
 // ── determinism ──
