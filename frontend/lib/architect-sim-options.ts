@@ -157,10 +157,10 @@ export const SIM_MODELS: SimModel[] = [
     },
   },
   {
-    id: "eco-sphere", label: "Eco-Sphere", form: "7 hexagons · hex-panel dome · 900 ft²", areaFt2: 900, rooms: 7, layoutLabel: "7 hex · 9 rooms",
+    id: "eco-sphere", label: "Eco-Sphere", form: "7 hexagons · hex-panel dome · 900 ft²", areaFt2: 900, rooms: 7, layoutLabel: "7 hex · 7 rooms",
     native: { method: "hex-panel", printMaterial: "cement", frameMaterial: "wood", roof: "hex-dome" },
     stickMonths: 7, energyScore: 5, carbonScore: 5, basis: "ASSUMED",
-    note: "Nine rooms' furniture across 7 hexagons (1 centre + 6) under a hex-panel dome; convertible to a 3D-printed cement shell — ASSUMED, parametric.",
+    note: "Seven hexagonal rooms (1 centre + 6) under a hex-panel dome — the nine-space program's furniture is arranged across them; convertible to a 3D-printed cement shell — ASSUMED, parametric.",
   },
 ];
 
@@ -535,10 +535,10 @@ export function recommendation(models: SimModel[] = SIM_MODELS, optsBy?: Record<
   const best = scored[0].m, avg = scored[0].s;
   const runner = scored[1];
   const margin = runner ? Math.round((avg - runner.s) * 10) / 10 : avg;
-  const basisNote = best.basis === "DERIVED" ? "engine-derived cost" : "ASSUMED · parametric (only the Cube's cost is engine-derived)";
+  const basisNote = best.basis === "DERIVED" ? "a real cost estimate" : "a rough estimate (only the Cube's cost comes from the full calculator)";
   const marginNote = runner ? ` · +${margin.toFixed(1)} over ${runner.m.label}${margin <= 0.1 ? " — a near-tie" : ""}` : "";
   return {
     modelId: best.id, label: best.label, avg,
-    reason: `top 13-sim average (${avg.toFixed(1)}/5${marginNote}) · basis ${best.basis} — ${basisNote}. An estimate, not a quote.`,
+    reason: `best overall across the 13 checks (${avg.toFixed(1)}/5${marginNote}) · ${basisNote}. An estimate, not a quote.`,
   };
 }

@@ -62,5 +62,12 @@ ok(!/architect-sim-options|SIM_MODELS/.test(cmd.split("PhaseBar")[0] ?? cmd) || 
 ok(/NOT CALCULATED/.test(cmd) && /Budget Target/.test(cmd), "the Overview keeps Budget Target + Project Cost NOT CALCULATED (canonical, untouched by the preset)");
 ok(/REVIEWABLE/.test(mr) && /NOT CALCULATED/.test(mr), "the master readout keeps PLAN · REVIEWABLE · Project Cost NOT CALCULATED");
 
-console.log(`\narchitect-consistency: ${pass} passed, ${fail} failed · one ceiling constant · one phase order · square footage scoped · presets isolated from canonical`);
+// ── 5. ROOM COUNT MATCHES THE FORM'S OWN CELLS (operator 2026-11-01 "7 hex is 7 rooms") — no form shows a room count that
+//    disagrees with its own geometry; the Eco-Sphere's 7 hexagons are 7 rooms, never the Cube's 9 ──
+const gridM = modelById("3x3-grid"), ecoM = modelById("eco-sphere"), tinyM = modelById("tiny");
+ok(gridM.rooms === 9 && /9 rooms/.test(gridM.layoutLabel), "the Cube is 9 rooms (3×3) — model + label agree");
+ok(ecoM.rooms === 7 && /7 hex · 7 rooms/.test(ecoM.layoutLabel) && !/9 rooms/.test(ecoM.layoutLabel), "the Eco-Sphere is 7 rooms (7 hexagons) — the card never shows the Cube's 9 (operator 2026-11-01)");
+ok(tinyM.rooms === 5, "the Tiny is 5 zones (model room count)");
+
+console.log(`\narchitect-consistency: ${pass} passed, ${fail} failed · one ceiling constant · one phase order · square footage scoped · presets isolated from canonical · room count = cells`);
 process.exit(fail ? 1 : 0);

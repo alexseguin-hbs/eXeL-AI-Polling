@@ -37,6 +37,24 @@ const stars = (n: number) => "★★★★★".slice(0, n) + "☆☆☆☆☆".s
 const SCORE_COLORS = ["#ef4444", "#ef4444", "#f59e0b", "#eab308", "#84cc16", "#22c55e"]; // index 0..5 (0 and 1 both red)
 const scoreColor = (n: number) => SCORE_COLORS[Math.max(0, Math.min(5, Math.round(n)))];
 const selectStyle = { background: C.ground, color: C.text, border: `1px solid ${C.border}`, borderRadius: 4, padding: "1px 4px", fontSize: 9 } as const;
+// R-UX6 (operator 2026-11-01, human-first): each of the 13 checks in plain words — what it protects for the people who
+// live there and the builder who prices it. Shown on tap (the matrix row + the card's 13-check list + the chip titles),
+// so the detail stays visible to all, explained. The short engineering name stays as the key.
+const SIM_MEANING: Record<string, string> = {
+  Structural: "Stands up to its own weight and loads",
+  Wind: "Holds up in a storm",
+  Flood: "Stays dry if water rises",
+  Fire: "Fire safety and getting out",
+  Earthquake: "Holds together when the ground shakes",
+  Thermal: "Comfortable without wasting energy",
+  Solar: "How much power the roof can make",
+  "Water Flow": "Good water pressure to every tap",
+  HVAC: "Heating and cooling that fits the home",
+  Evacuation: "How fast everyone can get out",
+  Accessibility: "Easy to use with a wheelchair or walker",
+  Carbon: "Climate footprint — to build and to live in",
+  Lifecycle: "What it costs to own over 30 years",
+};
 
 /** The tiny form glyph for the matrix column heads (the big furnished mockups live in the cards).
  *
@@ -96,7 +114,9 @@ function FormGlyph({ id, size = 26 }: { id: string; size?: number }) {
 }
 
 export function SimulateOptions() {
-  const [simulated, setSimulated] = useState<Set<string>>(() => new Set(SIM_MODELS.map((m) => m.id)));   // R5h: SIMULATE ALL by default (operator 2026-10-31)
+  // R-UX6 (operator 2026-11-01: "remove simulate button … comparison should always be live"): NO run state — every design
+  // is scored live from its options at render; the per-card EXPAND toggle only shows/hides the extra detail below.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());   // which cards show their full detail (collapsed by default)
   const [upperBy, setUpperBy] = useState<Record<string, UpperKind>>({});   // R5f: the catalog preset's LOFT / SECOND FLOOR switch
   const [optsBy, setOptsBy] = useState<Record<string, BuildOption>>(() => Object.fromEntries(SIM_MODELS.map((m) => [m.id, optFor(m)])));
   const [compare, setCompare] = useState(false);
@@ -105,7 +125,6 @@ export function SimulateOptions() {
   const [costBy, setCostBy] = useState<Record<string, CostParams>>(() => Object.fromEntries(SIM_MODELS.map((m) => [m.id, { ...DEFAULT_COST }])));
   const setCost = (id: string, patch: Partial<CostParams>) => setCostBy((s) => ({ ...s, [id]: { ...s[id], ...patch } }));
 
-  const allSimulated = SIM_MODELS.every((m) => simulated.has(m.id));
   const allPrintedCement = SIM_MODELS.every((m) => optsBy[m.id]?.method === "3d-print" && optsBy[m.id]?.printMaterial === "cement");
   const allNative = SIM_MODELS.every((m) => JSON.stringify(optsBy[m.id]) === JSON.stringify(optFor(m)));   // every card at its native option
   const applyMode = (mode: "native" | "cement") => setOptsBy(Object.fromEntries(SIM_MODELS.map((m) =>
@@ -116,50 +135,43 @@ export function SimulateOptions() {
   const winnerOf = (metric: string) => ranks.find((r) => r.metric === metric)?.winnerId;
   const cols = `minmax(66px,1.1fr) repeat(${SIM_MODELS.length}, minmax(70px,1fr))`;
 
-  const matrix = useMemo(() => {
-    const allSim = SIM_MODELS.every((m) => simulated.has(m.id));
-    return simMatrix(SIM_MODELS, optsBy).map((rw) => ({ ...rw, winnerId: allSim ? rw.winnerId : null }));
-  }, [optsBy, simulated]);
+  const matrix = useMemo(() => simMatrix(SIM_MODELS, optsBy), [optsBy]);
 
-  const simulate = (id: string) => setSimulated((s) => new Set(s).add(id));
-  const simulateAll = () => setSimulated(new Set(SIM_MODELS.map((m) => m.id)));
+  const toggleExpand = (id: string) => setExpanded((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const setOpt = (id: string, patch: Partial<BuildOption>) => setOptsBy((s) => ({ ...s, [id]: { ...s[id], ...patch } }));
   const toggleRow = (s: string) => setOpenRows((prev) => { const n = new Set(prev); if (n.has(s)) n.delete(s); else n.add(s); return n; });
 
   return (
     <div className="space-y-3" data-arch-sim-options>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>SIMULATE · ALTERNATIVE DESIGN OPTIONS</div>
-        <span className="text-[9px]" style={{ color: C.dim }}>· Cube · Tiny Home · Eco-Sphere — press SIMULATE to build each environment + score it</span>
-        {!allSimulated && (
-          <button data-arch-sim-all onClick={simulateAll} className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.violet, color: C.violet, background: "#1a1030" }}>◉ SIMULATE ALL</button>
-        )}
+        <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>THREE WAYS TO BUILD YOUR HOME</div>
+        <span className="text-[9px]" style={{ color: C.dim }}>· Cube · Tiny Home · Eco-Sphere — each scored live from your 3×3 design · tap a card for the details</span>
       </div>
 
       {/* master compare mode — each form's native method, or ALL as 3D-printed cement (Christo: flag mixed methods) */}
       <div className="flex flex-wrap items-center gap-1.5 text-[9px]">
-        <span style={{ color: C.dim }}>Compare at</span>
-        {([["native", "NATIVE methods"], ["cement", "ALL 3D Print · cement"]] as const).map(([mode, lbl]) => {
+        <span style={{ color: C.dim }}>Compare as</span>
+        {([["native", "As designed"], ["cement", "All 3D-printed · cement"]] as const).map(([mode, lbl]) => {
           const on = mode === "cement" ? allPrintedCement : allNative;
           return (
             <button key={mode} data-arch-sim-method-mode={mode} onClick={() => applyMode(mode)} className="rounded border px-1.5 py-0.5 font-semibold"
               style={{ borderColor: on ? (mode === "cement" ? C.cement : C.cyan) : C.border, color: on ? (mode === "cement" ? C.cement : C.cyan) : C.dim, background: on ? "#0b1220" : "transparent" }}>{lbl}</button>
           );
         })}
-        <span style={{ color: C.dim }}>{allPrintedCement ? "· all three printed in cement" : allNative ? "· native: Eco-Sphere hex-panel dome; Cube + Tiny framed" : "· custom — options edited per card (neither preset)"}</span>
+        <span style={{ color: C.dim }}>{allPrintedCement ? "· all three 3D-printed in cement" : allNative ? "· as designed: the Eco-Sphere's hex-panel dome; the Cube & Tiny framed" : "· custom — you've changed the options"}</span>
       </div>
 
       {/* ★ RATINGS + COMPARE — always one tap away (operator IMG-04: 5★ + compare easily accessible) */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border px-2 py-1.5 text-[9px]" style={{ borderColor: `${C.gold}55`, background: C.panel }} data-arch-sim-ratings>
-        <span className="uppercase tracking-wider" style={{ color: C.gold }}>★ Ratings · tap-to-compare</span>
-        {SIM_MODELS.map((m) => { const sim = simulated.has(m.id); const sc = overallScore(m.id, optsBy[m.id]); return (
+        <span className="uppercase tracking-wider" style={{ color: C.gold }}>★ Ratings · tap to compare</span>
+        {SIM_MODELS.map((m) => { const sc = overallScore(m.id, optsBy[m.id]); return (
           m.catalogPreset
-            ? <span key={m.id}><b style={{ color: C.cyan }}>{m.label.split(" ")[0]}</b> <span style={{ color: C.dim }}>catalog · {usd(catalogSum(m.catalogPreset))} · ASSUMED</span></span>
-            : <span key={m.id}><b style={{ color: C.cyan }}>{m.label.split(" ")[0]}</b> <span style={{ color: sim ? scoreColor(sc) : C.dim }}>{sim ? `${stars(Math.round(sc))} ${sc.toFixed(1)}` : "— run"}</span>{sim ? <span style={{ color: C.dim }}> · {usd(costFor(m, optsBy[m.id], costBy[m.id]))}</span> : null}</span>
+            ? <span key={m.id}><b style={{ color: C.cyan }}>{m.label.split(" ")[0]}</b> <span style={{ color: C.dim }}>stock plan · {usd(catalogSum(m.catalogPreset))} · estimated</span></span>
+            : <span key={m.id}><b style={{ color: C.cyan }}>{m.label.split(" ")[0]}</b> <span style={{ color: scoreColor(sc) }}>{stars(Math.round(sc))} {sc.toFixed(1)}</span><span style={{ color: C.dim }}> · {usd(costFor(m, optsBy[m.id], costBy[m.id]))}</span></span>
         ); })}
-        <button data-arch-sim-compare-top disabled={!allSimulated} onClick={() => { setCompare(true); if (typeof document !== "undefined") document.querySelector("[data-arch-sim-compare]")?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
-          className="rounded border px-2 py-0.5 font-semibold" style={{ borderColor: allSimulated ? C.gold : C.border, color: allSimulated ? C.gold : C.dim, background: allSimulated ? "#1a1405" : "transparent" }}>
-          {allSimulated ? "▾ COMPARE ALL 3" : "COMPARE — run all 3 first"}
+        <button data-arch-sim-compare-top onClick={() => { setCompare(true); if (typeof document !== "undefined") document.querySelector("[data-arch-sim-compare]")?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
+          className="rounded border px-2 py-0.5 font-semibold" style={{ borderColor: C.gold, color: C.gold, background: "#1a1405" }}>
+          ▾ Compare all 3
         </button>
       </div>
 
@@ -167,9 +179,8 @@ export function SimulateOptions() {
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         {SIM_MODELS.map((m) => {
           const opt = optsBy[m.id];
-          const isSim = simulated.has(m.id);
           const printed = opt.method === "3d-print";
-          const results = isSim ? SIMS.map((s) => simResult(m.id, s, opt)) : [];
+          const results = SIMS.map((s) => simResult(m.id, s, opt));
           const passed = results.filter((r) => r.status === "PASS").length;
           const avg = overallScore(m.id, opt);
           const basisCol = m.basis === "DERIVED" ? C.green : C.amber;
@@ -196,7 +207,7 @@ export function SimulateOptions() {
           const elemMax = Math.max(...barRows.map((b) => b.usd), 1);
           const assumeOpen = openRows.has("assume:" + m.id);
           const row = (label: string, value: string, metric?: string) => {
-            const win = !!metric && compare && allSimulated && winnerOf(metric) === m.id;
+            const win = !!metric && compare && winnerOf(metric) === m.id;
             return (
               <div className="flex items-baseline justify-between text-[11px]">
                 <span style={{ color: C.dim }}>{label}</span>
@@ -234,7 +245,7 @@ export function SimulateOptions() {
                       {upper === "second-floor" && <div className="text-[8.5px]" style={{ color: C.amber }}>· House $57,000 includes a loft — the SECOND FLOOR is NOT CALCULATED, not added in</div>}
                       {pr.notes.map((n, i) => <div key={i} className="text-[8.5px]" style={{ color: C.amber }}>· {n}</div>)}
                       <div className="mt-1 border-t pt-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>Placed on city utilities · <b>{usd(catalogSum(pr))}</b> · ASSUMED · house + hookups + delivery</div>
-                      <div className="text-[8px]" style={{ color: C.dim }}>not a quote · not Project Cost · the nine-space canonical plan is untouched</div>
+                      <div className="text-[8px]" style={{ color: C.dim }}>not a quote · your main home's plan is untouched</div>
                     </div>
                   </div>
                 );
@@ -247,17 +258,16 @@ export function SimulateOptions() {
                 <div className="flex items-baseline justify-between text-[11px]"><span style={{ color: C.dim }}>Carbon</span><span style={{ color: scoreColor(carbonFor(m, opt)) }}>{stars(carbonFor(m, opt))}</span></div>
               </div>
               <div className="mt-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: basisCol }}>
-                <span>{m.basis === "DERIVED" ? "cost · derived · engine" : "cost · assumed · parametric"}</span>
-                <span style={{ color: C.dim }}>envelope: assumed</span>
+                <span>{m.basis === "DERIVED" ? "real cost estimate" : "rough estimate"}</span>
+                <span style={{ color: C.dim }}>efficiency: estimated</span>
               </div>
               </>)}
 
-              {!isSim ? (
-                <button data-arch-sim-run={m.id} onClick={() => simulate(m.id)}
-                  className="mt-2 w-full rounded border px-2 py-1.5 text-[10px] font-semibold" style={{ borderColor: C.violet, color: C.violet, background: "#1a1030" }}>
-                  ◉ SIMULATE · create environment + run 13 sims
-                </button>
-              ) : (
+              <button data-arch-sim-expand={m.id} onClick={() => toggleExpand(m.id)}
+                className="mt-2 w-full rounded border px-2 py-1.5 text-[10px] font-semibold" style={{ borderColor: C.violet, color: C.violet, background: "#1a1030" }}>
+                {expanded.has(m.id) ? "▴ Hide details" : "▾ See details"}
+              </button>
+              {expanded.has(m.id) && (
                 <div className="mt-2 space-y-1.5" data-arch-sim-generated={m.id}>
                   {/* the GENERATED environment */}
                   <SimEnvironmentView formId={m.id as FormId} opt={opt} size={240} />
@@ -401,7 +411,7 @@ export function SimulateOptions() {
                         </div>
                         {/* labour $ = hours × rate — the build steps compliment the Material/Labor/Markup assumptions (operator 2026-10-30) */}
                         <div data-arch-sim-laborrate className="text-[8px]" style={{ color: C.dim }}>Labour {usd(roll.labor)} = <b style={{ color: C.violet }}>{laborHrs.toLocaleString()} h</b> × {cv.laborMode === "volunteer" ? <b style={{ color: C.green }}>$0/h (donated · worth ~${proRate}/h)</b> : <b style={{ color: C.violet }}>${laborRate}/h</b>}.</div>
-                        <div className="text-[8px]" style={{ color: C.dim }}>Six major elements + <b style={{ color: C.text }}>Other*</b>{fx ? " + Trailer" : ""} reconcile EXACTLY to the {usd(roll.total)} total ({usd(perFt2)}/ft²) · {m.basis === "DERIVED" ? "derived from the estimate engine (real market cost)" : "ASSUMED area · parametric"} · labour {LABOR_MODES[cv.laborMode].label.toLowerCase()} · markup {Math.round(cv.markup * 100)}%. Tap <b style={{ color: C.green }}>VOLUNTEER</b> (labour ≈ $0, markup snaps to 0%) for the friends/family/veterans build cost.</div>
+                        <div className="text-[8px]" style={{ color: C.dim }}>Six major elements + <b style={{ color: C.text }}>Other*</b>{fx ? " + Trailer" : ""} add up EXACTLY to the {usd(roll.total)} total ({usd(perFt2)}/ft²) · {m.basis === "DERIVED" ? "a real market cost estimate" : "a rough estimate"} · labour {LABOR_MODES[cv.laborMode].label.toLowerCase()} · markup {Math.round(cv.markup * 100)}%. Tap <b style={{ color: C.green }}>VOLUNTEER</b> (labour ≈ $0, markup snaps to 0%) for the friends/family/veterans build cost.</div>
                       </div>
                     )}
                     {/* element bars (always visible) — six elements + the Other remainder sum to the headline; each bar is
@@ -461,27 +471,27 @@ export function SimulateOptions() {
                   })()}
 
                   <div className="flex items-center justify-between rounded px-1.5 py-1 text-[10px]" style={{ background: C.ground }}>
-                    <span style={{ color: C.dim }}>13-sim avg</span>
-                    <span style={{ color: C.cyan, fontWeight: 700 }}>{avg.toFixed(1)}/5 · {passed}/13 pass</span>
+                    <span style={{ color: C.dim }}>Overall score</span>
+                    <span style={{ color: C.cyan, fontWeight: 700 }}>{avg.toFixed(1)}/5 · passes {passed} of 13</span>
                   </div>
                   <button onClick={() => toggleRow("card:" + m.id)} className="w-full rounded border px-2 py-1 text-[10px] font-semibold" style={{ borderColor: C.green, color: C.green, background: "#0a1f14" }}>
-                    {openRows.has("card:" + m.id) ? "▴ HIDE 13-SIM DETAIL" : "▾ 13-SIM DETAIL · per-sim scores"}
+                    {openRows.has("card:" + m.id) ? "▴ Hide the 13 checks" : "▾ See all 13 checks"}
                   </button>
                   {openRows.has("card:" + m.id) && (
                     <div data-arch-sim-strip className="grid grid-cols-2 gap-x-2 gap-y-0.5">
                       {results.map((r) => (
-                        <div key={r.sim} className="flex items-center justify-between text-[9px]">
+                        <div key={r.sim} className="flex items-center justify-between text-[9px]" title={SIM_MEANING[r.sim]}>
                           <span style={{ color: C.dim }}>{r.sim}</span>
                           <span style={{ color: r.status === "PASS" ? C.green : C.amber }}>{r.score.toFixed(1)} {stars(r.stars)}</span>
                         </div>
                       ))}
-                      <div className="col-span-2 mt-0.5 text-[10px]" style={{ color: C.dim }}>deterministic estimate (a design preview, not an engineering result)</div>
+                      <div className="col-span-2 mt-0.5 text-[10px]" style={{ color: C.dim }}>A quick design preview — not a final engineering check.</div>
                     </div>
                   )}
 
                   {/* BUILD INSTRUCTIONS for this form + option */}
                   <button onClick={() => toggleRow("build:" + m.id)} className="w-full rounded border px-2 py-1 text-[10px] font-semibold" style={{ borderColor: C.violet, color: C.violet, background: "#1a1030" }}>
-                    {openRows.has("build:" + m.id) ? "▴ HIDE BUILD INSTRUCTIONS" : "▾ BUILD INSTRUCTIONS · measured steps + crew-days"}
+                    {openRows.has("build:" + m.id) ? "▴ Hide build steps" : "▾ Build steps · for your builder"}
                   </button>
                   {openRows.has("build:" + m.id) && <BuildInstructionsPanel formId={m.id as FormId} option={opt} />}
                 </div>
@@ -506,18 +516,18 @@ export function SimulateOptions() {
       {/* SIDE-BY-SIDE TEST MATRIX */}
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         <div className="mb-1.5 flex flex-wrap items-center gap-2">
-          <span className="text-[10px] font-bold tracking-wider" style={{ color: C.cyan }}>TEST MATRIX · the 13 sims, side by side</span>
-          <span className="text-[9px]" style={{ color: C.dim }}>· a score appears once that form is SIMULATED · tap a sim for detail · ✦ = best</span>
+          <span className="text-[10px] font-bold tracking-wider" style={{ color: C.cyan }}>THE 13 CHECKS · SIDE BY SIDE</span>
+          <span className="text-[9px]" style={{ color: C.dim }}>· every design scored live · tap a check for the details · ✦ = best</span>
         </div>
         <div className="overflow-x-auto" data-arch-sim-matrix>
           <div style={{ minWidth: 300 }}>
             <div className="grid items-end gap-1 pb-1.5" style={{ gridTemplateColumns: cols }}>
-              <div className="self-center text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>13 sims · 0–5</div>
+              <div className="self-center text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>13 checks · 0–5</div>
               {SIM_MODELS.map((m) => (
                 <div key={m.id} className="flex flex-col items-center gap-0.5">
                   <span className="rounded border p-1" style={{ borderColor: C.border, background: C.ground }}><FormGlyph id={m.id} size={26} /></span>
                   <span className="text-center text-[9px] font-bold leading-tight" style={{ color: C.cyan }}>{m.label}</span>
-                  <span className="text-[8px]" style={{ color: simulated.has(m.id) ? scoreColor(overallScore(m.id, optsBy[m.id])) : C.amber }}>{simulated.has(m.id) ? `avg ${overallScore(m.id, optsBy[m.id]).toFixed(1)}` : "NOT_RUN"}</span>
+                  <span className="text-[8px]" style={{ color: scoreColor(overallScore(m.id, optsBy[m.id])) }}>avg {overallScore(m.id, optsBy[m.id]).toFixed(1)}</span>
                 </div>
               ))}
             </div>
@@ -525,32 +535,34 @@ export function SimulateOptions() {
               const isOpen = openRows.has(rw.sim);
               return (
                 <div key={rw.sim} data-arch-sim-row={rw.sim} className="border-t" style={{ borderColor: "#0f1724" }}>
-                  <button onClick={() => toggleRow(rw.sim)} className="grid w-full items-center gap-1 py-1 text-left" style={{ gridTemplateColumns: cols }}>
+                  <button onClick={() => toggleRow(rw.sim)} title={SIM_MEANING[rw.sim]} className="grid w-full items-center gap-1 py-1 text-left" style={{ gridTemplateColumns: cols }}>
                     <span className="text-[10px]" style={{ color: C.text }}>{isOpen ? "▾ " : "▸ "}{rw.sim}</span>
                     {rw.cells.map((c) => {
-                      const shown = simulated.has(c.modelId);
-                      const win = shown && c.modelId === rw.winnerId;
+                      const win = c.modelId === rw.winnerId;
                       return (
                         <span key={c.modelId} data-arch-sim-cell className="flex flex-col items-center leading-none">
-                          <span className="text-[11px] font-semibold" style={{ color: !shown ? C.dim : scoreColor(c.score) }}>{shown ? `${win ? "✦ " : ""}${c.score.toFixed(1)}` : "—"}</span>
-                          {shown && <span className="mt-0.5 text-[8px]" style={{ color: scoreColor(c.stars) }}>{stars(c.stars)}</span>}
+                          <span className="text-[11px] font-semibold" style={{ color: scoreColor(c.score) }}>{win ? "✦ " : ""}{c.score.toFixed(1)}</span>
+                          <span className="mt-0.5 text-[8px]" style={{ color: scoreColor(c.stars) }}>{stars(c.stars)}</span>
                         </span>
                       );
                     })}
                   </button>
                   {isOpen && (
-                    <div className="grid gap-1 pb-1.5" style={{ gridTemplateColumns: cols }}>
-                      <span className="self-start text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>metrics <span style={{ color: C.amber }}>· est.</span></span>
-                      {rw.cells.map((c) => (
-                        <div key={c.modelId} className="space-y-0.5">
-                          {simulated.has(c.modelId) ? c.metrics.map((mt) => (
-                            <div key={mt.label} className="text-center text-[8px] leading-tight">
-                              <div style={{ color: C.dim }}>{mt.label}</div>
-                              <div style={{ color: C.text }}>{mt.value}</div>
-                            </div>
-                          )) : <div className="text-center text-[8px]" style={{ color: C.dim }}>—</div>}
-                        </div>
-                      ))}
+                    <div className="pb-1.5">
+                      <div className="px-1 pb-1 text-[9px]" style={{ color: C.cyan }}>{SIM_MEANING[rw.sim]}</div>
+                      <div className="grid gap-1" style={{ gridTemplateColumns: cols }}>
+                        <span className="self-start text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>details <span style={{ color: C.amber }}>· est.</span></span>
+                        {rw.cells.map((c) => (
+                          <div key={c.modelId} className="space-y-0.5">
+                            {c.metrics.map((mt) => (
+                              <div key={mt.label} className="text-center text-[8px] leading-tight">
+                                <div style={{ color: C.dim }}>{mt.label}</div>
+                                <div style={{ color: C.text }}>{mt.value}</div>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -559,8 +571,8 @@ export function SimulateOptions() {
           </div>
         </div>
         <div className="mt-1.5 space-y-0.5">
-          <div className="text-[10px]" style={{ color: C.dim }}>Initial 0–5 score + detailed metrics · deterministic estimate (a design preview, not an engineering analysis).</div>
-          <div className="text-[10px]" style={{ color: C.amber }}>⚠ Energy/Carbon — and the sims they weight — are DESIGN ASSUMPTIONS. Only the Cube&apos;s cost is engine-derived. Materials are modelled honestly (cement: stronger/non-combustible, higher embodied carbon; composite: stronger/lighter/less carbon; steel/aluminum: stronger, higher carbon).</div>
+          <div className="text-[10px]" style={{ color: C.dim }}>Every design scored 0–5, with the details behind each check. A quick design preview — not a final engineering check.</div>
+          <div className="text-[10px]" style={{ color: C.amber }}>⚠ Energy and Carbon are estimates based on the design. Only the Cube&apos;s cost comes from the full cost calculator; the others are rough estimates. Material trade-offs are shown honestly — cement: stronger and fire-resistant, but a bigger upfront climate footprint; composite: stronger, lighter, lower footprint; steel/aluminum: stronger, higher footprint.</div>
         </div>
       </div>
 
@@ -569,23 +581,23 @@ export function SimulateOptions() {
 
       {/* the original 13-sim battery — run on EVERY model */}
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
-        <div className="mb-1 text-[9px] uppercase tracking-wider" style={{ color: C.dim }}>The 13-sim battery · run on every model</div>
+        <div className="mb-1 text-[9px] uppercase tracking-wider" style={{ color: C.dim }}>The 13 checks · run on every design</div>
         <div className="flex flex-wrap gap-1">
           {SIMS.map((s) => (
-            <span key={s} data-sim className="rounded border px-1.5 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>{s}</span>
+            <span key={s} data-sim title={SIM_MEANING[s]} className="rounded border px-1.5 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>{s}</span>
           ))}
         </div>
       </div>
 
-      {/* COMPARE ALL — enabled once all three are simulated */}
-      <button data-arch-sim-compare disabled={!allSimulated} onClick={() => setCompare((v) => !v)} className="rounded border px-3 py-1 text-[11px] font-semibold"
-        style={{ borderColor: !allSimulated ? C.border : compare ? C.gold : C.cyan, color: !allSimulated ? C.dim : compare ? C.gold : C.cyan, background: !allSimulated ? "transparent" : compare ? "#1a1405" : "#07202a", opacity: allSimulated ? 1 : 0.6 }}>
-        {!allSimulated ? "▸ COMPARE ALL 3 — simulate all three first" : compare ? "✦ COMPARING — winner starred per metric" : "▸ COMPARE ALL 3 — rank by cost · time · energy · carbon · sim avg"}
+      {/* COMPARE ALL — always live (no run gate) */}
+      <button data-arch-sim-compare onClick={() => setCompare((v) => !v)} className="rounded border px-3 py-1 text-[11px] font-semibold"
+        style={{ borderColor: compare ? C.gold : C.cyan, color: compare ? C.gold : C.cyan, background: compare ? "#1a1405" : "#07202a" }}>
+        {compare ? "✦ Comparing — best starred per measure" : "▸ Compare all 3 — rank by cost · time · energy · carbon · overall"}
       </button>
-      {compare && allSimulated && (
+      {compare && (
         <div className="rounded-lg border p-2 text-[10px]" style={{ borderColor: `${C.gold}55`, background: C.panel }}>
           <div className="mb-1 rounded px-2 py-1.5 text-[11px]" style={{ background: C.ground, border: `1px solid ${C.gold}55` }}>
-            <span style={{ color: C.dim }}>Top sim-average → </span>
+            <span style={{ color: C.dim }}>Best overall → </span>
             <span style={{ color: C.gold, fontWeight: 700 }}>✦ {rec.label}</span>
             <div className="mt-0.5 text-[9px]" style={{ color: C.dim }}>{rec.reason}</div>
           </div>
@@ -610,10 +622,10 @@ export function SimulateOptions() {
             );
           })()}
           <div className="flex items-center justify-between py-0.5">
-            <span style={{ color: C.dim }}>Sim average (13 sims)</span>
+            <span style={{ color: C.dim }}>Overall (13 checks)</span>
             <span style={{ color: C.gold }}>✦ {rec.label} · {rec.avg.toFixed(1)}</span>
           </div>
-          <div className="mt-1 text-[10px]" style={{ color: C.dim }}>Lower cost/time wins · higher energy/carbon/sim-avg wins. Estimates — not a quote.</div>
+          <div className="mt-1 text-[10px]" style={{ color: C.dim }}>Lower cost &amp; time win; higher energy, carbon &amp; overall win. Estimates — not a quote.</div>
         </div>
       )}
     </div>
