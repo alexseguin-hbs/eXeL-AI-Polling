@@ -90,5 +90,15 @@ const tf = read("../components/architect-2525/tiny-floorplan.tsx");
 ok(/showFurniture &&/.test(tf), "TinyFloorplan draws the furniture layer only when showFurniture (phase-gated)");
 ok(/showFurniture \? \(r\.objects \?\? defaultObjectsForRoom\(r\.k\)\) : \[\]/.test(vox), "VoxelHouse draws room furniture only when showFurniture (a construction phase hides it; Interior Design shows it)");
 
-console.log(`\narchitect-consistency: ${pass} passed, ${fail} failed · one ceiling constant · one phase order (Design === Simulate) · square footage scoped · presets isolated · room count = cells · phase layers hide interior`);
+// ── 8. MODULAR SIMULATE CARDS (operator 2026-11-01: "you always build modularly; tiny home menu is different from 3x3 and
+//    Eco-Sphere"). ONE card render over SIM_MODELS, data-driven by m.catalogPreset: Cube + Eco-Sphere share the standard
+//    module (Area/Cost/Energy/Carbon); the Tiny Home IS its own module (catalog preset), by design — never a forked card. ──
+const soc = read("../components/architect-2525/simulate-options.tsx");
+ok(/SIM_MODELS\.map\(\(m\) => \{/.test(soc), "the Simulate cards are ONE modular render over SIM_MODELS (not a per-form fork)");
+ok(/m\.catalogPreset \?/.test(soc), "the card branches on the DATA flag m.catalogPreset (the Tiny Home's own module), not a hardcoded form id");
+ok(/row\("Area"/.test(soc) && /row\("Cost"/.test(soc), "the full-size forms (Cube · Eco-Sphere) share the standard module rows (Area · Cost)");
+ok(/scoreColor\(m\.energyScore\)/.test(soc) && /scoreColor\(carbonFor\(m, opt\)\)/.test(soc), "the standard module carries Energy + Carbon (Cube · Eco-Sphere)");
+ok(/data-arch-sim-catalog-money/.test(soc), "the Tiny Home module shows its own ASSUMED money lines (catalog preset) — a different menu by design");
+
+console.log(`\narchitect-consistency: ${pass} passed, ${fail} failed · one ceiling · one phase order · sqft scoped · presets isolated · room count = cells · phase layers hide interior · modular cards (Tiny = own module)`);
 process.exit(fail ? 1 : 0);
