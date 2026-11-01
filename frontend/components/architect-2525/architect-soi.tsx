@@ -11,6 +11,7 @@
 import { useEffect, useState } from "react";
 import type { EconomyResult } from "./architect-economy";
 import { fmtUsd } from "./architect-economy";
+import { recognitionU, U_BASE_HOURS } from "@/lib/architect-labor";
 import { loadSoI, saveSoI, publishSoI, subscribeSoI, type SoiFramework } from "@/lib/soi-framework";
 import { useLexicon } from "@/lib/lexicon-context";
 
@@ -26,7 +27,9 @@ export function ArchitectSoI({ econ }: { econ: EconomyResult }) {
   useEffect(() => subscribeSoI(() => setSoi(loadSoI())), []);
 
   const update = (next: SoiFramework) => { setSoi(next); saveSoI(next); setPublished(false); };
-  const liveFor = (key: string) => key === "SI" ? `${econ.trinity.heart} ♡` : key === "HI" ? fmtUsd(econ.trinity.human) : `${econ.trinity.unity} ◬`;
+  // §2 (FINAL 웃 contract): HI is RECOGNITION (웃 = hours × M), never money. recognitionU(active hours, base M=1).
+  const recogU = recognitionU(econ.trinity.heart / 60, U_BASE_HOURS) ?? 0;
+  const liveFor = (key: string) => key === "SI" ? `${econ.trinity.heart} ♡` : key === "HI" ? `${recogU} 웃` : `${econ.trinity.unity} ◬`;
   const doPublish = () => { publishSoI(soi); setPublished(true); };
 
   return (
@@ -82,7 +85,7 @@ export function ArchitectSoI({ econ }: { econ: EconomyResult }) {
         <div className="space-y-1 rounded-lg border p-2" style={{ borderColor: C.border, background: "#0c1420" }}>
           <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>CONTRIBUTION REPUTATION <span style={{ color: C.dim }}>{t("arch.soi.portable_identity_of_service")}</span></div>
           <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.gold }}>♡</span><span style={{ color: C.dim }}>presence — how you show up ({econ.trinity.heart})</span></div>
-          <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.violet }}>웃</span><span style={{ color: C.dim }}>skill — professional value ({fmtUsd(econ.trinity.human)})</span></div>
+          <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.violet }}>웃</span><span style={{ color: C.dim }}>skill — recognition ({recogU} 웃)</span></div>
           <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.cyan }}>◬</span><span style={{ color: C.dim }}>scalability — leverage created ({econ.trinity.unity})</span></div>
           <div className="border-t pt-1 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>{t("arch.soi.time_capital")} <span style={{ color: C.gold }}>{fmtUsd(econ.timeCapitalUsd)}</span> {t("arch.soi.learning_pts")} <span style={{ color: C.violet }}>{econ.learningPoints}</span>.</div>
         </div>

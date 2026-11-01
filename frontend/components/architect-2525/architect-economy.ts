@@ -49,7 +49,10 @@ export function computeEconomy(i: EconomyInput): EconomyResult {
   const totalUsd = round2(laborUsd + reviewUsd + materialsUsd + feeUsd);
   const activeMin = i.laborMin + i.reviewMin + i.donatedMin;
   const heart = Math.ceil(activeMin);                 // ♡ = ceil(active minutes)
-  const human = round2(activeMin * perMin);           // 웃 = min-wage/min value
+  // NOTE (FINAL 웃 contract §2): `human` here is a USD economy figure (active min × $/min) in this SHARED, domain-neutral
+  // module (also used by Vision-2525 / 2525-core) — it is NOT recognition. 웃 RECOGNITION = hours × M is rate-independent;
+  // Architect renders it on its own surface via recognitionU (lib/architect-labor). Do not relabel this USD value as 웃.
+  const human = round2(activeMin * perMin);           // USD economy value (NOT 웃 recognition — see note above)
   const unity = Math.round(heart * (i.aiMultiplier ?? 1)); // ◬ = ♡ × multiplier
   const mot = activeMin * (i.impact ?? 1) * (i.quality ?? 1);
   const timeCapitalUsd = round2(mot * perMin);        // Time Capital = MoT × $/min

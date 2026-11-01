@@ -32,6 +32,7 @@ import { FpsMeter } from "@/components/security-2525/fps-meter";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
 import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationMode } from "./architect-economy";
+import { recognitionU, U_BASE_HOURS } from "@/lib/architect-labor";
 import { VectorGlass } from "./vector-glass";
 import { ArchitectDesign } from "./architect-design";
 import { DesignWorkspace } from "./architect-design-workspace";
@@ -445,7 +446,9 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               <div className="grid grid-cols-3 gap-2">
                 <Tile label="◬ AI" value={String(econ.trinity.unity)} color={C.cyan} />
                 <Tile label="♡ SI" value={String(econ.trinity.heart)} color={C.red} />
-                <Tile label="웃 HI" value={fmtUsd(econ.trinity.human)} color={C.green} />
+                {/* §2 (FINAL 웃 contract): 웃 is RECOGNITION (hours × M), never money — so it does not move with the Rate
+                    slider. recognitionU(active hours, base M=1); the $ economy stays on the Labor/Total tiles above. */}
+                <Tile label="웃 HI" value={`${recognitionU(econ.trinity.heart / 60, U_BASE_HOURS) ?? 0} 웃`} color={C.green} />
               </div>
               <div className="rounded-lg border p-2 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>
                 Time Capital <span style={{ color: C.gold }}>{fmtUsd(econ.timeCapitalUsd)}</span> {t("arch.cmd.learning_points")} <span style={{ color: C.violet }}>{econ.learningPoints}</span>. Client preview reconciles to the Cube 5/8 ledger on sync.

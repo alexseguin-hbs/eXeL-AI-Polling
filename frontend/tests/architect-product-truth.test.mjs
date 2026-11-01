@@ -34,6 +34,16 @@ ok(/Project Cost" value="NOT CALCULATED"/.test(ux), "Project Cost reads NOT CALC
 ok(!/MoT × \$\/min/.test(ux), "no 'MoT × $/min' claim (§3.4)");
 ok(!/Time Capital" value=\{fmtUsd\(econ\.timeCapitalUsd\)/.test(ux), "the fabricated Time Capital tile is quarantined");
 
+// ── §2 (FINAL 웃 contract): 웃 is RECOGNITION (hours × M), NEVER money — the surface renders recognitionU, not a $ value,
+//    so a Rate-slider change can't move it (the firewall at the human-facing tile). ──
+ok(/recognitionU\(econ\.trinity\.heart \/ 60, U_BASE_HOURS\)/.test(ux), "command-ux1 웃 HI tile renders recognitionU (hours × M), not a $ value");
+ok(!/웃 HI" value=\{fmtUsd\(econ\.trinity\.human\)\}/.test(ux), "the 웃 HI tile no longer renders fmtUsd(econ.trinity.human) (웃 is not money)");
+{
+  const soi = read("../components/architect-2525/architect-soi.tsx");
+  ok(/recognitionU\(econ\.trinity\.heart \/ 60, U_BASE_HOURS\)/.test(soi), "architect-soi renders 웃 via recognitionU (hours × M)");
+  ok(!/fmtUsd\(econ\.trinity\.human\)/.test(soi), "architect-soi no longer renders 웃 through fmtUsd (recognition ≠ money)");
+}
+
 // ── risk + walls are quarantined ──
 ok(!/Risk" value="LOW"/.test(ux), "no 'Risk LOW' claim");
 ok(!/30.50% lower/.test(ux), "no '30–50% lower' risk claim");
