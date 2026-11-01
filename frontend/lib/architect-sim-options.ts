@@ -196,7 +196,10 @@ export const DEFAULT_COST: CostParams = { laborMode: "pro", markup: BAKED_MARKUP
 export function defaultMarkupFor(mode: LaborMode): number { return mode === "volunteer" ? 0 : mode === "mixed" ? 0.25 : BAKED_MARKUP; }
 
 // the six MAJOR elements the operator asked to compare, mapped 1:1 to the engine's work sections
-export const ELEMENTS = ["Foundation", "Framing", "Electrical", "Plumbing", "HVAC", "Roofing"] as const;
+// ONE STANDARD BUILD ORDER everywhere (operator 2026-11-01: "ensure order standard here and all on site · roofing is #3").
+// cost-by-element now follows the build sequence — Foundation · Framing · Roofing(#3) · Plumbing · Electrical · HVAC —
+// identical to BUILD_ORDER (architect-build-instructions) and the DEV_PHASES build order. Gated by architect-consistency.
+export const ELEMENTS = ["Foundation", "Framing", "Roofing", "Plumbing", "Electrical", "HVAC"] as const;
 export type ElementName = (typeof ELEMENTS)[number];
 const ELEMENT_SECTION: Record<ElementName, string> = { Foundation: "found", Framing: "frame", Electrical: "elec", Plumbing: "plumb", HVAC: "hvac", Roofing: "roof" };
 

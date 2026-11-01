@@ -52,8 +52,9 @@ ok(tiny.basis === "ASSUMED" && eco.basis === "ASSUMED", "Tiny + Eco are ASSUMED 
 ok(costFor(tiny, optFor(tiny)) < costFor(grid, optFor(grid)), "Tiny is cheaper than the Cube (smaller, area-scaled)");
 for (const m of SIM_MODELS) ok(m.energyScore >= 1 && m.energyScore <= 5 && m.carbonScore >= 1 && m.carbonScore <= 5, `${m.id} energy/carbon in 1..5`);
 
-// ── cost BY ELEMENT (operator: Foundation/Framing/Electrical/Plumbing/HVAC/Roofing) reconciles to the engine ──
-ok(ELEMENTS.length === 6 && ["Foundation", "Framing", "Electrical", "Plumbing", "HVAC", "Roofing"].every((e) => ELEMENTS.includes(e)), "the six major elements are the operator's list");
+// ── cost BY ELEMENT (the six major elements, in the ONE standard build order: Foundation/Framing/Roofing/Plumbing/
+//    Electrical/HVAC — roofing #3, operator 2026-11-01) reconciles to the engine ──
+ok(ELEMENTS.length === 6 && ["Foundation", "Framing", "Roofing", "Plumbing", "Electrical", "HVAC"].every((e) => ELEMENTS.includes(e)), "the six major elements are present");
 const gridElems = elementCosts(grid, optFor(grid));
 ok(gridElems.length === 6, "elementCosts returns the six elements");
 const expect = { Foundation: 33000, Framing: 48000, Electrical: 18000, Plumbing: 21000, HVAC: 16000, Roofing: 17000 };

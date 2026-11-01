@@ -8,7 +8,7 @@ import path from "node:path";
 import { STOREY_FT, ROOM_FT, TINY_SIDE_FT, VOXEL_PX_PER_FT } from "@/lib/room-layout";
 import { TINY_HOME, DEFAULT_PROGRAM } from "@/lib/room-program";
 import { PHASE_ORDER, BUILD_PHASES, phaseById } from "@/lib/architect-phases";
-import { modelById } from "@/lib/architect-sim-options";
+import { modelById, ELEMENTS } from "@/lib/architect-sim-options";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -48,6 +48,10 @@ const bi = read("../lib/architect-build-instructions.ts");
 const bo = bi.match(/export const BUILD_ORDER: ElementName\[\] = (\[[^\]]*\])/)[1];
 const boArr = JSON.parse(bo.replace(/'/g, '"'));
 ok(boArr.indexOf("Roofing") === boArr.indexOf("Framing") + 1 && boArr.indexOf("Roofing") < boArr.indexOf("Plumbing"), `build-instructions BUILD_ORDER roofs right after framing, before plumbing (${boArr.join(",")})`);
+// the cost-by-element order (ELEMENTS) is the SAME ONE standard build order — roofing #3, never last (operator 2026-11-01:
+// "ensure order standard here and all on site · roofing is #3"). cost-by-element can no longer diverge from BUILD_ORDER.
+ok(ELEMENTS[2] === "Roofing" && ELEMENTS.indexOf("Roofing") === ELEMENTS.indexOf("Framing") + 1, `cost-by-element ELEMENTS roofs at #3, right after framing (${ELEMENTS.join(",")})`);
+ok(JSON.stringify([...ELEMENTS]) === JSON.stringify(boArr), `cost-by-element order === build order, one standard (${ELEMENTS.join(",")})`);
 
 // ── 3. SQUARE FOOTAGE — scoped, never conflated (canonical 900 ≠ the Tiny catalog preset 280) ──
 ok(TINY_HOME.grossSqft === 900 && TINY_SIDE_FT * TINY_SIDE_FT / 100 * 100 === 900 && TINY_SIDE_FT === 30, "the canonical nine-space plan is 900 ft² (30×30) — one source");
