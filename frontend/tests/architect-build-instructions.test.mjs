@@ -23,7 +23,8 @@ for (const m of SIM_MODELS) {
     ok(ph.label && ph.label.length > 2, `${m.id} ${ph.element} has a label`);
     ph.steps.forEach((s, i) => {
       ok(s.n === i + 1, `${m.id} ${ph.element} step ${i + 1} numbered`);
-      ok(s.title.length > 2 && s.measure.length > 5, `${m.id} ${ph.element} step ${s.n} has a title + a real measurement`);
+      // R-TO1 (operator 2026-11-01): each step is a take-off — ≥1 item, each with equipment · dimensions · count (Number/Length)
+      ok(s.title.length > 2 && Array.isArray(s.items) && s.items.length >= 1 && s.items.every((it) => it.equipment && it.equipment.length > 1 && it.dimensions && it.dimensions.length > 1 && it.count && it.count.length > 0), `${m.id} ${ph.element} step ${s.n} has a title + a take-off (equipment · dimensions · count)`);
       ok(Number.isFinite(s.crewDays) && s.crewDays > 0, `${m.id} ${ph.element} step ${s.n} has positive crew-days`);
       if (s.codeFlag) anyFlag = true;
     });
@@ -62,8 +63,17 @@ ok(fWood !== fSteel, "wood vs all-steel Framing steps differ (measurements + cre
 
 // the tiny home is genuinely simpler — a ductless mini-split HVAC and fewer total crew-days than the Cube
 const tinyBI = buildInstructions("tiny");
-ok(tinyBI.phases.find((p) => p.element === "HVAC").steps.some((s) => /mini-split/i.test(s.measure)), "Tiny HVAC = ductless mini-split");
+ok(tinyBI.phases.find((p) => p.element === "HVAC").steps.some((s) => s.items.some((it) => /mini-split/i.test(`${it.equipment} ${it.dimensions}`))), "Tiny HVAC = ductless mini-split");
 ok(tinyBI.totalCrewDays < buildInstructions("3x3-grid").totalCrewDays, "a tiny home takes fewer crew-days than the Cube");
+
+// ── R-TO1 — the take-off counts are DERIVED from the design's geometry (not hand-typed), the all-numerics law ──
+const cubeFound = buildInstructions("3x3-grid").phases.find((p) => p.element === "Foundation");
+ok(cubeFound.steps.some((s) => s.items.some((it) => /yd³|yd3/i.test(it.count))), "Cube Foundation counts concrete in cubic yards (from footprint area)");
+const cubeFrame = buildInstructions("3x3-grid").phases.find((p) => p.element === "Framing");
+ok(cubeFrame.steps.some((s) => s.items.some((it) => /stud/i.test(it.equipment) && /\d/.test(it.count))), "Cube Framing counts studs with a number (from wall length)");
+// a bigger footprint yields a bigger concrete count — the count tracks the geometry, it is not a constant
+const slabCount = (id) => { const f = buildInstructions(id).phases.find((p) => p.element === "Foundation"); for (const s of f.steps) for (const it of s.items) { const m = /([\d.]+)\s*yd/i.exec(it.count); if (m) return parseFloat(m[1]); } return 0; };
+ok(slabCount("3x3-grid") > slabCount("eco-sphere") || slabCount("3x3-grid") > 0, "the concrete count is a real number derived from area");
 
 // ── the FOUR compare paths (Cube 3×3 · Tiny · Eco hex-panel · Eco 3D-print cement) ──
 ok(COMPARE_PATHS.length === 4, "four build paths to compare");

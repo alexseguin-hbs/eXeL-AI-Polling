@@ -23,13 +23,25 @@ const _RB = rainbow(BUILD_ORDER.length);
 const ELEMENT_COLOR = Object.fromEntries(BUILD_ORDER.map((el, i) => [el, _RB[i]])) as Record<ElementName, string>;
 
 function StepRow({ step, color }: { step: InstructionStep; color: string }) {
+  // R-TO1 (operator 2026-11-01): each step is a modular take-off — bullet the Equipment, sub-bullet its Dimensions,
+  // and count out the Number / Length — so an H.I. reader knows exactly what to buy and how much.
   return (
     <div className="flex gap-1.5 py-0.5">
       <span className="flex-shrink-0 rounded px-1 text-[9px] font-bold" style={{ background: C.ground, color, minWidth: 14, textAlign: "center" }}>{step.n}</span>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="text-[10px] font-semibold" style={{ color: C.text }}>{step.title} <span className="font-normal" style={{ color }}>· {step.crewDays} crew-day{step.crewDays === 1 ? "" : "s"} of work</span></div>
-        <div className="text-[10px] leading-snug" style={{ color: C.measure }}>{step.measure}</div>
-        {step.codeFlag && <div className="text-[9px]" style={{ color: C.amber }}>⚑ verify local code · {step.codeFlag}</div>}
+        <ul className="mt-0.5 space-y-0.5">
+          {step.items.map((it, i) => (
+            <li key={i} className="text-[10px] leading-snug">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="min-w-0" style={{ color: C.text }}>• {it.equipment}</span>
+                <span className="flex-shrink-0 font-semibold tabular-nums" style={{ color }}>{it.count}</span>
+              </div>
+              <div className="pl-2" style={{ color: C.dim }}>↳ {it.dimensions}</div>
+            </li>
+          ))}
+        </ul>
+        {step.codeFlag && <div className="mt-0.5 text-[9px]" style={{ color: C.amber }}>⚑ verify local code · {step.codeFlag}</div>}
       </div>
     </div>
   );
