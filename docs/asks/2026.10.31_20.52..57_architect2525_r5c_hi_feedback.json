@@ -1,0 +1,112 @@
+{
+  "release": "ARCHITECT-2525 · R5c (door convention · voxel proportion) — one decision per image",
+  "date": "2026-10-31",
+  "stamp": "2026.10.31_19.44..34CST",
+  "sha": "24513c404",
+  "timestamp": "2026-11-01T01:50:43.510Z",
+  "verdict": "APPROVE WITH CHANGES",
+  "decision": "APPROVE WITH CHANGES",
+  "overallNotes": "",
+  "generalInput": "incorporate all my changes",
+  "features": {
+    "D0": {
+      "verdict": "CHANGES",
+      "comment": "dont use green bar but door swing with dimensions "
+    },
+    "D1": {
+      "verdict": "APPROVE",
+      "comment": ""
+    },
+    "D2": {
+      "verdict": "APPROVE",
+      "comment": ""
+    },
+    "D3": {
+      "verdict": "APPROVE",
+      "comment": "thisnis correct"
+    },
+    "D5": {
+      "verdict": "APPROVE",
+      "comment": ""
+    },
+    "D7": {
+      "verdict": "APPROVE",
+      "comment": ""
+    },
+    "D8": {
+      "verdict": "CHANGES",
+      "comment": "thisnis supposento be 3D voxel version"
+    },
+    "D9": {
+      "verdict": "CHANGES",
+      "comment": "3D voxel of house build"
+    },
+    "D10": {
+      "verdict": "APPROVE",
+      "comment": ""
+    },
+    "D11": {
+      "verdict": "APPROVE",
+      "comment": ""
+    },
+    "V1": {
+      "verdict": "CHANGES",
+      "comment": "voxel osbfor house (not lawn. lawn area is just outter edges (not 3x3x3"
+    },
+    "V2": {
+      "verdict": "APPROVE",
+      "comment": "correct"
+    },
+    "V3": {
+      "verdict": "HOLD",
+      "comment": "wrong"
+    },
+    "V4": {
+      "verdict": "APPROVE",
+      "comment": ""
+    },
+    "N1": {
+      "verdict": "APPROVE",
+      "comment": ""
+    },
+    "N2": {
+      "verdict": "APPROVE",
+      "comment": ""
+    },
+    "D4": {
+      "verdict": null,
+      "comment": "see D3"
+    },
+    "D6": {
+      "verdict": null,
+      "comment": ""
+    },
+    "A": {
+      "verdict": null,
+      "comment": ""
+    },
+    "B": {
+      "verdict": null,
+      "comment": ""
+    },
+    "C": {
+      "verdict": null,
+      "comment": ""
+    },
+    "N0": {
+      "verdict": null,
+      "comment": ""
+    },
+    "N3": {
+      "verdict": null,
+      "comment": "build all my input"
+    }
+  },
+  "options": {
+    "next": {
+      "pick": "N2",
+      "comment": ""
+    }
+  },
+  "notes": ""
+}
