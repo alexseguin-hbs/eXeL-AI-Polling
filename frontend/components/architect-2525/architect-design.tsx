@@ -18,7 +18,7 @@ import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, setR
 import { RoomDesigner } from "./room-designer";
 import { STANDARD_LAYOUT_REV, type PlacedObject } from "@/lib/room-objects";
 import { PhaseBar } from "./phase-bar";
-import { phaseById } from "@/lib/architect-phases";
+import { phaseById, phaseDraw } from "@/lib/architect-phases";
 import { Frame, Wind, Zap, Droplets, Settings } from "lucide-react"; // our own iconology (no emojis) for Design Settings
 import { sanitizeRoomLayout } from "@/lib/architect-guard";
 import { cloudEnabled, saveRoomLayout, loadRoomLayout } from "@/lib/architect-saved-files";
@@ -346,7 +346,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             ◎ {selectedLabel} <span style={{ color: C.dim }}>{t("arch.design.shownOnMap")}</span>
           </div>
         )}
-        {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} /> : designable && focusRoom ? (
+        {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} showFurniture={phaseDraw(phase).furniture} /> : designable && focusRoom ? (
           // EXPLODED single-room designer (operator IMG_7489: Enter → just this 10×10 in 2D + 10×10×10 in 3D)
           <div data-arch-tiny-view className="relative">
             <RoomDesigner room={focusRoom} onChange={setObjects} onBack={() => setFocusRoomId(null)} phase={phase}
@@ -386,12 +386,12 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             ) : (
             <>
             {/* MAIN = 2D floor plan of the nine labeled rooms (operator's finalized design) */}
-            <TinyFloorplan layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} />
+            <TinyFloorplan layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} showFurniture={phaseDraw(phase).furniture} />
             {/* persistent 3D MINI-MAP (operator: "adjustable like Mission Planning") — the MiniPanel cube:
                 ⠿ drag · ◢ resize · ▾ collapse-to-tab · ⛶ maximize (portal). Same roomLayout + selection. */}
             <div data-arch-minimap className="absolute bottom-2 right-2 z-10">
               <MiniPanel title="3D · MODEL" subtitle={t("arch.design.tinyHome")} lanes={false} defaultW={196} defaultH={208} minW={140} minH={150}
-                render={(s) => <VoxelHouse homeType={homeType} program={program} height={s} compact layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} />} />
+                render={(s) => <VoxelHouse homeType={homeType} program={program} height={s} compact layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} showFurniture={phaseDraw(phase).furniture} />} />
             </div>
             {/* HOUSE level — move the selected room (D-pad) + ⏎ Enter to optimize it only */}
             {roomSel && !focusRoomId && (

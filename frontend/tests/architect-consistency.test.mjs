@@ -81,5 +81,14 @@ ok(/DEV_PHASES\.map\(/.test(pbar), "the Design PhaseBar renders DEV_PHASES direc
 ok(/Phase \{active\.order\}/.test(pbar), "the PhaseBar shows each phase's canonical build-order number (one source), never a parallel list");
 ok(!/\beight development phases\b/.test(pbar), "the stale 'eight development phases' note is gone (there are 11)");
 
-console.log(`\narchitect-consistency: ${pass} passed, ${fail} failed · one ceiling constant · one phase order (Design === Simulate) · square footage scoped · presets isolated · room count = cells`);
+// ── 7. PHASE LAYERS ON THE WHOLE-HOUSE PLAN — interior goes away when a construction phase is selected (operator 2026-11-01:
+//    "when phase is selected; interior elements go away"). The one source is phaseDraw(phase).furniture, threaded into the plan. ──
+const ad = read("../components/architect-2525/architect-design.tsx");
+ok(/showFurniture=\{phaseDraw\(phase\)\.furniture\}/.test(ad), "the whole-house plan hides furniture per phase — showFurniture reads phaseDraw(phase).furniture (one source), not always-on");
+ok((ad.match(/showFurniture=\{phaseDraw\(phase\)\.furniture\}/g) || []).length >= 3, "the 2D plan + the full voxel + the 3D mini-map all gate furniture by the phase (consistent)");
+const tf = read("../components/architect-2525/tiny-floorplan.tsx");
+ok(/showFurniture &&/.test(tf), "TinyFloorplan draws the furniture layer only when showFurniture (phase-gated)");
+ok(/showFurniture \? \(r\.objects \?\? defaultObjectsForRoom\(r\.k\)\) : \[\]/.test(vox), "VoxelHouse draws room furniture only when showFurniture (a construction phase hides it; Interior Design shows it)");
+
+console.log(`\narchitect-consistency: ${pass} passed, ${fail} failed · one ceiling constant · one phase order (Design === Simulate) · square footage scoped · presets isolated · room count = cells · phase layers hide interior`);
 process.exit(fail ? 1 : 0);

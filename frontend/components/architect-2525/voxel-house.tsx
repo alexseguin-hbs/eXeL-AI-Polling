@@ -33,10 +33,10 @@ import { doorSymbol, arcPoints } from "@/lib/door-symbol";
 
 const C = { dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", text: "#c8d6e5", green: "#22c55e" };
 
-export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false, layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom, walk = false, walkRoomId, wallW = 1, hvac = false, showSockets = true }: {
+export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false, layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom, walk = false, walkRoomId, wallW = 1, hvac = false, showSockets = true, showFurniture = true }: {
   homeType?: HomeType; program?: RoomProgram; lat?: number; lon?: number; height?: number; compact?: boolean;
   layout?: RoomCell[]; selectedRoomId?: string | null; onSelectRoom?: (id: string) => void;
-  walk?: boolean; walkRoomId?: string | null; wallW?: number; hvac?: boolean; showSockets?: boolean;
+  walk?: boolean; walkRoomId?: string | null; wallW?: number; hvac?: boolean; showSockets?: boolean; showFurniture?: boolean;
 }) {
   // Camera = the shared Vision-2525 R-Core interaction model (identical to Mission-Planning + the room voxel).
   // IMG-02 (operator: "voxel single-finger touch works only with two fingers"): the voxel disables PANNING, so a
@@ -209,7 +209,9 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   // orbit re-renders ONLY the transform wrappers, not the rooms — the one-finger orbit is then as smooth as the
   // room designer's. Not keyed on bearing/pitch/zoom, which is exactly why the orbit stops re-laying-out the house.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const roomCubes = useMemo(() => layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture, objects: r.objects ?? defaultObjectsForRoom(r.k) })), [layout, selId, wallW, roomSize]);
+  // showFurniture=false (a construction phase is selected on the Design plan — operator 2026-11-01 "interior elements go
+  // away") → draw the room shells WITHOUT the furniture layer; the one Interior Design phase (showFurniture=true) keeps it.
+  const roomCubes = useMemo(() => layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture && showFurniture, objects: showFurniture ? (r.objects ?? defaultObjectsForRoom(r.k)) : [] })), [layout, selId, wallW, roomSize, showFurniture]);
   // WALK MODE (operator: "wireframe low-fidelity walkthrough must be possible") — drop to near eye-level,
   // zoom in, and centre the scene on the current room so you step through the wireframe room by room.
   const walkRoom = walk && tiny ? layout.find((r) => r.id === walkRoomId) : undefined;
