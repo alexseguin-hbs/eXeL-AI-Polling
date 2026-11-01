@@ -245,7 +245,7 @@ export function SimulateOptions() {
                       {upper === "second-floor" && <div className="text-[8.5px]" style={{ color: C.amber }}>· House $57,000 includes a loft — the SECOND FLOOR is NOT CALCULATED, not added in</div>}
                       {pr.notes.map((n, i) => <div key={i} className="text-[8.5px]" style={{ color: C.amber }}>· {n}</div>)}
                       <div className="mt-1 border-t pt-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>Placed on city utilities · <b>{usd(catalogSum(pr))}</b> · ASSUMED · house + hookups + delivery</div>
-                      <div className="text-[8px]" style={{ color: C.dim }}>not a quote · your main home's plan is untouched</div>
+                      <div className="text-[8px]" style={{ color: C.dim }}>not a quote · your main home&apos;s plan is untouched</div>
                     </div>
                   </div>
                 );
