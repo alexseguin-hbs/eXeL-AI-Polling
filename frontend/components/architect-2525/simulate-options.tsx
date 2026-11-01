@@ -21,6 +21,7 @@ import {
   laborRateFor, proLaborRateFor, monthsFor, optFor,
   overallScore, phaseSchedule, recommendation, simMatrix, simResult,
   type BuildOption, type Method, type PrintMaterial, type FrameMaterial, type RoofType, type CostParams, type LaborMode,
+  catalogSum, type UpperKind,
 } from "@/lib/architect-sim-options";
 import { SimEnvironmentView } from "./sim-environment-view";
 import { BuildInstructionsPanel, BuildTimelineCompare } from "./build-instructions";
@@ -93,6 +94,7 @@ function FormGlyph({ id, size = 26 }: { id: string; size?: number }) {
 
 export function SimulateOptions() {
   const [simulated, setSimulated] = useState<Set<string>>(new Set());
+  const [upperBy, setUpperBy] = useState<Record<string, UpperKind>>({});   // R5f: the catalog preset's LOFT / SECOND FLOOR switch
   const [optsBy, setOptsBy] = useState<Record<string, BuildOption>>(() => Object.fromEntries(SIM_MODELS.map((m) => [m.id, optFor(m)])));
   const [compare, setCompare] = useState(false);
   const [openRows, setOpenRows] = useState<Set<string>>(new Set());
@@ -148,7 +150,9 @@ export function SimulateOptions() {
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border px-2 py-1.5 text-[9px]" style={{ borderColor: `${C.gold}55`, background: C.panel }} data-arch-sim-ratings>
         <span className="uppercase tracking-wider" style={{ color: C.gold }}>★ Ratings · tap-to-compare</span>
         {SIM_MODELS.map((m) => { const sim = simulated.has(m.id); const sc = overallScore(m.id, optsBy[m.id]); return (
-          <span key={m.id}><b style={{ color: C.cyan }}>{m.label.split(" ")[0]}</b> <span style={{ color: sim ? C.gold : C.dim }}>{sim ? `${stars(Math.round(sc))} ${sc.toFixed(1)}` : "— run"}</span>{sim ? <span style={{ color: C.dim }}> · {usd(costFor(m, optsBy[m.id], costBy[m.id]))}</span> : null}</span>
+          m.catalogPreset
+            ? <span key={m.id}><b style={{ color: C.cyan }}>{m.label.split(" ")[0]}</b> <span style={{ color: C.dim }}>catalog · {usd(catalogSum(m.catalogPreset))} · ASSUMED</span></span>
+            : <span key={m.id}><b style={{ color: C.cyan }}>{m.label.split(" ")[0]}</b> <span style={{ color: sim ? C.gold : C.dim }}>{sim ? `${stars(Math.round(sc))} ${sc.toFixed(1)}` : "— run"}</span>{sim ? <span style={{ color: C.dim }}> · {usd(costFor(m, optsBy[m.id], costBy[m.id]))}</span> : null}</span>
         ); })}
         <button data-arch-sim-compare-top disabled={!allSimulated} onClick={() => { setCompare(true); if (typeof document !== "undefined") document.querySelector("[data-arch-sim-compare]")?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
           className="rounded border px-2 py-0.5 font-semibold" style={{ borderColor: allSimulated ? C.gold : C.border, color: allSimulated ? C.gold : C.dim, background: allSimulated ? "#1a1405" : "transparent" }}>
@@ -204,6 +208,34 @@ export function SimulateOptions() {
                 <span className="text-[12px] font-bold" style={{ color: C.cyan }}>{m.label}</span>
               </div>
               <div className="mt-0.5 text-[9px]" style={{ color: C.dim }}>{m.form}</div>
+              {m.catalogPreset ? (() => {
+                // R5f — the Tiny Home is a CATALOG PRESET (operator 2026-10-31): the card copy + SEPARATE ASSUMED money lines
+                // + the LOFT / SECOND FLOOR switch; NO calculated project cost, NO $/ft², NO build-months, NO stars, NO PASS.
+                const pr = m.catalogPreset; const upper = upperBy[m.id] ?? pr.upperDefault;
+                return (
+                  <div className="mt-1.5 space-y-1" data-arch-sim-catalog={m.id}>
+                    {pr.cardLines.map((ln, i) => <div key={i} className="text-[10.5px]" style={{ color: C.text }}>{ln.replace("LOFT or SECOND FLOOR", upper === "loft" ? "LOFT · 140 ft²" : "SECOND FLOOR · 140 ft²")}</div>)}
+                    <div className="flex items-center gap-1 text-[9px]">
+                      <span style={{ color: C.dim, width: 56 }}>Upper half</span>
+                      {(["loft", "second-floor"] as UpperKind[]).map((u) => (
+                        <button key={u} data-arch-sim-upper={`${m.id}:${u}`} onClick={() => setUpperBy((st) => ({ ...st, [m.id]: u }))}
+                          className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: upper === u ? C.cyan : C.border, color: upper === u ? C.cyan : C.dim, background: upper === u ? "#0b1220" : "transparent" }}>
+                          {u === "loft" ? "LOFT" : "SECOND FLOOR"}
+                        </button>
+                      ))}
+                    </div>
+                    <div data-arch-sim-catalog-money className="rounded border p-1.5 text-[10px]" style={{ borderColor: C.border, background: C.ground }}>
+                      <div className="flex justify-between"><span style={{ color: C.dim }}>House</span><span style={{ color: C.text }}>{usd(pr.money.house)} · ASSUMED</span></div>
+                      <div className="flex justify-between"><span style={{ color: C.dim }}>Hookups</span><span style={{ color: C.text }}>{usd(pr.money.hookups)} · ASSUMED</span></div>
+                      <div className="flex justify-between"><span style={{ color: C.dim }}>Delivery</span><span style={{ color: C.text }}>{usd(pr.money.delivery)} · ASSUMED</span></div>
+                      {upper === "second-floor" && <div className="text-[8.5px]" style={{ color: C.amber }}>· House $57,000 includes a loft — the SECOND FLOOR is NOT CALCULATED, not added in</div>}
+                      {pr.notes.map((n, i) => <div key={i} className="text-[8.5px]" style={{ color: C.amber }}>· {n}</div>)}
+                      <div className="mt-1 border-t pt-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>Placed on city utilities · <b>{usd(catalogSum(pr))}</b> · ASSUMED · house + hookups + delivery</div>
+                      <div className="text-[8px]" style={{ color: C.dim }}>not a quote · not Project Cost · the nine-space canonical plan is untouched</div>
+                    </div>
+                  </div>
+                );
+              })() : (<>
               <div className="mt-1.5 space-y-0.5">
                 {row("Area", `${m.areaFt2.toLocaleString()} ft² · ${m.layoutLabel}`)}
                 {row("Cost", `${usd(cardTotal)} · ${usd(perFt2)}/ft²`, "Cost")}
@@ -215,6 +247,7 @@ export function SimulateOptions() {
                 <span>{m.basis === "DERIVED" ? "cost · derived · engine" : "cost · assumed · parametric"}</span>
                 <span style={{ color: C.dim }}>envelope: assumed</span>
               </div>
+              </>)}
 
               {!isSim ? (
                 <button data-arch-sim-run={m.id} onClick={() => simulate(m.id)}
@@ -275,6 +308,12 @@ export function SimulateOptions() {
                     </div>
                   </div>
 
+                  {/* R5f — the catalog preset shows NO calculated cost (its ASSUMED money lines are in the card header above). */}
+                  {m.catalogPreset ? (
+                    <div data-arch-sim-catalog-costnote className="rounded border p-1.5 text-[9px]" style={{ borderColor: C.border, background: C.ground, color: C.dim }}>
+                      Cost: the ASSUMED money lines above — Placed on city utilities <b style={{ color: C.text }}>{usd(catalogSum(m.catalogPreset))}</b>. A catalog preset shows no calculated project cost, $/ft², or star rating.
+                    </div>
+                  ) : (<>
                   {/* ── COST · Material + Labor + Markup (operator IMG-02/06: see M+L+Markup, adjustable markup, boil it down) ── */}
                   <div data-arch-sim-elements className="rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
                     <div className="mb-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>
@@ -384,6 +423,7 @@ export function SimulateOptions() {
                       ))}
                     </div>
                   </div>
+                  </>)}
 
                   {/* TIME TO BUILD, BY PHASE (calendar months) */}
                   {(() => {

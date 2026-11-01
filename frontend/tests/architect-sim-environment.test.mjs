@@ -1,6 +1,6 @@
 // ARCHITECT-2525 · SIMULATE ENVIRONMENT gate (operator 2026-10-27/28): pressing SIMULATE "creates that environment".
 // The two FULL-SIZE forms (Cube · Eco-Sphere) conserve all nine room keys + all 44 real furniture pieces (R5b: no rugs by default); the Tiny Home
-// is a REAL standard 8.5×24 THOW (~204 ft²) with its own realistic subset, every piece in-bounds. Furniture is the REAL
+// is the CATALOG PRESET 10×28 (280 ft² main floor) with its own realistic subset, every piece in-bounds. Furniture is the REAL
 // set from defaultObjectsForRoom — nothing invented. Generators are deterministic (replay-safe).
 import { environmentFor, gridEnvironment, tinyEnvironment, hexEnvironment, conservedKeys, totalObjectCount, environmentObjects, hexPoints, ALL_ROOM_KEYS, VIEW, MARGIN } from "@/lib/architect-sim-environment";
 import { defaultObjectsForRoom, projectPlaced } from "@/lib/room-objects";
@@ -39,7 +39,7 @@ ok(JSON.stringify(conservedKeys(tiny)) === JSON.stringify([...TINY_KEYS].sort())
 const TINY_OBJECTS = TINY_KEYS.reduce((s, k) => s + defaultObjectsForRoom(k).length, 0);  // 6+5+3+6+8 = 28
 ok(tiny.placements.length === 5 && totalObjectCount(tiny) === TINY_OBJECTS, `Tiny Home places its ${TINY_KEYS.length} zones + ${TINY_OBJECTS} pieces (got ${tiny.placements.length}/${totalObjectCount(tiny)})`);
 ok(totalObjectCount(tiny) < HOME_OBJECTS, "a tiny home genuinely carries fewer pieces than the full-size home (honest)");
-ok(tiny.shellRect && tiny.shellRect.w > tiny.shellRect.h * 2.5, "the Tiny Home shell is a long rectangle (8.5×24 ≈ 2.8:1, reads as a THOW)");
+ok(tiny.shellRect && tiny.shellRect.w > tiny.shellRect.h * 2.5, "the Tiny Home shell is a long rectangle (10×28 = 2.8:1, reads as the catalog preset)");
 ok(tiny.placements.filter((p) => p.open).length === 3, "the Tiny Home's great room is open (Living·Kitchen·Dining)");
 
 // the forms are genuinely distinct

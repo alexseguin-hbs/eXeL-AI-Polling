@@ -4,7 +4,7 @@
  * ARCHITECT-2525 · SIMULATE — ENVIRONMENT VIEW (operator 2026-10-27/28). A real, readable floor-plan MOCKUP of one
  * build form, drawn with the HOME'S OWN furniture (defaultObjectsForRoom, placed via projectPlaced — nothing invented):
  *   • Cube        — the nine rooms on a 3×3 grid (solid interior walls).
- *   • Tiny Home   — a long 8.5×24 ft THOW: one shell, an open great room up front, Bath + Bedroom at the rear.
+ *   • Tiny Home   — a long 10×28 ft catalog preset: one shell, an open great room up front, Bath + Bedroom at the rear.
  *   • Eco-Sphere  — seven hexagons (1 centre + 6) under a hex-panel dome.
  * The build option drives the drawing: method switches the walls (stick = thin cyan · 3D Print = thick stone, tinted by
  * material) and the roof is drawn per the chosen roof type — a gable/hip/flat cue over the rectilinear forms, the
@@ -86,7 +86,7 @@ export function SimEnvironmentView({ formId, opt, size = 220 }: { formId: FormId
       )}
       {env.shell === "tiny" && (
         <g fill="none" vectorEffect="non-scaling-stroke">
-          {/* the long 8.5×24 THOW outline */}
+          {/* the long 10×28 catalog-preset outline */}
           <rect x={shellRect.x} y={shellRect.y} width={shellRect.w} height={shellRect.h} rx={1} stroke={wall} strokeWidth={wallW} />
           {/* the OPEN GREAT ROOM — one zone, NO interior dividers (genuinely open — Enki) */}
           {(() => {
@@ -105,7 +105,7 @@ export function SimEnvironmentView({ formId, opt, size = 220 }: { formId: FormId
           {env.placements.filter((p) => !p.open).map((pl, i) => (
             <rect key={`z-${i}`} x={pl.rect.x} y={pl.rect.y} width={pl.rect.w} height={pl.rect.h} stroke={C.dim} strokeWidth={0.5} strokeDasharray="2 2" opacity={0.6} />
           ))}
-          <text x={shellRect.x} y={shellRect.y + shellRect.h + 4} fontSize={2.8} fill={C.dim} style={{ fontFamily: "ui-monospace, monospace" }}>8.5 × 24 ft · standard THOW</text>
+          <text x={shellRect.x} y={shellRect.y + shellRect.h + 4} fontSize={2.8} fill={C.dim} style={{ fontFamily: "ui-monospace, monospace" }}>10 × 28 ft · 280 ft² · catalog preset</text>
         </g>
       )}
       {env.shell === "hex" && env.hexes && (

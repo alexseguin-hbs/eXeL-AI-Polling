@@ -1,11 +1,11 @@
-// ARCHITECT-2525 · SIMULATE OPTIONS gate (operator 2026-10-25/27/28): three forms (Cube 900 ft² · Tiny Home 204 ft² THOW ·
+// ARCHITECT-2525 · SIMULATE OPTIONS gate (operator 2026-10-25/27/28): three forms (Cube 900 ft² · Tiny Home catalog preset 280 ft² ·
 // Eco-Sphere 900 ft²), the 13-sim battery scored 0–5 with detailed metrics, a side-by-side matrix, and the four build
 // dimensions — method (stick / 3D Print / hex-panel) · material (cement/composite · wood/steel/aluminum) · roof · cost
 // BY ELEMENT — all derived from ONE engine (DEFAULT_SECTIONS) so the element breakdown reconciles to the card cost.
 import {
   SIMS, SIM_MODELS, METHODS, METHODS_FOR, PRINT_MATERIALS, FUTURE_PRINT_MATERIALS, FRAME_MATERIALS, ROOFS, ROOFS_FOR,
   LABOR_MODES, DEFAULT_COST, ELEMENTS, REMAINDER_LABEL, carbonFor, compareModels, costBreakdown, costFor, costPerFt2, costRollup,
-  defaultMarkupFor, elementCosts, elementSubtotal, laborHoursFor, laborRateFor, proLaborRateFor,
+  defaultMarkupFor, elementCosts, elementSubtotal, laborHoursFor, laborRateFor, proLaborRateFor, catalogSum,
   monthsFor, optFor, framingFactor, phaseSchedule, runBattery, simResult, simMatrix, overallScore, recommendation, modelById,
 } from "@/lib/architect-sim-options";
 import { DEFAULT_SECTIONS } from "@/lib/architect-estimate";
@@ -26,8 +26,18 @@ ok(grid.label === "Cube" && tiny.label === "Tiny Home" && eco.label === "Eco-Sph
 
 // FX-01 / v4: the Tiny Home is a REAL standard THOW (8.5×24 ≈ 204 ft², chosen from ~30 builds); Cube + Eco are 900 ft²
 ok(grid.areaFt2 === 900 && eco.areaFt2 === 900, "Cube + Eco are 900 ft²");
-ok(tiny.areaFt2 === 204, `Tiny Home is the data-chosen standard 204 ft² (got ${tiny.areaFt2})`);
-ok(/24 ft/.test(tiny.form) && /THOW/.test(tiny.form), "Tiny Home form names the 8.5×24 standard THOW");
+ok(tiny.areaFt2 === 280, `Tiny Home main floor is 280 ft² — his catalog preset (got ${tiny.areaFt2})`);
+ok(/280 ft²/.test(tiny.form) && /10'-0" × 28/.test(tiny.form), "Tiny Home form names interior 10×28 · main floor 280 ft²");
+// R5f — the Tiny is a CATALOG PRESET (operator 2026-10-31): money is SEPARATE ASSUMED lines, not an engine price; DELETE 8.5×24/204/THOW/$118,800/$582/stars/PASS from the card.
+ok(!!tiny.catalogPreset && tiny.catalogPreset.mainFloorFt2 === 280, "Tiny is a catalog preset, main floor 280 ft²");
+ok(tiny.catalogPreset.money.house === 57000 && tiny.catalogPreset.money.hookups === 7000 && tiny.catalogPreset.money.delivery === 3000, "preset money = House $57k · Hookups $7k · Delivery $3k (separate ASSUMED lines)");
+ok(catalogSum(tiny.catalogPreset) === 67000, "the one labelled sum = $67,000 (house + hookups + delivery)");
+ok(tiny.catalogPreset.upperFt2 === 140 && tiny.catalogPreset.upperDefault === "loft", "upper half = 140 ft², LOFT by default (switchable to SECOND FLOOR)");
+ok(JSON.stringify(tiny.catalogPreset.interiorFt) === "[10,28]" && JSON.stringify(tiny.catalogPreset.exteriorFt) === "[11,29]" && tiny.catalogPreset.wallIn === 6, "interior 10×28 · exterior 11×29 · 6-in walls");
+ok(tiny.fixedUsd === undefined, "the old $18k trailer floor is gone (replaced by the ASSUMED money lines)");
+ok(!/THOW|road-legal|8\.5|\b204\b|118,?800|582/.test(tiny.form + " " + tiny.catalogPreset.cardLines.join(" ")), "DELETED from the card: 8.5×24, 204 ft², standard THOW, $118,800, $582/ft² (the note may say it is NOT a THOW)");
+ok(/not a normal tow/i.test(tiny.catalogPreset.cardLines.join(" ")), "the card says 'not a normal tow'");
+ok(/NOT CALCULATED/.test(tiny.catalogPreset.notes.join(" ")) && /not included/i.test(tiny.catalogPreset.notes.join(" ")), "second floor NOT CALCULATED; well/septic not included");
 // layoutLabel is the room/zone VOICE for the card (Area row = "<ft²> · <layoutLabel>"); the Tiny no longer repeats its
 // dimensions/area (the form line already carries "8.5 × 24 ft") — the v4 fix for the "204 ft² · 8.5×24 ft · ~204 ft²" triple.
 ok(grid.layoutLabel === "9 rooms" && tiny.layoutLabel === "5 zones" && /7 hex/.test(eco.layoutLabel), "layoutLabel is the room/zone voice (Tiny no longer repeats area/dims)");
@@ -60,8 +70,7 @@ ok(Math.abs(gridRoll.total - baseCost) <= 1000, `Material+Labor+Markup reconcile
 ok(costFor(grid, optFor(grid), { laborMode: "volunteer", markup: 0 }) < costFor(grid, optFor(grid), DEFAULT_COST) * 0.6, "volunteer + 0% markup is far below pro + 50%");
 // the markup slider moves the price; mixed is between pro and volunteer
 ok(costFor(grid, optFor(grid), { laborMode: "pro", markup: 0 }) < costFor(grid, optFor(grid), { laborMode: "pro", markup: 0.5 }), "the markup slider raises the price");
-const tinyVol = costFor(tiny, optFor(tiny), { laborMode: "volunteer", markup: 0 });
-ok(tinyVol >= 25000 && tinyVol <= 60000, `a volunteer-built, zero-markup tiny home reads in the real-world ~$40k range (got $${tinyVol})`);
+// (the Tiny's money is its catalog preset lines now — see the catalog-preset assertions above; not the volunteer engine path.)
 // scores do NOT swing with the labour/markup sliders (scores are about design, not who builds) — overallScore ignores cost view
 ok(overallScore("3x3-grid", optFor(grid)) === overallScore("3x3-grid", optFor(grid)), "scores are stable (deterministic, cost-view-independent)");
 // elementCosts carries the per-element Material / Labor / Markup split
@@ -91,10 +100,7 @@ ok(/site/i.test(REMAINDER_LABEL) && /finish/i.test(REMAINDER_LABEL), "the remain
 // ── R4: real market cost — Cube ≈ $240k / $266/ft²; the Tiny's fixed trailer floor holds a volunteer build at ~$40k ──
 ok(costFor(grid, optFor(grid)) === 240000, `Cube @ native = $240,000 real-market total (got $${costFor(grid, optFor(grid))})`);
 ok(costPerFt2(grid, optFor(grid)) >= 250 && costPerFt2(grid, optFor(grid)) <= 300, `Cube $/ft² is real-market ~$266 (got ${costPerFt2(grid, optFor(grid))})`);
-ok(tiny.fixedUsd === 18000, "the Tiny carries an $18k fixed trailer+appliance floor");
-const tinyVolBd = costBreakdown(tiny, optFor(tiny), { laborMode: "volunteer", markup: 0 });
-ok(tinyVolBd.fixed && tinyVolBd.fixed.usd === 18000 && tinyVolBd.fixed.labor === 0 && tinyVolBd.fixed.markup === 0, "the Tiny's fixed row is $18k equipment — no labour, no markup");
-ok(costFor(tiny, optFor(tiny), { laborMode: "volunteer", markup: 0 }) === 40000, `one-tap Volunteer Tiny = $40,000 (material + fixed trailer; got $${costFor(tiny, optFor(tiny), { laborMode: "volunteer", markup: 0 })})`);
+// R5f — the Tiny no longer carries an $18k trailer floor or an engine volunteer price; its card shows the ASSUMED money lines (above).
 // labour hours track the labour dollars: labor$ = hours × rate (build steps compliment M/L/Markup — operator 2026-10-30)
 ok(laborHoursFor(grid, optFor(grid)) === 4060, "Cube labour hours = the engine man-hours (4,060) at area 900");
 ok(laborRateFor(grid, optFor(grid)) >= 25 && laborRateFor(grid, optFor(grid)) <= 32, `Cube implied labour rate is realistic ~$28/hr (got $${laborRateFor(grid, optFor(grid))})`);
@@ -102,8 +108,7 @@ ok(laborRateFor(grid, optFor(grid), { laborMode: "volunteer", markup: 0 }) === 0
 
 // ── v4 FLEET FIX: tapping VOLUNTEER snaps markup to 0% so the ~$40k friends/family/veterans headline is one tap ──────────
 ok(defaultMarkupFor("pro") === 0.5 && defaultMarkupFor("mixed") === 0.25 && defaultMarkupFor("volunteer") === 0, "defaultMarkupFor: pro 50% · mixed 25% · VOLUNTEER 0% (one-tap community build)");
-const tinyVolDefault = costFor(tiny, optFor(tiny), { laborMode: "volunteer", markup: defaultMarkupFor("volunteer") });
-ok(tinyVolDefault >= 35000 && tinyVolDefault <= 45000, `one tap on VOLUNTEER puts the Tiny at the operator's ~$40k (got $${tinyVolDefault})`);
+// (the Tiny's catalog preset supersedes the one-tap-volunteer ~$40k engine path — the money is the ASSUMED lines above.)
 
 // ── method dimension (the ICON hook) + per-form gating ──
 ok(Object.keys(METHODS).length === 3 && METHODS["3d-print"].label === "3D Print" && /Hex-panel/.test(METHODS["hex-panel"].label), "methods: Stick · 3D Print · Hex-panel");

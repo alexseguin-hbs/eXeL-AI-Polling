@@ -52,21 +52,21 @@ export function gridEnvironment(): SimEnvironment {
   return { formId: "3x3-grid", view: VIEW, shell: "grid", placements };
 }
 
-// ── Tiny Home — a real standard 8.5 × 24 ft THOW (~204 ft²), drawn as a long horizontal rectangle (true proportion).
-//    A realistic THOW layout front→rear: an OPEN great room (Living · Kitchen · Dining nook), then Bath + Bedroom/loft. ─
-// 8.5 × 24 ft — the standard THOW size (industry consensus across ~30 builds: 8.5 ft road-legal width, 24 ± ~5 ft length).
-const TINY_LEN_FT = 24, TINY_WID_FT = 8.5;
+// ── Tiny Home — the operator's 2026-10-31 CATALOG PRESET: interior 10 × 28 ft (280 ft² main floor), drawn as a long
+//    horizontal rectangle (true proportion). A realistic layout front→rear: an OPEN great room (Living · Kitchen · Dining
+//    nook), then Bath + Bedroom. NOT a normal tow (not road-legal, not a standard THOW). Exterior 11 × 29 (6-in walls). ─
+const TINY_LEN_FT = 28, TINY_WID_FT = 10;
 const TINY_ZONES: { key: string; ft: number; open?: boolean }[] = [
-  { key: "L", ft: 7, open: true },   // Living (front)
-  { key: "K", ft: 5, open: true },   // Kitchen
+  { key: "L", ft: 8, open: true },   // Living (front)
+  { key: "K", ft: 6, open: true },   // Kitchen
   { key: "D", ft: 3, open: true },   // Dining nook
   { key: "B", ft: 4 },               // Bath
-  { key: "M", ft: 5 },               // Bedroom / loft (rear)
-];  // Σ = 24 ft
+  { key: "M", ft: 7 },               // Bedroom (rear)
+];  // Σ = 28 ft (interior 10 × 28 = 280 ft²)
 export function tinyEnvironment(): SimEnvironment {
   const drawW = VIEW - 2 * MARGIN;          // 108
   const sx = drawW / TINY_LEN_FT;           // svg units per foot along the length (2.7)
-  const bandH = TINY_WID_FT * sx;           // true-proportion height (~22.95) → reads as a long THOW
+  const bandH = TINY_WID_FT * sx;           // true-proportion height → reads as the long 10 × 28 catalog preset
   const y0 = (VIEW - bandH) / 2;            // vertically centred
   let cum = 0;
   const placements: RoomPlacement[] = TINY_ZONES.map((z) => {

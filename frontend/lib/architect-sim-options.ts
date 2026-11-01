@@ -92,6 +92,22 @@ export const ROOFS_FOR: Record<FormId, RoofType[]> = {
 };
 
 export type Basis = "DERIVED" | "ASSUMED";
+/** A CATALOG PRESET (operator 2026-10-31: the Tiny Home card is a catalog preset, not the canonical project). Its money is
+ *  SEPARATE ASSUMED lines, never a blended engine price; it carries an optional upper level (LOFT default / SECOND FLOOR). */
+export type UpperKind = "loft" | "second-floor";
+export interface CatalogPreset {
+  mainFloorFt2: number;            // the main floor area (does NOT change when an upper level is added)
+  interiorFt: [number, number];    // interior clear W × L
+  exteriorFt: [number, number];    // exterior W × L
+  wallIn: number;                  // wall thickness each side, inches (ASSUMED)
+  upperFt2: number;                // upper-level area (over ONE half only) — its own line, never added to the footprint
+  upperDefault: UpperKind;         // LOFT by default; the user can switch to SECOND FLOOR
+  money: { house: number; hookups: number; delivery: number };  // ASSUMED, each its own line (house includes a loft)
+  cardLines: string[];             // the exact card copy
+  notes: string[];                 // "not a normal tow", "well/septic not included", "second floor NOT CALCULATED"
+}
+/** The one labelled sum a catalog preset may show — house + hookups + delivery (ASSUMED, not a quote, not Project Cost). */
+export function catalogSum(pr: CatalogPreset): number { return pr.money.house + pr.money.hookups + pr.money.delivery; }
 export interface SimModel {
   id: FormId;
   label: string;
@@ -107,6 +123,8 @@ export interface SimModel {
   fixedUsd?: number;       // fixed equipment cost that does NOT scale with labour mode or markup (e.g. the Tiny's trailer +
                            // appliances) — a real pass-through purchase, so a volunteer/0%-markup Tiny still reads ~$40k
   note: string;
+  /** when set, this model is a CATALOG PRESET — its card shows these ASSUMED lines (no engine cost / $/ft² / stars / PASS). */
+  catalogPreset?: CatalogPreset;
 }
 
 export const SIM_MODELS: SimModel[] = [
@@ -117,10 +135,26 @@ export const SIM_MODELS: SimModel[] = [
     note: "The standard home — nine rooms on a 3×3 grid; cost DERIVED from the estimate engine (DEFAULT_SECTIONS).",
   },
   {
-    id: "tiny", label: "Tiny Home", form: "8.5 × 24 ft · standard THOW", areaFt2: 204, rooms: 5, layoutLabel: "5 zones",
+    id: "tiny", label: "Tiny Home", form: "interior 10'-0\" × 28'-0\" · main floor 280 ft²", areaFt2: 280, rooms: 5, layoutLabel: "5 zones",
     native: { method: "stick-framed", printMaterial: "cement", frameMaterial: "wood", roof: "gable" },
-    stickMonths: 3, energyScore: 4, carbonScore: 4, basis: "ASSUMED", fixedUsd: 18000,
-    note: "A real standard tiny home on a trailer — 8.5×24 ft (~204 ft²). Size chosen from the industry consensus across ~30 THOW builds: road-legal 8.5 ft wide, length 24 ± ~5 ft (common 20–30 ft). Carries a fixed ~$18k trailer+appliance cost (equipment, not labour) so a volunteer build still reads ~$40k. ASSUMED, parametric.",
+    stickMonths: 3, energyScore: 4, carbonScore: 4, basis: "ASSUMED",
+    note: "A catalog preset (operator 2026-10-31): interior 10×28 ft · main floor 280 ft² exactly · 6-in walls · exterior 11×29 ft · optional LOFT or SECOND FLOOR over one half (140 ft²). NOT a normal tow — not road-legal, not a standard THOW. Money is separate ASSUMED lines, not an engine price; the nine-space canonical plan is untouched.",
+    catalogPreset: {
+      mainFloorFt2: 280, interiorFt: [10, 28], exteriorFt: [11, 29], wallIn: 6,
+      upperFt2: 140, upperDefault: "loft",
+      money: { house: 57000, hookups: 7000, delivery: 3000 },
+      cardLines: [
+        "interior 10'-0\" × 28'-0\" · main floor 280 ft²",
+        "upper half · 10'-0\" × 14'-0\" · 140 ft² · LOFT or SECOND FLOOR",
+        "outside 11'-0\" × 29'-0\" · 6 in walls · ASSUMED",
+        "not a normal tow",
+      ],
+      notes: [
+        "House $57,000 includes a loft — it does NOT include a standing second floor",
+        "Well or septic: not included",
+        "Second floor: NOT CALCULATED — not added into the $57,000",
+      ],
+    },
   },
   {
     id: "eco-sphere", label: "Eco-Sphere", form: "7 hexagons · hex-panel dome · 900 ft²", areaFt2: 900, rooms: 7, layoutLabel: "7 hex · 9 rooms",
