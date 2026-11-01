@@ -45,11 +45,15 @@ function RoofCue({ rect, roof, color }: { rect: Rect; roof: RoofType; color: str
       </g>
     );
   }
-  // gable — a dashed ridge down the longer axis
+  // gable — a dashed ridge down the longer axis. R-UX6 P1a-fix (operator: "not sure why dotted yellow line goes in middle
+  // of house"): label the line as the ROOF RIDGE (the peak of the gable roof above the plan) so it never reads as a wall.
   const horizontal = w >= h;
   return (
-    <g stroke={color} strokeOpacity={0.45} strokeWidth={0.7} strokeDasharray="3 2" vectorEffect="non-scaling-stroke">
-      {horizontal ? <line x1={x + 2} y1={cy} x2={x + w - 2} y2={cy} /> : <line x1={cx} y1={y + 2} x2={cx} y2={y + h - 2} />}
+    <g>
+      <g stroke={color} strokeOpacity={0.4} strokeWidth={0.6} strokeDasharray="3 2" vectorEffect="non-scaling-stroke">
+        {horizontal ? <line x1={x + 2} y1={cy} x2={x + w - 2} y2={cy} /> : <line x1={cx} y1={y + 2} x2={cx} y2={y + h - 2} />}
+      </g>
+      <text x={horizontal ? x + 3 : cx + 1} y={horizontal ? cy - 1 : y + 6} fontSize={2.4} fill={color} opacity={0.75} style={{ fontFamily: "ui-monospace, monospace" }}>⌂ roof ridge</text>
       {tag}
     </g>
   );
