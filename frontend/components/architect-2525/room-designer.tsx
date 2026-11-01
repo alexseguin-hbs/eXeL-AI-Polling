@@ -370,6 +370,22 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                     ))}
                     <line data-arch-door-leaf x1={ds.leaf.x1} y1={ds.leaf.y1} x2={ds.leaf.x2} y2={ds.leaf.y2} stroke={col} strokeWidth={on ? 1.4 : 1.1} strokeLinecap="round" />
                     <path data-arch-door-arc d={ds.arc} fill="none" stroke={col} strokeWidth={on ? 0.7 : 0.5} strokeDasharray="1.2 0.8" />
+                    {/* HI 2026-10-31 (D0: "door swing with dimensions"): the door carries its WIDTH with the swing — a dimension line
+                        between the jambs, 2.5 ft into the room, with its feet-inches label; in Advanced the selected door's CAD chain
+                        says the same, so the label yields to it there. */}
+                    {!(advanced && on) && (() => {
+                      const d = 2.5 * 10, mx = (ds.opening.x1 + ds.opening.x2) / 2 + ds.into.x * d, my = (ds.opening.y1 + ds.opening.y2) / 2 + ds.into.y * d;
+                      const a = { x: ds.opening.x1 + ds.into.x * d, y: ds.opening.y1 + ds.into.y * d }, b = { x: ds.opening.x2 + ds.into.x * d, y: ds.opening.y2 + ds.into.y * d };
+                      const horiz = ds.into.y !== 0;
+                      return (
+                        <g data-arch-door-dim style={{ pointerEvents: "none" }}>
+                          <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={col} strokeWidth={0.35} />
+                          <line x1={a.x - (horiz ? 0 : 1)} y1={a.y - (horiz ? 1 : 0)} x2={a.x + (horiz ? 0 : 1)} y2={a.y + (horiz ? 1 : 0)} stroke={col} strokeWidth={0.35} />
+                          <line x1={b.x - (horiz ? 0 : 1)} y1={b.y - (horiz ? 1 : 0)} x2={b.x + (horiz ? 0 : 1)} y2={b.y + (horiz ? 1 : 0)} stroke={col} strokeWidth={0.35} />
+                          <text x={mx + (horiz ? 0 : 2.2)} y={my + (horiz ? -1.2 : 1)} fontSize={2.8} fill={col} textAnchor={horiz ? "middle" : "start"} stroke="#070b12" strokeWidth={0.7} style={{ paintOrder: "stroke" }}>{ftIn(Math.abs(horiz ? ds.opening.x2 - ds.opening.x1 : ds.opening.y2 - ds.opening.y1) / 10)}</text>
+                        </g>
+                      );
+                    })()}
                   </>
                 ) : (
                   <rect x={cx - w * 5} y={cy - d * 5} width={w * 10} height={d * 10} rx={1.5}
