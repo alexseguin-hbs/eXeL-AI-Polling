@@ -21,6 +21,7 @@ const BANNED = /\bNOT_RUN\b|\bNOT STARTED\b|engine-derived|\bfrom the (estimate 
 // the CLEANED surfaces — each is added in the revision that refactored it human-first (R-UX6)
 const CLEANED = [
   "../components/architect-2525/simulate-options.tsx",   // D1 (2026-11-01): Simulate — live, no run button, human copy
+  "../components/architect-2525/build-instructions.tsx", // D1c (2026-11-01): Build steps / timeline — human copy
 ];
 for (const f of CLEANED) {
   const src = strip(read(f));

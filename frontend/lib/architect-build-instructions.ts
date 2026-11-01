@@ -185,7 +185,7 @@ export function buildInstructions(formId: FormId, opt?: BuildOption): BuildInstr
   return {
     formId, label: m.label, option: o, methodLabel: METHODS[o.method].label,
     phases, totalCrewDays, weeks,
-    note: `Crew-days are HANDS-ON LABOR content at a ${CREW}-person crew — NOT calendar time. The calendar duration (incl. the 28-day slab cure, inspections and trade sequencing) is the months shown in "Time to build · by phase" above. A PLANNING ESTIMATE (rules of thumb); buildable values come from Manual J/S/D, IPC/UPC fixture-unit sizing, NEC, and your adopted local code edition — each phase flags where.`,
+    note: `Crew-days are hands-on work for a ${CREW}-person crew — not calendar time. The real calendar time (including the 28-day concrete cure, inspections and trade sequencing) is the months shown in Time to build above. This is a planning estimate (rules of thumb); the buildable numbers come from a licensed pro and your local building code — each phase flags where.`,
   };
 }
 
