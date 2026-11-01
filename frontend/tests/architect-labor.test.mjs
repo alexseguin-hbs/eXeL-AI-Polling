@@ -5,6 +5,7 @@
 import {
   deriveM, recognitionU, materialCost, laborCostLocal, projectLaborCost, projectHeadline, settlementComparison,
   monthlyToHourly, localMinWageHourlyNative, LOCAL_WAGES, US_MIN_WAGE_USD_HR, REFERENCE_MULTIPLE, MIN_VENDORS,
+  US_TRADE_REFERENCE, asOfAgeDays, isStale, FRESHNESS,
 } from "@/lib/architect-labor";
 
 let pass = 0, fail = 0;
@@ -126,5 +127,36 @@ ok(materialCost([{ vendor: "A", amountUsd: 30000, asOf: "2026-11-01" }, { vendor
 ok(near(REFERENCE_MULTIPLE, 9999 / 2080, 0.001) && near(REFERENCE_MULTIPLE, 4.807, 0.001), "REFERENCE_MULTIPLE = 9,999 ÷ 2,080 ≈ 4.807");
 ok(US_MIN_WAGE_USD_HR === 7.25, "US base minimum-wage reference = $7.25");
 
-console.log(`\narchitect-labor: ${pass} passed, ${fail} failed · T1–T10 · material ≥3-vendor avg · labor = local min wage × M × hours · recognition global, settlement local, project cost firewalled`);
+// ── R-WU3 HARDENING (48-AsM fleet 2026-11-01: Thor security + Enki edge cases + Odin foresight) ──
+// Thor: reference tables are frozen (no in-place mutation / provenance lie)
+ok(Object.isFrozen(US_TRADE_REFERENCE) && Object.isFrozen(LOCAL_WAGES), "reference tables are frozen (US_TRADE_REFERENCE + LOCAL_WAGES)");
+ok(Object.isFrozen(US_TRADE_REFERENCE.carpenter) && Object.isFrozen(LOCAL_WAGES["US-TX"]), "each reference row is frozen (deep)");
+{ let threw = false; try { "use strict"; US_TRADE_REFERENCE.carpenter.usRefRateUsdHr = 999; } catch { threw = true; }
+  ok(US_TRADE_REFERENCE.carpenter.usRefRateUsdHr === 28.54, "a mutation of a frozen rate does not take (stays 28.54)"); }
+// Enki/Thor: deriveM override stamps custom-UNVERIFIED provenance, never the stale BLS source; ≤0 rate → null
+{ const ov = deriveM("carpenter", 50); ok(ov && ov.source === "custom-UNVERIFIED" && ov.statistic === "override" && ov.M === Math.round((50 / 7.25) * 1000) / 1000, "deriveM(override) is custom-UNVERIFIED / override, not BLS provenance");
+  const tbl = deriveM("carpenter"); ok(tbl && tbl.source === "BLS OES" && tbl.statistic === "median hourly", "deriveM(table) keeps its BLS provenance");
+  ok(deriveM("carpenter", 0) === null && deriveM("carpenter", -5) === null, "deriveM with a ≤0 rate → null (no defensible rate)"); }
+// Thor/Enki: a ≤0 or non-finite quote NEVER takes cost authority; a lower positive tier wins over a 0 higher tier
+ok(projectLaborCost({ quotedUsd: 0 }).authority === "NOT_CALCULATED", "a $0 quote does not become the headline (NOT_CALCULATED)");
+ok(projectLaborCost({ quotedUsd: -100 }).authority === "NOT_CALCULATED", "a negative quote is refused");
+ok(projectLaborCost({ quotedUsd: 0, storedWageUsd: 5200 }).authority === "STORED" && projectLaborCost({ quotedUsd: 0, storedWageUsd: 5200 }).laborUsd === 5200, "a 0 top-tier falls through to the next positive tier");
+ok(projectLaborCost({ quotedUsd: 5200 }).authority === "QUOTED", "a real positive quote still takes QUOTED (regression)");
+// Thor: a negative markup never yields a signer-facing headline
+ok(projectHeadline({ usd: 1000, state: "QUOTED" }, { laborUsd: 1000, authority: "QUOTED" }, -50).headlineUsd === null, "a negative markup → headline NOT_CALCULATED");
+ok(projectHeadline({ usd: 1000, state: "QUOTED" }, { laborUsd: 1000, authority: "QUOTED" }, 10).headlineUsd === 2200, "a valid markup still prices (10% → 2200)");
+// Enki: malformed hours / M in laborCostLocal → NOT_CALCULATED, not a priced cost
+{ const M = deriveM("carpenter"); const jd = LOCAL_WAGES["US-TX"];
+  ok(laborCostLocal(-5, M, jd).state === "NOT_CALCULATED" && laborCostLocal(-5, M, jd).costNative === null, "negative hours → NOT_CALCULATED");
+  ok(laborCostLocal(100, null, jd).state === "NOT_CALCULATED", "null multiple → NOT_CALCULATED");
+  ok(laborCostLocal(100, M, jd).costNative > 0, "valid hours + M → a real cost (regression)"); }
+// Thor: material average is per-VENDOR (a vendor's extra quotes don't over-weight it)
+{ const q = [{ vendor: "A", amountUsd: 100, asOf: "x" }, { vendor: "A", amountUsd: 100, asOf: "x" }, { vendor: "A", amountUsd: 100, asOf: "x" }, { vendor: "B", amountUsd: 200, asOf: "x" }, { vendor: "C", amountUsd: 300, asOf: "x" }];
+  const mc = materialCost(q); ok(mc.state === "QUOTED" && mc.vendorCount === 3 && mc.usd === 200, "per-vendor average = (100+200+300)/3 = 200, not the 6-quote mean (150)"); }
+// Odin: freshness helpers (pure, today passed in; unknown age is fail-safe stale)
+ok(asOfAgeDays("2026-01-01", "2026-01-31") === 30, "asOfAgeDays counts calendar days");
+ok(isStale("2026-01-01", "2026-12-01", FRESHNESS.FX_MAX_DAYS) === true && isStale("2026-11-01", "2026-11-15", FRESHNESS.WAGE_MAX_DAYS) === false, "isStale flags an old FX, not a fresh wage");
+ok(isStale("not-a-date", "2026-11-01", 90) === true, "an unparseable as-of is treated as stale (fail-safe)");
+
+console.log(`\narchitect-labor: ${pass} passed, ${fail} failed · T1–T10 + R-WU3 hardening · material ≥3-vendor avg · labor = local min wage × M × hours · recognition global, settlement local, project cost firewalled`);
 process.exit(fail ? 1 : 0);

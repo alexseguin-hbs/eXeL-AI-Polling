@@ -43,7 +43,9 @@ export type EvidenceState =
   | "ASSUMED"           // a worked/illustrative reference (e.g. the VISION Nigeria worked value) — not measured statute
   | "NOT_CALCULATED";   // no defensible value
 
-/** The construction-cost authority order (contract §8) — higher supersedes lower for the PROJECT-cost calculation. */
+/** The construction-cost authority order (contract §8) — higher supersedes lower for the PROJECT-cost calculation.
+ *  ASSUMED is DELIBERATELY ABSENT (contract §10): a worked reference (e.g. the Nigeria $0.34 value) is informational and may
+ *  NEVER enter the project-cost waterfall. Do not add ASSUMED here. */
 export const COST_AUTHORITY_ORDER: EvidenceState[] = ["QUOTED", "PREVAILING", "STORED", "HI_NORMALIZED", "US_RESEARCH", "NOT_CALCULATED"];
 
 // ── US TRADE REFERENCE (BLS OES May 2024 median hourly, via sources citing BLS OES) — the M numerators ───────────────
@@ -68,11 +70,15 @@ const r3 = (n: number) => Math.round(n * 1000) / 1000;
 export function deriveM(tradeKey: string, usRefRateUsdHr?: number, usMinWage = US_MIN_WAGE_USD_HR): TradeMultiple | null {
   const ref = US_TRADE_REFERENCE[tradeKey];
   const rate = typeof usRefRateUsdHr === "number" ? usRefRateUsdHr : ref?.usRefRateUsdHr;
-  if (typeof rate !== "number" || !(usMinWage > 0)) return null;   // no defensible rate → caller shows NOT CALCULATED
+  if (typeof rate !== "number" || !Number.isFinite(rate) || rate <= 0 || !(usMinWage > 0)) return null;   // no defensible rate → caller shows NOT CALCULATED
+  // R-WU3 (Enki/Thor): an OVERRIDE rate must NOT inherit the table's BLS provenance — stamp it as custom + UNVERIFIED so a
+  // user-entered rate never masquerades as a sourced BLS median (contract §3/§4: each stored rate identifies its type).
+  const isOverride = typeof usRefRateUsdHr === "number" && usRefRateUsdHr !== ref?.usRefRateUsdHr;
   return {
     trade: ref?.trade ?? tradeKey, M: r3(rate / usMinWage), usRefRateUsdHr: rate, usMinWageUsdHr: usMinWage,
-    source: ref?.source ?? "custom", geography: ref?.geography ?? "US", vintage: ref?.vintage ?? "n/a",
-    statistic: ref?.statistic ?? "median hourly",
+    source: isOverride ? "custom-UNVERIFIED" : (ref?.source ?? "custom-UNVERIFIED"),
+    geography: ref?.geography ?? "US", vintage: isOverride ? "n/a" : (ref?.vintage ?? "n/a"),
+    statistic: isOverride ? "override" : (ref?.statistic ?? "median hourly"),
     derivation: `${rate} ÷ ${usMinWage} = ${r3(rate / usMinWage)}×`, state: "DERIVED",
   };
 }
@@ -130,9 +136,13 @@ export interface LaborLocal { jurisdiction_id: string; native_currency: string; 
 export function laborCostLocal(hours: number | null, m: TradeMultiple | null, jd: LocalWageDefinition): LaborLocal {
   const rateBase = localMinWageHourlyNative(jd);
   const M = m?.M ?? NaN;
-  const ratePerHrNative = rateBase != null && m ? Math.round(rateBase * M * 100) / 100 : null;
-  const costNative = ratePerHrNative != null && hours != null && Number.isFinite(hours) ? Math.round(ratePerHrNative * hours * 100) / 100 : null;
-  return { jurisdiction_id: jd.jurisdiction_id, native_currency: jd.native_currency, ratePerHrNative, hours, costNative, M, state: ratePerHrNative == null ? "NOT_CALCULATED" : jd.evidence_state };
+  // R-WU3 (Enki): a malformed M or hours (null / NaN / ≤ 0) must collapse to NOT_CALCULATED — never a priced cost with a
+  // real evidence_state, and never a null that JSON-serializes as a "0 cost".
+  const mOk = m != null && Number.isFinite(M) && M > 0;
+  const ratePerHrNative = rateBase != null && mOk ? Math.round(rateBase * M * 100) / 100 : null;
+  const hoursOk = hours != null && Number.isFinite(hours) && hours >= 0;
+  const costNative = ratePerHrNative != null && hoursOk ? Math.round(ratePerHrNative * hours * 100) / 100 : null;
+  return { jurisdiction_id: jd.jurisdiction_id, native_currency: jd.native_currency, ratePerHrNative, hours, costNative, M, state: costNative == null ? "NOT_CALCULATED" : jd.evidence_state };
 }
 
 // ── MATERIAL COST — the ≥3-vendor average (operator 2026-11-01) ──────────────────────────────────────────────────────
@@ -142,12 +152,17 @@ export const MIN_VENDORS = 3;
 /** Material cost = the average of the vendor quotes, but ONLY with ≥3 defensible vendors; fewer → NOT_CALCULATED. */
 export function materialCost(quotes: MaterialQuote[]): MaterialResult {
   const valid = (quotes || []).filter((q) => q && typeof q.amountUsd === "number" && Number.isFinite(q.amountUsd) && q.amountUsd >= 0 && q.vendor && q.asOf);
-  const uniqueVendors = new Set(valid.map((q) => q.vendor.trim().toLowerCase())).size;
+  // R-WU3 (Thor): dedupe BY VENDOR — one representative price per vendor (the mean of that vendor's quotes), then average
+  // the ≥3 vendor prices, so a single vendor filing extra quotes cannot over-weight the "≥3-vendor average".
+  const byVendor = new Map<string, number[]>();
+  for (const q of valid) { const k = q.vendor.trim().toLowerCase(); (byVendor.get(k) ?? byVendor.set(k, []).get(k)!).push(q.amountUsd); }
+  const uniqueVendors = byVendor.size;
   if (uniqueVendors < MIN_VENDORS) {
     return { usd: null, vendorCount: uniqueVendors, state: "NOT_CALCULATED", note: `need ≥${MIN_VENDORS} vendor quotes to average (have ${uniqueVendors})` };
   }
-  const usd = Math.round((valid.reduce((s, q) => s + q.amountUsd, 0) / valid.length) * 100) / 100;
-  return { usd, vendorCount: uniqueVendors, state: "QUOTED", note: `average of ${valid.length} quotes across ${uniqueVendors} vendors` };
+  const vendorPrices = [...byVendor.values()].map((arr) => arr.reduce((s, x) => s + x, 0) / arr.length);
+  const usd = Math.round((vendorPrices.reduce((s, x) => s + x, 0) / vendorPrices.length) * 100) / 100;
+  return { usd, vendorCount: uniqueVendors, state: "QUOTED", note: `average of ${uniqueVendors} vendors (one price per vendor, ${valid.length} quotes)` };
 }
 
 // ── PROJECT COST — the FIREWALL. Governed ONLY by project-region construction-cost evidence, in authority order.
@@ -162,11 +177,14 @@ export interface ProjectLaborEvidence {
 export interface ProjectCostResult { laborUsd: number | null; authority: EvidenceState; }
 /** The project LABOR cost + its authority — highest available evidence wins; no jurisdiction/FX/웃 input exists here. */
 export function projectLaborCost(ev: ProjectLaborEvidence): ProjectCostResult {
-  if (ev.quotedUsd != null && Number.isFinite(ev.quotedUsd))         return { laborUsd: ev.quotedUsd, authority: "QUOTED" };
-  if (ev.prevailingUsd != null && Number.isFinite(ev.prevailingUsd)) return { laborUsd: ev.prevailingUsd, authority: "PREVAILING" };
-  if (ev.storedWageUsd != null && Number.isFinite(ev.storedWageUsd)) return { laborUsd: ev.storedWageUsd, authority: "STORED" };
-  if (ev.hiNormalizedUsd != null && Number.isFinite(ev.hiNormalizedUsd)) return { laborUsd: ev.hiNormalizedUsd, authority: "HI_NORMALIZED" };
-  if (ev.usResearchUsd != null && Number.isFinite(ev.usResearchUsd)) return { laborUsd: ev.usResearchUsd, authority: "US_RESEARCH" };
+  // R-WU3 (Thor/Enki): only a FINITE, POSITIVE value can take cost authority — a $0 or negative "quote" must never become
+  // the signer-facing headline. (A genuine no-cost / volunteer build is modeled in the cost engine's labor mode, not here.)
+  const pos = (v: number | null | undefined): v is number => v != null && Number.isFinite(v) && v > 0;
+  if (pos(ev.quotedUsd))         return { laborUsd: ev.quotedUsd, authority: "QUOTED" };
+  if (pos(ev.prevailingUsd))     return { laborUsd: ev.prevailingUsd, authority: "PREVAILING" };
+  if (pos(ev.storedWageUsd))     return { laborUsd: ev.storedWageUsd, authority: "STORED" };
+  if (pos(ev.hiNormalizedUsd))   return { laborUsd: ev.hiNormalizedUsd, authority: "HI_NORMALIZED" };
+  if (pos(ev.usResearchUsd))     return { laborUsd: ev.usResearchUsd, authority: "US_RESEARCH" };
   return { laborUsd: null, authority: "NOT_CALCULATED" };
 }
 
@@ -174,8 +192,10 @@ export function projectLaborCost(ev: ProjectLaborEvidence): ProjectCostResult {
  *  construction-cost evidence; nothing here reads a recognition/settlement jurisdiction (the firewall). */
 export interface ProjectHeadline { materialUsd: number | null; laborUsd: number | null; markupPct: number; headlineUsd: number | null; laborAuthority: EvidenceState; materialState: EvidenceState; }
 export function projectHeadline(material: MaterialResult, labor: ProjectCostResult, markupPct = 0): ProjectHeadline {
-  const base = material.usd != null && labor.laborUsd != null ? material.usd + labor.laborUsd : null;
-  const headlineUsd = base != null ? Math.round(base * (1 + markupPct / 100) * 100) / 100 : null;
+  // R-WU3 (Thor): a negative / non-finite markup can never produce a signer-facing headline — guard it to NOT_CALCULATED.
+  const mk = Number.isFinite(markupPct) && markupPct >= 0 ? markupPct : NaN;
+  const base = material.usd != null && labor.laborUsd != null && Number.isFinite(mk) ? material.usd + labor.laborUsd : null;
+  const headlineUsd = base != null ? Math.round(base * (1 + mk / 100) * 100) / 100 : null;
   return { materialUsd: material.usd, laborUsd: labor.laborUsd, markupPct, headlineUsd, laborAuthority: labor.authority, materialState: material.state };
 }
 
@@ -194,4 +214,26 @@ export function settlementComparison(hours: number | null, m: TradeMultiple | nu
     const usdInformational = localSettlementNative != null && jd.fx_rate ? Math.round((localSettlementNative / jd.fx_rate) * 100) / 100 : null;
     return { jurisdiction_id: id, native_currency: jd.native_currency, uEarned, localWageHourlyNative: rate, localSettlementNative, usdInformational };
   });
+}
+
+// ── R-WU3 HARDENING (48-AsM fleet, 2026-11-01) ──────────────────────────────────────────────────────────────────────
+// Thor (MOST URGENT): the reference tables are the provenance of record — FREEZE them so no runtime path can mutate a rate
+// in place (a mutated table would be a provenance lie). Editable rates must go through deriveM(tradeKey, explicitRate) →
+// source "custom-UNVERIFIED", never an in-place edit of these tables.
+for (const t of Object.values(US_TRADE_REFERENCE)) Object.freeze(t);
+for (const w of Object.values(LOCAL_WAGES)) Object.freeze(w);
+Object.freeze(US_TRADE_REFERENCE);
+Object.freeze(LOCAL_WAGES);
+
+// Odin (foresight): FRESHNESS discipline — PURE helpers (today is passed in, no Date.now()/new Date()) so a stale FX /
+// wage / quote can be flagged before it is trusted. An unparseable or unknown as-of is treated as stale (fail-safe).
+export const FRESHNESS = { FX_MAX_DAYS: 90, WAGE_MAX_DAYS: 365, QUOTE_MAX_DAYS: 180 } as const;
+export function asOfAgeDays(dateISO: string, todayISO: string): number | null {
+  const a = Date.parse(dateISO), b = Date.parse(todayISO);
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+  return Math.round((b - a) / 86400000);
+}
+export function isStale(asOf: string, todayISO: string, maxDays: number): boolean {
+  const age = asOfAgeDays(asOf, todayISO);
+  return age == null ? true : age > maxDays;
 }
