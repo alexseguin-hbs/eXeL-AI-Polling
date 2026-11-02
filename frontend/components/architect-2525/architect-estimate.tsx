@@ -13,6 +13,7 @@ import {
   DEFAULT_SECTIONS, GATES, LAST_GATE, rollupProject, bandPctForGate,
   advanceGate, retreatGate, checkpointForGate, confidenceForGate, type Rag,
 } from "@/lib/architect-estimate";
+import { proForma } from "@/lib/architect-proforma";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b", red: "#ef4444" };
 const RAG_C: Record<Rag, string> = { green: C.green, amber: C.amber, red: C.red };
@@ -130,6 +131,52 @@ export function ArchitectEstimate() {
           </tbody>
         </table>
       </div>
+
+      {/* THE HOME BUILDING PROCESS — the developer pro-forma (reference) that wraps the build. Two truths kept
+          distinct: "build the home" (from your design) and "develop + sell" (the full project). */}
+      {(() => {
+        const pf = proForma();
+        return (
+          <div data-arch-proforma className="space-y-2 rounded-lg border p-2" style={{ borderColor: C.gold, background: C.panel }}>
+            <div className="flex flex-wrap items-baseline justify-between gap-1">
+              <span className="text-[11px] font-bold tracking-wider" style={{ color: C.gold }}>THE HOME BUILDING PROCESS</span>
+              <span className="text-[8px]" style={{ color: C.dim }}>developer pro-forma · reference · wraps the build</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-[10px]" style={{ minWidth: 440 }}>
+                <thead><tr style={{ color: C.dim }}>
+                  {["#", "Stage", "Cost", "Basis", "Days", "Decides"].map((h) => <th key={h} className="px-2 py-1 text-left font-medium">{h}</th>)}
+                </tr></thead>
+                <tbody>
+                  {pf.stages.map((s) => (
+                    <tr key={s.id} data-proforma-stage className="border-t align-top" style={{ borderColor: "#141d29" }}>
+                      <td className="px-2 py-1 tabular-nums" style={{ color: C.dim }}>{s.order}</td>
+                      <td className="px-2 py-1" style={{ color: C.text }}>
+                        {s.label}
+                        {s.id === "construction" && (
+                          <div className="text-[8px]" style={{ color: C.dim }}>your build {fmtUsd(pf.constructionBuildCost)} · +{fmtUsd(pf.constructionDeltaUsd)} full-service (basis to confirm)</div>
+                        )}
+                      </td>
+                      <td className="px-2 py-1 tabular-nums" style={{ color: C.gold }}>{fmtUsd(s.cost)}</td>
+                      <td className="px-2 py-1" style={{ color: s.id === "construction" ? C.cyan : C.dim }}>{s.id === "construction" ? "your build" : "reference"}</td>
+                      <td className="px-2 py-1 tabular-nums" style={{ color: s.durationDays != null ? C.cyan : C.dim }}>{s.durationDays != null ? s.durationDays : "—"}</td>
+                      <td className="px-2 py-1" style={{ color: C.cyan }}>{s.authority ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <Tile label="Build the home" value={fmtUsd(pf.buildCostUsd)} sub="from your design" color={C.cyan} />
+              <Tile label="Develop + sell" value={fmtUsd(pf.projectCostUsd)} sub="full project · reference" color={C.gold} />
+              <Tile label="Timeline" value={`~${pf.projectDaysRef} days`} sub="reference" color={C.text} />
+            </div>
+            <div className="text-[8px] leading-snug" style={{ color: C.dim }}>
+              Reference figures from your slide — not fixed values yet. “Build the home” ({fmtUsd(pf.buildCostUsd)}) is what we model your build at; “develop + sell” ({fmtUsd(pf.projectCostUsd)}) wraps it with land, design, permitting, management and sales. The {fmtUsd(pf.constructionDeltaUsd)} gap between the market build line and your build is yours to name — it isn’t markup (your build already includes contractor markup). The two numbers are never added together.
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
