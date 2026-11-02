@@ -63,17 +63,22 @@ export interface PrinterSpec {
   buildHeightFt: number;  // 27′ — the multi-story enabler
   maxFloors: number;      // 2 (two-story)
   setupHours: number;     // 3-hour setup
+  wallUsdPerSqFt: number; // $25/sq ft printed walls (multi-story) — printing collapses labour, below the $34 ICON / $35 avg
   specs: string[];        // the full spec list
   benefits: string[];     // Lower Cost · Two Story · Full Shell
 }
 export const ICON_PHOENIX: PrinterSpec = {
   name: "Phoenix", model: "D24",
   footprintFt2: 24000, buildHeightFt: 27, maxFloors: 2, setupHours: 3,
+  wallUsdPerSqFt: 25,
   specs: ["24,000 sq ft", "27′ build height", "3 Hour setup", "Single Operator for multiple systems", "Onsite Mobility", "True Robot"],
   benefits: ["Lower Cost", "Two Story", "Full Shell"],
 };
 /** The max storeys a 3D-Print (Phoenix) build can reach — the multi-story capability (2). Stick/hex stay single-story here. */
 export function phoenixMaxFloors(): number { return ICON_PHOENIX.maxFloors; }
+/** Phoenix printed walls, $/sq ft (operator 2026-11-02: "phoenix multi story is 25/sq ft") — the cheapest wall tier:
+ *  $25 printed vs $34 ICON finished vs $35 national average (printing collapses the site labour). */
+export const PHOENIX_WALL_USD_PER_SQFT = 25;
 
 /** Σ of the layers = the typical/national-average $/sq ft (35). */
 export function wallSystemTypicalPerSqFt(): number {

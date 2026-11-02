@@ -3,7 +3,7 @@
 // ICON $34/sq ft vs the $35 national average, the ratings (R-22 · 2+ hr fire · 250 MPH wind · termite/mold/flood),
 // Carbon X (the low-carbon printed concrete — best carbon star), and the Phoenix printer (multi-story, 27′, 24,000 ft²).
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-wall-system.test.mjs
-import { WALL_SYSTEM_LAYERS, NATIONAL_AVG_WALL_USD_PER_SQFT, ICON_WALL_USD_PER_SQFT, ICON_WALL_SPECS, ICON_WALL_WIND_MPH, ICON_WALL_FIRE_HOURS, ICON_WALL_R_VALUE, ICON_PHOENIX, wallSystemTypicalPerSqFt, framingSharePerSqFt, iconWallSavingPerSqFt, phoenixMaxFloors } from "@/lib/architect-wall-system";
+import { WALL_SYSTEM_LAYERS, NATIONAL_AVG_WALL_USD_PER_SQFT, ICON_WALL_USD_PER_SQFT, ICON_WALL_SPECS, ICON_WALL_WIND_MPH, ICON_WALL_FIRE_HOURS, ICON_WALL_R_VALUE, ICON_PHOENIX, PHOENIX_WALL_USD_PER_SQFT, wallSystemTypicalPerSqFt, framingSharePerSqFt, iconWallSavingPerSqFt, phoenixMaxFloors } from "@/lib/architect-wall-system";
 import { PRINT_MATERIALS, ELEMENTS, costFor, modelById, SIM_MODELS, elementCosts } from "@/lib/architect-sim-options";
 
 let pass = 0, fail = 0;
@@ -39,6 +39,10 @@ ok(ICON_PHOENIX.name === "Phoenix" && ICON_PHOENIX.model === "D24", "the printer
 ok(ICON_PHOENIX.buildHeightFt === 27 && ICON_PHOENIX.footprintFt2 === 24000 && ICON_PHOENIX.setupHours === 3, `Phoenix: 27′ · 24,000 ft² · 3 hr setup (got ${ICON_PHOENIX.buildHeightFt}/${ICON_PHOENIX.footprintFt2}/${ICON_PHOENIX.setupHours})`);
 ok(ICON_PHOENIX.maxFloors === 2 && phoenixMaxFloors() === 2, "Phoenix enables MULTI-STORY (two stories)");
 ok(["Lower Cost", "Two Story", "Full Shell"].every((b) => ICON_PHOENIX.benefits.includes(b)), "Phoenix benefits: Lower Cost · Two Story · Full Shell");
+// ── Phoenix printed-wall cost (operator 2026-11-02: "phoenix multi story is 25/sq ft") — the cheapest wall tier ──
+ok(PHOENIX_WALL_USD_PER_SQFT === 25, `Phoenix printed walls = $25/sq ft (got $${PHOENIX_WALL_USD_PER_SQFT})`);
+ok(ICON_PHOENIX.wallUsdPerSqFt === 25, `ICON_PHOENIX carries the $25/sq-ft printed wall (got $${ICON_PHOENIX.wallUsdPerSqFt})`);
+ok(PHOENIX_WALL_USD_PER_SQFT < ICON_WALL_USD_PER_SQFT && ICON_WALL_USD_PER_SQFT < NATIONAL_AVG_WALL_USD_PER_SQFT, `$25 printed < $34 ICON < $35 national average (got ${PHOENIX_WALL_USD_PER_SQFT}/${ICON_WALL_USD_PER_SQFT}/${NATIONAL_AVG_WALL_USD_PER_SQFT})`);
 
 // ── nomenclature flowed through: the cost ELEMENTS speak ICON, and the $240k one-cost-truth is intact ──
 ok(ELEMENTS.includes("Wall System") && ELEMENTS.includes("Roof") && !ELEMENTS.includes("Framing") && !ELEMENTS.includes("Roofing"), `ELEMENTS use ICON names, no old Framing/Roofing (got ${ELEMENTS.join(", ")})`);

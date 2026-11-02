@@ -101,7 +101,7 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLo
         </div>
         <div className="mt-1 text-[9px]" style={{ color: C.dim }}>
           Printed concrete option: <span className="font-semibold" style={{ color: C.green }}>Carbon X</span> — low-carbon (MIT CSHub × ICON).{" "}
-          Built by the <span className="font-semibold" style={{ color: C.cyan }}>ICON {ICON_PHOENIX.name}</span> ({ICON_PHOENIX.model}) — {ICON_PHOENIX.buildHeightFt}′ build height · up to {ICON_PHOENIX.maxFloors} stories (multi-story) · {ICON_PHOENIX.setupHours} hr setup · single operator.
+          Built by the <span className="font-semibold" style={{ color: C.cyan }}>ICON {ICON_PHOENIX.name}</span> ({ICON_PHOENIX.model}) — {ICON_PHOENIX.buildHeightFt}′ build height · up to {ICON_PHOENIX.maxFloors} stories (multi-story) · {ICON_PHOENIX.setupHours} hr setup · single operator · <span className="font-semibold" style={{ color: C.gold }}>printed walls ${ICON_PHOENIX.wallUsdPerSqFt}/ft²</span> (vs ${ICON_WALL_USD_PER_SQFT} ICON · ${NATIONAL_AVG_WALL_USD_PER_SQFT} avg).
         </div>
       </div>
     </div>
