@@ -2358,7 +2358,7 @@ const siteUxB3: TranslationEntry[] = [
   { key: "arch.design.shownOnMap", englishDefault: "· shown on map", context: "auto: components/architect-2525/architect-design.tsx:308", cubeId: 0 },
   { key: "arch.design.tinyHome", englishDefault: "Tiny Home", context: "auto: components/architect-2525/architect-design.tsx:355", cubeId: 0 },
   { key: "arch.design.dragToMovePanel", englishDefault: "Drag to move this panel", context: "auto: components/architect-2525/architect-design.tsx:364", cubeId: 0 },
-  { key: "arch.housespec.wireframe_your_house", englishDefault: "Wireframe your house", context: "auto: components/architect-2525/house-spec.tsx:30", cubeId: 0 },
+  { key: "arch.housespec.wireframe_your_house", englishDefault: "Lay out your house", context: "auto: components/architect-2525/house-spec.tsx:30", cubeId: 0 },
   { key: "arch.housespec.select_component_layer_tree", englishDefault: "Select a component in the Layer Tree, then", context: "auto: components/architect-2525/house-spec.tsx:31", cubeId: 0 },
   { key: "arch.housespec.in_context_panel", englishDefault: "in the Context panel — or", context: "auto: components/architect-2525/house-spec.tsx:31", cubeId: 0 },
   { key: "arch.housespec.cross_section_fills", englishDefault: "below. The cross-section fills in as you go.", context: "auto: components/architect-2525/house-spec.tsx:31", cubeId: 0 },

@@ -127,6 +127,7 @@ export const CHECKPOINTS: Record<number, Checkpoint> = {
   5: { decision: "Budget authorized", authority: "Lender / Homeowner", evidence: "Class-3 estimate · financing" },
   6: { decision: "Permit issued", authority: "Government (AHJ)", evidence: "Code review · stamped set" },
   7: { decision: "Build-ready released", authority: "Architect + Contractor", evidence: "CDs · procurement · schedule" },
+  8: { decision: "Construction authorized", authority: "Contractor", evidence: "Stamped permit · schedule · procurement" },
   9: { decision: "Inspection passed", authority: "Inspector", evidence: "Field inspection · punch list" },
   10: { decision: "Occupancy granted", authority: "Government (AHJ)", evidence: "Final inspection · CO" },
 };

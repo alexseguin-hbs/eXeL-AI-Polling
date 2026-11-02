@@ -78,7 +78,7 @@ export const ICON_PHOENIX: PrinterSpec = {
 export function phoenixMaxFloors(): number { return ICON_PHOENIX.maxFloors; }
 /** Phoenix printed walls, $/sq ft (operator 2026-11-02: "phoenix multi story is 25/sq ft") — the cheapest wall tier:
  *  $25 printed vs $34 ICON finished vs $35 national average (printing collapses the site labour). */
-export const PHOENIX_WALL_USD_PER_SQFT = 25;
+export const PHOENIX_WALL_USD_PER_SQFT = ICON_PHOENIX.wallUsdPerSqFt;   // one source — derive, don't re-literal
 
 /** Σ of the layers = the typical/national-average $/sq ft (35). */
 export function wallSystemTypicalPerSqFt(): number {

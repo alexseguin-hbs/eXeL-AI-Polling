@@ -28,9 +28,8 @@
  * Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-proforma.test.mjs
  */
 import { canonicalModel } from "./architect-house-truth";
-import { costFor, type SimModel, type BuildOption } from "./architect-sim-options";
-import { buildSchedule } from "./architect-stage-plan";
-import { AACE, type AaceClass, bandFor, checkpointForGate } from "./architect-estimate";
+import { costFor, monthsFor, type SimModel, type BuildOption } from "./architect-sim-options";
+import { type AaceClass, checkpointForGate } from "./architect-estimate";
 
 /** How a stage's cost is computed. */
 export type StageCostBasis = "fixed" | "pct_of_construction" | "engine_derived";
@@ -81,8 +80,6 @@ export const PRO_FORMA_STAGES: ProFormaStageDef[] = [
 /** A resolved stage (config + the live numbers + its uncertainty band + its human-authority checkpoint). */
 export interface ProFormaStage extends ProFormaStageDef {
   cost: number;                 // the $ used in the project total (Construction = the MARKET ref)
-  band: { lo: number; hi: number; pct: number };  // AACE ± cone around this stage's cost
-  aaceLabel: string;
   authority: string | null;     // from CHECKPOINTS, when the stage has a gate with one
   durationDays: number | null;  // DERIVED for Construction, else the REFERENCE (null here until the timeline fork)
   durationTruth: CostTruthBasis;
@@ -100,16 +97,11 @@ export interface ProForma {
   constructionDeltaUsd: number;    // market − build = $160k
   /** the basis label for the delta — PENDING the operator's "$160k identity" fork; NEVER "markup". */
   constructionDeltaBasis: string;
-  /** Construction span (DERIVED, real build schedule, calendar working days). */
+  /** Construction build span in days (DERIVED from monthsFor — coherent with the Simulate months; distinct from the project span). */
   constructionDays: number;
   /** the project timeline headline (REFERENCE, the slide's 290 days) — distinct in scope from the build span. */
   projectDaysRef: number;
 }
-
-const aaceBand = (estimate: number, cls: AaceClass) => {
-  const pct = AACE[cls].band;
-  return { lo: Math.round(estimate * (1 - pct)), hi: Math.round(estimate * (1 + pct)), pct };
-};
 
 /**
  * Resolve the pro-forma for a model/option (defaults to the canonical $240k Cube at its native option, so the
@@ -119,7 +111,9 @@ const aaceBand = (estimate: number, cls: AaceClass) => {
 export function proForma(model: SimModel = canonicalModel(), opt?: BuildOption): ProForma {
   const o = opt ?? model.native;
   const buildCostUsd = costFor(model, o);                 // DERIVED "build the home"
-  const constructionDays = buildSchedule(model, o).totalCalDays;  // DERIVED build span (reused, not recomputed)
+  // DERIVED build span, from monthsFor (the same build-duration the Simulate cards show, ~30.4 days/mo) so the pro-forma
+  // stays coherent with the rest of the app; distinct in scope from the 290-day PROJECT span (build ⊂ project).
+  const constructionDays = Math.round(monthsFor(model, o) * 30.4);
 
   const stages: ProFormaStage[] = PRO_FORMA_STAGES.map((s) => {
     const isConstruction = s.id === "construction";
@@ -128,8 +122,6 @@ export function proForma(model: SimModel = canonicalModel(), opt?: BuildOption):
     return {
       ...s,
       cost,
-      band: aaceBand(cost, s.aaceClass),
-      aaceLabel: AACE[s.aaceClass].label,
       authority: cp ? cp.authority : null,
       durationDays: isConstruction ? constructionDays : s.durationDaysRef,  // only Construction is known (DERIVED)
       durationTruth: isConstruction ? "DERIVED" : "REFERENCE",
@@ -139,7 +131,7 @@ export function proForma(model: SimModel = canonicalModel(), opt?: BuildOption):
   const projectCostUsd = stages.reduce((sum, s) => sum + s.cost, 0);   // Σ with Construction = $400k market
   const constructionDeltaUsd = CONSTRUCTION_MARKET_REF - buildCostUsd;
 
-  return {
+  const pf: ProForma = {
     stages,
     buildCostUsd,
     projectCostUsd,
@@ -150,6 +142,8 @@ export function proForma(model: SimModel = canonicalModel(), opt?: BuildOption):
     constructionDays,
     projectDaysRef: PROJECT_DAYS_REF,
   };
+  assertProFormaHonest(pf);   // the guard runs on the RUNTIME path (like canonicalHouseTruth), not only in tests
+  return pf;
 }
 
 /**

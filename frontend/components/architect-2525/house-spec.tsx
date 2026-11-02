@@ -193,7 +193,7 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLo
             <span style={{ color: C.dim }}>Confidence <span className="tabular-nums" style={{ color: C.cyan }}>{roll.confidencePct}%</span></span>
             <span style={{ color: C.dim }}>{t("arch.housespec.cost_band")} <span className="tabular-nums" style={{ color: C.gold }}>{fmtUsd(roll.costBand.lo)}–{fmtUsd(roll.costBand.hi)}</span> <span className="tabular-nums">±{Math.round(roll.costBand.pct * 100)}%</span></span>
             <span style={{ color: C.dim }} title={`Framework ${roll.gate.frameworkId}`}>Gate <span style={{ color: C.text }}>{roll.gate.gateId}</span> <span className="uppercase" style={{ color: C.cyan }}>{roll.gate.status.replace("_", " ")}</span></span>
-            <span style={{ color: C.dim }}>SSSES <span className="tabular-nums" style={{ color: ss }}>{roll.ssses.score}</span> <span className="uppercase" style={{ color: ss }}>{roll.ssses.status.replace("_", " ")}</span></span>
+            <span style={{ color: C.dim }}>Readiness <span className="tabular-nums" style={{ color: ss }}>{roll.ssses.score}</span> <span className="uppercase" style={{ color: ss }}>{roll.ssses.status.replace("_", " ")}</span></span>
           </div>
         );
       })()}

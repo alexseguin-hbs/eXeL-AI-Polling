@@ -158,7 +158,7 @@ export function ArchitectEstimate() {
                         )}
                       </td>
                       <td className="px-2 py-1 tabular-nums" style={{ color: C.gold }}>{fmtUsd(s.cost)}</td>
-                      <td className="px-2 py-1" style={{ color: s.id === "construction" ? C.cyan : C.dim }}>{s.id === "construction" ? "your build" : "reference"}</td>
+                      <td className="px-2 py-1" style={{ color: s.id === "construction" ? C.cyan : C.dim }}>{s.id === "construction" ? "market" : "reference"}</td>
                       <td className="px-2 py-1 tabular-nums" style={{ color: s.durationDays != null ? C.cyan : C.dim }}>{s.durationDays != null ? s.durationDays : "—"}</td>
                       <td className="px-2 py-1" style={{ color: C.cyan }}>{s.authority ?? "—"}</td>
                     </tr>
@@ -169,9 +169,9 @@ export function ArchitectEstimate() {
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               <Tile label="Build the home" value={fmtUsd(pf.buildCostUsd)} sub="from your design" color={C.cyan} />
               <Tile label="Develop + sell" value={fmtUsd(pf.projectCostUsd)} sub="full project · reference" color={C.gold} />
-              <Tile label="Timeline" value={`~${pf.projectDaysRef} days`} sub="reference" color={C.text} />
+              <Tile label="Project timeline" value={`~${pf.projectDaysRef} days`} sub={`reference · build ~${pf.constructionDays}d of it`} color={C.text} />
             </div>
-            <div className="text-[8px] leading-snug" style={{ color: C.dim }}>
+            <div className="text-[10px] leading-snug" style={{ color: C.dim }}>
               Reference figures from your slide — not fixed values yet. “Build the home” ({fmtUsd(pf.buildCostUsd)}) is what we model your build at; “develop + sell” ({fmtUsd(pf.projectCostUsd)}) wraps it with land, design, permitting, management and sales. The {fmtUsd(pf.constructionDeltaUsd)} gap between the market build line and your build is yours to name — it isn’t markup (your build already includes contractor markup). The two numbers are never added together.
             </div>
           </div>

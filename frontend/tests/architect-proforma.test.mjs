@@ -5,8 +5,7 @@
 // $110k acquisition (never the $10k Landscaping work-section); assertProFormaHonest refuses every conflation.
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-proforma.test.mjs
 import { proForma, assertProFormaHonest, PRO_FORMA_STAGES, CONSTRUCTION_MARKET_REF, PROJECT_DAYS_REF } from "@/lib/architect-proforma";
-import { costFor, modelById, SIM_MODELS } from "@/lib/architect-sim-options";
-import { buildSchedule } from "@/lib/architect-stage-plan";
+import { costFor, modelById, SIM_MODELS, monthsFor } from "@/lib/architect-sim-options";
 import { canonicalModel } from "@/lib/architect-house-truth";
 
 let pass = 0, fail = 0;
@@ -40,7 +39,8 @@ ok(pf.constructionMarketRef >= pf.buildCostUsd, "Construction market line ≥ th
 ok(!!pf.constructionDeltaBasis && !/^markup$/i.test(pf.constructionDeltaBasis.trim()), "the $160k delta carries a basis label, not plain 'markup'");
 
 // ── timeline: Construction span DERIVED, project 290 REFERENCE, no invented per-stage durations ──
-ok(pf.constructionDays === buildSchedule(canonicalModel(), canonicalModel().native).totalCalDays, "Construction span = the real build schedule (DERIVED)");
+ok(pf.constructionDays === Math.round(monthsFor(canonicalModel(), canonicalModel().native) * 30.4), "Construction span = monthsFor-derived days (DERIVED, coherent with the Simulate months)");
+ok(pf.constructionDays > 0 && pf.constructionDays < pf.projectDaysRef, `the build span (${pf.constructionDays}d) sits inside the ${pf.projectDaysRef}-day project span (build ⊂ project), not a ~10x-off bare crew-day figure`);
 ok(pf.projectDaysRef === 290 && PROJECT_DAYS_REF === 290, "project timeline = 290 days (REFERENCE headline)");
 ok(byId.construction.durationTruth === "DERIVED", "only Construction's duration is DERIVED");
 ok(["land", "design", "structural", "permitting", "pm", "sales"].every((id) => byId[id].durationDays === null && byId[id].durationTruth === "REFERENCE"), "the six non-construction stages have NO invented per-stage duration (null, REFERENCE)");
