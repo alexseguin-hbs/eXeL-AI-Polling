@@ -410,14 +410,21 @@ function rawScore(m: SimModel, sim: SimName, opt: BuildOption): number {
 function methodDelta(sim: SimName, opt: BuildOption): number {
   if (opt.method === "3d-print") {
     const cement = opt.printMaterial === "cement";
+    const carbonX = opt.printMaterial === "carbon-x";
+    // Carbon X is CEMENT-CLASS printed concrete (heavy mass · non-combustible · ~6 ksi) — so it shifts the physical sims
+    // with cement, NOT with the light polymer composite (48-AsM fleet 2026-11-02: carbon-x was silently inheriting
+    // composite's deltas). Its ONE difference is carbon: it is the low-carbon winner (carbonStar +1), so the Carbon sim
+    // gives it a bonus that never sits below wood — aligning this sim with carbonFor's carbonStar ranking + the "Carbon X↓"
+    // embodied metric (which were already correct, making the old composite-branch Carbon score a self-contradiction).
+    const cementClass = cement || carbonX;   // both printed concrete
     const d: Partial<Record<SimName, number>> = {
-      Structural: cement ? +0.7 : +0.9,
+      Structural: cementClass ? +0.7 : +0.9,
       Wind: +0.5,
-      Fire: cement ? +1.0 : +0.7,
-      Thermal: cement ? +0.4 : +0.5,
-      Lifecycle: cement ? +0.2 : +0.3,
-      Earthquake: cement ? -0.3 : +0.2,
-      Carbon: cement ? -0.9 : -0.2,
+      Fire: cementClass ? +1.0 : +0.7,
+      Thermal: cementClass ? +0.4 : +0.5,
+      Lifecycle: cementClass ? +0.2 : +0.3,
+      Earthquake: cementClass ? -0.3 : +0.2,
+      Carbon: carbonX ? +0.3 : cement ? -0.9 : -0.2,
     };
     return d[sim] ?? 0;
   }
@@ -457,8 +464,8 @@ const METRICS: Record<SimName, (m: SimModel, d: Record<DriverKey, number>, opt: 
   "Wind":          (m, d, o) => [{ label: "Design wind", value: `${num(100 + d.curved * 8 + (o.method === "3d-print" ? 15 : 0) + ROOFS[o.roof].windDelta * 10)} mph` }, { label: "Roof", value: ROOFS[o.roof].label }],
   "Flood":         (m, d, o) => { const steel = o.frameMaterial === "all-steel" || o.frameMaterial === "steel-corners"; return [{ label: "Freeboard", value: `${num(1 + d.compact * 0.4, 1)} ft` }, { label: "Frame", value: o.method === "3d-print" ? "printed (no stud rot)" : o.method === "hex-panel" ? "panel (sealed)" : o.frameMaterial === "aluminum" ? "aluminium (corrosion ✓)" : steel ? "steel (corrosion ✓)" : "wood" }]; },
   "Fire":          (m, d, o) => { const steel = o.frameMaterial === "all-steel" || o.frameMaterial === "steel-corners"; return [{ label: "Egress time", value: `${num(120 - d.compact * 10 - d.conv * 5)} s` }, { label: "Wall rating", value: o.method === "3d-print" ? "non-combustible" : steel ? "non-combustible (steel)" : `${num(20 + d.conv * 8)} min` }]; },
-  "Earthquake":    (m, d, o) => { const heavy = o.method === "3d-print" && o.printMaterial === "cement"; return [{ label: "Drift ratio", value: `${num(2.4 - d.curved * 0.25, 2)}%` }, { label: "System", value: heavy ? "mass (ductility ↓)" : o.method === "3d-print" ? "composite (light)" : `ductility ${num(d.curved, 1)}/5` }]; },
-  "Thermal":       (m, _d, o) => [{ label: "Envelope", value: `R-${num(13 + m.energyScore * 6 + (o.method === "3d-print" ? 4 : 0) + ROOFS[o.roof].thermalDelta * 6)}` }, { label: "Mass", value: o.method === "3d-print" ? (o.printMaterial === "cement" ? "high (cement)" : "medium (composite)") : `${m.energyScore}/5 (assumed)` }],
+  "Earthquake":    (m, d, o) => { const heavy = o.method === "3d-print" && (o.printMaterial === "cement" || o.printMaterial === "carbon-x"); return [{ label: "Drift ratio", value: `${num(2.4 - d.curved * 0.25, 2)}%` }, { label: "System", value: heavy ? "mass (ductility ↓)" : o.method === "3d-print" ? "composite (light)" : `ductility ${num(d.curved, 1)}/5` }]; },
+  "Thermal":       (m, _d, o) => [{ label: "Envelope", value: `R-${num(13 + m.energyScore * 6 + (o.method === "3d-print" ? 4 : 0) + ROOFS[o.roof].thermalDelta * 6)}` }, { label: "Mass", value: o.method === "3d-print" ? (o.printMaterial === "cement" ? "high (cement)" : o.printMaterial === "carbon-x" ? "high (carbon x)" : "medium (composite)") : `${m.energyScore}/5 (assumed)` }],
   "Solar":         (m, _d, o) => { const roof = Math.round(m.areaFt2 * (m.id === "eco-sphere" ? 0.6 : m.id === "tiny" ? 0.4 : 0.5)); return [{ label: "Roof solar area", value: `${num(roof)} ft²` }, { label: "Annual yield", value: `${num(roof * 15)} kWh` }]; },
   "Water Flow":    (m, d) => [{ label: "Peak demand", value: `${num((m.id === "tiny" ? 5 : 9) * 2.5, 1)} GPM` }, { label: "Pressure margin", value: `${num(10 + d.conv * 4)} psi` }],
   "HVAC":          (m) => { const tons = m.areaFt2 / (400 + m.energyScore * 60); return [{ label: "Cooling load", value: `${num(tons, 1)} tons` }, { label: "System", value: m.id === "tiny" ? "ductless mini-split" : "ducted (Manual J)" }]; },

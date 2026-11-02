@@ -13,6 +13,7 @@ import { houseEstimate, houseSchedule, componentEstimate } from "@/lib/architect
 import { canonicalHouseTruth } from "@/lib/architect-house-truth";
 import { CanonicalHouseView } from "./canonical-house-view";
 import { WALL_SYSTEM_LAYERS, NATIONAL_AVG_WALL_USD_PER_SQFT, ICON_WALL_USD_PER_SQFT, ICON_WALL_SPECS, ICON_PHOENIX } from "@/lib/architect-wall-system";
+import { PRINT_MATERIALS } from "@/lib/architect-sim-options";
 import { projectRollup, styleEquivalence } from "@/lib/architect-project";
 import { findLayer, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
@@ -100,7 +101,7 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLo
           ))}
         </div>
         <div className="mt-1 text-[9px]" style={{ color: C.dim }}>
-          Printed concrete option: <span className="font-semibold" style={{ color: C.green }}>Carbon X</span> — low-carbon (MIT CSHub × ICON).{" "}
+          Printed concrete option: <span className="font-semibold" style={{ color: C.green }}>{PRINT_MATERIALS["carbon-x"].label}</span> — low-carbon (MIT CSHub × ICON).{" "}
           Built by the <span className="font-semibold" style={{ color: C.cyan }}>ICON {ICON_PHOENIX.name}</span> ({ICON_PHOENIX.model}) — {ICON_PHOENIX.buildHeightFt}′ build height · up to {ICON_PHOENIX.maxFloors} stories (multi-story) · {ICON_PHOENIX.setupHours} hr setup · single operator · <span className="font-semibold" style={{ color: C.gold }}>printed walls ${ICON_PHOENIX.wallUsdPerSqFt}/ft²</span> (vs ${ICON_WALL_USD_PER_SQFT} ICON · ${NATIONAL_AVG_WALL_USD_PER_SQFT} avg).
         </div>
       </div>

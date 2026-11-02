@@ -4,7 +4,7 @@
 // Carbon X (the low-carbon printed concrete — best carbon star), and the Phoenix printer (multi-story, 27′, 24,000 ft²).
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-wall-system.test.mjs
 import { WALL_SYSTEM_LAYERS, NATIONAL_AVG_WALL_USD_PER_SQFT, ICON_WALL_USD_PER_SQFT, ICON_WALL_SPECS, ICON_WALL_WIND_MPH, ICON_WALL_FIRE_HOURS, ICON_WALL_R_VALUE, ICON_PHOENIX, PHOENIX_WALL_USD_PER_SQFT, wallSystemTypicalPerSqFt, framingSharePerSqFt, iconWallSavingPerSqFt, phoenixMaxFloors } from "@/lib/architect-wall-system";
-import { PRINT_MATERIALS, ELEMENTS, costFor, modelById, SIM_MODELS, elementCosts } from "@/lib/architect-sim-options";
+import { PRINT_MATERIALS, ELEMENTS, costFor, modelById, SIM_MODELS, elementCosts, simResult, runBattery } from "@/lib/architect-sim-options";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -33,6 +33,26 @@ ok(PRINT_MATERIALS["carbon-x"].carbonStar === 1, `Carbon X carbonStar = +1 — t
 ok(PRINT_MATERIALS["carbon-x"].carbonStar > PRINT_MATERIALS.cement.carbonStar, "Carbon X beats cement on carbon");
 ok(PRINT_MATERIALS["carbon-x"].laborFactor === PRINT_MATERIALS.cement.laborFactor, "Carbon X keeps the big print labour saving (same laborFactor as cement)");
 ok(/MIT CSHub|low-carbon/i.test(PRINT_MATERIALS["carbon-x"].blurb), "Carbon X cites its low-carbon basis (MIT CSHub × ICON)");
+
+// ── Carbon X BEHAVIOUR in the 13-sim battery (48-AsM fleet 2026-11-02): the data was right but the sim scoring lumped
+//    carbon-x into the composite branch, so it scored BELOW wood on Carbon while COMPARE-ALL ranked it best. Gate the
+//    behaviour so the self-contradiction cannot return: Carbon X is cement-class on the physical sims, the low-carbon
+//    WINNER on Carbon (never below wood), and its metric labels say so. ──
+const bopt = (printMaterial, method = "3d-print") => ({ method, printMaterial, frameMaterial: "wood", roof: "gable" });
+const carbonScore = (o) => simResult("3x3-grid", "Carbon", o).score;
+const cxCarbon = carbonScore(bopt("carbon-x")), compCarbon = carbonScore(bopt("composite")), cemCarbon = carbonScore(bopt("cement")), woodCarbon = carbonScore(bopt("cement", "stick-framed"));
+ok(cxCarbon >= compCarbon, `Carbon X Carbon-sim score ≥ composite (${cxCarbon} vs ${compCarbon})`);
+ok(cxCarbon >= woodCarbon, `Carbon X Carbon-sim score ≥ wood stick-frame — the low-carbon winner never sits below wood (${cxCarbon} vs ${woodCarbon})`);
+ok(cxCarbon > cemCarbon, `Carbon X beats cement on the Carbon sim (${cxCarbon} vs ${cemCarbon})`);
+const cxBattery = runBattery("3x3-grid", bopt("carbon-x"));
+const cxMetric = (sim, label) => cxBattery.find((s) => s.sim === sim)?.metrics.find((x) => x.label === label || x.label.startsWith(label));
+const eqSys = cxMetric("Earthquake", "System"), thMass = cxMetric("Thermal", "Mass"), cxEmb = cxMetric("Carbon", "Embodied");
+ok(eqSys && /mass/i.test(eqSys.value), `Carbon X reads cement-class (mass) on Earthquake, not light composite (got "${eqSys?.value}")`);
+ok(thMass && /carbon x/i.test(thMass.value), `Carbon X reads "high (carbon x)" thermal mass, not composite (got "${thMass?.value}")`);
+ok(cxEmb && /Carbon X↓/.test(cxEmb.label), `the Carbon metric emits "Carbon X↓" (got "${cxEmb?.label}")`);
+const cemEmb = runBattery("3x3-grid", bopt("cement")).find((s) => s.sim === "Carbon")?.metrics.find((x) => x.label.startsWith("Embodied"));
+const embNum = (v) => parseFloat(String(v).replace(/[^0-9.]/g, ""));
+ok(cxEmb && cemEmb && embNum(cxEmb.value) < embNum(cemEmb.value), `Carbon X embodied < cement embodied (${cxEmb?.value} vs ${cemEmb?.value})`);
 
 // ── the Phoenix printer — multi-story ──
 ok(ICON_PHOENIX.name === "Phoenix" && ICON_PHOENIX.model === "D24", "the printer is the ICON Phoenix (D24)");
