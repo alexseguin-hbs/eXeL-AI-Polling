@@ -12,6 +12,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { houseEstimate, houseSchedule, componentEstimate } from "@/lib/architect-house";
 import { canonicalHouseTruth } from "@/lib/architect-house-truth";
 import { CanonicalHouseView } from "./canonical-house-view";
+import { WALL_SYSTEM_LAYERS, NATIONAL_AVG_WALL_USD_PER_SQFT, ICON_WALL_USD_PER_SQFT, ICON_WALL_SPECS, ICON_PHOENIX } from "@/lib/architect-wall-system";
 import { projectRollup, styleEquivalence } from "@/lib/architect-project";
 import { findLayer, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
@@ -75,6 +76,32 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLo
               {x.note && <span className="text-[8px]"> ({x.note})</span>}
             </span>
           ))}
+        </div>
+      </div>
+      {/* ICON WALL SYSTEM standard (operator 2026-11-02) — the $/sq-ft composition (framing is one line of it), ICON
+          $34 vs the $35 national average, the ratings, Carbon X, and the Phoenix printer (multi-story). One source. */}
+      <div data-arch-icon-wall className="mt-2 border-t pt-1" style={{ borderColor: C.border }}>
+        <div className="flex flex-wrap items-baseline gap-x-2">
+          <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>ICON Wall System</span>
+          <span className="text-[9px]" style={{ color: C.dim }}>$/ft² of wall · framing is one line of it</span>
+          <span className="ml-auto text-[10px] font-bold tabular-nums" style={{ color: C.gold }}>${ICON_WALL_USD_PER_SQFT}/ft²</span>
+          <span className="text-[8px]" style={{ color: C.dim }}>ICON vs ${NATIONAL_AVG_WALL_USD_PER_SQFT} nat’l avg</span>
+        </div>
+        <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
+          {WALL_SYSTEM_LAYERS.map((l) => (
+            <span key={l.layer} data-icon-wall-layer={l.layer} className="text-[9px]" style={{ color: l.isFraming ? C.violet : C.dim }}>
+              {l.layer} <span className="tabular-nums font-semibold" style={{ color: l.isFraming ? C.violet : C.text }}>${l.usdPerSqFt}</span>
+            </span>
+          ))}
+        </div>
+        <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5">
+          {ICON_WALL_SPECS.map((s) => (
+            <span key={s} className="rounded border px-1 py-0.5 text-[8px] font-semibold" style={{ borderColor: C.border, color: C.gold }}>{s}</span>
+          ))}
+        </div>
+        <div className="mt-1 text-[9px]" style={{ color: C.dim }}>
+          Printed concrete option: <span className="font-semibold" style={{ color: C.green }}>Carbon X</span> — low-carbon (MIT CSHub × ICON).{" "}
+          Built by the <span className="font-semibold" style={{ color: C.cyan }}>ICON {ICON_PHOENIX.name}</span> ({ICON_PHOENIX.model}) — {ICON_PHOENIX.buildHeightFt}′ build height · up to {ICON_PHOENIX.maxFloors} stories (multi-story) · {ICON_PHOENIX.setupHours} hr setup · single operator.
         </div>
       </div>
     </div>

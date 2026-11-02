@@ -10,7 +10,7 @@ let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 
 // the six element-phases in build order (dry-in before MEP)
-ok(BUILD_ORDER.length === 6 && JSON.stringify(BUILD_ORDER) === JSON.stringify(["Foundation", "Framing", "Roofing", "Plumbing", "Electrical", "HVAC"]), "BUILD_ORDER = the six elements in build sequence");
+ok(BUILD_ORDER.length === 6 && JSON.stringify(BUILD_ORDER) === JSON.stringify(["Foundation", "Wall System", "Roof", "Plumbing", "Electrical", "HVAC"]), "BUILD_ORDER = the six elements in build sequence (ICON: Wall System, Roof)");
 ok(CREW === 4 && DAYS_PER_WEEK === 5, "crew-days assume a 4-person crew, 5 days/week (friends/family + paid help)");
 
 // every SIM_MODEL at its native option yields a complete, well-formed, reconciling build plan
@@ -48,17 +48,17 @@ for (const m of SIM_MODELS) {
 
 // ── method-aware Framing/Shell label (wood vs steel vs aluminum · printed cement/composite · hex panels) ──
 const grid = modelById("3x3-grid");
-ok(/wood/i.test(phaseLabel("Framing", grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "wood" })), "stick wood → Framing · wood");
-ok(/steel/i.test(phaseLabel("Framing", grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "all-steel" })), "frame all-steel → Framing · all-steel");
-ok(/alum/i.test(phaseLabel("Framing", grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "aluminum" })), "frame aluminum → Framing · aluminum studs");
-ok(/print|cement/i.test(phaseLabel("Framing", grid, { ...optFor(grid), method: "3d-print", printMaterial: "cement" })), "3D print → Shell · printed cement");
+ok(/wood/i.test(phaseLabel("Wall System", grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "wood" })), "stick wood → Framing · wood");
+ok(/steel/i.test(phaseLabel("Wall System", grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "all-steel" })), "frame all-steel → Framing · all-steel");
+ok(/alum/i.test(phaseLabel("Wall System", grid, { ...optFor(grid), method: "stick-framed", frameMaterial: "aluminum" })), "frame aluminum → Framing · aluminum studs");
+ok(/print|cement/i.test(phaseLabel("Wall System", grid, { ...optFor(grid), method: "3d-print", printMaterial: "cement" })), "3D print → Shell · printed cement");
 const eco = modelById("eco-sphere");
-ok(/hex/i.test(phaseLabel("Framing", eco, optFor(eco))), "Eco hex-panel → Shell · hex panels");
-ok(/roof/i.test(phaseLabel("Roofing", grid, optFor(grid))), "Roofing label names the roof");
+ok(/hex/i.test(phaseLabel("Wall System", eco, optFor(eco))), "Eco hex-panel → Shell · hex panels");
+ok(/roof/i.test(phaseLabel("Roof", grid, optFor(grid))), "Roofing label names the roof");
 
 // the frame material changes the Framing steps' measurements (wood ≠ steel ≠ aluminum)
-const fWood = JSON.stringify(buildInstructions("3x3-grid", { ...optFor(grid), frameMaterial: "wood" }).phases.find((p) => p.element === "Framing"));
-const fSteel = JSON.stringify(buildInstructions("3x3-grid", { ...optFor(grid), frameMaterial: "all-steel" }).phases.find((p) => p.element === "Framing"));
+const fWood = JSON.stringify(buildInstructions("3x3-grid", { ...optFor(grid), frameMaterial: "wood" }).phases.find((p) => p.element === "Wall System"));
+const fSteel = JSON.stringify(buildInstructions("3x3-grid", { ...optFor(grid), frameMaterial: "all-steel" }).phases.find((p) => p.element === "Wall System"));
 ok(fWood !== fSteel, "wood vs all-steel Framing steps differ (measurements + crew-days)");
 
 // the tiny home is genuinely simpler — a ductless mini-split HVAC and fewer total crew-days than the Cube
@@ -69,7 +69,7 @@ ok(tinyBI.totalCrewDays < buildInstructions("3x3-grid").totalCrewDays, "a tiny h
 // ── R-TO1 — the take-off counts are DERIVED from the design's geometry (not hand-typed), the all-numerics law ──
 const cubeFound = buildInstructions("3x3-grid").phases.find((p) => p.element === "Foundation");
 ok(cubeFound.steps.some((s) => s.items.some((it) => /yd³|yd3/i.test(it.count))), "Cube Foundation counts concrete in cubic yards (from footprint area)");
-const cubeFrame = buildInstructions("3x3-grid").phases.find((p) => p.element === "Framing");
+const cubeFrame = buildInstructions("3x3-grid").phases.find((p) => p.element === "Wall System");
 ok(cubeFrame.steps.some((s) => s.items.some((it) => /stud/i.test(it.equipment) && /\d/.test(it.count))), "Cube Framing counts studs with a number (from wall length)");
 // a bigger footprint yields a bigger concrete count — the count tracks the geometry, it is not a constant
 const slabCount = (id) => { const f = buildInstructions(id).phases.find((p) => p.element === "Foundation"); for (const s of f.steps) for (const it of s.items) { const m = /([\d.]+)\s*yd/i.exec(it.count); if (m) return parseFloat(m[1]); } return 0; };
@@ -88,14 +88,14 @@ for (const t of timeline) {
   ok(t.totalCrewDays === buildInstructions(t.formId, t.option).totalCrewDays, `${t.id} timeline total matches its build plan`);
 }
 // the Eco hex-panel and 3D-print shells differ in the Framing phase (honest — two shell methods)
-const hexFrame = timeline.find((t) => t.id === "eco-hex").perPhase.find((p) => p.element === "Framing").crewDays;
-const printFrame = timeline.find((t) => t.id === "eco-print").perPhase.find((p) => p.element === "Framing").crewDays;
+const hexFrame = timeline.find((t) => t.id === "eco-hex").perPhase.find((p) => p.element === "Wall System").crewDays;
+const printFrame = timeline.find((t) => t.id === "eco-print").perPhase.find((p) => p.element === "Wall System").crewDays;
 ok(hexFrame !== printFrame, "the Eco's hex-panel vs 3D-print shells take different crew-days (honest compare)");
 ok(timeline.find((t) => t.id === "tiny").totalCrewDays === Math.min(...timeline.map((t) => t.totalCrewDays)), "the Tiny Home is the shortest build of the four");
 
 // ── R-TO2 — FRAME WEIGHT (operator 2026-11-01: "weight of frame … steel vs wood vs concrete … strength/weight ratio") ──
 // (reuses the `grid` model declared earlier in this file)
-const framingItems = (opt) => buildInstructions("3x3-grid", opt).phases.find((p) => p.element === "Framing").steps.flatMap((s) => s.items);
+const framingItems = (opt) => buildInstructions("3x3-grid", opt).phases.find((p) => p.element === "Wall System").steps.flatMap((s) => s.items);
 ok(framingItems(optFor(grid)).some((it) => /frame weight/i.test(it.equipment) && /lb/.test(it.count)), "the Framing phase carries a Frame-weight line (in lb)");
 ok(framingItems(optFor(grid)).some((it) => /strength-to-weight/i.test(it.dimensions)), "the Frame-weight line names the strength-to-weight (the aircraft-standard ladder)");
 // steel vs wood vs concrete: a 3D-printed CONCRETE shell is far heavier than wood; aluminium is the lightest (best strength/weight)

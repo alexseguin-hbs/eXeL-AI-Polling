@@ -23,7 +23,7 @@ import { buildInstructions, BUILD_ORDER, CREW, DAYS_PER_WEEK } from "./architect
 /** Procurement lead time per element — how many calendar days BEFORE a phase starts its modules must be ordered so the
  *  work is staged, never waiting on material. Conservative small-build leads (concrete is local; steel/HVAC are long). */
 export const LEAD_DAYS: Record<ElementName, number> = {
-  Foundation: 3, Framing: 7, Roofing: 10, Plumbing: 5, Electrical: 5, HVAC: 14,
+  Foundation: 3, "Wall System": 7, Roof: 10, Plumbing: 5, Electrical: 5, HVAC: 14,
 };
 export const FINISH_LEAD_DAYS = 10; // finish / site / fixtures procurement lead
 export const FINISH_LABEL = "Finish & site"; // the closing stage (drywall · finish · landscaping · fixtures)

@@ -16,7 +16,7 @@ const S = buildSchedule(cube, opt);
 // ── the user KNOWS what is built in each phase, in build order ──
 ok(S.phases.length >= 6, `the schedule has every build phase (got ${S.phases.length})`);
 ok(S.phases[0].order === 1 && S.phases[0].element === "Foundation", "phase 1 is Foundation");
-ok(S.phases[1].element === "Framing" && S.phases[2].element === "Roofing", "Framing (2) then Roofing (3) — roofing is #3, right after framing");
+ok(S.phases[1].element === "Wall System" && S.phases[2].element === "Roof", "Wall System (2) then Roof (3) — roof is #3, right after the wall system");
 ok(S.phases.every((p) => p.moduleCount >= 1 && p.modules.length === p.moduleCount), "every phase names its staged modules (the work packages)");
 ok(S.phases[S.phases.length - 1].element === "Finish", "the closing stage is Finish & site");
 
@@ -32,7 +32,7 @@ ok(phaseCalendarDays(8) === 2 && phaseCalendarDays(1) === 1 && phaseCalendarDays
 // ── all modules STAGED before building (procurement lead → order-by) ──
 ok(S.phases.every((p) => p.leadDays >= 0 && p.orderByDay === p.startDay - p.leadDays), "every phase carries a procurement lead → an order-by day (staged, never waiting on material)");
 ok(S.leadInDays >= 0, `procurement starts ${S.leadInDays} days before ground-break (lead-in ≥ 0)`);
-ok(LEAD_DAYS.Roofing >= LEAD_DAYS.Foundation, "longer-lead trades (roofing) are ordered earlier than local ones (foundation)");
+ok(LEAD_DAYS["Roof"] >= LEAD_DAYS.Foundation, "longer-lead trades (roof) are ordered earlier than local ones (foundation)");
 
 // ── the COST is ONE truth: Σ phase cost === costFor (no second engine, no hand-typed number) ──
 ok(S.costReconciles && S.totalCost === costFor(cube, opt), `Σ phase cost reconciles EXACTLY to the card headline ($${S.totalCost} === $${costFor(cube, opt)})`);

@@ -150,9 +150,9 @@ export function BuildInstructionsPanel({ formId, option }: { formId: FormId; opt
             <div className="mt-0.5">
               {ph.steps.map((s) => <StepRow key={s.n} step={s} color={ELEMENT_COLOR[ph.element]} />)}
             </div>
-            {ph.element === "Framing" && lb && (
+            {ph.element === "Wall System" && lb && (
               <div data-arch-load-bearing className="mt-1 rounded border px-1.5 py-1 text-[9px] leading-snug" style={{ borderColor: "#0f1724", color: C.dim }}>
-                <span className="font-bold" style={{ color: ELEMENT_COLOR.Framing }}>Load-bearing check (2×6 stud @ 16″ o.c.)</span>
+                <span className="font-bold" style={{ color: ELEMENT_COLOR["Wall System"] }}>Framing load-bearing check (2×6 stud @ 16″ o.c.)</span>
                 <div>Each stud carries ≈ <span style={{ color: C.text }}>{usd(lb.demandLb).replace("$", "")} lb</span> (roof {usd(lb.roofLoadLb).replace("$", "")} + wall {usd(lb.wallLoadLb).replace("$", "")}); it can hold {usd(lb.capacityLb).replace("$", "")} lb — <span style={{ color: lb.pass ? C.green : C.amber }}>{lb.pass ? `holds, ${lb.marginPct}% to spare` : "needs a bigger member"}</span> (demand ÷ capacity {lb.dcr}).</div>
                 <div>Over a {hdr.spanFt}-ft opening use a <span style={{ color: C.text }}>{hdr.header}</span> header.</div>
                 <div style={{ color: "#4b5a6e" }}>Screening check · {lb.source} · {hdr.source} — a licensed engineer + your local code sign the final design.</div>

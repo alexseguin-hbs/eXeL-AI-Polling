@@ -448,10 +448,10 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
                   {(() => {
                     const sched = phaseSchedule(m.id, opt);
                     const maxW = Math.max(1, ...sched.map((p) => p.weeks));
-                    // option-aware labels so the Framing + Roofing rows name the ACTUAL shell/roof, matching the Build
-                    // Instructions panel below (no "Framing" vs "Shell · hex panels" drift on one card — Aset).
+                    // option-aware labels so the Wall System + Roof rows name the ACTUAL shell/roof, matching the Build
+                    // Instructions panel below (no "Wall System" vs "Shell · hex panels" drift on one card — Aset).
                     const phaseName = (id: string, label: string) =>
-                      id === "framing" ? (opt.method === "3d-print" ? "Shell·3D-print" : opt.method === "hex-panel" ? "Shell·hex" : `Framing·${opt.frameMaterial}`)
+                      id === "framing" ? (opt.method === "3d-print" ? "Shell·3D-print" : opt.method === "hex-panel" ? "Shell·hex" : `Wall·${opt.frameMaterial}`)
                       : id === "roofing" ? `Roof·${ROOFS[opt.roof].short.toLowerCase()}`
                       : m.id === "tiny" && id === "foundation" ? "Trailer/chassis"   // THOW sits on a trailer, not a foundation (fleet P1#6)
                       : m.id === "tiny" && id === "sewer" ? "Utility hookups"          // a towable tiny uses hookups, not a sewer tie-in
@@ -470,7 +470,7 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
                             </div>
                           ))}
                         </div>
-                        {printed && <div className="mt-0.5 text-[8px]" style={{ color: C.cement }}>↳ 3D Print collapses the Framing phase (the shell prints fast).</div>}
+                        {printed && <div className="mt-0.5 text-[8px]" style={{ color: C.cement }}>↳ 3D Print collapses the Wall System phase (the shell prints fast).</div>}
                         {opt.method === "hex-panel" && <div className="mt-0.5 text-[8px]" style={{ color: C.composite }}>↳ hex panels assemble dry — the shell goes up fast.</div>}
                       </div>
                     );

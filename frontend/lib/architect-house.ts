@@ -13,8 +13,8 @@ export type Phase = "site" | "foundation" | "framing" | "envelope" | "mep" | "fi
 export const PHASES: { id: Phase; label: string; color: string }[] = [
   { id: "site", label: "Site Prep", color: "#22c55e" },
   { id: "foundation", label: "Foundation", color: "#f59e0b" },
-  { id: "framing", label: "Framing", color: "#c084fc" },
-  { id: "envelope", label: "Envelope", color: "#19c8cf" },
+  { id: "framing", label: "Wall System", color: "#c084fc" },
+  { id: "envelope", label: "Roof", color: "#19c8cf" },
   { id: "mep", label: "MEP (parallel)", color: "#38bdf8" },
   { id: "finish", label: "Finish", color: "#d946ef" },
 ];

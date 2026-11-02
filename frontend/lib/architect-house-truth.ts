@@ -76,8 +76,8 @@ export interface CanonicalHouseTruth {
 // + the site/finish remainder map onto five install phases; MEP (plumbing·electrical·HVAC) share one phase (parallel).
 const ELEMENT_PHASE: Record<string, Phase> = {
   Foundation: "foundation",
-  Framing: "framing",
-  Roofing: "envelope",
+  "Wall System": "framing",
+  Roof: "envelope",
   Plumbing: "mep",
   Electrical: "mep",
   HVAC: "mep",

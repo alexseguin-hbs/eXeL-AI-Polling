@@ -30,7 +30,7 @@ export type SimName = (typeof SIMS)[number];
 
 // ── the four build dimensions ─────────────────────────────────────────────────────────────────────────────────────
 export type Method = "stick-framed" | "3d-print" | "hex-panel";
-export type PrintMaterial = "cement" | "composite";
+export type PrintMaterial = "cement" | "carbon-x" | "composite";
 // operator 2026-10-28 (IMG-07): "wood, aluminum studs, steel reinforced 4 corners or all steel … Voortman cut and holes
 // automated with steel cutting machine plasma cutter." Four frame materials; the two steel options carry the automated-fab note.
 export type FrameMaterial = "wood" | "aluminum" | "steel-corners" | "all-steel";
@@ -60,6 +60,11 @@ const HEX_PANEL_MAT_FACTOR = 1.05, HEX_PANEL_LABOR_FACTOR = 0.6;
  *  headline carbon. ESTIMATE. */
 export const PRINT_MATERIALS: Record<PrintMaterial, { label: string; short: string; blurb: string; matFactor: number; laborFactor: number; carbonStar: number; strength: string }> = {
   cement:    { label: "Cement",    short: "CEMENT",    blurb: "Monolithic printed cement — very strong, non-combustible; high embodied carbon.", matFactor: 1.1, laborFactor: 0.35, carbonStar: -1, strength: "~6 ksi compressive (vendor) vs 2–3.5 ksi standard" },
+  // operator 2026-11-02: Carbon X — ICON's LOW-CARBON printed concrete (the carbon basis is the MIT CSHub × ICON
+  // whitepaper "Reducing carbon emissions in the built environment: A case study in 3D printed homes"). Cement-class
+  // strength with sharply lower embodied carbon → carbonStar +1 (best printed option); a modest low-carbon-mix premium
+  // on material; same big print labour saving. Rated 2+ hr fire · 250 MPH wind (ICON Wall System). ESTIMATE/vendor.
+  "carbon-x": { label: "Carbon X",  short: "CARBON X",  blurb: "ICON Carbon X — low-carbon printed concrete (MIT CSHub × ICON): cement-class strength, sharply reduced embodied carbon; non-combustible, 2+ hr fire, 250 MPH wind.", matFactor: 1.15, laborFactor: 0.35, carbonStar: 1, strength: "~6 ksi compressive (vendor), reduced embodied carbon (MIT CSHub × ICON)" },
   composite: { label: "Composite", short: "COMPOSITE", blurb: "Printed polymer-mineral composite — ~5× stronger, ~30% lighter, ~50% less embodied carbon than cement (vendor).", matFactor: 1.4, laborFactor: 0.35, carbonStar: 0, strength: "~5× stronger, ~30% lighter than cement (vendor)" },
 };
 /** Future print materials — shown DISABLED in the dropdown so the "more coming" the operator asked for is visible. */
@@ -195,13 +200,15 @@ export const DEFAULT_COST: CostParams = { laborMode: "pro", markup: BAKED_MARKUP
  *  materials (operator 2026-10-28: the ~$40k friends/family/veterans Tiny). The buyer can still drag the markup back up. */
 export function defaultMarkupFor(mode: LaborMode): number { return mode === "volunteer" ? 0 : mode === "mixed" ? 0.25 : BAKED_MARKUP; }
 
-// the six MAJOR elements the operator asked to compare, mapped 1:1 to the engine's work sections
-// ONE STANDARD BUILD ORDER everywhere (operator 2026-11-01: "ensure order standard here and all on site · roofing is #3").
-// cost-by-element now follows the build sequence — Foundation · Framing · Roofing(#3) · Plumbing · Electrical · HVAC —
-// identical to BUILD_ORDER (architect-build-instructions) and the DEV_PHASES build order. Gated by architect-consistency.
-export const ELEMENTS = ["Foundation", "Framing", "Roofing", "Plumbing", "Electrical", "HVAC"] as const;
+// the six MAJOR cost elements, mapped 1:1 to the engine's work sections. ICON nomenclature (operator 2026-11-02):
+// the structural wall cost LINE is "Wall System" (ICON's term — framing is one component inside it), and "Roof"
+// (not "Roofing"). ONE STANDARD BUILD ORDER everywhere (operator 2026-11-01: "roofing is #3"): cost-by-element
+// follows the build sequence — Foundation · Wall System · Roof(#3) · Plumbing · Electrical · HVAC — identical to
+// BUILD_ORDER (architect-build-instructions). "framing" stays lowercase for the structural member/phase. Gated by
+// architect-consistency. The Wall System's $/sq-ft composition + ICON $34 vs $35 live in lib/architect-wall-system.ts.
+export const ELEMENTS = ["Foundation", "Wall System", "Roof", "Plumbing", "Electrical", "HVAC"] as const;
 export type ElementName = (typeof ELEMENTS)[number];
-const ELEMENT_SECTION: Record<ElementName, string> = { Foundation: "found", Framing: "frame", Electrical: "elec", Plumbing: "plumb", HVAC: "hvac", Roofing: "roof" };
+const ELEMENT_SECTION: Record<ElementName, string> = { Foundation: "found", "Wall System": "frame", Electrical: "elec", Plumbing: "plumb", HVAC: "hvac", Roof: "roof" };
 
 /** Area scale with a fixed-cost floor (a small home never costs zero to build): 0.30 + 0.70 × (ft²/900). Cube = 1.0. */
 const areaFactor = (m: SimModel): number => 0.30 + 0.70 * (m.areaFt2 / 900);
@@ -457,7 +464,7 @@ const METRICS: Record<SimName, (m: SimModel, d: Record<DriverKey, number>, opt: 
   "HVAC":          (m) => { const tons = m.areaFt2 / (400 + m.energyScore * 60); return [{ label: "Cooling load", value: `${num(tons, 1)} tons` }, { label: "System", value: m.id === "tiny" ? "ductless mini-split" : "ducted (Manual J)" }]; },
   "Evacuation":    (m, d) => [{ label: "Egress travel", value: `${num(20 + m.areaFt2 * 0.03)} ft` }, { label: "Clear time", value: `${num(90 - d.compact * 8 - d.conv * 4)} s` }],
   "Accessibility": (m, d) => [{ label: "Turning radius", value: `${num(48 + d.spacious * 3)} in` }, { label: "Clear door", value: `${num(32 + d.spacious)} in` }],
-  "Carbon":        (m, _d, o) => { const operating = m.areaFt2 * (12 - m.energyScore * 1.5); const embPenalty = o.method === "3d-print" ? (o.printMaterial === "cement" ? 0.03 : 0.012) : o.frameMaterial === "aluminum" ? 0.02 : 0; const embodied = m.areaFt2 * (0.09 - m.carbonScore * 0.008) + m.areaFt2 * embPenalty; const tag = o.method === "3d-print" ? (o.printMaterial === "cement" ? " (cement↑)" : " (composite)") : o.frameMaterial === "aluminum" ? " (alum↑)" : " (assumed)"; return [{ label: "Embodied" + tag, value: `${num(embodied, 1)} tCO₂e` }, { label: "Operating", value: `${num(operating)} kg/yr` }]; },
+  "Carbon":        (m, _d, o) => { const operating = m.areaFt2 * (12 - m.energyScore * 1.5); const embPenalty = o.method === "3d-print" ? (o.printMaterial === "cement" ? 0.03 : o.printMaterial === "carbon-x" ? 0.006 : 0.012) : o.frameMaterial === "aluminum" ? 0.02 : 0; const embodied = m.areaFt2 * (0.09 - m.carbonScore * 0.008) + m.areaFt2 * embPenalty; const tag = o.method === "3d-print" ? (o.printMaterial === "cement" ? " (cement↑)" : o.printMaterial === "carbon-x" ? " (Carbon X↓)" : " (composite)") : o.frameMaterial === "aluminum" ? " (alum↑)" : " (assumed)"; return [{ label: "Embodied" + tag, value: `${num(embodied, 1)} tCO₂e` }, { label: "Operating", value: `${num(operating)} kg/yr` }]; },
   "Lifecycle":     (m, _d, o) => { const life = costFor(m, o) * (1 + (6 - m.energyScore) * 0.08); const steel = o.frameMaterial === "all-steel" || o.frameMaterial === "steel-corners"; const dur = o.method === "3d-print" ? "high (printed)" : o.method === "hex-panel" ? "high (panel)" : o.frameMaterial === "aluminum" ? "high (alum)" : steel ? "high (steel)" : `${num(5 - m.energyScore * 0.6, 1)}/5`; return [{ label: "30-yr cost", value: `$${num(life)}` }, { label: "Durability", value: dur }]; },
 };
 function simMetrics(m: SimModel, sim: SimName, opt: BuildOption): SimMetric[] { return METRICS[sim](m, drivers(m, opt), opt); }

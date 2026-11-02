@@ -51,7 +51,7 @@ export interface BuildInstructions {
 export const CREW = 4;              // a crew of four — friends/family + paid help (Vision-2525)
 export const DAYS_PER_WEEK = 5;
 /** The build SEQUENCE (dry-in before MEP) — distinct from the cost ELEMENTS order, but the same six element names. */
-export const BUILD_ORDER: ElementName[] = ["Foundation", "Framing", "Roofing", "Plumbing", "Electrical", "HVAC"];
+export const BUILD_ORDER: ElementName[] = ["Foundation", "Wall System", "Roof", "Plumbing", "Electrical", "HVAC"];
 
 const tiny = (m: SimModel) => m.id === "tiny";
 const withN = (steps: Omit<InstructionStep, "n">[]): InstructionStep[] => steps.map((s, i) => ({ n: i + 1, ...s }));
@@ -348,22 +348,22 @@ function hvacSteps(m: SimModel, g: FormGeo): Omit<InstructionStep, "n">[] {
 
 const STEP_FN: Record<ElementName, (m: SimModel, opt: BuildOption, g: FormGeo) => Omit<InstructionStep, "n">[]> = {
   Foundation: (m, _o, g) => foundationSteps(m, g),
-  Framing: (m, o, g) => framingSteps(m, o, g),
-  Roofing: (m, o, g) => roofingSteps(m, o, g),
+  "Wall System": (m, o, g) => framingSteps(m, o, g),
+  Roof: (m, o, g) => roofingSteps(m, o, g),
   Plumbing: (m, o, g) => plumbingSteps(m, o, g),
   Electrical: (m, o, g) => electricalSteps(m, o, g),
   HVAC: (m, _o, g) => hvacSteps(m, g),
 };
 
-/** The phase label — the Framing phase reads as the actual shell method; the Roofing phase names the roof. */
+/** The phase label — the Wall System phase reads as the actual shell method; the Roof phase names the roof. */
 export function phaseLabel(element: ElementName, m: SimModel, opt: BuildOption): string {
   if (element === "Foundation") return tiny(m) ? "Foundation · trailer deck" : "Foundation";
-  if (element === "Framing") {
+  if (element === "Wall System") {
     if (opt.method === "3d-print") return `Shell · 3D-printed ${PRINT_MATERIALS[opt.printMaterial].label.toLowerCase()}`;
     if (opt.method === "hex-panel") return "Shell · hex panels";
-    return `Framing · ${FRAME_MATERIALS[opt.frameMaterial].label.toLowerCase()}`;
+    return `Wall System · ${FRAME_MATERIALS[opt.frameMaterial].label.toLowerCase()} framing`;
   }
-  if (element === "Roofing") return opt.roof === "hex-dome" && opt.method === "3d-print" ? "Roofing · printed crown" : `Roofing · ${ROOFS[opt.roof].label.toLowerCase()}`;
+  if (element === "Roof") return opt.roof === "hex-dome" && opt.method === "3d-print" ? "Roof · printed crown" : `Roof · ${ROOFS[opt.roof].label.toLowerCase()}`;
   return element;
 }
 
@@ -377,8 +377,8 @@ export function buildInstructions(formId: FormId, opt?: BuildOption): BuildInstr
     const steps = withN(STEP_FN[element](m, o, g));
     return { element, label: phaseLabel(element, m, o), steps, crewDays: steps.reduce((s, x) => s + x.crewDays, 0) };
   });
-  // FRAME WEIGHT on the Framing phase — steel vs wood vs concrete, with the strength-to-weight note (operator 2026-11-01).
-  const framingPhase = phases.find((p) => p.element === "Framing");
+  // FRAME WEIGHT on the Wall System phase — steel vs wood vs concrete, with the strength-to-weight note (operator 2026-11-01).
+  const framingPhase = phases.find((p) => p.element === "Wall System");
   if (framingPhase && framingPhase.steps[0]) {
     const wt = frameWeight(m, o, g);
     framingPhase.steps[0].items.push(mi("Frame weight", `${wt.label} · ${wt.wallPsf} lb/ft² wall · ${wt.sw}`, `≈ ${commas(wt.totalLb)} lb`));

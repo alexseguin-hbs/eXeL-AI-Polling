@@ -82,8 +82,8 @@ export interface WorkSection {
 export const DEFAULT_SECTIONS: WorkSection[] = [
   { id: "site", name: "Site Work", trade: "Excavation", manHours: 320, costUsd: 23000, rag: "green" },
   { id: "found", name: "Foundation", trade: "Concrete", manHours: 480, costUsd: 33000, rag: "green" },
-  { id: "frame", name: "Framing", trade: "Carpentry", manHours: 920, costUsd: 48000, rag: "amber" },
-  { id: "roof", name: "Roofing", trade: "Roofing", manHours: 260, costUsd: 17000, rag: "green" },
+  { id: "frame", name: "Wall System", trade: "Carpentry", manHours: 920, costUsd: 48000, rag: "amber" },
+  { id: "roof", name: "Roof", trade: "Roofing", manHours: 260, costUsd: 17000, rag: "green" },
   { id: "plumb", name: "Plumbing", trade: "Plumbing", manHours: 340, costUsd: 21000, rag: "green" },
   { id: "elec", name: "Electrical", trade: "Electrical", manHours: 300, costUsd: 18000, rag: "amber" },
   { id: "hvac", name: "HVAC", trade: "Mechanical", manHours: 240, costUsd: 16000, rag: "green" },

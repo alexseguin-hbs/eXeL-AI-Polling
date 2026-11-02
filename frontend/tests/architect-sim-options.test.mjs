@@ -54,10 +54,10 @@ for (const m of SIM_MODELS) ok(m.energyScore >= 1 && m.energyScore <= 5 && m.car
 
 // ── cost BY ELEMENT (the six major elements, in the ONE standard build order: Foundation/Framing/Roofing/Plumbing/
 //    Electrical/HVAC — roofing #3, operator 2026-11-01) reconciles to the engine ──
-ok(ELEMENTS.length === 6 && ["Foundation", "Framing", "Roofing", "Plumbing", "Electrical", "HVAC"].every((e) => ELEMENTS.includes(e)), "the six major elements are present");
+ok(ELEMENTS.length === 6 && ["Foundation", "Wall System", "Roof", "Plumbing", "Electrical", "HVAC"].every((e) => ELEMENTS.includes(e)), "the six major elements are present (ICON: Wall System, Roof)");
 const gridElems = elementCosts(grid, optFor(grid));
 ok(gridElems.length === 6, "elementCosts returns the six elements");
-const expect = { Foundation: 33000, Framing: 48000, Electrical: 18000, Plumbing: 21000, HVAC: 16000, Roofing: 17000 };
+const expect = { Foundation: 33000, "Wall System": 48000, Electrical: 18000, Plumbing: 21000, HVAC: 16000, Roof: 17000 };
 for (const e of gridElems) ok(e.usd === expect[e.element], `Cube @ native ${e.element} = $${expect[e.element]} (engine, got ${e.usd})`);
 ok(elementSubtotal(grid, optFor(grid)) === 153000, "Cube six-element subtotal = $153,000 (sum of the engine sections at the $240k real-market total)");
 ok(elementSubtotal(tiny, optFor(tiny)) < elementSubtotal(grid, optFor(grid)), "Tiny's element subtotal is smaller (area-scaled)");
@@ -123,7 +123,7 @@ ok(eco.native.method === "hex-panel" && eco.native.roof === "hex-dome", "Eco ope
 
 // 3D Print lowers the FRAMING element + speeds the build for a rectilinear form
 const gridStick = optFor(grid), gridPrint = { ...gridStick, method: "3d-print", printMaterial: "cement" };
-ok(elementCosts(grid, gridPrint).find((e) => e.element === "Framing").usd < elementCosts(grid, gridStick).find((e) => e.element === "Framing").usd, "3D Print cement lowers the Framing element");
+ok(elementCosts(grid, gridPrint).find((e) => e.element === "Wall System").usd < elementCosts(grid, gridStick).find((e) => e.element === "Wall System").usd, "3D Print cement lowers the Wall System element");
 ok(monthsFor(grid, gridPrint) < monthsFor(grid, gridStick), "3D Print builds the Cube faster than stick");
 
 // ── 3D-Print materials: cement vs composite (strength / cost / carbon differ) + "more coming" ──
@@ -152,7 +152,7 @@ ok(simResult("3x3-grid", "Structural", { ...gridStick, frameMaterial: "all-steel
 ok(ROOFS.gable && ROOFS.hip && ROOFS.flat && ROOFS["hex-dome"], "roof types: gable · hip · flat · hex-dome");
 ok(JSON.stringify(ROOFS_FOR["3x3-grid"]) === JSON.stringify(["gable", "hip", "flat"]), "Cube roofs: gable/hip/flat");
 ok(JSON.stringify(ROOFS_FOR["eco-sphere"]) === JSON.stringify(["hex-dome"]), "Eco roof: the hex-panel dome");
-ok(elementCosts(grid, { ...gridStick, roof: "hip" }).find((e) => e.element === "Roofing").usd > elementCosts(grid, gridStick).find((e) => e.element === "Roofing").usd, "a hip roof costs more than gable (Roofing element)");
+ok(elementCosts(grid, { ...gridStick, roof: "hip" }).find((e) => e.element === "Roof").usd > elementCosts(grid, gridStick).find((e) => e.element === "Roof").usd, "a hip roof costs more than gable (Roof element)");
 ok(simResult("3x3-grid", "Wind", { ...gridStick, roof: "hip" }).score >= simResult("3x3-grid", "Wind", gridStick).score, "a hip roof improves Wind");
 
 // ── the whole 13-sim battery per model ──

@@ -47,10 +47,10 @@ ok(JSON.stringify(weightIds.filter((id) => ["foundation", "framing", "roofing"].
 const bi = read("../lib/architect-build-instructions.ts");
 const bo = bi.match(/export const BUILD_ORDER: ElementName\[\] = (\[[^\]]*\])/)[1];
 const boArr = JSON.parse(bo.replace(/'/g, '"'));
-ok(boArr.indexOf("Roofing") === boArr.indexOf("Framing") + 1 && boArr.indexOf("Roofing") < boArr.indexOf("Plumbing"), `build-instructions BUILD_ORDER roofs right after framing, before plumbing (${boArr.join(",")})`);
+ok(boArr.indexOf("Roof") === boArr.indexOf("Wall System") + 1 && boArr.indexOf("Roof") < boArr.indexOf("Plumbing"), `build-instructions BUILD_ORDER roofs right after the wall system, before plumbing (${boArr.join(",")})`);
 // the cost-by-element order (ELEMENTS) is the SAME ONE standard build order — roofing #3, never last (operator 2026-11-01:
 // "ensure order standard here and all on site · roofing is #3"). cost-by-element can no longer diverge from BUILD_ORDER.
-ok(ELEMENTS[2] === "Roofing" && ELEMENTS.indexOf("Roofing") === ELEMENTS.indexOf("Framing") + 1, `cost-by-element ELEMENTS roofs at #3, right after framing (${ELEMENTS.join(",")})`);
+ok(ELEMENTS[2] === "Roof" && ELEMENTS.indexOf("Roof") === ELEMENTS.indexOf("Wall System") + 1, `cost-by-element ELEMENTS roofs at #3, right after the wall system (${ELEMENTS.join(",")})`);
 ok(JSON.stringify([...ELEMENTS]) === JSON.stringify(boArr), `cost-by-element order === build order, one standard (${ELEMENTS.join(",")})`);
 
 // ── 3. SQUARE FOOTAGE — scoped, never conflated (canonical 900 ≠ the Tiny catalog preset 280) ──
