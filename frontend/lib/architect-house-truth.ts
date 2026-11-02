@@ -12,7 +12,7 @@
  *   • COST       — from the ONE-COST-TRUTH engine (architect-sim-options.costFor / costBreakdown of the Cube at
  *     its native option) → $240,000, reconciling element-by-element to the penny. The same number the Simulate
  *     headline, the Estimate headline and the 웃 engine's projectHeadline all agree on (architect-one-cost-truth).
- *   • BUILD      — the real build elements (costBreakdown: Foundation · Framing · Roofing · Plumbing · Electrical ·
+ *   • BUILD      — the real build elements (costBreakdown: Foundation · Wall System · Roof · Plumbing · Electrical ·
  *     HVAC + the site/finish remainder) grouped into install phases, each carrying its real USD. Σ === $240,000.
  *   • MATERIAL   — the framing & envelope take-off (slab ft² · wall linear ft · studs · plates · roof ft²) derived
  *     from the 30×30 geometry + the one stud spacing (STUD_SPACING_IN). "length of material", from the one source.

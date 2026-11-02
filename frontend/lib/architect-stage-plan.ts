@@ -34,7 +34,7 @@ export function phaseCalendarDays(crewDays: number): number {
 }
 
 export interface StagePhase {
-  order: number;               // 1..N in build order (Foundation 1 · Framing 2 · Roofing 3 · …)
+  order: number;               // 1..N in build order (Foundation 1 · Wall System 2 · Roof 3 · …)
   element: ElementName | "Finish";
   label: string;
   modules: string[];           // the work packages staged for this phase (take-off step titles)

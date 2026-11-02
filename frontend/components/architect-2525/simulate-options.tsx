@@ -8,7 +8,7 @@
  *   • method dropdown — Stick-framed / 3D Print / Hex-panel (the Eco's shell) — the ICON hook.
  *   • material dropdown — 3D Print → Cement · Composite ("more coming"); Stick → Wood · Steel · Aluminum.
  *   • roof dropdown — Gable · Hip · Flat (rectilinear) · Hex-panel dome (Eco).
- *   • cost BY ELEMENT — Foundation · Framing · Electrical · Plumbing · HVAC · Roofing (the six major elements).
+ *   • cost BY ELEMENT — Foundation · Wall System · Roof · Plumbing · Electrical · HVAC (the six major elements; ICON names).
  * Plus a per-form BUILD-INSTRUCTIONS plan and a four-path PROJECT TIMELINE (Cube · Tiny · Eco hex-panel · Eco 3D-print).
  *
  * ONE honest story: nothing is scored until you SIMULATE it; every cost DERIVES from one engine so the element
@@ -622,7 +622,7 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
             const best = fw.reduce((a, b) => (b.w < a.w ? b : a));
             return (
               <div className="flex items-center justify-between border-b py-0.5" style={{ borderColor: "#111827" }}>
-                <span style={{ color: C.dim }}>Framing / shell phase</span>
+                <span style={{ color: C.dim }}>Wall System / shell phase</span>
                 <span className="text-[9px]"><span style={{ color: C.dim }}>{fw.map((x) => `${x.m.label.split(" ")[0]} ${x.w}w`).join(" · ")} </span><span style={{ color: C.gold }}>✦ {best.m.label}</span></span>
               </div>
             );

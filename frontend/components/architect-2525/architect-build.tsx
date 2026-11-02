@@ -22,7 +22,8 @@ const TRADE_COLOR: Record<string, string> = { Concrete: "#8a8f98", Framing: "#19
 const TRADES = ["Concrete", "Framing", "Plumbing", "Electrical", "Finish"];
 
 interface Step { s: number; e: number; trade: string; label: string; kind: string; }
-// Dry-in BEFORE MEP (the Build-Instructions BUILD_ORDER: Foundation → Framing → Roofing → Plumbing → Electrical → finish).
+// Dry-in BEFORE MEP (the Build-Instructions BUILD_ORDER: Foundation → Wall System → Roof → Plumbing → Electrical → finish;
+// the Gantt's "Framing" trade is the structural activity that raises the Wall System + roof).
 const SEQ: Step[] = [
   { s: 1, e: 2, trade: "Concrete", label: "Footings + Slab — 30×30 ft", kind: "foundation" },
   { s: 3, e: 6, trade: "Framing", label: "Room Walls — 9 rooms on the 3×3", kind: "studs" },
