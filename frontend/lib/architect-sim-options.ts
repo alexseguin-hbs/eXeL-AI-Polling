@@ -357,7 +357,9 @@ export function compareModels(models: SimModel[] = SIM_MODELS, optsBy?: Record<s
     return { metric: name, unit, lowerIsBetter, winnerId: best.id, values };
   };
   return [
-    metric("Cost", "USD", true, (m) => costFor(m, op(m))),
+    // operator 2026-11-02 ("fix the Tiny home format"): a catalog preset's headline cost is its ASSUMED sum
+    // (house+hookups+delivery), NOT an invented engine derivation — so the compare-Cost winner agrees with the card.
+    metric("Cost", "USD", true, (m) => m.catalogPreset ? catalogSum(m.catalogPreset) : costFor(m, op(m))),
     metric("Build time", "months", true, (m) => monthsFor(m, op(m))),
     metric("Energy", "score", false, (m) => m.energyScore),
     metric("Carbon", "score", false, (m) => carbonFor(m, op(m))),

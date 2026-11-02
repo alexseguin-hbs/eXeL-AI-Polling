@@ -1,18 +1,20 @@
 "use client";
 
 /**
- * ARCHITECT-2525 · SIMULATE — ALTERNATIVE DESIGN OPTIONS (operator 2026-10-25/27/28).
- * Three ways to build — Cube (3×3, 900 ft²) · Tiny Home (real 8.5×24 THOW ≈204 ft²) · Eco-Sphere (7-hex dome, 900 ft²).
- * Pressing a form's SIMULATE **creates that environment** (the real furnished floor-plan mockup) AND runs the original
- * 13-sim battery (0–5 + metrics). Each card carries the four build dimensions the operator asked for:
+ * ARCHITECT-2525 · SIMULATE — ALTERNATIVE DESIGN OPTIONS (operator 2026-10-25/27/28; Tiny-format match 2026-11-02).
+ * Three ways to build — Cube (3×3, 900 ft²) · Tiny Home (10′×28′ THOW · 280 ft² main floor + loft/2F) · Eco-Sphere
+ * (7-hex dome, 900 ft²). Every card carries the SAME labeled rows (Area · Cost · Build · Energy · Carbon + a basis
+ * footer); the environment mockup + the 13-sim battery are one tap away under "See details". Each card also carries the
+ * four build dimensions the operator asked for:
  *   • method dropdown — Stick-framed / 3D Print / Hex-panel (the Eco's shell) — the ICON hook.
  *   • material dropdown — 3D Print → Cement · Composite ("more coming"); Stick → Wood · Steel · Aluminum.
  *   • roof dropdown — Gable · Hip · Flat (rectilinear) · Hex-panel dome (Eco).
  *   • cost BY ELEMENT — Foundation · Wall System · Roof · Plumbing · Electrical · HVAC (the six major elements; ICON names).
  * Plus a per-form BUILD-INSTRUCTIONS plan and a four-path PROJECT TIMELINE (Cube · Tiny · Eco hex-panel · Eco 3D-print).
  *
- * ONE honest story: nothing is scored until you SIMULATE it; every cost DERIVES from one engine so the element
- * breakdown reconciles to the card total; Cube cost is engine-DERIVED, Tiny + Eco ASSUMED; all results are ESTIMATES.
+ * ONE honest story: the Cube's cost is engine-DERIVED (the element breakdown reconciles to its card total); the Tiny's
+ * headline is its catalog ASSUMED $67,000 (house+hookups+delivery, shown as a stock plan, not an engine fabrication);
+ * the Eco-Sphere is ASSUMED; all results are ESTIMATES, never a quote.
  */
 import { useMemo, useState } from "react";
 import {
@@ -212,6 +214,15 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
           ];
           const elemMax = Math.max(...barRows.map((b) => b.usd), 1);
           const assumeOpen = openRows.has("assume:" + m.id);
+          // R-UX (operator 2026-11-02: "fix the Tiny home format (above details to match exactly)") — the Tiny Home now
+          // shows the SAME labeled rows as Cube/Eco (Area · Cost · Build · Energy · Carbon + a basis footer). Its headline
+          // Cost is the catalog ASSUMED sum ($67,000 = house+hookups+delivery), NOT an invented engine derivation; the
+          // LOFT/SECOND-FLOOR switch + the three ASSUMED money lines move into "See details" below. One source:
+          // compareModels' Cost reads the SAME catalogSum for a preset, so the card ⇄ compare-winner agree.
+          const preset = m.catalogPreset;
+          const headlineCost = preset ? catalogSum(preset) : cardTotal;
+          const headlinePerFt2 = preset ? (m.areaFt2 > 0 ? Math.round(catalogSum(preset) / m.areaFt2) : 0) : perFt2;
+          const basisLabel = preset ? "catalog stock plan" : m.basis === "DERIVED" ? "real cost estimate" : "rough estimate";
           const row = (label: string, value: string, metric?: string) => {
             const win = !!metric && compare && winnerOf(metric) === m.id;
             return (
@@ -228,46 +239,19 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
                 <span className="text-[12px] font-bold" style={{ color: C.cyan }}>{m.label}</span>
               </div>
               <div className="mt-0.5 text-[9px]" style={{ color: C.dim }}>{m.form}</div>
-              {m.catalogPreset ? (() => {
-                // R5f — the Tiny Home is a CATALOG PRESET (operator 2026-10-31): the card copy + SEPARATE ASSUMED money lines
-                // + the LOFT / SECOND FLOOR switch; NO calculated project cost, NO $/ft², NO build-months, NO stars, NO PASS.
-                const pr = m.catalogPreset; const upper = upperBy[m.id] ?? pr.upperDefault;
-                return (
-                  <div className="mt-1.5 space-y-1" data-arch-sim-catalog={m.id}>
-                    {pr.cardLines.map((ln, i) => <div key={i} className="text-[10.5px]" style={{ color: C.text }}>{ln.replace("LOFT or SECOND FLOOR", upper === "loft" ? "LOFT · 140 ft²" : "SECOND FLOOR · 140 ft²")}</div>)}
-                    <div className="flex items-center gap-1 text-[9px]">
-                      <span style={{ color: C.dim, width: 56 }}>Upper half</span>
-                      {(["loft", "second-floor"] as UpperKind[]).map((u) => (
-                        <button key={u} data-arch-sim-upper={`${m.id}:${u}`} onClick={() => setUpperBy((st) => ({ ...st, [m.id]: u }))}
-                          className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: upper === u ? C.cyan : C.border, color: upper === u ? C.cyan : C.dim, background: upper === u ? "#0b1220" : "transparent" }}>
-                          {u === "loft" ? "LOFT" : "SECOND FLOOR"}
-                        </button>
-                      ))}
-                    </div>
-                    <div data-arch-sim-catalog-money className="rounded border p-1.5 text-[10px]" style={{ borderColor: C.border, background: C.ground }}>
-                      <div className="flex justify-between"><span style={{ color: C.dim }}>House</span><span style={{ color: C.text }}>{usd(pr.money.house)} · ASSUMED</span></div>
-                      <div className="flex justify-between"><span style={{ color: C.dim }}>Hookups</span><span style={{ color: C.text }}>{usd(pr.money.hookups)} · ASSUMED</span></div>
-                      <div className="flex justify-between"><span style={{ color: C.dim }}>Delivery</span><span style={{ color: C.text }}>{usd(pr.money.delivery)} · ASSUMED</span></div>
-                      {upper === "second-floor" && <div className="text-[8.5px]" style={{ color: C.amber }}>· House $57,000 includes a loft — the SECOND FLOOR is NOT CALCULATED, not added in</div>}
-                      {pr.notes.map((n, i) => <div key={i} className="text-[8.5px]" style={{ color: C.amber }}>· {n}</div>)}
-                      <div className="mt-1 border-t pt-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>Placed on city utilities · <b>{usd(catalogSum(pr))}</b> · ASSUMED · house + hookups + delivery</div>
-                      <div className="text-[8px]" style={{ color: C.dim }}>not a quote · your main home&apos;s plan is untouched</div>
-                    </div>
-                  </div>
-                );
-              })() : (<>
+              {/* the SAME labeled rows for every form — Cube · Tiny Home · Eco-Sphere (operator 2026-11-02: match exactly).
+                  The Tiny's Cost is its catalog ASSUMED $67,000 (headlineCost), its footer says "catalog stock plan". */}
               <div className="mt-1.5 space-y-0.5">
                 {row("Area", `${m.areaFt2.toLocaleString()} ft² · ${m.layoutLabel}`)}
-                {row("Cost", `${usd(cardTotal)} · ${usd(perFt2)}/ft²`, "Cost")}
+                {row("Cost", `${usd(headlineCost)} · ${usd(headlinePerFt2)}/ft²`, "Cost")}
                 {row("Build", `${monthsFor(m, opt)} mo`, "Build time")}
                 <div className="flex items-baseline justify-between text-[11px]"><span style={{ color: C.dim }}>Energy</span><span style={{ color: scoreColor(m.energyScore) }}>{stars(m.energyScore)}</span></div>
                 <div className="flex items-baseline justify-between text-[11px]"><span style={{ color: C.dim }}>Carbon</span><span style={{ color: scoreColor(carbonFor(m, opt)) }}>{stars(carbonFor(m, opt))}</span></div>
               </div>
               <div className="mt-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: basisCol }}>
-                <span>{m.basis === "DERIVED" ? "real cost estimate" : "rough estimate"}</span>
+                <span>{basisLabel}</span>
                 <span style={{ color: C.dim }}>efficiency: estimated</span>
               </div>
-              </>)}
 
               <button data-arch-sim-expand={m.id} onClick={() => toggleExpand(m.id)}
                 className="mt-2 w-full rounded border px-2 py-1.5 text-[10px] font-semibold" style={{ borderColor: C.violet, color: C.violet, background: "#1a1030" }}>
@@ -327,12 +311,35 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
                     </div>
                   </div>
 
-                  {/* R5f — the catalog preset shows NO calculated cost (its ASSUMED money lines are in the card header above). */}
-                  {m.catalogPreset ? (
-                    <div data-arch-sim-catalog-costnote className="rounded border p-1.5 text-[9px]" style={{ borderColor: C.border, background: C.ground, color: C.dim }}>
-                      Cost: the ASSUMED money lines above — Placed on city utilities <b style={{ color: C.text }}>{usd(catalogSum(m.catalogPreset))}</b>. A catalog preset shows no calculated project cost, $/ft², or star rating.
-                    </div>
-                  ) : (<>
+                  {/* The catalog preset's stock-plan truth (operator 2026-11-02): the card above shows the matched
+                      Area/Cost/Build/Energy/Carbon rows; HERE is the honest breakdown behind its $67,000 — the
+                      LOFT / SECOND FLOOR switch + the three ASSUMED money lines (house · hookups · delivery) + the notes. */}
+                  {m.catalogPreset ? (() => {
+                    const pr = m.catalogPreset; const upper = upperBy[m.id] ?? pr.upperDefault;
+                    return (
+                      <div className="space-y-1" data-arch-sim-catalog={m.id}>
+                        {pr.cardLines.map((ln, i) => <div key={i} className="text-[10px]" style={{ color: C.text }}>{ln.replace("LOFT or SECOND FLOOR", upper === "loft" ? "LOFT · 140 ft²" : "SECOND FLOOR · 140 ft²")}</div>)}
+                        <div className="flex items-center gap-1 text-[9px]">
+                          <span style={{ color: C.dim, width: 56 }}>Upper half</span>
+                          {(["loft", "second-floor"] as UpperKind[]).map((u) => (
+                            <button key={u} data-arch-sim-upper={`${m.id}:${u}`} onClick={() => setUpperBy((st) => ({ ...st, [m.id]: u }))}
+                              className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: upper === u ? C.cyan : C.border, color: upper === u ? C.cyan : C.dim, background: upper === u ? "#0b1220" : "transparent" }}>
+                              {u === "loft" ? "LOFT" : "SECOND FLOOR"}
+                            </button>
+                          ))}
+                        </div>
+                        <div data-arch-sim-catalog-money className="rounded border p-1.5 text-[10px]" style={{ borderColor: C.border, background: C.ground }}>
+                          <div className="flex justify-between"><span style={{ color: C.dim }}>House</span><span style={{ color: C.text }}>{usd(pr.money.house)} · ASSUMED</span></div>
+                          <div className="flex justify-between"><span style={{ color: C.dim }}>Hookups</span><span style={{ color: C.text }}>{usd(pr.money.hookups)} · ASSUMED</span></div>
+                          <div className="flex justify-between"><span style={{ color: C.dim }}>Delivery</span><span style={{ color: C.text }}>{usd(pr.money.delivery)} · ASSUMED</span></div>
+                          {upper === "second-floor" && <div className="text-[8.5px]" style={{ color: C.amber }}>· House $57,000 includes a loft — the SECOND FLOOR is NOT CALCULATED, not added in</div>}
+                          {pr.notes.map((n, i) => <div key={i} className="text-[8.5px]" style={{ color: C.amber }}>· {n}</div>)}
+                          <div className="mt-1 border-t pt-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>Placed on city utilities · <b>{usd(catalogSum(pr))}</b> · ASSUMED · house + hookups + delivery · the card&apos;s Cost row shows this same sum</div>
+                          <div className="text-[8px]" style={{ color: C.dim }}>not a quote · your main home&apos;s plan is untouched</div>
+                        </div>
+                      </div>
+                    );
+                  })() : (<>
                   {/* ── COST · Material + Labor + Markup (operator IMG-02/06: see M+L+Markup, adjustable markup, boil it down) ── */}
                   <div data-arch-sim-elements className="rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
                     <div className="mb-1 flex items-center justify-between text-[8px] uppercase tracking-wider" style={{ color: C.dim }}>

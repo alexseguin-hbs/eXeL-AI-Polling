@@ -90,15 +90,19 @@ const tf = read("../components/architect-2525/tiny-floorplan.tsx");
 ok(/showFurniture &&/.test(tf), "TinyFloorplan draws the furniture layer only when showFurniture (phase-gated)");
 ok(/showFurniture \? \(r\.objects \?\? defaultObjectsForRoom\(r\.k\)\) : \[\]/.test(vox), "VoxelHouse draws room furniture only when showFurniture (a construction phase hides it; Interior Design shows it)");
 
-// ── 8. MODULAR SIMULATE CARDS (operator 2026-11-01: "you always build modularly; tiny home menu is different from 3x3 and
-//    Eco-Sphere"). ONE card render over SIM_MODELS, data-driven by m.catalogPreset: Cube + Eco-Sphere share the standard
-//    module (Area/Cost/Energy/Carbon); the Tiny Home IS its own module (catalog preset), by design — never a forked card. ──
+// ── 8. MODULAR SIMULATE CARDS — SAME HEADLINE FORMAT, DECLARED-DIFFERENT DETAIL (operator 2026-11-01 "you always build
+//    modularly; tiny home menu is different from 3x3 and Eco-Sphere" → 2026-11-02 "fix the Tiny home format (above details
+//    to match exactly)"). ONE card render over SIM_MODELS: ALL THREE now share the SAME headline rows (Area/Cost/Build/
+//    Energy/Carbon + basis footer) — the 2026-11-02 match. The Tiny stays its OWN module where it is DECLARED different:
+//    its headline Cost is the catalog ASSUMED $67,000 (not an engine fabrication), its footer says "catalog stock plan",
+//    and its catalog detail (ASSUMED money lines + LOFT/SECOND FLOOR) lives in "See details" — the different menu, by data. ──
 const soc = read("../components/architect-2525/simulate-options.tsx");
 ok(/SIM_MODELS\.map\(\(m\) => \{/.test(soc), "the Simulate cards are ONE modular render over SIM_MODELS (not a per-form fork)");
-ok(/m\.catalogPreset \?/.test(soc), "the card branches on the DATA flag m.catalogPreset (the Tiny Home's own module), not a hardcoded form id");
-ok(/row\("Area"/.test(soc) && /row\("Cost"/.test(soc), "the full-size forms (Cube · Eco-Sphere) share the standard module rows (Area · Cost)");
-ok(/scoreColor\(m\.energyScore\)/.test(soc) && /scoreColor\(carbonFor\(m, opt\)\)/.test(soc), "the standard module carries Energy + Carbon (Cube · Eco-Sphere)");
-ok(/data-arch-sim-catalog-money/.test(soc), "the Tiny Home module shows its own ASSUMED money lines (catalog preset) — a different menu by design");
+ok(/row\("Area"/.test(soc) && /row\("Cost"/.test(soc) && /row\("Build"/.test(soc), "all three forms share the SAME headline rows (Area · Cost · Build) — the Tiny matches Cube/Eco (operator 2026-11-02)");
+ok(/scoreColor\(m\.energyScore\)/.test(soc) && /scoreColor\(carbonFor\(m, opt\)\)/.test(soc), "the shared headline carries Energy + Carbon stars for every form");
+ok(/const headlineCost = preset \? catalogSum\(preset\) : cardTotal;/.test(soc), "the DATA flag m.catalogPreset drives the Tiny's declared difference: its Cost is the catalog ASSUMED sum, not an engine fabrication");
+ok(/const basisLabel = preset \? "catalog stock plan"/.test(soc), "the Tiny's footer is DECLARED different — 'catalog stock plan', never 'real cost estimate'");
+ok(/data-arch-sim-catalog-money/.test(soc), "the Tiny Home still has its own ASSUMED money lines (catalog preset) — now in See details, the different menu by design");
 
-console.log(`\narchitect-consistency: ${pass} passed, ${fail} failed · one ceiling · one phase order · sqft scoped · presets isolated · room count = cells · phase layers hide interior · modular cards (Tiny = own module)`);
+console.log(`\narchitect-consistency: ${pass} passed, ${fail} failed · one ceiling · one phase order · sqft scoped · presets isolated · room count = cells · phase layers hide interior · modular cards (Tiny = same format, declared-different detail)`);
 process.exit(fail ? 1 : 0);
