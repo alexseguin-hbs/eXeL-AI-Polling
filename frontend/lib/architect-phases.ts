@@ -75,7 +75,7 @@ const DEV_PHASES_SRC: DevPhase[] = [
     ],
   },
   {
-    id: "roofing", label: "Roofing", order: 3, icon: "triangle", color: "#fb923c",
+    id: "roofing", label: "Roof", order: 3, icon: "triangle", color: "#fb923c",
     blurb: "Roof structure — trusses, pitch and the weather shell (right after framing: dry-in).",
     treeGroup: "physical/building-envelope", shows: null, buildPhase: true, draw: L({ structure: true, note: "trusses + shell" }),
     specs: [
