@@ -19,8 +19,16 @@ import { execSync } from "node:child_process";
 import { resolve, join } from "node:path";
 
 const ROOT = resolve(new URL("..", import.meta.url).pathname);
-const SHOTS = join(ROOT, "shots", "icon-wall");
+// Config-driven: FX_CONFIG=/path/config.json overrides the cards/shots/fleet/title for ANY chunk; the ICON values
+// below are the defaults when no config is given, so the original ICON FX still builds unchanged.
+const CONFIG = process.env.FX_CONFIG ? JSON.parse(await readFile(process.env.FX_CONFIG, "utf8")) : null;
+const SHOTS = CONFIG?.shotsDir ? resolve(CONFIG.shotsDir) : join(ROOT, "shots", "icon-wall");
 const OUTDIR = process.env.FX_OUT || SHOTS;
+const TITLE = CONFIG?.title ?? "ICON FX · Wall System · Carbon X · Phoenix $25 multi-story";
+const H1 = CONFIG?.h1 ?? "ARCHITECT-2525 — ICON FX · Wall System · Carbon X · Phoenix $25 multi-story";
+const SUB = CONFIG?.sub ?? "Real 390px screenshots · one decision + comment per image · SAVE → paired JSON";
+const SLUG = CONFIG?.slug ?? "ICON_FX";
+const RELEASE = CONFIG?.release ?? "Architect-2525 · ICON FX (Wall System · Carbon X · Phoenix $25)";
 const sha = (r = "HEAD") => execSync(`git rev-parse --short ${r}`, { cwd: ROOT, encoding: "utf8" }).trim();
 const HEAD = sha();
 const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }));
@@ -34,7 +42,7 @@ async function dataURI(name) {
 }
 
 // ── §2 FIX DETAIL — one card PER IMAGE (operator 2026-10-31: 1 for 1 for all images) ──
-const CARDS = [
+const CARDS = CONFIG?.cards ?? [
   { id: "ICON-WALL", file: "icon-wall-section-390.png", kind: "AFTER", title: "ICON Wall System block — composition · $34 vs $35 · ratings · Carbon X · Phoenix $25",
     explain: "The HOUSE BUILD SPEC master now speaks ICON's cost language. The structural wall cost LINE is the “Wall System” (not “Framing”) and “Roof” (not “Roofing”). Framing is shown as ONE $21 line inside the $35/ft² Wall System (Framing $21 · Dry Wall $3 · Sheathing $1 · Moisture Barrier $3 · Siding $5 · Trim $2). ICON’s finished wall is $34/ft², below the $35 national average. The ratings (R-22 · 2+ hr fire · 250 MPH wind · termite/mold/flood), the Carbon X low-carbon printed-concrete note, and the ICON Phoenix (D24) multi-story line with “printed walls $25/ft²” all live here.",
     where: "/Architect-2525/ → Design tab → HOUSE BUILD SPEC (bottom panel) → the ICON WALL SYSTEM block.",
@@ -56,21 +64,23 @@ const CARDS = [
 ];
 
 // ── §3 / §4 — the 12 Ascended Masters + MoT, from the fleet (ICON_FLEET json), with a clear fallback ──
-let FLEET = null;
-if (process.env.ICON_FLEET) { try { FLEET = JSON.parse(await readFile(process.env.ICON_FLEET, "utf8")); } catch (e) { console.warn("ICON_FLEET read failed:", e.message); } }
+let FLEET = CONFIG?.fleet ?? null;
+if (!FLEET && process.env.ICON_FLEET) { try { FLEET = JSON.parse(await readFile(process.env.ICON_FLEET, "utf8")); } catch (e) { console.warn("ICON_FLEET read failed:", e.message); } }
 const ASM = FLEET?.asm ?? [];
 const MOT_GRADE = FLEET?.motGrade ?? "— (AsM fleet w17ua5hkq pending)";
 const MOT = FLEET?.mot ?? "The 12 Ascended Masters verification (workflow w17ua5hkq) was still running when this artifact was built; its synthesis is folded on completion. Gate evidence already stands: architect-wall-system 26/0, sim-options 241/0, consistency 36/0, house-truth 28/0, stage-plan 25/0, build-instructions 265/0, tsc 0 new, next build exit 0.";
 
 // ── §1 index + §5 queued ──
-const QUEUED = [
+const QUEUED = CONFIG?.queued ?? [
   "ICON Kitchen & Bath / Windows & Doors cost split — NOT added (no sourced $ breakdown in the deck); names aligned only where sourced.",
   "Region / housing cost selector (Atlantis-Accord capitals, local cost) — R-UX6 FUTURE.",
   "Phoenix two-story AREA/COST model — the $25/ft² wall + maxFloors 2 are in the one source; a full two-storey area path is a later revision (no invented deltas now).",
 ];
 
-const GATES = "architect-wall-system 26/0 · sim-options 241/0 · consistency 36/0 · house-truth 28/0 · stage-plan 25/0 · build-instructions 265/0 · tsc 0 new · next build exit 0 (nav-gear-smoke 20/0)";
-const LIVE = "Verify Live #3148 — “Poll live site for 7f08c3d” success 2026-11-02 02:24Z (the $25 Phoenix commit is LIVE); d203260 stragglers in Verify Live #3149 (in_progress)";
+const GATES = CONFIG?.gates ?? "architect-wall-system 26/0 · sim-options 241/0 · consistency 36/0 · house-truth 28/0 · stage-plan 25/0 · build-instructions 265/0 · tsc 0 new · next build exit 0 (nav-gear-smoke 20/0)";
+const LIVE = CONFIG?.live ?? "Verify Live #3148 — “Poll live site for 7f08c3d” success 2026-11-02 02:24Z (the $25 Phoenix commit is LIVE); d203260 stragglers in Verify Live #3149 (in_progress)";
+const FXRANGE = CONFIG?.fxRange ?? "FX-ICON-WALL → FX-ICON-SCREEN";
+const ASM_HEAD = CONFIG?.asmHead ?? "12 Ascended Masters";
 
 const CSS = `:root{--bg:#070b12;--panel:#0a0f16;--panel2:#0d141d;--line:#1e293b;--line2:#164e63;--ink:#cbd5e1;--dim:#7c8aa0;--cyan:#22d3ee;--amber:#eab308;--green:#34d399;--violet:#c084fc;--rose:#fb7185;--gold:#eab308;}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -147,17 +157,17 @@ function render(imgs) {
     : `<div class="asm"><h3>12 Ascended Masters</h3><div class="role">AsM fleet w17ua5hkq</div><p>Verification running when this artifact was built — folded on completion. Gate evidence already green (see header).</p></div>`;
 
   const queued = QUEUED.map((q) => `<li>${esc(q)}</li>`).join("\n");
-  const KEY = `icon-fx-${STAMP.replace(/[.\s:]/g, "-")}`;
-  const jsonName = `${STAMP}_ICON_FX_FEEDBACK.json`;
+  const KEY = `${SLUG}-${STAMP.replace(/[.\s:]/g, "-")}`;
+  const jsonName = `${STAMP}_${SLUG}_FEEDBACK.json`;
   const manifest = JSON.stringify(CARDS.map((c) => c.id));
 
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Architect-2525 · ICON FX · ${STAMP}</title>
+<title>Architect-2525 · ${esc(TITLE)} · ${STAMP}</title>
 <style>${CSS}</style></head><body>
 <header class="top"><div class="wrap">
-<h1>ARCHITECT-2525 — ICON FX · Wall System · Carbon X · Phoenix $25 multi-story</h1>
-<div class="sub">Real 390px screenshots · one decision + comment per image · SAVE → paired JSON</div>
-<div class="meta">SHA ${HEAD} · LIVE ${esc(LIVE)}<br>tsc 0 new · gates ${esc(GATES)}<br>FX range FX-ICON-WALL → FX-ICON-SCREEN · stamp ${STAMP} · site https://exel-ai-polling.explore-096.workers.dev</div>
+<h1>${esc(H1)}</h1>
+<div class="sub">${esc(SUB)}</div>
+<div class="meta">SHA ${HEAD} · LIVE ${esc(LIVE)}<br>tsc 0 new · gates ${esc(GATES)}<br>FX range ${esc(FXRANGE)} · stamp ${STAMP} · site https://exel-ai-polling.explore-096.workers.dev</div>
 </div></header>
 <div class="wrap">
 
@@ -171,7 +181,7 @@ ${idx}
 ${cards}
 </section>
 
-<section><h2>§3 · 12 Ascended Masters</h2>
+<section><h2>§3 · ${esc(ASM_HEAD)}</h2>
 <div class="asm-grid">${asm}</div></section>
 
 <section><h2>§4 · Master of Thought — synthesis</h2>
@@ -201,7 +211,7 @@ ${cards}
 const IDS=${manifest};const KEY='${KEY}';
 function collect(){const features={};IDS.forEach(id=>{const v=document.querySelector('input[name="v-'+id+'"]:checked');features[id]={verdict:v?v.value:null,comment:document.getElementById('c-'+id).value};});
 const ov=document.querySelector('input[name="overall"]:checked');
-return {release:'Architect-2525 · ICON FX (Wall System · Carbon X · Phoenix $25)',date:'${STAMP.split("_")[0]}',stamp:'${STAMP}',sha:'${HEAD}',timestamp:new Date().toISOString(),verdict:ov?ov.value:null,overallNotes:document.getElementById('overallNotes').value,features};}
+return {release:${JSON.stringify(RELEASE)},date:'${STAMP.split("_")[0]}',stamp:'${STAMP}',sha:'${HEAD}',timestamp:new Date().toISOString(),verdict:ov?ov.value:null,overallNotes:document.getElementById('overallNotes').value,features};}
 function refresh(){const p=collect();const d=Object.values(p.features).filter(f=>f.verdict).length;document.getElementById('stat').textContent=d+' / '+IDS.length+' reviewed'+(p.verdict?' · '+p.verdict:'');}
 function dl(){const b=new Blob([JSON.stringify(collect(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='${jsonName}';a.click();}
 function saveFb(){try{localStorage.setItem(KEY,JSON.stringify(collect()));}catch(e){}refresh();dl();}
@@ -215,16 +225,16 @@ document.addEventListener('change',refresh);document.addEventListener('input',re
 const imgs = {};
 for (const c of CARDS) imgs[c.id] = await dataURI(c.file);
 const html = render(imgs);
-const htmlPath = join(OUTDIR, `${STAMP}_ICON_FX.html`);
-const jsonPath = join(OUTDIR, `${STAMP}_ICON_FX_FEEDBACK.json`);
+const htmlPath = join(OUTDIR, `${STAMP}_${SLUG}.html`);
+const jsonPath = join(OUTDIR, `${STAMP}_${SLUG}_FEEDBACK.json`);
 await writeFile(htmlPath, html, "utf8");
 await writeFile(jsonPath, JSON.stringify({
-  release: "Architect-2525 · ICON FX (Wall System · Carbon X · Phoenix $25)", date: STAMP.split("_")[0], stamp: STAMP, sha: HEAD,
+  release: RELEASE, date: STAMP.split("_")[0], stamp: STAMP, sha: HEAD,
   timestamp: now.toISOString(), verdict: null, overallNotes: "",
   features: Object.fromEntries(CARDS.map((c) => [c.id, { verdict: null, comment: "" }])),
 }, null, 2) + "\n", "utf8");
 const have = CARDS.filter((c) => imgs[c.id]).length;
-console.log(`ICON FX · sha ${HEAD} · stamp ${STAMP} · images ${have}/${CARDS.length} · ASM ${ASM.length}/12`);
+console.log(`${SLUG} · sha ${HEAD} · stamp ${STAMP} · images ${have}/${CARDS.length} · ASM ${ASM.length}`);
 console.log("  HTML " + htmlPath);
 console.log("  JSON " + jsonPath);
 process.exit(0);
