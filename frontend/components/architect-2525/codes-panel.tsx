@@ -8,7 +8,7 @@
  * bundled-static (lib/building-codes.ts) per the Vision-2525 no-runtime-fetch rule. Choice persists
  * (arch2525.codes + snapshot + Replay). A planning aid, not a permit — verify with the local AHJ.
  */
-import { Check, ShieldCheck } from "lucide-react";
+import { Check, ShieldCheck, BookOpen, ExternalLink } from "lucide-react";
 import { STANDARDS, requirementsFor, CODES_DISCLAIMER, type StandardScope } from "@/lib/building-codes";
 import { type LayerState } from "./use-layer-state";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -51,10 +51,33 @@ export function CodesPanel({ state }: { state?: LayerState }) {
                 <ul className="mt-1 flex flex-col gap-0.5">
                   {s.requirements.map((r, i) => <li key={i} className="flex gap-1 text-[9px]" style={{ color: C.text }}><span style={{ color: col }}>•</span><span>{r}</span></li>)}
                 </ul>
-                <div className="mt-1 text-[8px]" style={{ color: C.dim }}>Source: {s.citation}</div>
+                <div className="mt-1 text-[8px]" style={{ color: C.dim }}>
+                  Source: {s.officialUrl
+                    ? <a href={s.officialUrl} target="_blank" rel="noopener noreferrer" data-code-source={s.id} className="inline-flex items-center gap-0.5 underline" style={{ color: col }}>{s.citation} <ExternalLink className="h-2.5 w-2.5" /></a>
+                    : s.citation}
+                </div>
               </div>
             );
           })}
+        </div>
+      )}
+      {/* OFFICIAL CODE LIBRARY — always one tap away, selection or not (operator 2026-11-02: "place download of
+          2024 IBC in the building-code section"). The I-Codes are ICC-copyrighted — we LINK the publisher's free
+          read-only view, never a bundled PDF, so the source is official and the copyright is respected. */}
+      {STANDARDS.some((s) => s.officialUrl) && (
+        <div data-arch-code-library className="flex flex-col gap-1 rounded border p-1.5" style={{ borderColor: C.border }}>
+          <div className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
+            <BookOpen className="h-3 w-3" /> Official code library
+          </div>
+          {STANDARDS.filter((s) => s.officialUrl).map((s) => (
+            <a key={s.id} href={s.officialUrl} target="_blank" rel="noopener noreferrer" data-code-read={s.id}
+              className="flex items-center justify-between rounded border px-2 py-1 text-[9px] font-semibold hover:bg-white/5"
+              style={{ borderColor: SCOPE_COLOR[s.scope], color: SCOPE_COLOR[s.scope] }}>
+              <span className="inline-flex items-center gap-1"><ExternalLink className="h-3 w-3" /> Read the official {s.name.replace(/^.*·\s*/, "")} at ICC</span>
+              <span className="normal-case" style={{ color: C.dim }}>free read · codes.iccsafe.org</span>
+            </a>
+          ))}
+          <div className="text-[8px]" style={{ color: C.dim }}>Opens the publisher&apos;s free read-only view (ICC Digital Codes). The codes are ICC-copyrighted — buy the full PDF from ICC; we never host it.</div>
         </div>
       )}
       <div className="text-[8px] leading-relaxed" style={{ color: C.gold }}>⚠ {CODES_DISCLAIMER}</div>
