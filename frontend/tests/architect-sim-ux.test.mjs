@@ -25,7 +25,7 @@ ok(/const scoreColor = \(n: number\) => SCORE_COLORS\[/.test(so) && /const SCORE
   ok(cols.length === 6 && (hue(cols[1]) <= 20 || hue(cols[1]) >= 340), `1-star is red (hue ${hue(cols[1]).toFixed(0)}°)`);
   ok(hue(cols[4]) >= 90 && hue(cols[4]) <= 160 && hue(cols[5]) >= 90 && hue(cols[5]) <= 160, `4-star and 5-star are green (hues ${hue(cols[4]).toFixed(0)}° / ${hue(cols[5]).toFixed(0)}°)`); }
 ok((so.match(/scoreColor\(/g) || []).length >= 6, `scoreColor is applied in every star/score site (got ${(so.match(/scoreColor\(/g) || []).length})`);
-ok(/style=\{\{ color: scoreColor\(c\.score\) \}\}/.test(so) && !/!shown/.test(so), "the matrix cell number is red→green by score, always shown (no run gate)");
+ok(/fontVariantNumeric: "tabular-nums", color: scoreColor\(c\.score\)/.test(so) && !/!shown/.test(so), "the matrix cell number is red→green by score, always shown (no run gate) — in the aligned ✦-slot cell (tabular-nums + scoreColor)");
 ok(/style=\{\{ color: scoreColor\(c\.stars\) \}\}>\{stars\(c\.stars\)\}/.test(so), "the matrix cell stars are red→green by score");
 ok(/scoreColor\(m\.energyScore\)/.test(so) && /scoreColor\(carbonFor\(m, opt\)\)/.test(so), "the card Energy/Carbon stars are red→green");
 

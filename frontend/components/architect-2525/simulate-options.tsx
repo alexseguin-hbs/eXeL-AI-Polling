@@ -28,6 +28,7 @@ import {
 import { SimEnvironmentView } from "./sim-environment-view";
 import { BuildInstructionsPanel, BuildTimelineCompare } from "./build-instructions";
 import { SIM_PRINT_CSS, SimulatePrintStack, useSimPrint } from "./simulate-print";
+import { DownloadGlyph } from "@/components/download-icon";   // the Vision-2525 download iconology (arrow-to-line glyph)
 import { type FormId } from "@/lib/architect-sim-environment";
 import { TINY_ROOM_LAYOUT, type RoomCell } from "@/lib/room-layout";
 import { rainbow } from "@/lib/architect-rainbow";
@@ -158,14 +159,18 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
   return (
     <div className="space-y-3" data-arch-sim-options>
       <style>{SIM_PRINT_CSS}</style>
-      <div className="flex flex-wrap items-center gap-2">
+      {/* title row — the compact download control rides this line so it costs no extra height (operator 2026-11-03:
+          "make one line, so download doesn't take up so much space"); the icon is the Vision-2525 download glyph. */}
+      <div className="flex items-center gap-2">
         <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>THREE WAYS TO BUILD YOUR HOME</div>
-        <span className="text-[9px]" style={{ color: C.dim }}>· Cube · Tiny Home · Eco-Sphere — each scored live from your 3×3 design · tap a card for the details</span>
         <button data-arch-sim-print data-noprint onClick={printNow}
-          className="ml-auto rounded border px-2 py-0.5 text-[10px] font-semibold"
+          className="ml-auto inline-flex shrink-0 items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold"
           style={{ borderColor: C.cyan, color: C.cyan, background: "#07202a" }}
-          title="Opens your print dialog — choose Save as PDF (portrait or landscape)">⎙ Download as PDF</button>
+          title="Download this comparison as a PDF — your print dialog, choose Save as PDF (portrait or landscape)" aria-label="Download as PDF">
+          <DownloadGlyph size={12} /> PDF
+        </button>
       </div>
+      <div className="text-[9px]" style={{ color: C.dim }}>· Cube · Tiny Home · Eco-Sphere — each scored live from your 3×3 design · tap a card for the details</div>
 
       {/* master compare mode — each form's native method, or ALL as 3D-printed cement (Christo: flag mixed methods) */}
       <div className="flex flex-wrap items-center gap-1.5 text-[9px]">
@@ -565,7 +570,12 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
                       const win = c.modelId === rw.winnerId;
                       return (
                         <span key={c.modelId} data-arch-sim-cell className="flex flex-col items-center leading-none">
-                          <span className="text-[11px] font-semibold" style={{ color: scoreColor(c.score) }}>{win ? "✦ " : ""}{c.score.toFixed(1)}</span>
+                          {/* fixed-width ✦ slot + tabular-nums so the number keeps its column whether or not it is the
+                              best (operator 2026-11-03: "ensure numbers are aligned top to bottom even though PDF HAS * in front for best") */}
+                          <span className="text-[11px] font-semibold" style={{ display: "grid", gridTemplateColumns: "0.8em auto", justifyContent: "center", columnGap: 2, alignItems: "baseline", fontVariantNumeric: "tabular-nums", color: scoreColor(c.score) }}>
+                            <span aria-hidden style={{ textAlign: "right" }}>{win ? "✦" : ""}</span>
+                            <span>{c.score.toFixed(1)}</span>
+                          </span>
                           <span className="mt-0.5 text-[8px]" style={{ color: scoreColor(c.stars) }}>{stars(c.stars)}</span>
                         </span>
                       );

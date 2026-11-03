@@ -66,16 +66,35 @@ export const SIM_PRINT_CSS = `
   .sim-print-page + .sim-print-page { break-before: page; page-break-before: always; }
   .sim-print-env svg { width: 100% !important; height: auto !important; }
 }
-/* RESPONSIVE — the user picks orientation when printing; the deck reflows like the app's phone↔PC breakpoints */
+/* ONE PAGE PER DESIGN. The 3 compare cards sit three-across; each home is a 2-column card (mockup | details) with
+   its 13-CHECKS band — the portrait look the operator approved ("Attachment was perfect"). Portrait pages are tall
+   (10in), so that stacks to one page as-is. LANDSCAPE pages are SHORT (7.5in): the per-home page spilled because the
+   DETAILS column (headline + cost + phase, ~500px), NOT the mockup, sets the height, and the full-width 13-CHECKS
+   band (~145px) then pushed the page over 720px. So shrinking the mockup saved ~0 (the earlier cap was a red herring).
+   The fix (operator 2026-11-03 "landscape still has errors") is landscape-ONLY: move the 13-CHECKS into a RIGHT RAIL
+   beside the form, reclaiming that band. The mockup is NOT shrunk; PORTRAIT is left byte-identical. The user still
+   picks the orientation in the print dialog. */
+.sim-print-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.sim-print-form { display: grid; grid-template-columns: 1fr 1.15fr; gap: 14px; align-items: start; }
+.sim-print-env { max-width: 100%; margin: 0 auto; }
 @media print and (orientation: portrait) {
-  .sim-print-cards { display: grid; grid-template-columns: 1fr; gap: 10px; }
-  .sim-print-form { display: block; }
-  .sim-print-env { max-width: 440px; margin: 0 auto; }
+  .sim-print-cards { gap: 8px; }
+  .sim-print-env { max-width: 100%; }   /* the portrait page is tall (10in) — the mockup runs the full column */
 }
 @media print and (orientation: landscape) {
-  .sim-print-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .sim-print-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
-  .sim-print-env { max-width: 100%; }
+  /* the per-home page becomes  head / [form | 13-checks rail] / foot , so the checks no longer add a vertical band */
+  .sim-print-home { display: grid; grid-template-columns: 1fr 232px; grid-template-areas: "head head" "body rail" "foot foot"; column-gap: 12px; align-items: start; }
+  .sim-print-home > .home-head { grid-area: head; }
+  .sim-print-home > .sim-print-form { grid-area: body; }
+  .sim-print-home > .sim-print-checks { grid-area: rail; margin-top: 0; }
+  .sim-print-home > .home-foot { grid-area: foot; }
+  .sim-print-home .sim-checks-grid { grid-template-columns: 1fr !important; }   /* the rail is one column of 13 rows */
+  /* the COMPARE page is short in landscape too: lay the tall 13-CHECKS matrix BESIDE the best-pick + time-to-build
+     (the matrix spans both rows), under the full-width cards — so page 1 is one page as well (measured 748→~540px). */
+  .sim-print-compare-lower { display: grid; grid-template-columns: 1fr 1.15fr; grid-template-areas: "best matrix" "time matrix"; column-gap: 10px; align-items: start; }
+  .sim-print-compare-lower > .cmp-best { grid-area: best; margin-top: 0 !important; }
+  .sim-print-compare-lower > .cmp-time { grid-area: time; margin-top: 8px !important; }
+  .sim-print-compare-lower > .cmp-matrix { grid-area: matrix; margin-top: 0 !important; }
 }
 `;
 
@@ -123,6 +142,18 @@ function StackBar({ label, material, labor, markup, usd: amt, max }: { label: st
       </span>
       <span style={{ color: P.ink, flexShrink: 0 }}>{usd(amt)}</span>
     </div>
+  );
+}
+/** One 13-CHECKS score cell whose NUMBER keeps its column whether or not the ✦ best-marker is in front (operator
+ *  2026-11-03: "ensure numbers are aligned top to bottom even though PDF HAS * in front for best"). A fixed-width
+ *  marker slot (blank when not best) + tabular-nums + a centred [marker | number] pair = the number sits at the same
+ *  x in every row. */
+function MatrixScore({ score, win }: { score: number; win: boolean }) {
+  return (
+    <span style={{ display: "grid", gridTemplateColumns: "0.8em auto", justifyContent: "center", columnGap: 2, alignItems: "baseline", fontSize: 10, fontVariantNumeric: "tabular-nums", color: scoreColor(score), fontWeight: win ? 700 : 400 }}>
+      <span aria-hidden style={{ textAlign: "right" }}>{win ? "✦" : ""}</span>
+      <span>{score.toFixed(1)}</span>
+    </span>
   );
 }
 function PageFoot({ n, of }: { n: number; of: number }) {
@@ -192,15 +223,17 @@ export function SimulatePrintStack({ models, optsBy, costBy, upperBy, designRoom
           ))}
         </div>
 
+        {/* best-overall + the 13-CHECKS matrix + time-to-build — stacked in portrait, a 2-col grid in landscape */}
+        <div className="sim-print-compare-lower">
         {/* best overall */}
-        <div style={{ ...panel, marginTop: 8, borderColor: "#f59e0b" }}>
+        <div className="cmp-best" style={{ ...panel, marginTop: 8, borderColor: "#f59e0b" }}>
           <span style={{ color: P.dim, fontSize: 11 }}>Best overall → </span>
           <span style={{ color: "#b45309", fontWeight: 700, fontSize: 12 }}>✦ {rec.label}</span>
           <div style={{ fontSize: 9, color: P.dim, marginTop: 2 }}>{rec.reason}</div>
         </div>
 
         {/* the 13 checks, side by side */}
-        <div style={{ ...panel, marginTop: 8 }}>
+        <div className="cmp-matrix" style={{ ...panel, marginTop: 8 }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: P.head, marginBottom: 4 }}>THE 13 CHECKS · SIDE BY SIDE <span style={{ color: P.soft, fontWeight: 400 }}>· ✦ = best · 0–5</span></div>
           <div style={{ display: "grid", gridTemplateColumns: `minmax(90px,1.3fr) repeat(${models.length}, 1fr)`, alignItems: "end", gap: 4, paddingBottom: 4, borderBottom: `1px solid ${P.line}` }}>
             <span style={{ fontSize: 8, color: P.soft, textTransform: "uppercase" }}>check</span>
@@ -212,16 +245,14 @@ export function SimulatePrintStack({ models, optsBy, costBy, upperBy, designRoom
             <div key={rw.sim} style={{ display: "grid", gridTemplateColumns: `minmax(90px,1.3fr) repeat(${models.length}, 1fr)`, gap: 4, alignItems: "center", padding: "2px 0", borderTop: `1px solid #eef2f7` }} title={simMeaning[rw.sim]}>
               <span style={{ fontSize: 10, color: P.ink }}>{rw.sim}</span>
               {rw.cells.map((c) => (
-                <span key={c.modelId} style={{ textAlign: "center", fontSize: 10, color: scoreColor(c.score), fontWeight: c.modelId === rw.winnerId ? 700 : 400 }}>
-                  {c.modelId === rw.winnerId ? "✦ " : ""}{c.score.toFixed(1)}
-                </span>
+                <MatrixScore key={c.modelId} score={c.score} win={c.modelId === rw.winnerId} />
               ))}
             </div>
           ))}
         </div>
 
         {/* time to build — all three */}
-        <div style={{ ...panel, marginTop: 8 }}>
+        <div className="cmp-time" style={{ ...panel, marginTop: 8 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: P.head, marginBottom: 4 }}>TIME TO BUILD</div>
           {(() => {
             const mo = models.map((m) => ({ m, months: monthsFor(m, optsBy[m.id]) }));
@@ -234,6 +265,7 @@ export function SimulatePrintStack({ models, optsBy, costBy, upperBy, designRoom
               </div>
             ));
           })()}
+        </div>
         </div>
         <PageFoot n={1} of={pageCount} />
       </section>
@@ -256,8 +288,8 @@ export function SimulatePrintStack({ models, optsBy, costBy, upperBy, designRoom
         const passed = results.filter((r) => r.status === "PASS").length;
         const upper = (upperBy[m.id] ?? preset?.upperDefault) as UpperKind | undefined;
         return (
-          <section className="sim-print-page" key={m.id} style={{ padding: 4 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <section className="sim-print-page sim-print-home" key={m.id} style={{ padding: 4 }}>
+            <div className="home-head" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
               <span style={{ border: `1px solid ${P.line}`, borderRadius: 4, padding: 3, background: D.ground }}><FormGlyph id={m.id} size={30} /></span>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: P.head }}>{m.label}</div>
@@ -311,10 +343,10 @@ export function SimulatePrintStack({ models, optsBy, costBy, upperBy, designRoom
               </div>
             </div>
 
-            {/* the 13 checks for this home */}
-            <div style={{ ...panel }}>
+            {/* the 13 checks for this home — a right rail in landscape (one column), the full-width band in portrait */}
+            <div className="sim-print-checks" style={{ ...panel }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, fontWeight: 700, color: P.head, marginBottom: 3 }}><span>The 13 checks</span><span>{avg.toFixed(1)}/5 · passes {passed} of 13</span></div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px 16px" }}>
+              <div className="sim-checks-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px 16px" }}>
                 {results.map((r) => (
                   <div key={r.sim} style={{ display: "flex", justifyContent: "space-between", fontSize: 9 }} title={simMeaning[r.sim]}>
                     <span style={{ color: P.dim }}>{r.sim}</span>
@@ -324,7 +356,7 @@ export function SimulatePrintStack({ models, optsBy, costBy, upperBy, designRoom
               </div>
               <div style={{ fontSize: 8, color: P.soft, marginTop: 2 }}>A quick design preview — not a final engineering check.</div>
             </div>
-            <PageFoot n={i + 2} of={pageCount} />
+            <div className="home-foot"><PageFoot n={i + 2} of={pageCount} /></div>
           </section>
         );
       })}
