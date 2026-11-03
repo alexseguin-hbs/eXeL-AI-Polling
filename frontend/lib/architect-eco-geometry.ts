@@ -97,5 +97,5 @@ export function ecoFloorLabel() {
 export function ecoRoofLabel() {
   const r = ecoRoofPanel();
   const r2 = (n: number) => Math.round(n * 100) / 100;
-  return `40-ft hex-panel dome · each panel about ${r2(r.panel.flatToFlatFt)} ft across the flats (${r2(r.panel.areaFt2)} ft²) · the half-dome is about ${Math.round(r.dome.hemisphereFt2).toLocaleString()} ft² · the exact panel count follows the dome's tessellation`;
+  return `40-ft hex-panel dome · each panel about ${r2(r.panel.flatToFlatFt)} ft across the flats (${r2(r.panel.areaFt2)} ft²) · the half-dome is about ${Math.round(r.dome.hemisphereFt2).toLocaleString()} ft² · the exact number of panels depends on how they tile across the dome`;
 }

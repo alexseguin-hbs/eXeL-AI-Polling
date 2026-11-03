@@ -16,7 +16,7 @@
  * headline is its catalog ASSUMED $67,000 (house+hookups+delivery, shown as a stock plan, not an engine fabrication);
  * the Eco-Sphere is ASSUMED; all results are ESTIMATES, never a quote.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   SIM_MODELS, SIMS, METHODS, METHODS_FOR, PRINT_MATERIALS, FUTURE_PRINT_MATERIALS, FRAME_MATERIALS, ROOFS, ROOFS_FOR,
@@ -138,6 +138,17 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
   const setCost = (id: string, patch: Partial<CostParams>) => setCostBy((s) => ({ ...s, [id]: { ...s[id], ...patch } }));
   // Eco-Sphere A01 hex roof-panel concept — the operator's infographic, opened full-screen on tap (Experiences lightbox idiom)
   const [a01Open, setA01Open] = useState(false);
+  const [a01Loaded, setA01Loaded] = useState(false);          // the 18.6 MiB image loads on tap — show "Loading…" until it arrives
+  const a01CloseRef = useRef<HTMLButtonElement>(null);        // focus target when the lightbox opens (keyboard a11y)
+  const a01TriggerRef = useRef<HTMLButtonElement>(null);      // focus returns here on close
+  useEffect(() => {
+    if (!a01Open) return;
+    setA01Loaded(false);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setA01Open(false); };
+    window.addEventListener("keydown", onKey);
+    const t = setTimeout(() => a01CloseRef.current?.focus(), 0); // move focus into the dialog
+    return () => { window.removeEventListener("keydown", onKey); clearTimeout(t); a01TriggerRef.current?.focus(); };
+  }, [a01Open]);
 
   const allPrintedCement = SIM_MODELS.every((m) => optsBy[m.id]?.method === "3d-print" && optsBy[m.id]?.printMaterial === "cement");
   const allNative = SIM_MODELS.every((m) => JSON.stringify(optsBy[m.id]) === JSON.stringify(optFor(m)));   // every card at its native option
@@ -345,10 +356,10 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
                         <span style={{ color: C.cyan }}>Roof</span> — {ecoRoofLabel()}
                       </div>
                       {/* tap to open the operator's A01 roof-panel infographic full-screen (frame stays, infill changes) */}
-                      <button type="button" data-arch-eco-a01 onClick={() => setA01Open(true)}
+                      <button type="button" data-arch-eco-a01 ref={a01TriggerRef} onClick={() => setA01Open(true)}
                         className="mt-1 inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[9px] font-semibold"
                         style={{ borderColor: C.cyan, color: C.cyan, background: "#07202a" }}
-                        aria-label="Open the hex roof panel concept diagram">
+                        aria-label="Open the hex roof panel concept (A01) diagram">
                         ⤢ Hex roof panel concept (A01)
                       </button>
                     </div>
@@ -703,11 +714,13 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
       {a01Open && typeof document !== "undefined" && createPortal(
         <div data-arch-eco-a01-overlay role="dialog" aria-modal="true" aria-label="Eco-Sphere hex roof panel concept (A01)"
           onClick={() => setA01Open(false)} className="fixed inset-0 z-[130] flex items-center justify-center bg-black/90 p-3" style={{ cursor: "zoom-out" }}>
-          <button type="button" onClick={() => setA01Open(false)} aria-label="Close"
+          <button type="button" ref={a01CloseRef} onClick={() => setA01Open(false)} aria-label="Close"
             className="absolute right-3 top-3 rounded-full border px-2.5 py-0.5 text-sm font-bold" style={{ borderColor: "#19c8cf", color: "#19c8cf", background: "#07202a" }}>✕</button>
-          <img src="/architect-2525/eco-sphere-hex-roof-a01.png" onClick={(e) => e.stopPropagation()}
+          {/* the render is ~18.6 MiB and loads on tap — a loading line until it arrives, so the dim overlay never reads as a hang */}
+          {!a01Loaded && <div aria-live="polite" style={{ position: "absolute", color: "#9fb0c0", fontSize: 13, letterSpacing: 0.5 }}>Loading concept…</div>}
+          <img src="/architect-2525/eco-sphere-hex-roof-a01.png" onClick={(e) => e.stopPropagation()} decoding="async" onLoad={() => setA01Loaded(true)}
             alt="Eco-Sphere Hex Roof Panel A01 — modular installation and replacement (reference concept)"
-            className="max-h-full max-w-full object-contain" />
+            className="max-h-full max-w-full object-contain" style={{ opacity: a01Loaded ? 1 : 0 }} />
         </div>,
         document.body,
       )}

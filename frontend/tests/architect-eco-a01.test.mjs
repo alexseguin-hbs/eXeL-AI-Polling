@@ -44,6 +44,13 @@ ok(/object-contain/.test(opts), "the A01 image is shown object-contain (whole im
 ok(/onClick=\{\(\) => setA01Open\(false\)\}[\s\S]{0,600}onClick=\{\(e\) => e\.stopPropagation\(\)\}/.test(opts), "tapping the backdrop closes; tapping the image does not (stopPropagation)");
 ok(/role="dialog"/.test(opts) && /aria-label=/.test(opts), "the overlay is an accessible dialog (role + aria-label)");
 
+// ── R4c · the lightbox is keyboard-accessible + the heavy image has a loading affordance (AsM fleet P2s) ──
+ok(/addEventListener\("keydown"[\s\S]{0,120}Escape|e\.key === "Escape"[\s\S]{0,80}setA01Open\(false\)/.test(opts), "the lightbox closes on Escape (keydown listener while open)");
+ok(/a01CloseRef/.test(opts) && /a01TriggerRef/.test(opts) && /a01CloseRef\.current\?\.focus\(\)/.test(opts), "focus moves into the dialog on open (close button) and returns to the trigger on close");
+ok(/decoding="async"/.test(opts), "the 18.6 MiB image decodes async (never blocks the main thread)");
+ok(/Loading concept…|Loading concept\.\.\./.test(opts) && /onLoad=\{\(\) => setA01Loaded\(true\)\}/.test(opts), "a loading affordance shows until the heavy image arrives (no silent black overlay)");
+ok(/aria-label="Open the hex roof panel concept \(A01\) diagram"/.test(opts), "the trigger's accessible name contains its visible '(A01)' token (WCAG 2.5.3)");
+
 // ── voice-safe: no machine words in the new human-facing strings ──
 ok(!/wireframe|voxel|canonical|deterministic|R-CORE|SSSES|SPIRAL/i.test('Hex roof panel concept (A01) Open the hex roof panel concept diagram'), "the A01 link/labels are human (no machine words)");
 
