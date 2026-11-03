@@ -29,6 +29,7 @@ import { SimEnvironmentView } from "./sim-environment-view";
 import { BuildInstructionsPanel, BuildTimelineCompare } from "./build-instructions";
 import { SIM_PRINT_CSS, SimulatePrintStack, useSimPrint } from "./simulate-print";
 import { DownloadGlyph } from "@/components/download-icon";   // the Vision-2525 download iconology (arrow-to-line glyph)
+import { ecoFloorLabel, ecoRoofLabel } from "@/lib/architect-eco-geometry";   // Eco-Sphere REFERENCE hex geometry (floor + dome panel)
 import { type FormId } from "@/lib/architect-sim-environment";
 import { TINY_ROOM_LAYOUT, type RoomCell } from "@/lib/room-layout";
 import { rainbow } from "@/lib/architect-rainbow";
@@ -326,6 +327,22 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
                       )}
                     </div>
                   </div>
+
+                  {/* Eco-Sphere ONLY — the operator's hex dimensions (operator 2026-11-03: "update dimensions of 900 sq
+                      ft hex for each room"). Two REFERENCE blocks, both DERIVED (not typed) in lib/architect-eco-geometry:
+                      the FLOOR (seven hex rooms tiling 900 ft²) and the ROOF/DOME PANEL (the 40-ft hex-panel dome). A
+                      1st-pass concept, to be validated — it moves no cost. */}
+                  {m.id === "eco-sphere" && (
+                    <div className="space-y-1 rounded border p-1.5" data-arch-eco-geometry style={{ borderColor: C.border, background: C.ground }}>
+                      <div className="text-[9px] font-semibold tracking-wider" style={{ color: C.violet }}>HEX DIMENSIONS <span style={{ color: C.dim, fontWeight: 400 }}>· reference · 1st-pass concept, to be validated</span></div>
+                      <div data-arch-eco-floor className="text-[9px] leading-snug" style={{ color: C.text }}>
+                        <span style={{ color: C.cyan }}>Floor</span> — {ecoFloorLabel()}
+                      </div>
+                      <div data-arch-eco-roof className="text-[9px] leading-snug" style={{ color: C.text }}>
+                        <span style={{ color: C.cyan }}>Roof</span> — {ecoRoofLabel()}
+                      </div>
+                    </div>
+                  )}
 
                   {/* The catalog preset's stock-plan truth (operator 2026-11-02): the card above shows the matched
                       Area/Cost/Build/Energy/Carbon rows; HERE is the honest breakdown behind its $67,000 — the
