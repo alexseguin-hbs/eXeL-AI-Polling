@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Architect-2525 append-only traceability ledger — 20 entries, extracted at build time. */
+/** Architect-2525 append-only traceability ledger — 23 entries, extracted at build time. */
 export const ARCHITECT_LEDGER: LedgerInput = {
   "section": "Architect-2525",
   "route": "/Architect-2525",
@@ -149,6 +149,27 @@ export const ARCHITECT_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "The Simulate tab prints its visuals — a Download-as-PDF deck (operator: \"ensure simulation tab prints visuals; see PDF downloads from Vision-2525 and SoI-2525 export of S1-S18 to see lessons learned there\"). A browser Ctrl-P of Simulate gave ONE page of text because the floor-plan mockups + cost/phase bars lived behind \"See details\" (unmounted), the bars were CSS-background (print strips them), and the shell was a fixed overlay (one page). This adds the proven SoI S1-S18 export idiom to Simulate: ZERO dependencies — window.print() over an OFF-STAGE print-stack portal (createPortal -> document.body), print-color-adjust:exact carrying the solid bars, live inline SVG printing as vectors. Honours the Vision-2525 no-runtime-fetch/determinism rule (no server round-trip, no jsPDF/html2canvas). The deck (operator pick): page 1 = the 3 compare cards + the 13-CHECKS matrix + build-time bars; then one page per home (Cube/Tiny/Eco) with its floor-plan mockup + Material/Labor/Markup element bars + phase-time bars + its 13 checks. PDF == screen by construction (reads the same engine), so the $240k one-cost-truth is untouched. New files simulate-print.tsx (SIM_PRINT_CSS + SimulatePrintStack + useSimPrint) and a human \"Download as PDF\" button in simulate-options.tsx; new gate architect-sim-print (29/0). LIVE: pushed both refs at 236354493; portrait approved by the operator (FX APPROVE all five), landscape one-page follow-up is R1. This row is backfilled in R0 (the ship went out without its ledger row).",
       "commit": "236354493"
+    },
+    {
+      "rev": 21,
+      "date": "2026-11-03",
+      "kind": "release",
+      "text": "Simulate → Download-as-PDF, three operator asks in one revision. (1) \"landscape still has errors\": each design now prints ONE landscape page — the per-home page moves its 13-CHECKS into a RIGHT RAIL beside the form (.sim-print-home grid), and the compare page sets its 13-CHECKS matrix BESIDE the best-pick + time-to-build (.sim-print-compare-lower grid); portrait left byte-identical. Pixel proof (scripts/sim-pdf-shot.mjs): landscape 577/599/557/599 <=680, portrait 748/749/707/749 <=960, all fit. (2) \"ensure numbers are aligned top to bottom even though PDF HAS * in front for best\": the 13-CHECKS score is a fixed-width marker slot + tabular-nums (MatrixScore), so the best-marker never shifts the number — in BOTH the PDF matrix and the on-screen matrix. (3) \"make one line, so download doesn't take up so much space\": the download control is a compact inline chip with the Vision-2525 DownloadGlyph that rides the title line. architect-sim-print 40/0.",
+      "commit": "5c322a5c0"
+    },
+    {
+      "rev": 22,
+      "date": "2026-11-03",
+      "kind": "release",
+      "text": "Eco-Sphere hex dimensions (operator: \"update dimensions of 900 sq ft hex for each room per eXeL AI\" + the 40-ft 10.09 degree hex-dome panel from his A01). New pure module lib/architect-eco-geometry.ts DERIVES both from first principles (regular-hexagon identities), never typed: FLOOR seven rooms from 900/7 (128.57 ft²/hex, 7.03 side, 12.18 flat-to-flat, 14.07 point-to-point, 35.17x36.55 overall, Sigma = 900 exact); ROOF/DOME panel from the 0.619 m side (1.073 m flat-to-flat / 3.52 ft, 1.238 m point-to-point, 0.995 m² / 10.72 ft²) + the 40-ft dome (20-ft radius, half-dome 2,513 ft²). FLOOR and ROOF are SEPARATE geometries. Surfaced as two labelled REFERENCE blocks in the Eco-Sphere See-details. The gate (architect-eco-geometry 31/0) EXECUTES the module and checks every number against the spec + the A01; the module imports nothing (firewalled) and moves no cost (Eco-Sphere $231,500 unchanged; the floor-derived build-instructions dome is untouched).",
+      "commit": "37b14aef9"
+    },
+    {
+      "rev": 23,
+      "date": "2026-11-03",
+      "kind": "release",
+      "text": "Eco-Sphere A01 hex roof-panel concept (operator: \"have link that expands this image\" · \"use larger file which uses light codex encoded image\"). An Eco-only \"Hex roof panel concept (A01)\" link under the hex dimensions opens the operator's A01 infographic full-screen (createPortal -> document.body, dim backdrop, tap/✕ to close, image object-contain). The served asset is his larger light-codex render kept LOSSLESS at 5760x3240 (18.6 MiB) — the 7680x4320 master (25.9 MiB, persisted in docs/asks/img, sha 3398690598…) exceeds Cloudflare's 25 MiB per-file limit, so the served copy is the lossless 5760px downscale (still 4K+). Gate architect-eco-a01 17/0: the PNG exists, is a real 4K+ PNG, > 3 MiB (not a thumbnail) and < 25 MiB (under the deploy limit), + the Eco-only link + the portaled lightbox. REFERENCE; no cost moved.",
+      "commit": "14db4ab7b"
     }
   ]
 };

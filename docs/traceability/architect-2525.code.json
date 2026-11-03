@@ -858,6 +858,106 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 21,
+   "commit": "5c322a5c0",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/simulate-options.tsx",
+       "blob": "71c2c9715d884ab3858a27fa3391532e5d880b18"
+      },
+      {
+       "path": "frontend/components/architect-2525/simulate-print.tsx",
+       "blob": "ed1ded9abe75e52902ef8800823c8f94edcf1226"
+      }
+     ],
+     "add": 66,
+     "del": 24,
+     "bytes": 14569,
+     "lines": 201,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 22,
+   "commit": "37b14aef9",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/simulate-options.tsx",
+       "blob": "41253c50a0ed7d38b39701ac349fa52581fa02b8"
+      }
+     ],
+     "add": 17,
+     "del": 0,
+     "bytes": 2714,
+     "lines": 35,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 23,
+   "commit": "14db4ab7b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/simulate-options.tsx",
+       "blob": "5f8d039a60f188cbae515d2e1b914181fc82c34c"
+      }
+     ],
+     "add": 26,
+     "del": 0,
+     "bytes": 4374,
+     "lines": 60,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
