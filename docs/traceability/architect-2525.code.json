@@ -958,6 +958,38 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 24,
+   "commit": "2b39930df",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/simulate-options.tsx",
+       "blob": "6edb2a265af88e9a95d1a5b9e57f6bd9a610c400"
+      }
+     ],
+     "add": 19,
+     "del": 6,
+     "bytes": 4973,
+     "lines": 63,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }

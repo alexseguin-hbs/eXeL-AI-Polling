@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Architect-2525 append-only traceability ledger — 23 entries, extracted at build time. */
+/** Architect-2525 append-only traceability ledger — 24 entries, extracted at build time. */
 export const ARCHITECT_LEDGER: LedgerInput = {
   "section": "Architect-2525",
   "route": "/Architect-2525",
@@ -170,6 +170,13 @@ export const ARCHITECT_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "Eco-Sphere A01 hex roof-panel concept (operator: \"have link that expands this image\" · \"use larger file which uses light codex encoded image\"). An Eco-only \"Hex roof panel concept (A01)\" link under the hex dimensions opens the operator's A01 infographic full-screen (createPortal -> document.body, dim backdrop, tap/✕ to close, image object-contain). The served asset is his larger light-codex render kept LOSSLESS at 5760x3240 (18.6 MiB) — the 7680x4320 master (25.9 MiB, persisted in docs/asks/img, sha 3398690598…) exceeds Cloudflare's 25 MiB per-file limit, so the served copy is the lossless 5760px downscale (still 4K+). Gate architect-eco-a01 17/0: the PNG exists, is a real 4K+ PNG, > 3 MiB (not a thumbnail) and < 25 MiB (under the deploy limit), + the Eco-only link + the portaled lightbox. REFERENCE; no cost moved.",
       "commit": "14db4ab7b"
+    },
+    {
+      "rev": 24,
+      "date": "2026-11-03",
+      "kind": "release",
+      "text": "AsM fleet fixes (the 6-lens review graded the R1-R3 work A-, SHIP, no P0/P1, no product-truth invariant violated; this applies its in-scope P2s). A01 lightbox accessibility: Escape-to-close + focus moves to the close button on open and back to the trigger on close. A01 image: decoding=async + a \"Loading concept…\" affordance until the 18.6 MiB render arrives (so the dim overlay never reads as a hang). Voice gate now covers lib/architect-eco-geometry.ts (its Floor/Roof labels are human copy). Nits: \"tessellation\" reworded to \"how they tile across the dome\"; the A01 trigger aria-label carries its visible (A01) token. Gate architect-eco-a01 strengthened 17->22. No cost moves; portrait PDF + REFERENCE geometry untouched. Queued (HI decision / infra): touch-target resize on the pre-existing clustered toggles (Release Process #6 — ask first), Git LFS for the PNG, a long-cache header for the A01 asset.",
+      "commit": "2b39930df"
     }
   ]
 };
