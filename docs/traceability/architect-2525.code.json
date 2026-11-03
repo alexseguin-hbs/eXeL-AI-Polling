@@ -726,6 +726,138 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 17,
+   "commit": "eb232ab14",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/house-spec.tsx",
+       "blob": "971bd2b7986d5406a70c136faf881bef0344ee1e"
+      }
+     ],
+     "add": 2,
+     "del": 1,
+     "bytes": 1806,
+     "lines": 21,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 18,
+   "commit": "6c4784d9f",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/simulate-options.tsx",
+       "blob": "58d95a6c51a73eca79cf377abe2f961e02f675b4"
+      }
+     ],
+     "add": 50,
+     "del": 43,
+     "bytes": 13205,
+     "lines": 142,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 19,
+   "commit": "98ae7635b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/codes-panel.tsx",
+       "blob": "b2e686c3674bddb0d25d60fb62cc239d3ef5c1c7"
+      }
+     ],
+     "add": 25,
+     "del": 2,
+     "bytes": 3420,
+     "lines": 50,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 20,
+   "commit": "236354493",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/simulate-options.tsx",
+       "blob": "4a0912784470b55788ed74ae6667b294e18354e2"
+      },
+      {
+       "path": "frontend/components/architect-2525/simulate-print.tsx",
+       "blob": "f3057265aea11d8979cfcb9dbdf7ea0c4eb5f62a"
+      }
+     ],
+     "add": 351,
+     "del": 0,
+     "bytes": 26900,
+     "lines": 388,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }

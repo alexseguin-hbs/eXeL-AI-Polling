@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Architect-2525 append-only traceability ledger — 17 entries, extracted at build time. */
+/** Architect-2525 append-only traceability ledger — 20 entries, extracted at build time. */
 export const ARCHITECT_LEDGER: LedgerInput = {
   "section": "Architect-2525",
   "route": "/Architect-2525",
@@ -128,6 +128,27 @@ export const ARCHITECT_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "ICON construction-cost standard, flowed through end to end. Nomenclature: the structural wall cost line is ICON's \"Wall System\" (framing is one $21/sq-ft component inside the $35/sq-ft wall) and \"Roof\" (not \"Roofing\") — renamed across the cost ELEMENTS, the estimate sections, the build order, the phase labels, ELEMENT_PHASE, the lead-day table and the Simulate labels, with \"framing\" kept only for the structural member (the stud take-off, the Framing plan tab, the load-bearing check, the room-designer stud palette, the 4D trade). One source: lib/architect-wall-system.ts holds the Wall System per-sq-ft composition (Framing $21 + Dry Wall $3 + Sheathing $1 + Moisture Barrier $3 + Siding $5 + Trim $2 = $35 national average), ICON's finished wall at $34, the ratings (R-22 · 2+ hour fire · 250 MPH wind · termite/mold/flood), and the ICON Phoenix (D24) printer. Carbon X added as a low-carbon printed-concrete material (basis: the MIT CSHub × ICON whitepaper): cement-class strength, carbonStar +1, flowing through the cost (material up / labour down on the Wall System line) and the full 13-sim battery as cement-class on the physical sims and the low-carbon winner on Carbon. Phoenix multi-story: 24,000 sq ft, 27-ft build height (two stories), three-hour setup, printed walls $25/sq ft (vs $34 ICON, $35 average). The $240,000 one-cost-truth is unchanged — labels over a 1:1 section map. Verified by the 48-AsM fleet; its real finding (Carbon X was scored as light composite on the sim battery, contradicting carbonFor) was folded and gated. Honest gap: ICON's Kitchen & Bath / Windows & Doors cost split is not added (no sourced breakdown); Carbon X and Phoenix figures are ESTIMATE/ASSUMED, attributed to the ICON deck + MIT CSHub whitepaper. Shipped 0a0ec4fb5; follow-ups ccd2a9650, 7f08c3d59 (Phoenix $25), d203260a4 (stragglers), eb232ab14 (Carbon X sim). LIVE: Verify Live confirmed 7f08c3d on the live site 2026-11-02, in the morning CST.",
       "commit": "eb232ab14"
+    },
+    {
+      "rev": 18,
+      "date": "2026-11-02",
+      "kind": "release",
+      "text": "The Tiny Home card matches the Cube and Eco-Sphere card format exactly (operator: \"fix the Tiny home format (above details to match exactly)\"). The THOW card now uses the same labelled rows the other two homes use — Area (280 ft² · 5 zones), Cost ($67,000 · $239/ft²), Build (3 mo), Energy and Carbon as five-star rows — with a basis footer (CATALOG STOCK PLAN · EFFICIENCY: ESTIMATED). It reads the same catalogSum the detail view shows, so one source feeds the card and the detail; no number is re-derived. This reverses the earlier THOW-only money-lines treatment (rev-era \"catalog preset\" card) in favour of the standard labelled-row format the operator asked all three cards to share. Cost truth untouched: Tiny $67,000 is the catalog ASSUMED figure, the Cube $240,000 one-cost-truth is unchanged.",
+      "commit": "6c4784d9f"
+    },
+    {
+      "rev": 19,
+      "date": "2026-11-02",
+      "kind": "release",
+      "text": "The 2024 International Building Code (IBC) is placed in the Specification / building-code section (operator: \"Place download of 2024 International Building Code (IBC) in specification/building code section\"). Added usa-ibc-2024 to lib/building-codes.ts and surfaced in the codes panel with its official ICC source link (codes.iccsafe.org/content/IBC2024V2.0). The download is an outbound link to the authoritative ICC page, not an inlined copy of the code — honest provenance, no redistribution. Reference material only; it moves no cost and changes no geometry.",
+      "commit": "98ae7635b"
+    },
+    {
+      "rev": 20,
+      "date": "2026-11-03",
+      "kind": "release",
+      "text": "The Simulate tab prints its visuals — a Download-as-PDF deck (operator: \"ensure simulation tab prints visuals; see PDF downloads from Vision-2525 and SoI-2525 export of S1-S18 to see lessons learned there\"). A browser Ctrl-P of Simulate gave ONE page of text because the floor-plan mockups + cost/phase bars lived behind \"See details\" (unmounted), the bars were CSS-background (print strips them), and the shell was a fixed overlay (one page). This adds the proven SoI S1-S18 export idiom to Simulate: ZERO dependencies — window.print() over an OFF-STAGE print-stack portal (createPortal -> document.body), print-color-adjust:exact carrying the solid bars, live inline SVG printing as vectors. Honours the Vision-2525 no-runtime-fetch/determinism rule (no server round-trip, no jsPDF/html2canvas). The deck (operator pick): page 1 = the 3 compare cards + the 13-CHECKS matrix + build-time bars; then one page per home (Cube/Tiny/Eco) with its floor-plan mockup + Material/Labor/Markup element bars + phase-time bars + its 13 checks. PDF == screen by construction (reads the same engine), so the $240k one-cost-truth is untouched. New files simulate-print.tsx (SIM_PRINT_CSS + SimulatePrintStack + useSimPrint) and a human \"Download as PDF\" button in simulate-options.tsx; new gate architect-sim-print (29/0). LIVE: pushed both refs at 236354493; portrait approved by the operator (FX APPROVE all five), landscape one-page follow-up is R1. This row is backfilled in R0 (the ship went out without its ledger row).",
+      "commit": "236354493"
     }
   ]
 };
