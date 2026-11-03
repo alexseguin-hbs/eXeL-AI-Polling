@@ -22,6 +22,7 @@ const BANNED = /\bNOT_RUN\b|\bNOT STARTED\b|engine-derived|\bfrom the (estimate 
 const CLEANED = [
   "../components/architect-2525/simulate-options.tsx",   // D1 (2026-11-01): Simulate — live, no run button, human copy
   "../components/architect-2525/build-instructions.tsx", // D1c (2026-11-01): Build steps / timeline — human copy
+  "../components/architect-2525/simulate-print.tsx",     // 2026-11-03: the Download-as-PDF deck — human copy on paper
 ];
 for (const f of CLEANED) {
   const src = strip(read(f));

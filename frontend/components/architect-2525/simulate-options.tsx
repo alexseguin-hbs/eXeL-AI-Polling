@@ -27,6 +27,7 @@ import {
 } from "@/lib/architect-sim-options";
 import { SimEnvironmentView } from "./sim-environment-view";
 import { BuildInstructionsPanel, BuildTimelineCompare } from "./build-instructions";
+import { SIM_PRINT_CSS, SimulatePrintStack, useSimPrint } from "./simulate-print";
 import { type FormId } from "@/lib/architect-sim-environment";
 import { TINY_ROOM_LAYOUT, type RoomCell } from "@/lib/room-layout";
 import { rainbow } from "@/lib/architect-rainbow";
@@ -145,15 +146,25 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
 
   const matrix = useMemo(() => simMatrix(SIM_MODELS, optsBy), [optsBy]);
 
+  // operator 2026-11-03 ("ensure simulation tab prints visuals; see lessons from the SoI-2525 S1–S18 export"):
+  // the Download-as-PDF path. window.print() over an off-stage print-stack (SimulatePrintStack) that renders the
+  // mockups + bars + checks EXPANDED, so the PDF carries the visuals the collapsed screen hides. Orientation is
+  // the user's dialog choice (portrait/landscape), responsive like phone vs PC.
+  const { printing, printNow } = useSimPrint();
   const toggleExpand = (id: string) => setExpanded((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const setOpt = (id: string, patch: Partial<BuildOption>) => setOptsBy((s) => ({ ...s, [id]: { ...s[id], ...patch } }));
   const toggleRow = (s: string) => setOpenRows((prev) => { const n = new Set(prev); if (n.has(s)) n.delete(s); else n.add(s); return n; });
 
   return (
     <div className="space-y-3" data-arch-sim-options>
+      <style>{SIM_PRINT_CSS}</style>
       <div className="flex flex-wrap items-center gap-2">
         <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>THREE WAYS TO BUILD YOUR HOME</div>
         <span className="text-[9px]" style={{ color: C.dim }}>· Cube · Tiny Home · Eco-Sphere — each scored live from your 3×3 design · tap a card for the details</span>
+        <button data-arch-sim-print data-noprint onClick={printNow}
+          className="ml-auto rounded border px-2 py-0.5 text-[10px] font-semibold"
+          style={{ borderColor: C.cyan, color: C.cyan, background: "#07202a" }}
+          title="Opens your print dialog — choose Save as PDF (portrait or landscape)">⎙ Download as PDF</button>
       </div>
 
       {/* master compare mode — each form's native method, or ALL as 3D-printed cement (Christo: flag mixed methods) */}
@@ -640,6 +651,12 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
           </div>
           <div className="mt-1 text-[10px]" style={{ color: C.dim }}>Lower cost &amp; time win; higher energy, carbon &amp; overall win. Estimates — not a quote.</div>
         </div>
+      )}
+
+      {/* the off-stage print deck — mounted only while printing (operator 2026-11-03: the Simulate tab prints visuals) */}
+      {printing && (
+        <SimulatePrintStack models={SIM_MODELS} optsBy={optsBy} costBy={costBy} upperBy={upperBy} designRooms={designRooms}
+          ranks={ranks} rec={rec} matrix={matrix} FormGlyph={FormGlyph} simMeaning={SIM_MEANING} />
       )}
     </div>
   );
