@@ -17,6 +17,7 @@
  * the Eco-Sphere is ASSUMED; all results are ESTIMATES, never a quote.
  */
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   SIM_MODELS, SIMS, METHODS, METHODS_FOR, PRINT_MATERIALS, FUTURE_PRINT_MATERIALS, FRAME_MATERIALS, ROOFS, ROOFS_FOR,
   LABOR_MODES, DEFAULT_COST, carbonFor, compareModels, costBreakdown, costFor, costPerFt2, defaultMarkupFor, laborHoursFor,
@@ -135,6 +136,8 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
   // per-card COST VIEW — who builds (labour mode) + markup slider (operator IMG-02/06: Material + Labor + Markup, default 50%)
   const [costBy, setCostBy] = useState<Record<string, CostParams>>(() => Object.fromEntries(SIM_MODELS.map((m) => [m.id, { ...DEFAULT_COST }])));
   const setCost = (id: string, patch: Partial<CostParams>) => setCostBy((s) => ({ ...s, [id]: { ...s[id], ...patch } }));
+  // Eco-Sphere A01 hex roof-panel concept — the operator's infographic, opened full-screen on tap (Experiences lightbox idiom)
+  const [a01Open, setA01Open] = useState(false);
 
   const allPrintedCement = SIM_MODELS.every((m) => optsBy[m.id]?.method === "3d-print" && optsBy[m.id]?.printMaterial === "cement");
   const allNative = SIM_MODELS.every((m) => JSON.stringify(optsBy[m.id]) === JSON.stringify(optFor(m)));   // every card at its native option
@@ -341,6 +344,13 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
                       <div data-arch-eco-roof className="text-[9px] leading-snug" style={{ color: C.text }}>
                         <span style={{ color: C.cyan }}>Roof</span> — {ecoRoofLabel()}
                       </div>
+                      {/* tap to open the operator's A01 roof-panel infographic full-screen (frame stays, infill changes) */}
+                      <button type="button" data-arch-eco-a01 onClick={() => setA01Open(true)}
+                        className="mt-1 inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+                        style={{ borderColor: C.cyan, color: C.cyan, background: "#07202a" }}
+                        aria-label="Open the hex roof panel concept diagram">
+                        ⤢ Hex roof panel concept (A01)
+                      </button>
                     </div>
                   )}
 
@@ -684,6 +694,22 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
       {printing && (
         <SimulatePrintStack models={SIM_MODELS} optsBy={optsBy} costBy={costBy} upperBy={upperBy} designRooms={designRooms}
           ranks={ranks} rec={rec} matrix={matrix} FormGlyph={FormGlyph} simMeaning={SIM_MEANING} />
+      )}
+
+      {/* the A01 hex roof-panel concept, full-screen — tap the Eco-Sphere "Hex roof panel concept (A01)" link to open
+          (operator 2026-11-03: "when expanding details, have link that expands this image" · "use larger file"). The
+          image is the operator's high-resolution A01 render, served from public; createPortal → document.body so the
+          fixed overlay fills the viewport whatever container it opens from. */}
+      {a01Open && typeof document !== "undefined" && createPortal(
+        <div data-arch-eco-a01-overlay role="dialog" aria-modal="true" aria-label="Eco-Sphere hex roof panel concept (A01)"
+          onClick={() => setA01Open(false)} className="fixed inset-0 z-[130] flex items-center justify-center bg-black/90 p-3" style={{ cursor: "zoom-out" }}>
+          <button type="button" onClick={() => setA01Open(false)} aria-label="Close"
+            className="absolute right-3 top-3 rounded-full border px-2.5 py-0.5 text-sm font-bold" style={{ borderColor: "#19c8cf", color: "#19c8cf", background: "#07202a" }}>✕</button>
+          <img src="/architect-2525/eco-sphere-hex-roof-a01.png" onClick={(e) => e.stopPropagation()}
+            alt="Eco-Sphere Hex Roof Panel A01 — modular installation and replacement (reference concept)"
+            className="max-h-full max-w-full object-contain" />
+        </div>,
+        document.body,
       )}
     </div>
   );
