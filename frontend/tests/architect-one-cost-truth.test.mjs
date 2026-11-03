@@ -4,7 +4,7 @@
 // agree for the canonical Cube, and none may move with a settlement-jurisdiction / FX / recognition change (the firewall).
 // This gate MEASURES + LOCKS that agreement (R6a); R6b re-derives the live headlines through projectHeadline with the
 // agreement held here. Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-one-cost-truth.test.mjs
-import { costFor, modelById, SIM_MODELS } from "@/lib/architect-sim-options";
+import { costFor, catalogSum, modelById, SIM_MODELS } from "@/lib/architect-sim-options";
 import { rollupProject, DEFAULT_SECTIONS } from "@/lib/architect-estimate";
 import { projectHeadline, materialCost, projectLaborCost, settlementComparison, deriveM } from "@/lib/architect-labor";
 import { modeledQuotes } from "@/lib/architect-vendors";
@@ -53,6 +53,17 @@ ok(simHeadline === estHeadline, `the Simulate and Estimate headlines AGREE ($${s
   ok(h.areaSqft === 900, `HOUSE BUILD SPEC master area === the canonical 900 ft² (got ${h.areaSqft})`);
   const buildSum = h.build.reduce((a, p) => a + p.usd, 0);
   ok(Math.abs(buildSum - h.costUsd) <= h.build.length, `the master build-by-phase reconciles to the headline ($${buildSum} ≈ $${h.costUsd})`);
+}
+
+// ── the OTHER two homes' displayed headlines are PINNED too (cost firewall — the 48-fleet's unpinned hole, R4) ──
+// Eco-Sphere reads its ASSUMED costFor; the Tiny card reads its catalog stock-plan sum (not costFor). Lock both so a
+// future change cannot silently move them. These are REFERENCE/ASSUMED product-truths, declared and held.
+{
+  const eco = modelById("eco-sphere"); const tiny = modelById("tiny");
+  ok(eco && costFor(eco, eco.native) === 231500, `Eco-Sphere headline is pinned at $231,500 (got $${eco ? costFor(eco, eco.native) : "?"})`);
+  ok(tiny && tiny.catalogPreset && catalogSum(tiny.catalogPreset) === 67000, `Tiny Home card headline is pinned at $67,000 (catalog stock plan) (got $${tiny && tiny.catalogPreset ? catalogSum(tiny.catalogPreset) : "?"})`);
+  // the three displayed headlines are distinct and each on its own basis — one truth per home, no cross-contamination
+  ok(simHeadline === 240000 && costFor(eco, eco.native) === 231500 && catalogSum(tiny.catalogPreset) === 67000, "all three home headlines hold: Cube $240,000 (derived) · Eco-Sphere $231,500 (assumed) · Tiny $67,000 (catalog)");
 }
 
 // ── determinism ──
