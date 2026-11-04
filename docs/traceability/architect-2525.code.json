@@ -1022,6 +1022,50 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 26,
+   "commit": "41af426dc",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/architect-panels2.tsx",
+       "blob": "1fb6a729604c56bc466b4148fa3df294c923c153"
+      },
+      {
+       "path": "frontend/components/architect-2525/command-ux1.tsx",
+       "blob": "563f1f7601dee4dbbfb1fbf219144b388b5a6b33"
+      },
+      {
+       "path": "frontend/components/architect-2525/simulate-options.tsx",
+       "blob": "80210c79e5e05dbc22700b6f9b8d30614c0545a5"
+      },
+      {
+       "path": "frontend/components/architect-2525/voxel-house.tsx",
+       "blob": "6a177e0a4ed80bcd57f9bbbf87834c869da29d5a"
+      }
+     ],
+     "add": 38,
+     "del": 8,
+     "bytes": 8646,
+     "lines": 113,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
