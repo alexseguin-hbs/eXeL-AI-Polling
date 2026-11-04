@@ -990,6 +990,38 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 25,
+   "commit": "34af9cad3",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/simulate-print.tsx",
+       "blob": "253060440dbb66012bf07f7b577aaca5f8e0a219"
+      }
+     ],
+     "add": 6,
+     "del": 3,
+     "bytes": 1665,
+     "lines": 19,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
