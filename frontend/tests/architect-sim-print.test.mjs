@@ -23,6 +23,11 @@ ok(/@media\s+print\s+and\s*\(orientation:\s*portrait\)/.test(print) && /@media\s
 ok(/break-after:\s*page/.test(print) && /page-break-after:\s*always/.test(print), "per-page break-after + legacy page-break-after (WebKit/iOS)");
 ok(/break-before:\s*page/.test(print) && /page-break-before:\s*always/.test(print), "per-page break-before + legacy page-break-before (WebKit/iOS)");
 ok(/left:\s*-30000px/.test(print) && /opacity:\s*0/.test(print), "the stack is OFF-STAGE (left:-30000px; opacity:0) so the synchronous print can lay out/measure it — NOT display:none");
+// R5 · the iOS blank-print lock (operator 2026-11-03: his iPhone landscape PDF came out BLANK). iOS/WebKit does NOT
+// build a render tree for a display:none element at print time, so the off-stage base MUST keep display:block and there
+// MUST be no base `.sim-print-stack{display:none}` rule — the two asserts the earlier gate (line above) only hinted at.
+ok(/\.sim-print-offstage\s*\{[^}]*display:\s*block/.test(print), "R5 iOS-SAFE: the off-stage base keeps display:block so iOS/WebKit has a real render tree to print (a display:none stack prints BLANK on iOS — the real-device bug)");
+ok(!/\.sim-print-stack\s*\{[^}]*display:\s*none/.test(print), "R5 iOS-SAFE: there is NO base `.sim-print-stack{display:none}` rule — only off-stage positioning hides it on screen (the @media-print reveal and the :not()/[data-noprint] display:none rules are unaffected)");
 ok(/body\s*>\s*\*:not\(\.sim-print-stack\)\s*\{[^}]*display:\s*none/.test(print), "body > *:not(.sim-print-stack){display:none} kills the fixed overlay + app root on paper");
 ok(/\[data-noprint\]\s*\{[^}]*display:\s*none/.test(print), "[data-noprint] chrome is hidden on paper");
 

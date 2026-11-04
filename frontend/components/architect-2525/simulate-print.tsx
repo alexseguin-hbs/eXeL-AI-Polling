@@ -50,9 +50,12 @@ const scoreColor = (n: number) => SCORE_COLORS[Math.max(0, Math.min(5, Math.roun
 /** The print stylesheet — the SoI SLIDE_PRINT_CSS idiom, scoped to `.sim-print-*`, with NO pinned orientation so the
  *  user's dialog choice wins, plus both orientation branches so the deck reflows (portrait stacks / landscape rows). */
 export const SIM_PRINT_CSS = `
-.sim-print-stack { display: none; }
-/* off-stage (NOT display:none) so the synchronous print can lay the SVG mockups out and measure them */
-.sim-print-offstage { position: fixed; top: 0; left: -30000px; width: 760px; opacity: 0; pointer-events: none; }
+/* LAID OUT off-stage, NOT display:none (operator 2026-11-03: his iOS Chrome landscape PDF came out BLANK — 2 pages,
+   zero content). iOS Safari/WebKit does NOT re-flow a display:none element for print, so a stack that is display:none
+   on screen and only display:block under @media print prints EMPTY on iOS (desktop Chromium re-flows it, which hid the
+   bug). So the stack keeps a real render tree: it is mounted only while printing, moved off-screen + transparent here,
+   and revealed in @media print — the SoI SLIDE_PRINT_CSS idiom, which does exactly this. */
+.sim-print-offstage { position: fixed; top: 0; left: -30000px; width: 760px; opacity: 0; pointer-events: none; display: block; }
 @media print {
   @page { size: letter; margin: 0.5in; }          /* REAL paper; NO orientation keyword — the user's dialog choice wins */
   html, body { background: #fff !important; height: auto !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
