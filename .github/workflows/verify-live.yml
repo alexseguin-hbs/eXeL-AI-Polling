@@ -31,7 +31,7 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned: ubuntu-latest rolled to 26.04, unsupported by Playwright 1.59.1 — the deck-QA step's "npx playwright install --with-deps chromium" failed, turning this whole run (and the live-state read) a FALSE red. 24.04 is supported; the live-state read itself always worked.
     timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4

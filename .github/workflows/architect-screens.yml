@@ -23,7 +23,7 @@ jobs:
   screens:
     # Manual dispatch, or only after Verify Live went GREEN on main (the SHA is confirmed live).
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned: ubuntu-latest rolled to 26.04, unsupported by Playwright 1.59.1 (chromium install fails)
     timeout-minutes: 15
     defaults:
       run:

@@ -17,7 +17,7 @@ concurrency:
 jobs:
   e2e:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned: ubuntu-latest rolled to 26.04, unsupported by Playwright 1.59.1 (chromium install fails)
     timeout-minutes: 15
     env:
       SITE: https://exel-ai-polling.explore-096.workers.dev

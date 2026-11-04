@@ -37,7 +37,7 @@ defaults:
 jobs:
   # THE GATE (fleet r.147, MoT 2/11): every test the repo owns, on every push to main, in one job that is required.
   gate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned (was ubuntu-latest): the hosted latest rolled to ubuntu 26.04, which Playwright 1.59.1 cannot install chromium on ("npx playwright install --with-deps" → exit 1); 24.04 is supported. Cloudflare's git integration is the real deployer and is unaffected.
     timeout-minutes: 35
     outputs:
       canbuild: ${{ steps.canbuild.outputs.ok }}
@@ -208,7 +208,7 @@ jobs:
   ship:
     needs: [gate, backend]
     if: needs.gate.outputs.canbuild == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned: ubuntu-latest rolled to 26.04, unsupported by Playwright 1.59.1 (chromium install fails)
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
