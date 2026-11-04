@@ -20,7 +20,7 @@
  * (grass-shaded slabs + skirts), the four outer corners carry visible altitude labels, and a
  * North-default compass rides the corner (F1 · #136; terrain math + determinism lock in lib/terrain.ts).
  */
-import { useState, useMemo, type CSSProperties } from "react";
+import { useState, useMemo, useEffect, type CSSProperties } from "react";
 import { useRCoreGestures } from "./use-rcore-gestures";
 import { Compass2525 } from "./compass-2525";
 import type { HomeType } from "@/lib/architect-layers";
@@ -45,6 +45,11 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   const cam = useRCoreGestures({ initialBearing: 0, initialPitch: 58, initialZoom: 1, touchOrbit: true, pan: false,
     cfg: { minPitch: 18, maxPitch: 82, minZoom: 0.6, maxZoom: 3.2 } });
   const { bearing, pitch, zoom } = cam;
+  // IMMERSION look-around (operator 2026-11-03: "walk floors … immersion view and look around to see walls, corners").
+  // Entering walk drops the camera to eye level; from there pitch is FREE — drag up/down to look at walls & corners,
+  // bearing turns you in place. (Was locked to a fixed 20° tilt, so you could only turn, never look up/down.)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { cam.setPitch(walk ? 22 : 58); }, [walk]);
   const [selLocal, setSelLocal] = useState<string | null>(null);
   // Selection can be lifted (controlled) so the 2D plan, 3D voxel, and right panel agree; else local.
   const selId = onSelectRoom ? (selectedRoomId ?? null) : selLocal;
@@ -217,7 +222,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   const walkRoom = walk && tiny ? layout.find((r) => r.id === walkRoomId) : undefined;
   const wx = walkRoom ? (walkRoom.col - 1) * roomSize : 0;
   const wy = walkRoom ? (walkRoom.row - 1) * roomSize : 0;
-  const effPitch = walk ? 20 : pitch;   // low angle = first-person feel
+  const effPitch = pitch;               // walk enters at eye level (effect above), then FREE look up/down to see walls & corners; orbit = dollhouse tilt
   const effZoom = walk ? 3.2 : zoom;    // stand inside the room
   // Front porch stair — off the Entry room (E, sub-idx 8) at the front edge of the centre cell.
   const rise = STEP_RISE_FT * VOXEL_PX_PER_FT;   // a 7-in riser at scale (three steps ≈ 21 in up to the porch)

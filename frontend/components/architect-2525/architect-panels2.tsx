@@ -22,9 +22,10 @@ const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186"
 // original" + the standing rule "simulate = come up with options"). The flat 13-engine catalog is superseded by the
 // 3-model alternative-design chooser: each design option runs the SAME original 13-sim battery; COMPARE ALL ranks them.
 // Product-truth (NOT_RUN until run; DERIVED vs ASSUMED; estimates not quotes) lives in SimulateOptions.
-export function SimulatePanel({ designRooms }: { designRooms?: RoomCell[] } = {}) {
+export function SimulatePanel({ designRooms, onOpenInDesign }: { designRooms?: RoomCell[]; onOpenInDesign?: (formId: string) => void } = {}) {
   // P1 (operator 2026-11-01): the live Design-tab layout flows to Simulate so every form matches the Design tab.
-  return <SimulateOptions designRooms={designRooms} />;
+  // onOpenInDesign (operator 2026-11-03): clicking a build's mockup opens that build in the Design Room Designer.
+  return <SimulateOptions designRooms={designRooms} onOpenInDesign={onOpenInDesign} />;
 }
 
 export function ReviewPanel() {

@@ -166,6 +166,17 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
     return "full";
   });
   const setHomeType = (t: HomeType) => { if (!UNLOCKED_MARKETS.includes(t)) return; setHomeTypeState(t); try { localStorage.setItem("arch2525.homeType", t); } catch {} };
+  // Simulate → open THIS build in the Design Room Designer (operator 2026-11-03: "click image → open that build type
+  // in the Design tab"; "reuse R-CORE, change geometry"). Maps the Simulate form id → Design market and jumps to
+  // Design → Model so the user edits + walks (immersion) those rooms there — the only place rooms are edited. Only
+  // forms with an editable layout are wired: Cube (3×3) now; eco-sphere lands in the hex geometry revision.
+  const openBuildInDesign = (formId: string) => {
+    const market: HomeType | null = formId === "3x3-grid" ? "full" : formId === "tiny" ? "tiny" : null;
+    if (!market) return;
+    setHomeType(market);
+    setActiveTab("Design");
+    setSub("Design", "Model");
+  };
   // .arch2525 project file — command-ux1 is the ONE place with the full design: layer snapshot + market + room layout.
   // ArchitectDesign mirrors its room layout up (designRooms) and accepts importLayout to seat a loaded design.
   const [designRooms, setDesignRooms] = useState<RoomCell[]>([]);
@@ -472,7 +483,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         ) : activeTab === "Review" && sub("Review") === "Qualification" ? (
           <QualifyPanel />
         ) : activeTab === "Simulate" ? (
-          <SimulatePanel designRooms={designRooms} />
+          <SimulatePanel designRooms={designRooms} onOpenInDesign={openBuildInDesign} />
         ) : activeTab === "Review" ? (
           <ReviewPanel />
         ) : activeTab === "Lifecycle" && sub("Lifecycle") === "Replay" ? (

@@ -123,7 +123,7 @@ function FormGlyph({ id, size = 26 }: { id: string; size?: number }) {
   );
 }
 
-export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = {}) {
+export function SimulateOptions({ designRooms, onOpenInDesign }: { designRooms?: RoomCell[]; onOpenInDesign?: (formId: string) => void } = {}) {
   // R-UX6 (operator 2026-11-01: "remove simulate button … comparison should always be live"): NO run state — every design
   // is scored live from its options at render; the per-card EXPAND toggle only shows/hides the extra detail below.
   // P1 (operator 2026-11-01: "SIMULATE MUST MATCH DESIGN TAB"): `designRooms` is the live Design-tab room layout — every
@@ -290,8 +290,21 @@ export function SimulateOptions({ designRooms }: { designRooms?: RoomCell[] } = 
               </button>
               {expanded.has(m.id) && (
                 <div className="mt-2 space-y-1.5" data-arch-sim-generated={m.id}>
-                  {/* the GENERATED environment — drawn with the user's ACTUAL placed furniture from the Design tab (P1) */}
-                  <SimEnvironmentView formId={m.id as FormId} opt={opt} size={240} rooms={designRooms} />
+                  {/* the GENERATED environment — drawn with the user's ACTUAL placed furniture from the Design tab (P1).
+                      operator 2026-11-03: clicking the mockup opens THAT build in the Design Room Designer (the only way
+                      to edit those rooms) — walk the floors + look around there. Wired for forms with editable geometry
+                      (Cube 3×3 now; eco-sphere lands in the hex revision). */}
+                  {onOpenInDesign && m.id === "3x3-grid" ? (
+                    <button type="button" data-arch-sim-open={m.id} onClick={() => onOpenInDesign(m.id)}
+                      aria-label={`Edit the ${m.label} rooms in Design — walk the floors`}
+                      className="relative block w-full rounded border p-0 text-left" style={{ borderColor: C.border, cursor: "pointer", background: "transparent" }}>
+                      <SimEnvironmentView formId={m.id as FormId} opt={opt} size={240} rooms={designRooms} />
+                      <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 px-2 py-1 text-[10px] font-semibold"
+                        style={{ background: "#0a0f16cc", color: "#22d3ee" }}>✎ Edit these rooms in Design · walk the floors →</span>
+                    </button>
+                  ) : (
+                    <SimEnvironmentView formId={m.id as FormId} opt={opt} size={240} rooms={designRooms} />
+                  )}
 
                   {/* ── build option: method · material/frame · roof ── */}
                   <div className="space-y-1 rounded border p-1.5" style={{ borderColor: C.border, background: C.ground }}>
