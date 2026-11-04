@@ -16,6 +16,8 @@ import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, setRoomObjects, toggleRoomFurniture, ROOM_FT, type RoomCell, type ElementKind } from "@/lib/room-layout";
 import { RoomDesigner } from "./room-designer";
+import { ArchitectWalkthrough } from "./architect-walkthrough";
+import { WalkGlyph, EditGlyph } from "./architect-walk-icons";
 import { STANDARD_LAYOUT_REV, type PlacedObject } from "@/lib/room-objects";
 import { PhaseBar } from "./phase-bar";
 import { phaseById, phaseDraw } from "@/lib/architect-phases";
@@ -358,30 +360,19 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             {/* edit ⇄ walk toggle */}
             <div className="absolute right-2 top-2 z-20 flex gap-1">
               {(["edit", "walk"] as const).map((m) => (
-                <button key={m} data-arch-tiny-mode={m} onClick={() => setTinyMode(m)} className="rounded border px-2 py-0.5 text-[10px] font-semibold"
+                <button key={m} data-arch-tiny-mode={m} onClick={() => setTinyMode(m)} className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold"
                   style={{ borderColor: tinyMode === m ? C.cyan : C.border, color: tinyMode === m ? C.cyan : C.dim, background: tinyMode === m ? "#0e2233" : "transparent" }}>
-                  {m === "edit" ? "✎ Edit" : "🚶 Walk"}
+                  {m === "edit" ? <><EditGlyph size={12} /> Edit</> : <><WalkGlyph size={12} /> Walk</>}
                 </button>
               ))}
             </div>
             {tinyMode === "walk" ? (
               <div data-arch-walk className="relative">
-                {/* low-fidelity wireframe WALKTHROUGH — step room to room through the voxel at eye level */}
-                <VoxelHouse homeType={homeType} program={program} height={380} compact layout={roomLayout} walk walkRoomId={walkRoomId} wallW={wallW} hvac={hvac} showSockets={showSockets} />
-                <div data-arch-walk-room className="absolute left-2 top-2 rounded-lg border px-2 py-1 text-[11px] font-semibold shadow-lg"
-                  style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16ee" }}>
-                  🚶 {walkRoom ? `${walkRoom.k} · ${walkRoom.label}` : "—"}
-                </div>
-                {/* walk D-pad — step to the adjacent room */}
-                <div data-arch-walkpad className="absolute bottom-2 left-1/2 flex -translate-x-1/2 flex-col items-center gap-0.5 rounded-lg border p-1.5 shadow-lg"
-                  style={{ borderColor: C.cyan, background: "#0a0f16ee" }}>
-                  <button data-arch-walk-n onClick={() => walkStep(-1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▲ N</button>
-                  <div className="flex gap-0.5">
-                    <button data-arch-walk-w onClick={() => walkStep(0, -1)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>◀ W</button>
-                    <button data-arch-walk-e onClick={() => walkStep(0, 1)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
-                  </div>
-                  <button data-arch-walk-s onClick={() => walkStep(1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
-                </div>
+                {/* FIRST-PERSON WALKTHROUGH (operator 2026-11-04: "build out walk through functionality"; earlier "look
+                    around to see walls, corners"). The prior walk was the voxel dollhouse tilted into a corner — not a
+                    walkthrough. This is a purpose-built interior camera: stand in the room's doorway, drag to look
+                    around, step room to room. Custom iconology (no emoji). */}
+                <ArchitectWalkthrough room={walkRoom} layout={roomLayout} onStep={walkStep} height={380} title="walk the floors · drag to look around" />
               </div>
             ) : (
             <>

@@ -15,6 +15,9 @@ const voxel = read("../components/architect-2525/voxel-house.tsx");
 const opts = read("../components/architect-2525/simulate-options.tsx");
 const panels = read("../components/architect-2525/architect-panels2.tsx");
 const shell = read("../components/architect-2525/command-ux1.tsx");
+const walk = read("../components/architect-2525/architect-walkthrough.tsx");
+const icons = read("../components/architect-2525/architect-walk-icons.tsx");
+const design = read("../components/architect-2525/architect-design.tsx");
 
 // ── IMMERSION look-around: walk mode no longer LOCKS the tilt; pitch is free so you can look up/down at walls/corners ──
 ok(!/effPitch\s*=\s*walk\s*\?\s*20/.test(voxel), "the old locked walk tilt (effPitch = walk ? 20 : …) is GONE — the look angle is no longer pinned");
@@ -43,5 +46,22 @@ ok(/<SimulatePanel\s+designRooms=\{designRooms\}\s+onOpenInDesign=\{openBuildInD
 ok(!/function\s+costBreakdown\b|function\s+catalogSum\b|function\s+costFor\b/.test(opts), "the Simulate click wiring does not re-define any cost engine (presentation only)");
 ok(/useRCoreGestures/.test(voxel) && !/from\s+"three"|@react-three|babylonjs/.test(voxel), "immersion reuses the existing useRCoreGestures camera — no new 3D engine imported");
 
-console.log(`\narchitect-immersion: ${pass} passed, ${fail} failed · walk look-around is free (see walls/corners) · the Cube mockup opens the Design Room Designer · one engine, reused`);
+// ── R6b · the FIRST-PERSON WALKTHROUGH (operator 2026-11-04: "walk through doesn't work … build out walk through functionality") ──
+ok(/function\s+ArchitectWalkthrough\b/.test(walk), "architect-walkthrough.tsx exports ArchitectWalkthrough — a real first-person interior view");
+ok(/const\s+project\s*=\s*\(p:\s*V3\)/.test(walk) && /depth\s*>\s*near/.test(walk), "it uses a purpose-built pinhole camera with near-plane cull (not the map-tilt sceneProject that clipped inside the box)");
+ok(/\bey\s*=\s*-2\b/.test(walk), "the eye stands OUTSIDE the near wall (ey = -2) so the whole room is in front of the eye — no near-plane clipping, ever");
+ok(/setYaw\(/.test(walk) && /setPitch\(/.test(walk), "drag looks around — yaw (turn) + pitch (up/down) to see the walls & corners");
+ok(/addQuad\(/.test(walk) && /data-arch-walkpad/.test(walk) && /onStep\?\./.test(walk), "it renders the room shell (walls/floor/ceiling) and a step pad that walks room to room");
+ok(/addDoor\(/.test(walk) && /nb\.N/.test(walk), "doorways are drawn on walls that have an adjoining room, with the neighbour's label");
+
+// ── custom walkthrough iconology, NOT emoji (operator 2026-11-04: "don't use emojies; create your own walkthrough raster iconology") ──
+ok(/export function WalkGlyph\b/.test(icons) && /export function MoveChevron\b/.test(icons) && /<svg/.test(icons), "architect-walk-icons.tsx is a drawn SVG glyph set (WalkGlyph · MoveChevron · LookGlyph · DoorGlyph · EditGlyph) — my own iconology");
+ok(!/🚶|✎|🏃|👣|➡|⬆|⬇|⬅/.test(icons), "the icon set contains NO emoji — every glyph is drawn SVG");
+
+// ── the Design walk mode renders the walkthrough, and the toggle uses the drawn glyphs (no emoji) ──
+ok(/<ArchitectWalkthrough\s+room=\{walkRoom\}\s+layout=\{roomLayout\}\s+onStep=\{walkStep\}/.test(design), "Design → Walk renders <ArchitectWalkthrough> (not the tilted voxel dollhouse)");
+ok(/\{m === "edit" \? <><EditGlyph[\s\S]{0,80}?<WalkGlyph/.test(design), "the Edit ⇄ Walk toggle uses the drawn EditGlyph / WalkGlyph");
+ok(!/🚶|✎/.test(design), "no 🚶 / ✎ emoji remain in architect-design.tsx — replaced by the drawn iconology");
+
+console.log(`\narchitect-immersion: ${pass} passed, ${fail} failed · walk look-around is free (see walls/corners) · the Cube mockup opens the Design Room Designer · first-person walkthrough (no-clip pinhole, drawn iconology, no emoji) · one engine, reused`);
 process.exit(fail ? 1 : 0);
