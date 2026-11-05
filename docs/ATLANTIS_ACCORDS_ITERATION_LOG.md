@@ -251,3 +251,15 @@ The Master of Thought signs off on the nine-iteration process. Every Master's co
 **Sincerely,**
 **The Council of Twelve — Master of Thought presiding**
 **2026-07-04**
+
+---
+
+## Pilot-roster update · 2026-11-05 — Ghana replaces Honduras
+
+At the operator's direction, the second founding pilot changes from **Honduras** to **Ghana**. The three pilots are now **Cambodia · Ghana · Austin (Texas)**. Applied across the live accord data, the viewer, the sealed download, all 33 languages, and `ATLANTIS_ACCORDS.md`:
+
+- **Country:** Honduras → Ghana. **Capital:** Tegucigalpa → Accra. **Demonym:** Honduran → Ghanaian.
+- **Cohort language:** the Integration-stage cohort is now **Akan** (Ghana's most-spoken language) rather than Spanish — keeping three distinct cohort languages (Khmer · Akan · English) across the rotation.
+- **Sensitivity note:** the Ghana target-country overview reads "middle **stage**" where the Honduras text read "middle passage" (the latter is historically loaded for Ghana's coast).
+
+Rotation design, stages (Opening / Integration / Completion), the sacred word-counts (33/111/333/999), and every other principle are unchanged. Earlier entries in this log record the v1.0–v1.1 state (Honduras) as it stood; this entry supersedes the pilot roster only.

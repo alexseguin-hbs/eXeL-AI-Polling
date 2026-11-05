@@ -1,7 +1,7 @@
 # The Atlantis Accord
 
 **A Promise, Signed by Visionaries.**
-**Cambodia · Honduras · Austin, Texas — and every region invited to follow.**
+**Cambodia · Ghana · Austin, Texas — and every region invited to follow.**
 
 ---
 
@@ -20,7 +20,7 @@
 
 # Page 1 · Section 1 · PILOT • Where Innovation Begins
 
-Every civilization is remembered by what it chose to begin. The Atlantis Accords is a promise among citizens of the world — any person, anywhere, may begin it, whatever their government signs. Its founding regions, Cambodia, Honduras, and Austin, Texas, were not chosen for economic power, military strength, or institutional prestige, but for a rarer quality: the willingness to trust the young with the tools of the future. This is what leadership means in the century ahead — the courage to hand over the keys to the next generation while there is still time to teach them how to drive.
+Every civilization is remembered by what it chose to begin. The Atlantis Accords is a promise among citizens of the world — any person, anywhere, may begin it, whatever their government signs. Its founding regions, Cambodia, Ghana, and Austin, Texas, were not chosen for economic power, military strength, or institutional prestige, but for a rarer quality: the willingness to trust the young with the tools of the future. This is what leadership means in the century ahead — the courage to hand over the keys to the next generation while there is still time to teach them how to drive.
 
 The accord is convened by eXeL, an organizing force purpose-built for this moment, existing outside the coordination channels that shaped the last century — outside diplomatic treaty structures, multilateral bureaucracies, and political entanglements of any single nation-state. eXeL is the trusted convener that brings visionary leaders together around a shared framework, a shared flywheel, and a shared five-hundred-year horizon. Every signatory retains full sovereignty, full authority over its own citizens, and full freedom to withdraw at any moment. What signatories gain — and what any citizen gains, for the price of a Seed, a seventh of a local minimum-wage hour — is the network effect that only a purpose-built framework can provide: coordination without any form of political domination.
 
@@ -34,7 +34,7 @@ Signing the accord is signing a promise: that the region will host learners acro
 
 Every discipline worth mastering was learned by someone before it was known. Master craftspeople rehearse before performance, pilots before flight, physicians before surgery, children through play. The Atlantis Accords returns this ancient wisdom to the center of how the young — and any citizen who joins, no government's permission or employer's blessing required — are prepared to build the future. Nothing consequential is learned first on live hardware, on real people, or in irreversible conditions. Every participant practices in simulation until practice becomes competence, then readiness. This is not caution — this is respect for the young human whose first mistake should never cost anyone their life.
 
-The accord's rotation model carries every participant through the three founding regions. What is learned in Cambodia is refined in Honduras and completed in Austin. What is discovered in Austin is questioned in Cambodia and integrated in Honduras. Every participant lives, learns, and is mentored across otherwise-distant cultures. The training curriculum draws from disciplined-simulation traditions across many cultures — from Sun Tzu's strategic education tradition, from Musashi's practice-through-play, from Ibn Khaldun's cyclical learning theory, from Nalanda's monastic dialectic, from the civilian flight-simulator — synthesized to respect every cognitive stage and cultural inheritance. No single tradition dominates.
+The accord's rotation model carries every participant through the three founding regions. What is learned in Cambodia is refined in Ghana and completed in Austin. What is discovered in Austin is questioned in Cambodia and integrated in Ghana. Every participant lives, learns, and is mentored across otherwise-distant cultures. The training curriculum draws from disciplined-simulation traditions across many cultures — from Sun Tzu's strategic education tradition, from Musashi's practice-through-play, from Ibn Khaldun's cyclical learning theory, from Nalanda's monastic dialectic, from the civilian flight-simulator — synthesized to respect every cognitive stage and cultural inheritance. No single tradition dominates.
 
 Every rotation ends in a public celebration open to the host community, where neighbors, families, and visitors see what the cohort has learned. These events make sophisticated technology accessible and celebrated rather than fearsome — a society that grows up understanding cooperative systems through play cannot easily be manipulated by fear of them. This is deterrence through education, not through force. The accord's promise to every parent: your child will practice a thousand times in safety before touching anything that could harm them, witnessed so a citizen — any citizen, a century from now — can verify it happened exactly as recorded. This is respect for the young human engineered into a framework, and it is what leadership owes the next citizen who joins before that citizen must demand it.
 
@@ -46,7 +46,7 @@ Every rotation ends in a public celebration open to the host community, where ne
 
 Before trust is extended, safety must be proven — proven to citizens, not asserted. The Atlantis Accords is an agreement among citizens of the world: any person, anywhere, can help hold it, regardless of what their government signs. Every accord facility, every rotation route, every place a young participant sleeps or studies sits inside a documented protective envelope with early-warning capability that gives the community hours, not minutes, to respond to any credible risk. The technology that protects them is the same technology the accord teaches them to build. Young people learn safety from the inside out, not by being told they are safe, but by seeing it engineered around them every day, and knowing any citizen can verify the record through Replay.
 
-The accord makes an unbreakable promise about what its technology cannot become. Every device, every sensor, every coordination system is bound at the hardware layer to refuse repurposing for weapon-systems integration. This is not policy language, not aspiration. This is a physical impossibility, enforced cryptographically, verified by every signatory region, and inspectable by every citizen funding it. The tools that protect a child in Phnom Penh cannot be repurposed to harm a child in Austin. The tools that connect a swarm exercise in Tegucigalpa cannot be reconfigured to target a human anywhere. This is the accord's answer to a century of dual-use fear. Not policy — physics.
+The accord makes an unbreakable promise about what its technology cannot become. Every device, every sensor, every coordination system is bound at the hardware layer to refuse repurposing for weapon-systems integration. This is not policy language, not aspiration. This is a physical impossibility, enforced cryptographically, verified by every signatory region, and inspectable by every citizen funding it. The tools that protect a child in Phnom Penh cannot be repurposed to harm a child in Austin. The tools that connect a swarm exercise in Accra cannot be reconfigured to target a human anywhere. This is the accord's answer to a century of dual-use fear. Not policy — physics.
 
 The accord remains honorable through turbulence. If a region loses political stability, participants are held by the remaining regions. If funding contracts, stipends are protected first — funded monthly by citizens, never an aid pipeline, every dollar traceable. If digital records are attacked, offline backups persist. If travel becomes impossible, the substrate continues virtually. Every plan places human dignity — Human Authority over meaning, money, and law — as its first design constraint. Leaders who sign this accord promise that safety is engineered, not assumed: the protection any leader would demand for their own child, extended now to every citizen helping hold it.
 
@@ -82,7 +82,7 @@ Every dollar and every unit of value entering the accord is recorded permanently
 
 # Page 6 · Section 6 · EDUCATE • Cross-Cultural Exchange and Global Contribution
 
-The Atlantis Accords returns education to its deepest purpose: the exchange of wisdom across boundaries that would otherwise divide. This is an accord among citizens of the world — any citizen may build and hold it, whatever their government has signed. Every activity is available in the participant's language, the host region's language, and a shared record, so no participant navigates the accord in a tongue they did not choose. Language is not decoration. Language is jurisdiction. Language is dignity made readable. A young person in Cambodia reads their stipend record in Khmer, in Honduras in Spanish, in Austin in English — all three honored equally, none needing a government's blessing to begin.
+The Atlantis Accords returns education to its deepest purpose: the exchange of wisdom across boundaries that would otherwise divide. This is an accord among citizens of the world — any citizen may build and hold it, whatever their government has signed. Every activity is available in the participant's language, the host region's language, and a shared record, so no participant navigates the accord in a tongue they did not choose. Language is not decoration. Language is jurisdiction. Language is dignity made readable. A young person in Cambodia reads their stipend record in Khmer, in Ghana in Akan, in Austin in English — all three honored equally, none needing a government's blessing to begin.
 
 The education framework rests on the trinity of intelligences Vision • 2525 makes visible. Artificial Intelligence proposes patterns and possibilities faster than any human alone could. Human Intelligence decides on safety, ethics, and direction — questions no machine should answer, kept under Human Authority. Shared Intent validates that decisions serve the accord's principles, so no participant chooses excellence over collective good. No student defers to one intelligence alone; every student learns to hold all three in tension. Belonging begins with the Seed, a membership priced at a seventh of a local minimum-wage hour — small enough that any citizen can afford it. This prepares the next generation to govern, where no intelligence acts unchecked.
 
@@ -172,9 +172,9 @@ Every signatory retains the freedom to withdraw, full sovereignty, and authority
 
 ---
 
-# Signature Page · Honduras
+# Signature Page · Ghana
 
-**Region:** Republic of Honduras · specific host city to be named upon Letter of Intent
+**Region:** Republic of Ghana · specific host city to be named upon Letter of Intent
 
 **Effective Date (upon three-authority signing in this region):**  ______________________
 
@@ -182,7 +182,7 @@ Every signatory retains the freedom to withdraw, full sovereignty, and authority
 
 ---
 
-### Visionary Signatory — Government of Honduras
+### Visionary Signatory — Government of Ghana
 
 **Name** __________________________________________________________________________
 **Title** ___________________________________________________________________________
@@ -191,11 +191,11 @@ Every signatory retains the freedom to withdraw, full sovereignty, and authority
 **Date** __________________________________________________________________________
 **Blockchain attestation hash** _______________________ (assigned upon anchor)
 
-*The Government signatory commits their office to hosting rotating participants under Honduran law, to enabling the accord's operations at civic level, and to serving as the accord's local diplomatic bridge with the national government.*
+*The Government signatory commits their office to hosting rotating participants under Ghanaian law, to enabling the accord's operations at civic level, and to serving as the accord's local diplomatic bridge with the national government.*
 
 ---
 
-### Visionary Signatory — Education (Honduras)
+### Visionary Signatory — Education (Ghana)
 
 **Name** __________________________________________________________________________
 **Title** ___________________________________________________________________________
@@ -204,11 +204,11 @@ Every signatory retains the freedom to withdraw, full sovereignty, and authority
 **Date** __________________________________________________________________________
 **Blockchain attestation hash** _______________________ (assigned upon anchor)
 
-*The Education signatory commits their institution to curriculum integration, academic credit recognition, mentor recruitment, age-appropriate cohort spaces, and alignment with Honduran pedagogical standards.*
+*The Education signatory commits their institution to curriculum integration, academic credit recognition, mentor recruitment, age-appropriate cohort spaces, and alignment with Ghanaian pedagogical standards.*
 
 ---
 
-### Visionary Signatory — Innovation (Honduras)
+### Visionary Signatory — Innovation (Ghana)
 
 **Name** __________________________________________________________________________
 **Title** ___________________________________________________________________________

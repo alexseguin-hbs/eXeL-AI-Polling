@@ -47,7 +47,7 @@ const TIER_COLORS: Record<Tier, { label: string; fill: string; stroke: string }>
 // UX by position: top = Red, bottom-left = Blue, bottom-right = Green).
 const REGION_COLORS = [
   { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" }, // Austin — top
-  { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" }, // Honduras — bottom-left
+  { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" }, // Ghana — bottom-left
   { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" }, // Cambodia — bottom-right
 ];
 
@@ -197,7 +197,7 @@ function AccordFlower({
   );
 }
 
-// ── Triangle flower: 3 regions (Austin top / Honduras BL / Cambodia BR) ──
+// ── Triangle flower: 3 regions (Austin top / Ghana BL / Cambodia BR) ──
 // Shared by Proposed Approvals and Target Countries.
 function TriangleFlower({
   items,
