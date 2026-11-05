@@ -15,18 +15,15 @@
  */
 import { useRef, useState, useCallback, type PointerEvent as RPE } from "react";
 import type { RoomCell } from "@/lib/room-layout";
+import { footprintOf, heightOf, elevOf, OBJECT_SPEC, defaultObjectsForRoom } from "@/lib/room-objects";
+import { shade, FACE_SHADE, solidFaces, boxFaces, type Vec3, type Quad } from "@/lib/solid-shade";
 import { WalkGlyph, LookGlyph, MoveChevron, DoorGlyph } from "./architect-walk-icons";
 
 const C = { bg: "#0a0f16", ink: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", gold: "#ffd400", wall: "#2a3a4f", floor: "#121b26", ceil: "#0c131c", edge: "#1e2b3a" };
 const ROOM_FT = 10, CEIL_FT = 10, EYE_FT = 5.5;      // one storey; eye at ~5.5 ft
 const DOOR_W = 3.2, DOOR_H = 7;                       // a 3.2×7 ft opening
 
-type V3 = [number, number, number];
-const shade = (hex: string, f: number) => {
-  const n = parseInt(hex.slice(1), 16); const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
-  const c = (v: number) => Math.max(0, Math.min(255, Math.round(v * f))).toString(16).padStart(2, "0");
-  return `#${c(r)}${c(g)}${c(b)}`;
-};
+type V3 = Vec3;
 
 export function ArchitectWalkthrough({ room, layout, onStep, height = 380, title }: {
   room?: RoomCell | null; layout: RoomCell[]; onStep?: (dRow: number, dCol: number) => void; height?: number; title?: string;
@@ -65,19 +62,26 @@ export function ArchitectWalkthrough({ room, layout, onStep, height = 380, title
   const at = (r: number, c: number) => layout.find((x) => x.row === r && x.col === c);
   const nb = room ? { N: at(room.row - 1, room.col), E: at(room.row, room.col + 1), W: at(room.row, room.col - 1) } : { N: undefined, E: undefined, W: undefined };
 
-  // ── build the shell (far=north y=10, left=west x=0, right=east x=10), floor grid, ceiling edge ──
-  type Face = { d: string; fill: string; depth: number; stroke?: string };
-  const faces: Face[] = [];
-  const addQuad = (pts: V3[], fill: string, stroke?: string) => { const q = poly(pts); if (q) faces.push({ d: q.d, fill, depth: q.depth, stroke }); };
-  // floor (dark) + grid
-  addQuad([[0, 0, 0], [ROOM_FT, 0, 0], [ROOM_FT, ROOM_FT, 0], [0, ROOM_FT, 0]], C.floor);
-  // walls (shaded by orientation)
-  addQuad([[0, ROOM_FT, 0], [ROOM_FT, ROOM_FT, 0], [ROOM_FT, ROOM_FT, CEIL_FT], [0, ROOM_FT, CEIL_FT]], shade(C.wall, 0.95), C.edge); // far/north
-  addQuad([[0, 0, 0], [0, ROOM_FT, 0], [0, ROOM_FT, CEIL_FT], [0, 0, CEIL_FT]], shade(C.wall, 0.7), C.edge);                         // west/left
-  addQuad([[ROOM_FT, 0, 0], [ROOM_FT, ROOM_FT, 0], [ROOM_FT, ROOM_FT, CEIL_FT], [ROOM_FT, 0, CEIL_FT]], shade(C.wall, 0.7), C.edge); // east/right
-  // ceiling (dim)
-  addQuad([[0, 0, CEIL_FT], [ROOM_FT, 0, CEIL_FT], [ROOM_FT, ROOM_FT, CEIL_FT], [0, ROOM_FT, CEIL_FT]], C.ceil);
-  faces.sort((a, b) => b.depth - a.depth);   // painter: far first
+  // ── the room shell + its furniture, shaded through the ONE shared solid-faces shader (lib/solid-shade.ts, the same
+  //    function behind the Mission-Planning radar dome and the room voxel). Walls AND objects feed ONE solidFaces()
+  //    call → one painter-sorted array, so a sofa correctly occludes / is occluded by a wall and both shade alike. ──
+  const wallQuads: Quad[] = [
+    { kind: "floor", color: C.floor, pts: [[0, 0, 0], [ROOM_FT, 0, 0], [ROOM_FT, ROOM_FT, 0], [0, ROOM_FT, 0]] },
+    { kind: "front", color: C.wall, pts: [[0, ROOM_FT, 0], [ROOM_FT, ROOM_FT, 0], [ROOM_FT, ROOM_FT, CEIL_FT], [0, ROOM_FT, CEIL_FT]] }, // far / north
+    { kind: "side", color: C.wall, pts: [[0, 0, 0], [0, ROOM_FT, 0], [0, ROOM_FT, CEIL_FT], [0, 0, CEIL_FT]] },                          // west / left
+    { kind: "side", color: C.wall, pts: [[ROOM_FT, 0, 0], [ROOM_FT, ROOM_FT, 0], [ROOM_FT, ROOM_FT, CEIL_FT], [ROOM_FT, 0, CEIL_FT]] },  // east / right
+    { kind: "ceil", color: C.wall, pts: [[0, 0, CEIL_FT], [ROOM_FT, 0, CEIL_FT], [ROOM_FT, ROOM_FT, CEIL_FT], [0, ROOM_FT, CEIL_FT]] },
+  ];
+  // FURNITURE — each placed object as a shaded box from the SAME source the 2D plan + the voxel use
+  // (room.objects ?? defaultObjectsForRoom), reusing room-objects' footprint/height/elev; coords are feet in the
+  // room's 10×10 space (the 1-ft object grid == feet here).
+  const objects = room ? (room.objects ?? defaultObjectsForRoom(room.k)) : [];
+  const furnQuads: Quad[] = objects.flatMap((o) => {
+    const fp = footprintOf(o); const swap = o.rot === 90 || o.rot === 270;
+    const w = swap ? fp.d : fp.w, dp = swap ? fp.w : fp.d;
+    return boxFaces(o.gx + 0.5 - w / 2, o.gy + 0.5 - dp / 2, elevOf(o), w, dp, heightOf(o), OBJECT_SPEC[o.kind]?.color);
+  });
+  const faces = solidFaces([...wallQuads, ...furnQuads], project);
 
   // floor grid lines (1-ft)
   const gridLines: { x1: number; y1: number; x2: number; y2: number }[] = [];
@@ -106,7 +110,7 @@ export function ArchitectWalkthrough({ room, layout, onStep, height = 380, title
   return (
     <div data-arch-walkthrough className="relative select-none overflow-hidden rounded-lg" style={{ height: H, background: `radial-gradient(120% 90% at 50% 25%, #0d1420, ${C.bg})`, border: `1px solid ${C.edge}`, touchAction: "none" }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} style={{ display: "block", cursor: "grab" }}>
-        {faces.map((fc, i) => <polygon key={`f${i}`} points={fc.d} fill={fc.fill} stroke={fc.stroke || "none"} strokeWidth={fc.stroke ? 1 : 0} />)}
+        {faces.map((fc, i) => <polygon key={`f${i}`} points={fc.d} fill={shade(fc.color ?? C.wall, FACE_SHADE[fc.kind])} stroke={fc.kind === "front" || fc.kind === "side" ? C.edge : "none"} strokeWidth={fc.kind === "front" || fc.kind === "side" ? 0.6 : 0} />)}
         {gridLines.map((g, i) => <line key={`g${i}`} x1={g.x1} y1={g.y1} x2={g.x2} y2={g.y2} stroke={`${C.cyan}22`} strokeWidth={1} />)}
         {doors.map((d, i) => (
           <g key={`d${i}`}>

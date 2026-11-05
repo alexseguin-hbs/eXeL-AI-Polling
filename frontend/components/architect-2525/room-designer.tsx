@@ -27,6 +27,7 @@ import {
   defaultObjectsForRoom, groupOf,
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
+import { shade, FACE_SHADE } from "@/lib/solid-shade";   // the ONE shared solid-faces shader (de-dup; was a local copy)
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
 import { phaseDraw, phaseById } from "@/lib/architect-phases";
 import {
@@ -44,16 +45,9 @@ import type { RoomCell } from "@/lib/room-layout";
 
 const C = { border: "#1e2b3a", panel: "#0c1420", dim: "#5f7186", text: "#c8d6e5", cyan: "#19c8cf", gold: "#ffd400", violet: "#c084fc" };
 
-// FIX-D — solid polygon-face shading (reuse Mission-Planning radar-dome FACE_SHADE technique, IMG_7534): multiply an
-// object's hex colour toward black per face (top brightest → sides darker) so 3D furniture reads SOLID, not translucent.
-const FACE_SHADE = { top: 1.0, front: 0.82, side: 0.6 } as const;
-function shade(hex: string, f: number): string {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!m) return hex;
-  const n = parseInt(m[1], 16);
-  const r = Math.round(((n >> 16) & 255) * f), g = Math.round(((n >> 8) & 255) * f), b = Math.round((n & 255) * f);
-  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-}
+// FIX-D — solid polygon-face shading now comes from the ONE shared module (lib/solid-shade.ts): `shade` + `FACE_SHADE`
+// (top brightest → sides darker) so 3D furniture reads SOLID, the SAME function the radar dome and the walkthrough use.
+// (Was a local copy of the Mission-Planning radar-dome technique; de-duplicated — identical values, no visual change.)
 const N = ROOM_GRID; // 10
 
 // Our own iconology (no emojis, operator's standing rule) — one lucide glyph per object kind.

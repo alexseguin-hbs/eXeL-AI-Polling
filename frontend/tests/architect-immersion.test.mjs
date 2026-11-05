@@ -18,6 +18,8 @@ const shell = read("../components/architect-2525/command-ux1.tsx");
 const walk = read("../components/architect-2525/architect-walkthrough.tsx");
 const icons = read("../components/architect-2525/architect-walk-icons.tsx");
 const design = read("../components/architect-2525/architect-design.tsx");
+const solid = read("../lib/solid-shade.ts");
+const rd = read("../components/architect-2525/room-designer.tsx");
 
 // ── IMMERSION look-around: walk mode no longer LOCKS the tilt; pitch is free so you can look up/down at walls/corners ──
 ok(!/effPitch\s*=\s*walk\s*\?\s*20/.test(voxel), "the old locked walk tilt (effPitch = walk ? 20 : …) is GONE — the look angle is no longer pinned");
@@ -51,7 +53,7 @@ ok(/function\s+ArchitectWalkthrough\b/.test(walk), "architect-walkthrough.tsx ex
 ok(/const\s+project\s*=\s*\(p:\s*V3\)/.test(walk) && /depth\s*>\s*near/.test(walk), "it uses a purpose-built pinhole camera with near-plane cull (not the map-tilt sceneProject that clipped inside the box)");
 ok(/\bey\s*=\s*-2\b/.test(walk), "the eye stands OUTSIDE the near wall (ey = -2) so the whole room is in front of the eye — no near-plane clipping, ever");
 ok(/setYaw\(/.test(walk) && /setPitch\(/.test(walk), "drag looks around — yaw (turn) + pitch (up/down) to see the walls & corners");
-ok(/addQuad\(/.test(walk) && /data-arch-walkpad/.test(walk) && /onStep\?\./.test(walk), "it renders the room shell (walls/floor/ceiling) and a step pad that walks room to room");
+ok(/wallQuads/.test(walk) && /data-arch-walkpad/.test(walk) && /onStep\?\./.test(walk), "it renders the room shell (wallQuads: walls/floor/ceiling) and a step pad that walks room to room");
 ok(/addDoor\(/.test(walk) && /nb\.N/.test(walk), "doorways are drawn on walls that have an adjoining room, with the neighbour's label");
 
 // ── custom walkthrough iconology, NOT emoji (operator 2026-11-04: "don't use emojies; create your own walkthrough raster iconology") ──
@@ -63,5 +65,17 @@ ok(/<ArchitectWalkthrough\s+room=\{walkRoom\}\s+layout=\{roomLayout\}\s+onStep=\
 ok(/\{m === "edit" \? <><EditGlyph[\s\S]{0,80}?<WalkGlyph/.test(design), "the Edit ⇄ Walk toggle uses the drawn EditGlyph / WalkGlyph");
 ok(!/🚶|✎/.test(design), "no 🚶 / ✎ emoji remain in architect-design.tsx — replaced by the drawn iconology");
 
-console.log(`\narchitect-immersion: ${pass} passed, ${fail} failed · walk look-around is free (see walls/corners) · the Cube mockup opens the Design Room Designer · first-person walkthrough (no-clip pinhole, drawn iconology, no emoji) · one engine, reused`);
+// ── R6c · ONE shared solid-faces shader (operator 2026-11-04: "use mission planning radar 3D visual … objects and walls mimic shading … same function") ──
+ok(/export function shade\b/.test(solid) && /export const FACE_SHADE\b/.test(solid) && /export function solidFaces\b/.test(solid) && /export function boxFaces\b/.test(solid), "lib/solid-shade.ts exports the one shared shader: shade · FACE_SHADE · solidFaces · boxFaces");
+ok(/if \(ps\.some\(\(p\) => !p\)\) continue/.test(solid), "solidFaces culls by REFUSAL (drops any face with a behind/non-finite vertex), like the radar push()");
+ok(/out\.sort\(\(a, b\) => b\.depth - a\.depth\)/.test(solid), "ONE painter-sort convention (FAR→NEAR) — resolves the sign that differed across the three copies");
+ok(/wire-core is EDGE-ONLY|OUTSIDE wire-core/.test(solid), "the shader lives OUTSIDE wire-core (edge-only by law) — it is presentation");
+// walls AND furniture through the shared shader
+ok(/from "@\/lib\/solid-shade"/.test(walk) && !/const shade = \(hex/.test(walk), "the walkthrough imports the shared shader (its inline shade copy is gone)");
+ok(/boxFaces\(/.test(walk) && /room\.objects \?\? defaultObjectsForRoom/.test(walk) && /solidFaces\(\[\.\.\.wallQuads, \.\.\.furnQuads\]/.test(walk), "the walkthrough renders FURNITURE (boxFaces from room.objects ?? defaultObjectsForRoom) AND walls through ONE solidFaces() call");
+ok(/shade\(fc\.color \?\? C\.wall, FACE_SHADE\[fc\.kind\]\)/.test(walk), "each face is filled via the shared shade() + FACE_SHADE (objects and walls mimic the radar shading)");
+// the Architect voxel is de-duped onto the shared shader
+ok(/import \{ shade, FACE_SHADE \} from "@\/lib\/solid-shade"/.test(rd) && !/function shade\(hex: string/.test(rd), "the room voxel (room-designer) imports the shared shade/FACE_SHADE — its local copy is removed (de-dup, same values)");
+
+console.log(`\narchitect-immersion: ${pass} passed, ${fail} failed · walk look-around free · Cube opens the Designer · first-person walkthrough (no-clip pinhole) · ONE shared solid-faces shader for walls + furniture (de-duped from the radar) · drawn iconology, no emoji`);
 process.exit(fail ? 1 : 0);
