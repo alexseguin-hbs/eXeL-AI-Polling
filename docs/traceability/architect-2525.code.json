@@ -1106,6 +1106,42 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 28,
+   "commit": "72fb72e1e",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/architect-walkthrough.tsx",
+       "blob": "2be406aa89330d629dcfff199941e9e3140bb0ca"
+      },
+      {
+       "path": "frontend/components/architect-2525/room-designer.tsx",
+       "blob": "b759ca0308bd3330a1383bc397534e905a2daa78"
+      }
+     ],
+     "add": 28,
+     "del": 30,
+     "bytes": 8122,
+     "lines": 106,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
