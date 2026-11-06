@@ -83,7 +83,7 @@ function dirWorld(a: MepPt, b: MepPt): [number, number] { return norm2([b.gx - a
  * floor run (lines, unchanged) PLUS risers, a main ball valve, a PEX manifold, hot-over-cold twins, angle stops and mixing
  * valves (sublines + glyphs). Sewer: drains that FALL to the SE stack with traps, vents and a roof vent-through-roof.
  */
-export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObject[], ox = 0, oy = 0): WalkMep {
+export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObject[], ox = 0, oy = 0, roomKind?: string): WalkMep {
   const lines: Vec3[][] = []; const boxes: MepBox[] = []; const sublines: MepSubline[] = []; const glyphs: MepGlyph[] = [];
   if (layer === "wiring") {
     const panel = panelAt(objects);
@@ -155,7 +155,45 @@ export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObj
     const vtr = W3(stack.gx, stack.gy, CEIL - 0.2, ox, oy);
     glyphs.push({ kind: "vent", polys: [[[vtr[0] - 0.2, vtr[1], vtr[2]], [vtr[0] + 0.2, vtr[1], vtr[2]], [vtr[0], vtr[1], vtr[2] + 0.4]]], at: vtr, color: MEP_COLOR.vent, label: "VTR" });
   } else if (layer === "duct") {
-    for (const r of ductRuns().runs) lines.push(r.path.map((p) => W3(p.gx, p.gy, DUCT_Z, ox, oy)));
+    const d = ductRuns(objects, roomKind);
+    for (const r of d.runs) lines.push(r.path.map((p) => W3(p.gx, p.gy, DUCT_Z, ox, oy))); // centreline (shipped `lines`, unchanged)
+    // trunk 14×8 in prism + branch 6-in round (two parallel lines) — in the plenum above the 10-ft ceiling
+    const tA = W3(d.trunk[0].gx, d.trunk[0].gy, DUCT_Z, ox, oy), tB = W3(d.trunk[1].gx, d.trunk[1].gy, DUCT_Z, ox, oy);
+    for (const ln of ductPrism(tA, tB, 1.17, 0.67)) sublines.push({ pts: ln, color: MEP_COLOR.duct, w: 1.6 });
+    const bA = W3(d.branch[0].gx, d.branch[0].gy, DUCT_Z, ox, oy), bB = W3(d.branch[d.branch.length - 1].gx, d.branch[d.branch.length - 1].gy, DUCT_Z, ox, oy);
+    for (const ln of ductPrism(bA, bB, 0.5, 0.5).slice(0, 2)) sublines.push({ pts: ln, color: MEP_COLOR.duct, w: 1.2 });
+    // the branch drops to the ceiling register
+    const regTop = W3(d.register.gx, d.register.gy, DUCT_Z, ox, oy), reg = W3(d.register.gx, d.register.gy, CEIL - PUSH, ox, oy);
+    sublines.push({ pts: [regTop, reg], color: MEP_COLOR.duct, w: 1.2 });
+    // VCD — a 45° damper stroke + hub on the branch
+    const vcd = W3(d.vcd.gx, d.vcd.gy, DUCT_Z, ox, oy);
+    glyphs.push({ kind: "vcd", polys: [ring(vcd, 0.06, 6, [1, 0])], lines: [[[vcd[0] - 0.25, vcd[1], vcd[2] - 0.25], [vcd[0] + 0.25, vcd[1], vcd[2] + 0.25]]], at: vcd, color: MEP_COLOR.duct });
+    // REGISTER — a 1.0×0.5 ft ceiling diffuser with both diagonals
+    const rc = d.register.gx, rr = d.register.gy, rz = CEIL - PUSH;
+    const rq: Vec3[] = [[ox + rc + 0.5 - 0.5, oy + (RF - (rr + 0.5)) - 0.25, rz], [ox + rc + 0.5 + 0.5, oy + (RF - (rr + 0.5)) - 0.25, rz], [ox + rc + 0.5 + 0.5, oy + (RF - (rr + 0.5)) + 0.25, rz], [ox + rc + 0.5 - 0.5, oy + (RF - (rr + 0.5)) + 0.25, rz]];
+    glyphs.push({ kind: "register", polys: [rq], lines: [[rq[0], rq[2]], [rq[1], rq[3]]], at: reg, color: MEP_COLOR.duct, label: "SR" });
+    // RETURN grille on the S wall (absent in the M1602.2-prohibited rooms)
+    if (d.returnGrille) {
+      const g = d.returnGrille;
+      glyphs.push({ kind: "return", polys: [wallQuad(g.gx, g.gy, CEIL - 1.0, 1.67, 1.17, ox, oy)], at: W3(g.gx, g.gy, CEIL - 1.0, ox, oy), color: MEP_COLOR.ductReturn, label: "RG" });
+    }
+    // AIR HANDLER — only the Storage·Laundry room (the only legal furnace room); a stroke-prism box at the NE corner
+    if (d.airHandler) {
+      const ax = ox + 9, ay = oy + 9; // NE after Y-flip (plan NE = world x high, y high)
+      const box: Vec3[][] = [
+        [[ax, ay, 0], [ax, ay, 5]], [[ax + 1, ay, 0], [ax + 1, ay, 5]], [[ax, ay - 1, 0], [ax, ay - 1, 5]], [[ax + 1, ay - 1, 0], [ax + 1, ay - 1, 5]],
+        [[ax, ay, 5], [ax + 1, ay, 5]], [[ax + 1, ay, 5], [ax + 1, ay - 1, 5]], [[ax + 1, ay - 1, 5], [ax, ay - 1, 5]], [[ax, ay - 1, 5], [ax, ay, 5]],
+      ];
+      for (const ln of box) sublines.push({ pts: ln, color: MEP_COLOR.duct, w: 1.4 });
+      glyphs.push({ kind: "ahu", polys: [[[ax, ay, 5], [ax + 1, ay, 5], [ax + 1, ay - 1, 5], [ax, ay - 1, 5]]], at: [ax + 0.5, ay - 0.5, 5], color: MEP_COLOR.duct, label: "AHU" });
+    }
   }
   return { lines, boxes, sublines, glyphs, color: MEP_COLOR[layer] };
+}
+
+/** a rectangular duct's 4 longitudinal edge lines between centreline points a→b, cross-section w (lateral) × h (vertical). */
+export function ductPrism(a: Vec3, b: Vec3, w: number, h: number): Vec3[][] {
+  const dx = b[0] - a[0], dy = b[1] - a[1], m = Math.hypot(dx, dy) || 1, lx = (-dy / m) * (w / 2), ly = (dx / m) * (w / 2);
+  const off: [number, number, number][] = [[lx, ly, h / 2], [lx, ly, -h / 2], [-lx, -ly, h / 2], [-lx, -ly, -h / 2]];
+  return off.map(([x, y, z]) => [[a[0] + x, a[1] + y, a[2] + z], [b[0] + x, b[1] + y, b[2] + z]]);
 }

@@ -168,10 +168,28 @@ export function electricSpecs(outletCount: number, objects?: readonly PlacedObje
   return { wireFt, circuits, amps };
 }
 
-/** AIR FLOW duct runs — one register at the room centre, fed from the air handler. */
-export function ductRuns(): SystemRuns {
-  const centre: MepPt = { gx: Math.floor(MEP_GRID / 2), gy: Math.floor(MEP_GRID / 2) };
-  return runsToEndpoints(MEP_SOURCE.air, [centre]);
+/** Rooms where a return-air grille is prohibited (IRC M1602.2): bath, closet, kitchen, storage/laundry. */
+export const NO_RETURN_KINDS = new Set(["B", "C", "K", "S"]);
+
+/** AIR FLOW duct runs — one register at the room centre, fed from the air handler via a trunk (N-wall leg) + branch
+ *  (the drop to the register). P3: the SAME single run/totalFt (byte-identical — the Design-Settings "duct run length"
+ *  never drifts) PLUS the parts the walk draws (trunk, branch, register, VCD, return grille, air handler). */
+export interface DuctSystem extends SystemRuns { trunk: MepPt[]; branch: MepPt[]; register: MepPt; vcd: MepPt; returnGrille: MepPt | null; airHandler: boolean }
+export function ductRuns(objects?: readonly PlacedObject[], kind?: string): DuctSystem {
+  const centre: MepPt = { gx: Math.floor(MEP_GRID / 2), gy: Math.floor(MEP_GRID / 2) }; // (5,5) register
+  const base = runsToEndpoints(MEP_SOURCE.air, [centre]);                                // unchanged: 1 run, air→centre
+  const path = base.runs[0].path;                                                        // [(9,0),(5,0),(5,5)]
+  const trunk = path.slice(0, 2);                                                         // the N-wall leg
+  const branch = path.slice(1);                                                           // the drop to the register
+  const vcd: MepPt = { gx: centre.gx, gy: 1 };                                            // in the branch, 1 ft off the trunk (IMC 603.18)
+  // return grille on the S wall (gy = MEP_GRID-1), skipping door openings — none in the prohibited rooms (M1602.2)
+  let returnGrille: MepPt | null = null;
+  if (!kind || !NO_RETURN_KINDS.has(kind)) {
+    const g = MEP_GRID - 1, blocked = objects && objects.length ? doorOpeningCells(objects) : new Set<string>();
+    for (let gx = 2; gx <= g; gx++) { if (!blocked.has(`${gx},${g}`)) { returnGrille = { gx, gy: g }; break; } }
+    if (!returnGrille) returnGrille = { gx: 2, gy: g };
+  }
+  return { ...base, trunk, branch, register: centre, vcd, returnGrille, airHandler: kind === "S" };
 }
 
 /** ONE source of the MEP RUN colours — the 2D plan, the 3D voxel and the first-person walk all read this so a run's

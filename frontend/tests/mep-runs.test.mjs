@@ -77,6 +77,16 @@ ok(electricSpecs(9).circuits === 2 && electricSpecs(9).amps === 30, "9 outlets �
 const dr = ductRuns();
 ok(dr.runs.length === 1 && dr.runs[0].to.gx === 5 && dr.runs[0].to.gy === 5, "ductRuns → centre register (5,5)");
 ok(dr.totalFt === pathLengthFt(routeManhattan(MEP_SOURCE.air, { gx: 5, gy: 5 })), "duct total = air→centre length");
+// P3 — the duct PARTS (run/totalFt stay byte-identical above): trunk (N-wall leg), branch (the drop), register, VCD
+ok(dr.trunk.length === 2 && dr.trunk[0].gx === 9 && dr.trunk[1].gx === 5 && dr.trunk[0].gy === 0, "ductRuns.trunk = the N-wall leg (9,0)→(5,0)");
+ok(dr.branch[dr.branch.length - 1].gx === 5 && dr.branch[dr.branch.length - 1].gy === 5, "ductRuns.branch drops to the register (5,5)");
+ok(dr.register.gx === 5 && dr.register.gy === 5 && dr.vcd.gx === 5 && dr.vcd.gy === 1, "register (5,5) + VCD in the branch at (5,1)");
+// return grille — present in a conditioned room (bedroom M), PROHIBITED in bath/closet/kitchen/storage (IRC M1602.2)
+ok(ductRuns([], "M").returnGrille !== null && ductRuns([], "M").returnGrille.gy === MEP_GRID - 1, "a bedroom (M) gets a return grille on the S wall");
+ok(ductRuns([], "B").returnGrille === null && ductRuns([], "K").returnGrille === null && ductRuns([], "S").returnGrille === null, "no return grille in bath/kitchen/storage (M1602.2)");
+// air handler — ONLY the Storage·Laundry room is a legal furnace room
+ok(ductRuns([], "S").airHandler === true, "the Storage·Laundry room (S) holds the air handler");
+ok(ductRuns([], "M").airHandler === false && ductRuns([], "B").airHandler === false, "no air handler in other rooms");
 
 // FIX-4 — outlets as WALL-MOUNTED markers (seen IN the walls, at receptacle height).
 const om = outletMarkers(4);

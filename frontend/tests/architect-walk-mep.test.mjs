@@ -40,6 +40,22 @@ ok(wa.lines.length > 0 && wa.lines.flat().every((p) => near(p[2], 0.3)), "water 
 const du = walkMep("duct", 0, []);
 ok(du.lines.length > 0 && du.lines.flat().every((p) => p[2] > 10.0 && p[2] <= 12.0), "ducts run in the PLENUM above the 10-ft inner ceiling (z ∈ (10, 12]) — the nested-cube shell");
 
+// ══ P3 HVAC — trunk + branch + register + VCD + return + air handler (drawn behind the Air Flow toggle) ════════════════
+const dM = walkMep("duct", 0, [], 0, 0, "M");  // bedroom — conditioned room, gets a return grille, no air handler
+const dgk = (g, k) => g.glyphs.filter((x) => x.kind === k);
+ok(dM.sublines.length > 0, `duct trunk + branch render as prism sublines (${dM.sublines.length})`);
+ok(dgk(dM, "register").length === 1, `exactly one ceiling register (got ${dgk(dM, "register").length})`);
+ok(dgk(dM, "vcd").length === 1, `exactly one volume-control damper (got ${dgk(dM, "vcd").length})`);
+ok(dgk(dM, "return").length === 1, `a bedroom gets a return grille (got ${dgk(dM, "return").length})`);
+ok(dgk(dM, "ahu").length === 0, "no air handler in a bedroom");
+const dB = walkMep("duct", 0, [], 0, 0, "B");  // bath — return prohibited (M1602.2)
+ok(dgk(dB, "return").length === 0, "no return grille in a bath (M1602.2)");
+const dS = walkMep("duct", 0, [], 0, 0, "S");  // storage/laundry — the air handler room
+ok(dgk(dS, "ahu").length === 1, `the Storage·Laundry room holds the air handler (got ${dgk(dS, "ahu").length})`);
+ok(dM.lines.flat().every((p) => p[2] > 10 && p[2] <= 12), "duct centreline stays in the plenum (z ∈ (10,12])");
+const trunkZ = dM.sublines.filter((s) => s.pts.every((p) => p[2] > 10.5 && p[2] <= 12));
+ok(trunkZ.length >= 4, `the trunk+branch prism runs in the plenum (≥4 longitudinal edges, got ${trunkZ.length})`);
+
 // ══ P2 PLUMBING — valves, risers, hot-over-cold, traps, vents (ISA-flavoured glyphs, IRC placement) ════════════════════
 const BATH = defaultObjectsForRoom("B"); // tub · shower · toilet · sink (+ shelving/mirror, not fixtures)
 const wp = walkMep("water", 0, BATH);

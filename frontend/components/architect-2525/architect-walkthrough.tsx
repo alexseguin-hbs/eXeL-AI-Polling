@@ -299,25 +299,26 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   const mepBoxes: { pts: string; col: string; kind: string }[] = [];
   const mepSublines: { x1: number; y1: number; x2: number; y2: number; col: string; dash?: string; w: number }[] = [];
   const mepGlyphs: { pts: string; col: string; kind: string; lx?: number; ly?: number; label?: string }[] = [];
-  const addMep = (L: MepLayer, outlets: number, objs: PlacedObject[], ox: number, oy: number, boxesOnly = false) => {
-    const g = walkMep(L, outlets, objs, ox, oy);
+  const addMep = (L: MepLayer, outlets: number, objs: PlacedObject[], ox: number, oy: number, boxesOnly = false, kind?: string) => {
+    const g = walkMep(L, outlets, objs, ox, oy, kind);
     if (!boxesOnly) for (const ln of g.lines) for (let i = 0; i < ln.length - 1; i++) { const a = project(ln[i]), b = project(ln[i + 1]); if (a && b) mepLines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: g.color, key: L }); }
     for (const bx of g.boxes) { if (boxesOnly && bx.kind !== "outlet") continue; const q = poly(bx.pts); if (q) mepBoxes.push({ pts: q.d, col: g.color, kind: bx.kind }); }
     if (boxesOnly) return;
-    // P2 — valve/riser sublines (own dash + width) and valve/trap/vent GLYPHS; cull a glyph when it is far (depth ≥ 12),
-    // label it only up close (depth < 6). Neighbour rooms get the glyphs too so a shared-wall stack reads from the doorway.
+    // P2/P3 — valve/riser/duct sublines (own dash + width) and valve/trap/vent/duct-part GLYPHS; cull a glyph when it is
+    // far (depth ≥ 12), label it only up close (depth < 6). Neighbours get the glyphs too so a shared-wall stack reads in.
     for (const sl of g.sublines) for (let i = 0; i < sl.pts.length - 1; i++) { const a = project(sl.pts[i]), b = project(sl.pts[i + 1]); if (a && b) mepSublines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: sl.color, dash: sl.dash, w: sl.w ?? 2.2 }); }
     for (const gl of g.glyphs) {
       const at = project(gl.at); if (!at || at.depth >= 12) continue;
       for (const pg of gl.polys) { const q = poly(pg); if (q) mepGlyphs.push({ pts: q.d, col: gl.color, kind: gl.kind, label: at.depth < 6 ? gl.label : undefined, lx: at.depth < 6 && gl.label ? at.x : undefined, ly: at.depth < 6 && gl.label ? at.y - 6 : undefined }); }
+      if (gl.lines) for (const ln of gl.lines) for (let i = 0; i < ln.length - 1; i++) { const a = project(ln[i]), b = project(ln[i + 1]); if (a && b) mepSublines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: gl.color, w: 1.2 }); }
     }
   };
   const forAll = (L: MepLayer, boxesOnly = false) => {
-    addMep(L, outletCount0, roomObjs, 0, 0, boxesOnly);
-    if (nb.N) addMep(L, cellOut(nb.N), nb.N.objects ?? defaultObjectsForRoom(nb.N.k), 0, ROOM_FT, boxesOnly);
-    if (nb.S) addMep(L, cellOut(nb.S), nb.S.objects ?? defaultObjectsForRoom(nb.S.k), 0, -ROOM_FT, boxesOnly);
-    if (nb.E) addMep(L, cellOut(nb.E), nb.E.objects ?? defaultObjectsForRoom(nb.E.k), ROOM_FT, 0, boxesOnly);
-    if (nb.W) addMep(L, cellOut(nb.W), nb.W.objects ?? defaultObjectsForRoom(nb.W.k), -ROOM_FT, 0, boxesOnly);
+    addMep(L, outletCount0, roomObjs, 0, 0, boxesOnly, room?.k);
+    if (nb.N) addMep(L, cellOut(nb.N), nb.N.objects ?? defaultObjectsForRoom(nb.N.k), 0, ROOM_FT, boxesOnly, nb.N.k);
+    if (nb.S) addMep(L, cellOut(nb.S), nb.S.objects ?? defaultObjectsForRoom(nb.S.k), 0, -ROOM_FT, boxesOnly, nb.S.k);
+    if (nb.E) addMep(L, cellOut(nb.E), nb.E.objects ?? defaultObjectsForRoom(nb.E.k), ROOM_FT, 0, boxesOnly, nb.E.k);
+    if (nb.W) addMep(L, cellOut(nb.W), nb.W.objects ?? defaultObjectsForRoom(nb.W.k), -ROOM_FT, 0, boxesOnly, nb.W.k);
   };
   for (const L of layers) forAll(L);
   if (socketsOnly) forAll("wiring", true);   // ⚡ Sockets alone: just the outlet boxes
@@ -388,12 +389,14 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
           <span style={{ width: 8, height: 8, borderRadius: 2, background: mepLines[0]?.col ?? C.gold }} /> {t(`arch.walk.layer.${chipLayer}`)}
         </div>
       )}
-      {/* P2 PLUMBING legend — the glyph silhouettes (one GLYPH_PATHS source) so the valve/trap/vent marks are named */}
-      {mepOn && (chipLayer === "water" || chipLayer === "sewer") && (() => {
+      {/* P2/P3 PLUMBING + HVAC legend — the glyph silhouettes (one GLYPH_PATHS source) so the valve/trap/duct marks are named */}
+      {mepOn && (chipLayer === "water" || chipLayer === "sewer" || chipLayer === "duct") && (() => {
         const items = chipLayer === "water"
           ? [["valve", "arch.walk.legend.main"], ["stop", "arch.walk.legend.stop"], ["manifold", "arch.walk.legend.manifold"], ["mixer", "arch.walk.legend.mixer"]]
-          : [["trap", "arch.walk.legend.trap"], ["cleanout", "arch.walk.legend.co"], ["vent", "arch.walk.legend.vtr"]];
-        const col = chipLayer === "water" ? MEP_COLOR.water : MEP_COLOR.sewer;
+          : chipLayer === "sewer"
+          ? [["trap", "arch.walk.legend.trap"], ["cleanout", "arch.walk.legend.co"], ["vent", "arch.walk.legend.vtr"]]
+          : [["manifold", "arch.walk.legend.trunk"], ["mixer", "arch.walk.legend.register"], ["cleanout", "arch.walk.legend.vcd"]];
+        const col = chipLayer === "water" ? MEP_COLOR.water : chipLayer === "sewer" ? MEP_COLOR.sewer : MEP_COLOR.duct;
         return (
           <div data-arch-walk-legend className="absolute left-2 top-[72px] flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg border px-2 py-0.5 text-[9px] font-medium" style={{ borderColor: `${col}88`, color: col, background: "#0a0f16ee", maxWidth: "70%" }}>
             {items.map(([g, k]) => (
