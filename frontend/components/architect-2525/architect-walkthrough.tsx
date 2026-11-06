@@ -337,7 +337,6 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   const mepOn = layers.length > 0 || socketsOnly;
   // x-ray the inner ceiling to see the plenum: ducts (HVAC), the roof plane/rafters (Roofing), and the Starlink dish (Internet) — all in the 10→12 plenum
   const ceilXray = layers.includes("duct") || shellId === "roofing" || shellId === "internet";
-  const cellOut = (c: RoomCell | null | undefined) => c?.outlets ?? 0;
   const mepLines: { x1: number; y1: number; x2: number; y2: number; col: string; key: string }[] = [];
   const mepBoxes: { pts: string; col: string; kind: string }[] = [];
   const mepSublines: { x1: number; y1: number; x2: number; y2: number; col: string; dash?: string; w: number }[] = [];
@@ -367,12 +366,12 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
     for (const sl of g.sublines) for (let i = 0; i < sl.pts.length - 1; i++) { const a = project(sl.pts[i]), b = project(sl.pts[i + 1]); if (a && b) mepSublines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: sl.color, dash: sl.dash, w: sl.w ?? 2.2 }); }
     pushGlyphs(g.glyphs, () => 0.9);
   };
+  // MEP draws for THIS ROOM ONLY (rewalk2 P0, MoT): each room's plumbing/wiring/ducts key off ITS OWN identity (room.k +
+  // roomObjs), never a neighbour's — so a dry room shows NOTHING in plumbing/sewer and the house service (kind S) never
+  // bleeds through a wall into the office/entry. (Neighbour MEP rendering caused the "wrong room" misread; the node gate
+  // tests/architect-walk-mep-rooms proves the per-room correctness this guarantees.)
   const forAll = (L: MepLayer, boxesOnly = false) => {
     addMep(L, outletCount0, roomObjs, 0, 0, boxesOnly, room?.k);
-    if (nb.N) addMep(L, cellOut(nb.N), nb.N.objects ?? defaultObjectsForRoom(nb.N.k), 0, ROOM_FT, boxesOnly, nb.N.k);
-    if (nb.S) addMep(L, cellOut(nb.S), nb.S.objects ?? defaultObjectsForRoom(nb.S.k), 0, -ROOM_FT, boxesOnly, nb.S.k);
-    if (nb.E) addMep(L, cellOut(nb.E), nb.E.objects ?? defaultObjectsForRoom(nb.E.k), ROOM_FT, 0, boxesOnly, nb.E.k);
-    if (nb.W) addMep(L, cellOut(nb.W), nb.W.objects ?? defaultObjectsForRoom(nb.W.k), -ROOM_FT, 0, boxesOnly, nb.W.k);
   };
   for (const L of layers) forAll(L);
   if (socketsOnly) forAll("wiring", true);   // ⚡ Sockets alone: just the outlet boxes
