@@ -23,7 +23,7 @@ ok(HOUSE_FT === 3 * SHELL_FT && HOUSE_FT === 36 && HOUSE_H === SHELL_FT && HOUSE
 const walk = read("components/architect-2525/architect-walkthrough.tsx");
 ok(/const CEIL_FT = STOREY_FT\b/.test(walk), "the walkthrough binds CEIL_FT to STOREY_FT (the cube), not a literal");
 ok(!/CEIL_FT\s*=\s*8\b/.test(walk), "the walkthrough never hardcodes CEIL_FT = 8 (the R2 revert)");
-ok(/import \{ STOREY_FT \} from "@\/lib\/room-layout"/.test(walk), "the walkthrough imports STOREY_FT (the one cube source)");
+ok(/import \{[^}]*\bSTOREY_FT\b[^}]*\} from "@\/lib\/room-layout"/.test(walk), "the walkthrough imports STOREY_FT from room-layout (the one cube source; co-imports like TINY_GRID allowed)");
 
 // 3. the MEP keys the top plate + duct to the cube, not 8; the duct sits just under the 10-ft ceiling
 const mep = read("lib/architect-walk-mep.ts");
