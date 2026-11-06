@@ -1142,6 +1142,46 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 29,
+   "commit": "117adb56c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/architect-design.tsx",
+       "blob": "17be7bde2a3291811348201b1ca0742c648a54c4"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-walk-icons.tsx",
+       "blob": "489f10bf19ece87757cdddb77f8a2a53dabc46d1"
+      },
+      {
+       "path": "frontend/components/architect-2525/architect-walkthrough.tsx",
+       "blob": "751f60dab177ba2e5622ff4e33b6c4d9092cfe52"
+      }
+     ],
+     "add": 21,
+     "del": 5,
+     "bytes": 4691,
+     "lines": 69,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
