@@ -77,6 +77,14 @@ ok(toiletOnly.sublines.filter((s) => s.color === MEP_COLOR.hot).length === 0, "a
 // 5 · cold floor run is unchanged (Release Process #6) — the shipped `lines` still run at z 0.3
 ok(wp.lines.length > 0 && wp.lines.flat().every((p) => near(p[2], 0.3)), "water cold floor runs stay at z 0.3 (shipped lines untouched)");
 
+// ── #4 PLUMBING REALISM: a water heater in the utility room (kind S) + a laundry box at the washer ──
+const STORE = defaultObjectsForRoom("S"); // counter · washer · sink
+const wpS = walkMep("water", 0, STORE, 0, 0, "S");
+ok(gk(wpS, "heater").length === 1, `the utility room gets ONE water heater (got ${gk(wpS, "heater").length})`);
+ok(gk(wpS, "laundrybox").length === 1, `the washer gets a recessed laundry box (got ${gk(wpS, "laundrybox").length})`);
+const wpM = walkMep("water", 0, BATH, 0, 0, "B"); // a bath is not the utility room → no heater, no laundry box
+ok(gk(wpM, "heater").length === 0 && gk(wpM, "laundrybox").length === 0, "a non-utility room draws no water heater / laundry box (one per house)");
+
 // ── SEWER: drains FALL to the SE stack; traps, vents, cleanout, vent-through-roof ──
 const sp = walkMep("sewer", 0, BATH);
 // every drain line falls (z non-increasing) and bottoms out near the stack datum 0.1

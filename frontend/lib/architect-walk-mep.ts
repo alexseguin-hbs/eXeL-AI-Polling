@@ -24,7 +24,7 @@ const COLD_Z = 0.3, HOT_Z = 0.55;     // water supply on the floor — cold then
 const HOT_DX = 0.33;                  // hot riser offset along the wall from the cold riser
 
 export type MepLayer = "wiring" | "water" | "sewer" | "duct";
-export type GlyphKind = "valve" | "stop" | "mixer" | "manifold" | "trap" | "flange" | "cleanout" | "vent" | "register" | "vcd" | "return" | "ahu";
+export type GlyphKind = "valve" | "stop" | "mixer" | "manifold" | "trap" | "flange" | "cleanout" | "vent" | "register" | "vcd" | "return" | "ahu" | "heater" | "laundrybox";
 export interface MepBox { kind: "outlet" | "panel"; pts: Vec3[]; z: number }
 export interface MepSubline { pts: Vec3[]; color: string; dash?: string; w?: number }
 export interface MepGlyph { kind: GlyphKind; polys: Vec3[][]; lines?: Vec3[][]; at: Vec3; color: string; label?: string }
@@ -106,6 +106,12 @@ export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObj
     glyphs.push({ kind: "valve", polys: ballValve(W3(src.gx, src.gy, 1.0, ox, oy), [0, 1], 0.5), at: W3(src.gx, src.gy, 1.0, ox, oy), color: MEP_COLOR.water, label: "MAIN" });
     const manZ = 2.7, manPts = wallQuad(src.gx, src.gy, manZ, 1.0, 0.6, ox, oy);
     glyphs.push({ kind: "manifold", polys: [manPts], at: W3(src.gx, src.gy, manZ, ox, oy), color: MEP_COLOR.water });
+    // P2/#4 — the WATER HEATER lives in the utility room (Storage·Laundry, the furnace room): a tank at the source wall with
+    // a hot output riser. One per house — gated to kind S so it never duplicates per room (a partial of the #3 service entry).
+    if (roomKind === "S") {
+      glyphs.push({ kind: "heater", polys: [wallQuad(src.gx, src.gy, 2.0, 1.3, 4.0, ox, oy)], at: W3(src.gx, src.gy, 4.0, ox, oy), color: MEP_COLOR.water, label: "WH" });
+      sublines.push({ pts: [W3(src.gx, src.gy, 4.0, ox, oy), [ox + src.gx + 0.5 + HOT_DX, oy + (RF - (src.gy + 0.5)), 3.0]], color: MEP_COLOR.hot, w: 2.0 }); // hot out
+    }
     // 2/3/4 · per fixture: cold floor run (lines), hot twin, risers, angle stops / mixers
     for (const r of runs) {
       const to = r.to, kind = kindAt.get(`${to.gx},${to.gy}`) as ObjectKind | undefined;
@@ -115,6 +121,10 @@ export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObj
       sublines.push({ pts: [W3(to.gx, to.gy, COLD_Z, ox, oy), W3(to.gx, to.gy, stub, ox, oy)], color: MEP_COLOR.water, w: 2.0 });     // cold riser
       if (kind !== "toilet") sublines.push({ pts: [W3(to.gx, to.gy, HOT_Z, ox, oy), [ox + to.gx + 0.5 + HOT_DX, oy + (RF - (to.gy + 0.5)), stub]], color: MEP_COLOR.hot, w: 2.0 }); // hot riser
       const dir = dirWorld(src, to);
+      if (kind === "washer") {
+        // #4 — a recessed LAUNDRY BOX at the washer: hot + cold supply nipples and a standpipe drain, at washer stub height
+        glyphs.push({ kind: "laundrybox", polys: [wallQuad(to.gx, to.gy, stub, 0.8, 0.8, ox, oy)], at: W3(to.gx, to.gy, stub, ox, oy), color: MEP_COLOR.water, label: "box" });
+      }
       if (kind === "tub" || kind === "shower") {
         glyphs.push({ kind: "mixer", polys: [ring(W3(to.gx, to.gy, 4.0, ox, oy), 0.25, 12, dir)], at: W3(to.gx, to.gy, 4.0, ox, oy), color: MEP_COLOR.water });
       } else {
