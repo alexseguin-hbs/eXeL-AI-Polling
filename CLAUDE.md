@@ -1,6 +1,20 @@
 # Claude Code - Project Instructions
 
 ## Workflow Rules
+- **EVERY DECISION IS SIMULATED FOR RISK BY ALL 12 ASCENDED MASTERS BEFORE IT IS MADE (operator 2026-11-06, said twice:
+  "make all decisions simulating risks from all 12 ASm for feedback before decision is made").** This is the overarching
+  decision protocol and it governs EVERY decision — a ship/push, an architecture fork, a prioritization, a gate change,
+  a copy change, which backlog item to do next, how to implement one. Before MoT rules, the 12 AsM (Aset · Asar · Athena
+  · Christo · Enki · Enlil · Krishna · Odin · Pangu · Sofia · Thoth · Thor) each simulate the RISKS from their own lens
+  (grounded in the real code, not guessed) and return risk/value feedback; MoT then rules as H.I. on that feedback. For a
+  SHIP the 12-AsM pass is the adversarial walkthrough gate (find → verify → fix any confirmed P0/P1 before push — this is
+  what caught the Walk-R2 P0s the self-test missed); for a direction/prioritization fork it is the risk simulation (each
+  Master scores risk + value per option, MoT rules). Calibrate the weight to the decision — a full find-verify fleet for a
+  ship, a lighter one-pass risk sim for a smaller call — but NEVER make a non-trivial decision without first collecting the
+  12 lenses. Genuinely-operator decisions are still ruled by MoT autonomously to keep progress (his standing "approve all
+  your own decisions; document changes") AND presented back as an HTML options card (the ARCH-SIM-PLAN format) carrying the
+  risk feedback, so he can SEE → UNDERSTAND → DECIDE and override. Trivial, reversible mechanics (a rename, a typo, a
+  re-run) do not need the fleet; when unsure whether a decision is trivial, run the sim.
 - **"SIMULATE" ALWAYS ALSO MEANS "COME UP WITH OPTIONS" (operator 2026-10-25: "any time I say simulate, I also mean
   come up with some options. you must figure out when I mean the simulate menu vs others").** When the operator says
   "simulate", produce 2–4 real, distinct alternatives — never a single answer, never a forced menu he must pick from
