@@ -11,6 +11,7 @@ import type { Vec3 } from "./solid-shade";
 
 const RF = ROOM_GRID;                 // 10
 const TOP_PLATE = 8;                  // the 8-ft top plate the wiring ring runs along
+export const DUCT_Z = TOP_PLATE - 0.33;  // 7.67 ft — centreline of an 8-in trunk whose top sits on the 8-ft ceiling (P0: was 9.5, above the ceiling)
 const PANEL_BOT = 4, PANEL_H = 2.5, PANEL_W = 1.2;   // the service panel: 1.2×2.5 ft, bottom at 4 ft
 const OUT_W = 0.45, OUT_H = 0.65, PUSH = 0.03;        // an outlet: 0.45×0.65 ft on the wall face, pushed into the room
 
@@ -52,7 +53,7 @@ export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObj
   } else if (layer === "water" || layer === "sewer") {
     for (const r of (layer === "water" ? waterRuns(objects) : sewerRuns(objects)).runs) lines.push(r.path.map((p) => W3(p.gx, p.gy, 0.3, ox, oy)));
   } else if (layer === "duct") {
-    for (const r of ductRuns().runs) lines.push(r.path.map((p) => W3(p.gx, p.gy, RF - 0.5, ox, oy)));
+    for (const r of ductRuns().runs) lines.push(r.path.map((p) => W3(p.gx, p.gy, DUCT_Z, ox, oy)));
   }
   return { lines, boxes, color: MEP_COLOR[layer] };
 }

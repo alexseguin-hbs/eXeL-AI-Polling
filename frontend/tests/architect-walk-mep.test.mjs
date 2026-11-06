@@ -36,9 +36,9 @@ ok(wa.color === MEP_COLOR.water, "water layer uses MEP_COLOR.water");
 ok(wa.boxes.length === 0, "water draws no outlet/panel boxes");
 ok(wa.lines.length > 0 && wa.lines.flat().every((p) => near(p[2], 0.3)), "water pipes run on the floor (z ≈ 0.3)");
 
-// ── Duct: ceiling ──
+// ── Duct: at the ceiling but BELOW the 8-ft slab (P0 fix — was 9.5, above the ceiling) ──
 const du = walkMep("duct", 0, []);
-ok(du.lines.length > 0 && du.lines.flat().every((p) => p[2] > ROOM_FT - 1), "ducts run at the ceiling");
+ok(du.lines.length > 0 && du.lines.flat().every((p) => p[2] >= 7.3 && p[2] <= 8.0), "ducts run just under the 8-ft ceiling (z ∈ [7.3, 8.0]), not above it");
 
 console.log(`\nARCHITECT-WALK-MEP ${pass}/${pass + fail} passed · wires+outlets+panel · floor pipes · Y-flip · shared MEP_COLOR`);
 if (fail > 0) process.exit(1);
