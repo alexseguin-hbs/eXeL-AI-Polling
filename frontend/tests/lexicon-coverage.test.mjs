@@ -25,6 +25,9 @@ const AFTER_FILL = new Set([
   // caption. ENGLISH ONLY — staged until the Architect UI/UX is final; no fill dispatched.
   'arch.walk.move', 'arch.walk.look', 'arch.walk.hint', 'arch.walk.title',
   'arch.walk.layer.wiring', 'arch.walk.layer.water', 'arch.walk.layer.sewer', 'arch.walk.layer.duct', 'arch.walk.turnCue',
+  // P2 PLUMBING walk legend (operator 2026-11-06). ENGLISH ONLY — staged until the Architect UI/UX is final; no fill.
+  'arch.walk.layer.hot', 'arch.walk.layer.vent', 'arch.walk.legend.main', 'arch.walk.legend.stop', 'arch.walk.legend.manifold',
+  'arch.walk.legend.mixer', 'arch.walk.legend.trap', 'arch.walk.legend.co', 'arch.walk.legend.vtr',
   // R-CORE </> Code mode (operator 2026-10-15, DD-61/DD-65). ENGLISH ONLY: DD-60 of the same day holds ALL
   // translation work until he says the UX is complete — "dont worry anlut translations until Ux is complete".
   // Listed here, never silent; no fill is dispatched for it.

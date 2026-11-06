@@ -24,7 +24,8 @@ import { shade, FACE_SHADE, solidFaces, boxFaces, type Vec3, type Quad } from "@
 import { showGroupInPhase, phaseById } from "@/lib/architect-phases"; // REUSE the SAME phase→layer filter the 2D/3D designer uses
 import { canCrossDoor, DOOR_W, ROOM_FT } from "@/lib/architect-walk-nav"; // the pure door-span rule (cannot walk through solid wall)
 import { roomBlockers, walkMove, WALK_R, type Rect } from "@/lib/architect-walk-collide"; // the pure collide-and-slide (never stuck)
-import { walkMep, type MepLayer } from "@/lib/architect-walk-mep"; // REUSE the 2D/3D MEP geometry as walk-world elevation
+import { walkMep, GLYPH_PATHS, type MepLayer } from "@/lib/architect-walk-mep"; // REUSE the 2D/3D MEP geometry as walk-world elevation
+import { MEP_COLOR } from "@/lib/mep-runs"; // one colour source for the Plumbing legend chip
 import { walkFraming, type WalkOpening } from "@/lib/architect-walk-framing"; // the stud layout for the Framing phase
 import { studGaugeById, FRAME_COLOR, FRAME_HEADER_COLOR, STUD_SPACING_IN } from "@/lib/architect-phase-palette"; // REUSE the one stud gauge/palette
 import { applySets, getSets, initSets, subscribeSets, type StickSets } from "@/lib/2525-core/stick-sets"; // REUSE stick calibration
@@ -296,10 +297,20 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   const cellOut = (c: RoomCell | null | undefined) => c?.outlets ?? 0;
   const mepLines: { x1: number; y1: number; x2: number; y2: number; col: string; key: string }[] = [];
   const mepBoxes: { pts: string; col: string; kind: string }[] = [];
+  const mepSublines: { x1: number; y1: number; x2: number; y2: number; col: string; dash?: string; w: number }[] = [];
+  const mepGlyphs: { pts: string; col: string; kind: string; lx?: number; ly?: number; label?: string }[] = [];
   const addMep = (L: MepLayer, outlets: number, objs: PlacedObject[], ox: number, oy: number, boxesOnly = false) => {
     const g = walkMep(L, outlets, objs, ox, oy);
     if (!boxesOnly) for (const ln of g.lines) for (let i = 0; i < ln.length - 1; i++) { const a = project(ln[i]), b = project(ln[i + 1]); if (a && b) mepLines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: g.color, key: L }); }
     for (const bx of g.boxes) { if (boxesOnly && bx.kind !== "outlet") continue; const q = poly(bx.pts); if (q) mepBoxes.push({ pts: q.d, col: g.color, kind: bx.kind }); }
+    if (boxesOnly) return;
+    // P2 — valve/riser sublines (own dash + width) and valve/trap/vent GLYPHS; cull a glyph when it is far (depth ≥ 12),
+    // label it only up close (depth < 6). Neighbour rooms get the glyphs too so a shared-wall stack reads from the doorway.
+    for (const sl of g.sublines) for (let i = 0; i < sl.pts.length - 1; i++) { const a = project(sl.pts[i]), b = project(sl.pts[i + 1]); if (a && b) mepSublines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: sl.color, dash: sl.dash, w: sl.w ?? 2.2 }); }
+    for (const gl of g.glyphs) {
+      const at = project(gl.at); if (!at || at.depth >= 12) continue;
+      for (const pg of gl.polys) { const q = poly(pg); if (q) mepGlyphs.push({ pts: q.d, col: gl.color, kind: gl.kind, label: at.depth < 6 ? gl.label : undefined, lx: at.depth < 6 && gl.label ? at.x : undefined, ly: at.depth < 6 && gl.label ? at.y - 6 : undefined }); }
+    }
   };
   const forAll = (L: MepLayer, boxesOnly = false) => {
     addMep(L, outletCount0, roomObjs, 0, 0, boxesOnly);
@@ -343,6 +354,14 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
         {faces.map((fc, i) => <polygon key={`f${i}`} data-arch-walk-frame-face={fc.color === FRAME_COLOR || fc.color === FRAME_HEADER_COLOR ? "1" : undefined} points={fc.d} fill={fog(shade(fc.color ?? C.wall, FACE_SHADE[fc.kind]), fc.depth)} fillOpacity={framingOn && fc.color === C.wall && (fc.kind === "front" || fc.kind === "side") ? 0.15 : mepOn && (fc.kind === "front" || fc.kind === "side") ? 0.55 : (layers.includes("duct") && fc.kind === "ceil" && fc.color === C.wall) ? 0.55 : 1} stroke={fc.kind === "front" || fc.kind === "side" ? C.edge : "none"} strokeWidth={fc.kind === "front" || fc.kind === "side" ? 0.6 : 0} />)}
         {/* MEP LAYER (E1 / WALK-05) — wires / pipes / ducts + outlet & panel boxes, drawn x-ray between the walls and the grid */}
         {mepLines.map((s, i) => <line key={`m${i}`} data-arch-walk-mep={s.key} x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={s.col} strokeWidth={2.2} strokeDasharray="6 4" strokeLinecap="round" opacity={0.95} />)}
+        {/* P2 PLUMBING — risers, hot-over-cold, traps, vents, the stack: each sub-run keeps its own dash + width (Release Process #6: the shipped lines above are untouched) */}
+        {mepSublines.map((s, i) => <line key={`ms${i}`} data-arch-walk-subline x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={s.col} strokeWidth={s.w} strokeDasharray={s.dash ?? undefined} strokeLinecap="round" opacity={0.95} />)}
+        {mepGlyphs.map((g, i) => (
+          <g key={`mg${i}`}>
+            <polygon data-arch-walk-glyph={g.kind} points={g.pts} fill={g.col} fillOpacity={0.9} stroke="#070b12" strokeWidth={0.8} />
+            {g.label && g.lx !== undefined && g.ly !== undefined && <text x={g.lx} y={g.ly} fill={g.col} fontSize={9} textAnchor="middle" style={{ fontFamily: "ui-monospace, Consolas, monospace", paintOrder: "stroke", stroke: "#070b12", strokeWidth: 2 }}>{g.label}</text>}
+          </g>
+        ))}
         {mepBoxes.map((b, i) => <polygon key={`mb${i}`} data-arch-walk-outlet={b.kind === "outlet" ? "1" : undefined} data-arch-walk-panel={b.kind === "panel" ? "1" : undefined} points={b.pts} fill={b.col} stroke="#070b12" strokeWidth={0.8} />)}
         {/* FRAMING (P1) — the neighbour rooms' studs as lines only (overdraw mitigation); this room's studs are solid quads above */}
         {frameLines.map((s, i) => <line key={`fr${i}`} data-arch-walk-frame="1" x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={FRAME_COLOR} strokeWidth={1} opacity={0.7} />)}
@@ -369,6 +388,22 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
           <span style={{ width: 8, height: 8, borderRadius: 2, background: mepLines[0]?.col ?? C.gold }} /> {t(`arch.walk.layer.${chipLayer}`)}
         </div>
       )}
+      {/* P2 PLUMBING legend — the glyph silhouettes (one GLYPH_PATHS source) so the valve/trap/vent marks are named */}
+      {mepOn && (chipLayer === "water" || chipLayer === "sewer") && (() => {
+        const items = chipLayer === "water"
+          ? [["valve", "arch.walk.legend.main"], ["stop", "arch.walk.legend.stop"], ["manifold", "arch.walk.legend.manifold"], ["mixer", "arch.walk.legend.mixer"]]
+          : [["trap", "arch.walk.legend.trap"], ["cleanout", "arch.walk.legend.co"], ["vent", "arch.walk.legend.vtr"]];
+        const col = chipLayer === "water" ? MEP_COLOR.water : MEP_COLOR.sewer;
+        return (
+          <div data-arch-walk-legend className="absolute left-2 top-[72px] flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg border px-2 py-0.5 text-[9px] font-medium" style={{ borderColor: `${col}88`, color: col, background: "#0a0f16ee", maxWidth: "70%" }}>
+            {items.map(([g, k]) => (
+              <span key={g} className="flex items-center gap-0.5">
+                <svg width={11} height={11} viewBox="0 0 10 10" style={{ flexShrink: 0 }}><path d={GLYPH_PATHS[g]} fill="none" stroke={col} strokeWidth={1} /></svg>{t(k)}
+              </span>
+            ))}
+          </div>
+        );
+      })()}
       {/* FRAMING gauge chip — the SAME string the 2D plan prints (gauge @ 16" o.c.) in the lumber colour */}
       {framingOn && (
         <div data-arch-walk-layer className="absolute left-2 top-10 flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-semibold" style={{ borderColor: FRAME_COLOR, color: FRAME_COLOR, background: "#0a0f16ee" }}>

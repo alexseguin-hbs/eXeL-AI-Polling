@@ -13,7 +13,7 @@ import { ROOM_GRID, wallOf, wallOfObject, worldSpan, type ObjectKind, type Place
 
 export const MEP_GRID = ROOM_GRID; // 10 — one cell per foot
 
-export interface MepPt { gx: number; gy: number }
+export interface MepPt { gx: number; gy: number; kind?: ObjectKind }
 export interface MepRun { from: MepPt; to: MepPt; path: MepPt[]; lengthFt: number }
 export interface SystemRuns { runs: MepRun[]; totalFt: number }
 
@@ -32,6 +32,14 @@ export const MEP_SOURCE: Record<"water" | "sewer" | "panel" | "air", MepPt> = {
 // default bath fixture and MUST be served (operator 2026-11-06, Enki).
 export const WATER_FIXTURES: ObjectKind[] = ["sink", "tub", "shower", "toilet", "washer", "counter"];
 export const DRAIN_FIXTURES: ObjectKind[] = ["sink", "tub", "shower", "toilet", "washer", "counter"];
+
+// P2 PLUMBING — rough-in stub heights above finished floor (builder practice, "typical"): sink/counter stops ~20″,
+// toilet supply 6″, washer box 42″, tub/shower mixing valve 48″. One source, reused by the walk + any spec readout.
+export const STUB_AFF_FT: Partial<Record<ObjectKind, number>> = {
+  sink: 1.67, counter: 1.67, toilet: 0.5, washer: 3.5, tub: 4.0, shower: 4.0,
+};
+// DWV drain slope — ¼″ per foot (IRC P3005.4.1), one source for the walk's falling-drain geometry.
+export const DRAIN_SLOPE_FT_PER_FT = 1 / 48;
 
 /** Manhattan L-route between two cells: run along X to the target column, then along Y. Deterministic. */
 export function routeManhattan(from: MepPt, to: MepPt): MepPt[] {
@@ -71,7 +79,7 @@ export function fixtureEndpoints(objects: PlacedObject[], kinds: ObjectKind[]): 
     const key = `${o.gx},${o.gy}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ gx: clampCell(o.gx), gy: clampCell(o.gy) });
+    out.push({ gx: clampCell(o.gx), gy: clampCell(o.gy), kind: o.kind }); // P2: carry the fixture kind (stub height, trap, mixer)
   }
   return out;
 }
@@ -169,4 +177,6 @@ export function ductRuns(): SystemRuns {
 /** ONE source of the MEP RUN colours — the 2D plan, the 3D voxel and the first-person walk all read this so a run's
  *  colour never drifts between views (operator 2026-11-06: "see the wires"). The Design PhaseBar chip is intentionally
  *  the rainbow phase colour, NOT this. Water cyan · sewer green · wiring gold · duct sky. */
-export const MEP_COLOR = { water: "#19c8cf", sewer: "#22c55e", wiring: "#ffd400", duct: "#38bdf8" } as const;
+// P2/P3 adds hot (red — the plan's blue/cold + red/hot convention; a repo decision, not ISA), vent (sewer green, drawn
+// dashed), and ductReturn (duct sky, drawn dashed). Existing keys unchanged (Release Process #6 — shipped colours stay).
+export const MEP_COLOR = { water: "#19c8cf", sewer: "#22c55e", wiring: "#ffd400", duct: "#38bdf8", hot: "#f87171", vent: "#22c55e", ductReturn: "#38bdf8" } as const;
