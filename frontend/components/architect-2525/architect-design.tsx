@@ -77,6 +77,11 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   // Edit ⇄ Walk for the ENTERED room (operator 2026-11-06): once inside a room, switch between the RoomDesigner (edit)
   // and the first-person ArchitectWalkthrough (walk). Default edit; reset to edit each time a room is entered.
   const [roomMode, setRoomMode] = useState<"edit" | "walk">("edit");
+  // WALK-07 (operator 2026-11-06: "the viewer is the #1 UX") — the walk canvas grows to most of the viewport, and the
+  // phase bar collapses to a single chip while walking so nothing crowds the picture.
+  const [viewportH, setViewportH] = useState(760);
+  useEffect(() => { const u = () => setViewportH(window.innerHeight); u(); window.addEventListener("resize", u); return () => window.removeEventListener("resize", u); }, []);
+  const walkH = Math.max(340, viewportH - 300);   // fill the viewport but leave the top chrome room so BOTH sticks stay on-screen (375/390/428)
   const tiny = homeType === "tiny";
   // The room-based design tooling (⚙ settings · Move Room · ⏎ Enter · exploded RoomDesigner · room 2D/3D) is
   // offered for every UNLOCKED market — Tiny Home AND Home (operator: "replicate tiny features for other options";
@@ -302,7 +307,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
           </div>
         </div>
         {/* PHASE MODE — the eight development phases (operator 2026-10-25); tap one to show its system + specs. */}
-        {designable && <PhaseBar phase={phase} onSelect={selectPhase} />}
+        {designable && <PhaseBar phase={phase} onSelect={selectPhase} compact={focusRoom ? roomMode === "walk" : tinyMode === "walk"} />}
         {/* DESIGN SETTINGS panel (Mission-Planning parity, operator IMG_7488) — grouped by system, iconology,
             pill toggles. Opened by the ⚙ gear; declutters the toolbar. */}
         {settingsOpen && designable && (
@@ -364,11 +369,9 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
           //   room, so you can walk the room you entered and step back to edit. Reuses EditGlyph + the operator's WalkRaster.
           <div data-arch-tiny-view className="relative">
             <div data-arch-roomview-modebar className="mb-1.5 flex items-center gap-2">
+              {/* back only — the room NAME is shown once, in the walk's own HUD (no double print, Athena quick-win) */}
               {roomMode === "walk" && (
-                <>
-                  <button data-arch-roomwalk-back onClick={() => setFocusRoomId(null)} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← Back to house</button>
-                  <span className="text-[11px] font-bold" style={{ color: C.gold }}>{focusRoom.k} · {focusRoom.label}</span>
-                </>
+                <button data-arch-roomwalk-back onClick={() => setFocusRoomId(null)} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← Back to house</button>
               )}
               <div className="ml-auto flex gap-1">
                 {(["edit", "walk"] as const).map((m) => (
@@ -380,7 +383,8 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
               </div>
             </div>
             {roomMode === "walk" ? (
-              <ArchitectWalkthrough room={focusRoom} layout={roomLayout} onStep={focusWalkStep} phase={phase} height={420} />
+              <ArchitectWalkthrough room={focusRoom} layout={roomLayout} onStep={focusWalkStep} phase={phase}
+                showWiring={showWiring} showWater={showWater} showSewer={showSewer} showDucts={hvac} showSockets={showSockets} height={walkH} />
             ) : (
               <RoomDesigner room={focusRoom} onChange={setObjects} onBack={() => setFocusRoomId(null)} phase={phase}
                 showWater={showWater} showSewer={showSewer} showWiring={showWiring} showDucts={hvac}
@@ -389,8 +393,9 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
           </div>
         ) : designable ? (
           <div data-arch-tiny-view className="relative">
-            {/* edit ⇄ walk toggle */}
-            <div className="absolute right-2 top-2 z-20 flex gap-1">
+            {/* edit ⇄ walk toggle — OWN ROW ABOVE the canvas (operator 2026-11-06, E3): not an absolute overlay inside the
+                render container, so the walk HUD / sticks / hint can never collide with it at 390px. */}
+            <div data-arch-tiny-modebar className="mb-1.5 flex items-center justify-end gap-1">
               {(["edit", "walk"] as const).map((m) => (
                 <button key={m} data-arch-tiny-mode={m} onClick={() => setTinyMode(m)} className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold"
                   style={{ borderColor: tinyMode === m ? C.cyan : C.border, color: tinyMode === m ? C.cyan : C.dim, background: tinyMode === m ? "#0e2233" : "transparent" }}>
@@ -404,7 +409,8 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                     around to see walls, corners"). The prior walk was the voxel dollhouse tilted into a corner — not a
                     walkthrough. This is a purpose-built interior camera: stand in the room's doorway, drag to look
                     around, step room to room. Custom iconology (no emoji). */}
-                <ArchitectWalkthrough room={walkRoom} layout={roomLayout} onStep={walkStep} phase={phase} height={380} />
+                <ArchitectWalkthrough room={walkRoom} layout={roomLayout} onStep={walkStep} phase={phase}
+                  showWiring={showWiring} showWater={showWater} showSewer={showSewer} showDucts={hvac} showSockets={showSockets} height={walkH} />
               </div>
             ) : (
             <>

@@ -28,7 +28,7 @@ import {
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { shade, FACE_SHADE } from "@/lib/solid-shade";   // the ONE shared solid-faces shader (de-dup; was a local copy)
-import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
+import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, MEP_COLOR, type MepRun } from "@/lib/mep-runs";
 import { phaseDraw, phaseById, showGroupInPhase } from "@/lib/architect-phases";
 import { chromeFor } from "@/lib/room-chrome";
 import {
@@ -322,7 +322,7 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
   const duct = showDucts ? ductRuns() : null;
   const eSpec = showWiring ? electricSpecs(outlets, objects) : null;
   const outMarks = showWiring ? outletMarkers(outlets, objects) : null;   // FIX-4 wall-mounted outlets
-  const MEP_COL = { water: C.cyan, sewer: "#22c55e", wiring: C.gold, duct: "#38bdf8" };
+  const MEP_COL = MEP_COLOR;   // ONE shared source (lib/mep-runs) — the 2D plan, 3D voxel, walk + phase chip never drift
   const anyMep = !!(water || sewer || wiring || duct);
   // 2D: polyline through grid-cell centres (viewBox 0..100). 3D: same path at a system height (floor→ceiling).
   const c2 = (n: number) => n * 10 + 5;

@@ -51,10 +51,18 @@ ok(/useRCoreGestures/.test(voxel) && !/from\s+"three"|@react-three|babylonjs/.te
 // ── R6b · the FIRST-PERSON WALKTHROUGH (operator 2026-11-04: "walk through doesn't work … build out walk through functionality") ──
 ok(/function\s+ArchitectWalkthrough\b/.test(walk), "architect-walkthrough.tsx exports ArchitectWalkthrough — a real first-person interior view");
 ok(/const\s+project\s*=\s*\(p:\s*V3\)/.test(walk) && /depth\s*>\s*near/.test(walk), "it uses a purpose-built pinhole camera with near-plane cull (not the map-tilt sceneProject that clipped inside the box)");
-ok(/\bey\s*=\s*-2\b/.test(walk), "the eye stands OUTSIDE the near wall (ey = -2) so the whole room is in front of the eye — no near-plane clipping, ever");
+ok(/START_IN\s*=\s*1\.5/.test(walk) && /y:\s*START_IN/.test(walk) && /collideAndSlide|walkMove/.test(walk), "the eye starts INSIDE the room (START_IN = 1.5 ft past the south door) and walks it with collide-and-slide — a real walkthrough, not a doorway peep (operator 2026-11-06)");
 ok(/setYaw\(/.test(walk) && /setPitch\(/.test(walk), "drag looks around — yaw (turn) + pitch (up/down) to see the walls & corners");
 ok(/wallQuads/.test(walk) && /data-arch-walkpad/.test(walk) && /onStep\?\./.test(walk), "it renders the room shell (wallQuads: walls/floor/ceiling) and a step pad that walks room to room");
 ok(/addDoor\(/.test(walk) && /nb\.N/.test(walk), "doorways are drawn on walls that have an adjoining room, with the neighbour's label");
+// WALK-11 (operator 2026-11-06, Sofia/Asar P0): the picture FILLS the box — the viewBox tracks the measured container (no
+// fixed 760), f is taken from BOTH HFOV/VFOV, and preserveAspectRatio slices so there is no letterbox.
+ok(/new ResizeObserver/.test(walk) && /setVb\(/.test(walk) && /const W = vb\.w, H = vb\.h/.test(walk), "the walk measures its container (ResizeObserver) and sizes the viewBox to it — the picture fills the box, no fixed 760 letterbox");
+ok(/preserveAspectRatio="xMidYMid slice"/.test(walk) && /Math\.min\(\(W \/ 2\) \/ Math\.tan\(HFOV \/ 2\), \(H \/ 2\) \/ Math\.tan\(VFOV \/ 2\)\)/.test(walk), "the focal length keeps the FOV from BOTH axes and the svg slices — no dead bands on a portrait phone");
+// WALK-P1 look fix: rightward look input yaws EAST (the drag + stick both subtract the x input)
+ok(/setYaw\(d\.yaw - \(e\.clientX - d\.x\)/.test(walk) && /setYaw\(\(y\) => y - lk\.x \* LOOK_YAW/.test(walk), "LOOK right → turn right/east (the inverted-look fix)");
+// WALK-05 door-aware collision: the door lanes are carved so every room is reachable, and the shower is served
+ok(/roomBlockers\(roomObjs, phase, doorLanes\)/.test(walk) && /doorLanes\.push/.test(walk), "door-width lanes are carved to every doorway (roomBlockers takes doorLanes)");
 
 // ── custom walkthrough iconology, NOT emoji (operator 2026-11-04: "don't use emojies; create your own walkthrough raster iconology") ──
 ok(/export function WalkGlyph\b/.test(icons) && /export function MoveChevron\b/.test(icons) && /<svg/.test(icons), "architect-walk-icons.tsx is a drawn SVG glyph set (WalkGlyph · MoveChevron · LookGlyph · DoorGlyph · EditGlyph) — my own iconology");

@@ -28,9 +28,10 @@ export const MEP_SOURCE: Record<"water" | "sewer" | "panel" | "air", MepPt> = {
   air:   { gx: MEP_GRID - 1, gy: 0 },
 };
 
-// Which placed objects need water supply / drain (DWV). Kitchen counter carries a sink → include it.
-export const WATER_FIXTURES: ObjectKind[] = ["sink", "tub", "toilet", "washer", "counter"];
-export const DRAIN_FIXTURES: ObjectKind[] = ["sink", "tub", "toilet", "washer", "counter"];
+// Which placed objects need water supply / drain (DWV). Kitchen counter carries a sink → include it; the shower is a
+// default bath fixture and MUST be served (operator 2026-11-06, Enki).
+export const WATER_FIXTURES: ObjectKind[] = ["sink", "tub", "shower", "toilet", "washer", "counter"];
+export const DRAIN_FIXTURES: ObjectKind[] = ["sink", "tub", "shower", "toilet", "washer", "counter"];
 
 /** Manhattan L-route between two cells: run along X to the target column, then along Y. Deterministic. */
 export function routeManhattan(from: MepPt, to: MepPt): MepPt[] {
@@ -164,3 +165,8 @@ export function ductRuns(): SystemRuns {
   const centre: MepPt = { gx: Math.floor(MEP_GRID / 2), gy: Math.floor(MEP_GRID / 2) };
   return runsToEndpoints(MEP_SOURCE.air, [centre]);
 }
+
+/** ONE source of the MEP RUN colours — the 2D plan, the 3D voxel and the first-person walk all read this so a run's
+ *  colour never drifts between views (operator 2026-11-06: "see the wires"). The Design PhaseBar chip is intentionally
+ *  the rainbow phase colour, NOT this. Water cyan · sewer green · wiring gold · duct sky. */
+export const MEP_COLOR = { water: "#19c8cf", sewer: "#22c55e", wiring: "#ffd400", duct: "#38bdf8" } as const;
