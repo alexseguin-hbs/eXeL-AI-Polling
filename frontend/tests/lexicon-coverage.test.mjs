@@ -138,7 +138,7 @@ const allowedIdentical = (code, key) => ALLOWED.has(`*|${key}`) || ALLOWED.has(`
 
 const lazy = async (dir, code) => { const f = path.join(process.cwd(), 'lib', dir, `${code}.ts`); if (!fs.existsSync(f)) return {}; try { return (await import(`../lib/${dir}/${code}.ts`)).default ?? {}; } catch { return {}; } };
 const codes = L.INITIAL_LANGUAGES.map((l) => l.code).filter((c) => c !== 'en');
-ok(codes.length === 32, `32 languages beyond English (got ${codes.length})`);
+ok(codes.length === 33, `33 languages beyond English (got ${codes.length})`);
 for (const code of codes) {
   const m = { ...(SEEDED_TRANSLATIONS[code] ?? {}), ...(SOI_R228_TRANSLATIONS[code] ?? {}), ...(SIGN_TRANSLATIONS[code] ?? {}), ...(code === 'es' ? ES_SIGN : {}), ...(await lazy('i18n-sign', code)), ...(await lazy('i18n-app', code)) };
   const missing = keys.filter((k) => String(en[k].englishDefault ?? '').trim() && !AFTER_FILL.has(k) && !String(m[k] ?? '').trim());   // an empty English default is not a gap

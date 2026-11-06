@@ -51,6 +51,7 @@ const LANG_LOADERS: Record<string, () => Promise<{ default: CelestialLangPack }>
   uk: () => import("./celestial-guide-uk.json") as Promise<{ default: CelestialLangPack }>,
   vi: () => import("./celestial-guide-vi.json") as Promise<{ default: CelestialLangPack }>,
   zh: () => import("./celestial-guide-zh.json") as Promise<{ default: CelestialLangPack }>,
+  tw: () => import("./celestial-guide-tw.json") as Promise<{ default: CelestialLangPack }>,
 };
 
 /** Locales that have (or will have) a code-split prose pack. English is always available. */

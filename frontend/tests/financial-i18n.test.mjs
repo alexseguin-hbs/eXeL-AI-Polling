@@ -48,7 +48,7 @@ ok(/FINANCIAL · 2525/.test(ux), 'the domain wordmark is a proper name and stays
 // 32 lazy stores (lib/i18n-app/<code>.ts) — the ×32 fill landed 2026-09-30 after a native-reviewer pass per language.
 const cov = fs.readFileSync('tests/lexicon-coverage.test.mjs', 'utf8');
 const stores = fs.readdirSync('lib/i18n-app').filter((f) => /^[a-z]{2,3}\.ts$/.test(f)).map((f) => fs.readFileSync(`lib/i18n-app/${f}`, 'utf8'));
-ok(stores.length === 32, `32 non-English stores under lib/i18n-app (got ${stores.length})`);
+ok(stores.length === 33, `33 non-English stores under lib/i18n-app (got ${stores.length})`);
 const staged = (k) => /map\(\(k\) => `fin\.\$\{k\}`\)/.test(cov) && cov.includes(`'${k.slice(4)}'`);
 const filled = (k) => stores.every((s) => s.includes(`"${k}":`));
 const neither = finKeys.filter((k) => !staged(k) && !filled(k));

@@ -1,0 +1,1212 @@
+{
+  "note": "Twi for AFTER_FILL staged keys — held until the English UI is finalized (2026-09-30 LOCK). Not shipped.",
+  "date": "2026-11-06",
+  "count": 241,
+  "entries": [
+    {
+      "key": "drone.config",
+      "en": "Config",
+      "tw": "Nhyehyɛeɛ"
+    },
+    {
+      "key": "drone.play_deck",
+      "en": "PLAY · r.128",
+      "tw": "DI AGORƆ · r.128"
+    },
+    {
+      "key": "drone.ch.training_line",
+      "en": "Training — pop-up targets, no one shooting back. Feel target, approve, fire once.",
+      "tw": "Ntetee — botaeɛ a ɛpue, obiara ntoo mmra. Hunu botaeɛ, pene so, to prɛko."
+    },
+    {
+      "key": "drone.ch.first_visit",
+      "en": "First time? Start on the turret — targets pop up, you take one shot at a time.",
+      "tw": "Ɛdi kan? Hyɛ aseɛ wɔ tuo-gyinabea no so — botaeɛ pue, woto prɛko wɔ berɛ biara."
+    },
+    {
+      "key": "drone.stage.here",
+      "en": "You are here",
+      "tw": "Wowɔ ha"
+    },
+    {
+      "key": "drone.stage.locked",
+      "en": "locked — clear the stage before it",
+      "tw": "wɔato mu — wie ɔfa a ɛdi animu no ansa"
+    },
+    {
+      "key": "drone.stage.turrets",
+      "en": "Stand still and hit a thing — feel target, approve, fire.",
+      "tw": "Gyina faako na bɔ biribi — hunu botaeɛ, pene so, to."
+    },
+    {
+      "key": "drone.stage.capital",
+      "en": "The Capitol block — targets pop up, tag each one.",
+      "tw": "Capitol ɔfa no — botaeɛ pue, hyɛ biara agyiraeɛ."
+    },
+    {
+      "key": "drone.stage.drone",
+      "en": "Now it flies — you pilot and aim the drone yourself.",
+      "tw": "Afei ɛtu — wo ankasa tu drone no na wode kyerɛ."
+    },
+    {
+      "key": "drone.stage.multi",
+      "en": "Now two people fly it, and one of them approves every shot.",
+      "tw": "Afei nnipa baanu tu no, na wɔn mu baako pene tuo biara so."
+    },
+    {
+      "key": "drone.cin.0",
+      "en": "Today: protect the Capital of Texas.",
+      "tw": "Nnɛ: bɔ Texas Ahenkuro no ho ban."
+    },
+    {
+      "key": "drone.cin.1",
+      "en": "Not automation alone — people, rehearsal, and evidence.",
+      "tw": "Ɛnyɛ afidie nko ara — nnipa, nsɔhwɛ, ne adanseɛ."
+    },
+    {
+      "key": "drone.cin.2",
+      "en": "Detect: TARGET paints a target amber. Seeing is not deciding.",
+      "tw": "Hunu: TARGET hyɛ botaeɛ agyiraeɛ akokɔsradeɛ. Ohunu nnyɛ gyinaeɛ."
+    },
+    {
+      "key": "drone.cin.3",
+      "en": "Approve: a second person turns amber to red. AI may spot; a human authorizes.",
+      "tw": "Pene so: onipa a ɔto so mmienu dane akokɔsradeɛ yɛ kɔkɔɔ. AI bɛtumi ahunu; onipa na ɔma kwan."
+    },
+    {
+      "key": "drone.cin.4",
+      "en": "Engage: FIRE, in the simulation only. The centre scores; off-centre costs.",
+      "tw": "To: FIRE, wɔ nhwɛsoɔ no mu nko ara. Mfimfini na ɛnya mpɔn; deɛ ɛpa mfimfini no bɔ ka."
+    },
+    {
+      "key": "drone.cin.5",
+      "en": "Recover: the replay shows who saw, who marked, who approved. That is R-CORE.",
+      "tw": "Sane nya: san-hwɛ no kyerɛ deɛ ɔhunuiɛ, deɛ ɔhyɛɛ agyiraeɛ, deɛ ɔpenee so. Ɛno ne R-CORE."
+    },
+    {
+      "key": "drone.cin.6",
+      "en": "The ladder: CH0 to learn, CH5 under time. The rule never bends.",
+      "tw": "Atwedeɛ no: CH0 de sua, CH5 wɔ berɛ ase. Mmara no nkoto da."
+    },
+    {
+      "key": "drone.cin.7",
+      "en": "The craft: turret, quad, VTOL foil — one gimbal, one two-step.",
+      "tw": "Wimhyɛn no: tuo-gyinabea, quad, VTOL foil — gimbal baako, anammɔn-mmienu baako."
+    },
+    {
+      "key": "drone.cin.8",
+      "en": "The crew: 1v1, then 3v3, then 9v9. Scale the crew, not a magazine.",
+      "tw": "Kuo no: 1v1, afei 3v3, afei 9v9. Ma kuo no nyini, ɛnyɛ atuduro kotokuo."
+    },
+    {
+      "key": "drone.cin.9",
+      "en": "The cities: today the Capital, tomorrow Austin, then Atlantis.",
+      "tw": "Nkuro no: nnɛ Ahenkuro no, ɔkyena Austin, afei Atlantis."
+    },
+    {
+      "key": "drone.cin.10",
+      "en": "Humanity authorizes. Begin the rehearsal.",
+      "tw": "Adasamma na wɔma kwan. Hyɛ nsɔhwɛ no ase."
+    },
+    {
+      "key": "drone.intro.continue",
+      "en": "Continue",
+      "tw": "Toa so"
+    },
+    {
+      "key": "drone.intro.skip",
+      "en": "Skip to select",
+      "tw": "Huri kɔ paw"
+    },
+    {
+      "key": "drone.intro.city",
+      "en": "Select city",
+      "tw": "Paw kuro"
+    },
+    {
+      "key": "drone.intro.craft",
+      "en": "Select craft",
+      "tw": "Paw wimhyɛn"
+    },
+    {
+      "key": "drone.intro.range",
+      "en": "Select range",
+      "tw": "Paw akansibea"
+    },
+    {
+      "key": "drone.intro.begin",
+      "en": "Begin rehearsal",
+      "tw": "Hyɛ nsɔhwɛ ase"
+    },
+    {
+      "key": "drone.intro.replay",
+      "en": "Replay intro",
+      "tw": "San hwɛ nnianimu"
+    },
+    {
+      "key": "drone.intro.loop",
+      "en": "PLAY · RECORD · REPLAY · COMPARE · QUALIFY · IMPROVE · SHARE",
+      "tw": "DI AGORƆ · KYERƐW · SAN HWƐ · TOTO · FATA · TU MPƆN · KYƐ"
+    },
+    {
+      "key": "drone.city.capital",
+      "en": "Capital of Texas · live",
+      "tw": "Texas Ahenkuro · ɛrekɔ so"
+    },
+    {
+      "key": "drone.city.austin",
+      "en": "Austin · next",
+      "tw": "Austin · ɛdi hɔ"
+    },
+    {
+      "key": "drone.city.atlantis",
+      "en": "Atlantis · accords",
+      "tw": "Atlantis · apam"
+    },
+    {
+      "key": "drone.craft.turret",
+      "en": "Turret · sensor",
+      "tw": "Tuo-gyinabea · sensor"
+    },
+    {
+      "key": "drone.craft.quad",
+      "en": "Quad · hover",
+      "tw": "Quad · wim gyina"
+    },
+    {
+      "key": "drone.craft.vtol",
+      "en": "VTOL foil · wing",
+      "tw": "VTOL foil · ntaban"
+    },
+    {
+      "key": "drone.hud.lock",
+      "en": "LOCK",
+      "tw": "ASƆ MU"
+    },
+    {
+      "key": "drone.hud.no_lock",
+      "en": "NO LOCK",
+      "tw": "ƐNSƆ MU"
+    },
+    {
+      "key": "drone.hud.armed",
+      "en": "ARMED — approved, may fire",
+      "tw": "ASIESIE — wɔapene so, ɛbɛtumi ato"
+    },
+    {
+      "key": "drone.hud.legend",
+      "en": "single bracket = MARKED (amber) · double bracket = ARMED (red)",
+      "tw": "nkyekyɛmu baako = WƆAHYƐ AGYIRAEƐ (akokɔsradeɛ) · nkyekyɛmu mmienu = ASIESIE (kɔkɔɔ)"
+    },
+    {
+      "key": "fin.subtitle",
+      "en": "the MoT (Measure of Time) Financial System",
+      "tw": "MoT (Mmerɛ Susudeɛ) Sikasɛm Nhyehyɛeɛ no"
+    },
+    {
+      "key": "fin.reason_length",
+      "en": "Enter a shorter length",
+      "tw": "Fa tenten a ɛyɛ tiawa hyɛ mu"
+    },
+    {
+      "key": "fin.escrowed",
+      "en": "In Escrow",
+      "tw": "Wɔ Akorae mu"
+    },
+    {
+      "key": "fin.title_l1",
+      "en": "Measure of Time: A Universal Standard",
+      "tw": "Mmerɛ Susudeɛ: Wiase Nyinaa Gyinapɛn"
+    },
+    {
+      "key": "fin.title_mot",
+      "en": "Measure of Time",
+      "tw": "Mmerɛ Susudeɛ"
+    },
+    {
+      "key": "fin.title_std",
+      "en": "A Universal Standard",
+      "tw": "Wiase Nyinaa Gyinapɛn"
+    },
+    {
+      "key": "fin.accrual_units",
+      "en": "Accrual",
+      "tw": "Sika a ɛreboaboa"
+    },
+    {
+      "key": "fin.settings",
+      "en": "Settings",
+      "tw": "Nhyehyɛeɛ"
+    },
+    {
+      "key": "fin.chart_angle",
+      "en": "Date text angle",
+      "tw": "Da nkyerɛwee no dane"
+    },
+    {
+      "key": "fin.record_toggle",
+      "en": "Show or hide the record",
+      "tw": "Kyerɛ anaa fa kyerɛwtohɔ no sie"
+    },
+    {
+      "key": "fin.year_today",
+      "en": "Now",
+      "tw": "Seesei"
+    },
+    {
+      "key": "fin.month",
+      "en": "Month",
+      "tw": "Bosome"
+    },
+    {
+      "key": "fin.year",
+      "en": "Year",
+      "tw": "Afe"
+    },
+    {
+      "key": "fin.hash",
+      "en": "Hash",
+      "tw": "Hash"
+    },
+    {
+      "key": "fin.spent",
+      "en": "Spent",
+      "tw": "Wɔadi"
+    },
+    {
+      "key": "fin.def.income",
+      "en": "Escrow plus Released. The month plan, not cash you can spend.",
+      "tw": "Akorae ne Wɔagyae ka bom. Bosome no nhyehyɛeɛ, ɛnyɛ sika a wobɛtumi adi."
+    },
+    {
+      "key": "fin.def.available",
+      "en": "What you can spend. Released minus Spent.",
+      "tw": "Deɛ wobɛtumi adi. Wɔagyae a wɔayi Wɔadi afiri mu."
+    },
+    {
+      "key": "fin.def.escrowed",
+      "en": "Set aside. Part of Income. You cannot spend it yet.",
+      "tw": "Wɔde ato nkyɛn. Ɛka Sika a ɛba ho. Wontumi nni no seesei."
+    },
+    {
+      "key": "fin.def.released",
+      "en": "Cleared from escrow. Still part of Income.",
+      "tw": "Wɔagyae afiri akorae mu. Ɛda so ka Sika a ɛba ho."
+    },
+    {
+      "key": "fin.def.spent",
+      "en": "Already taken from Released. Not part of Income.",
+      "tw": "Wɔayi afiri Wɔagyae mu dada. Ɛnka Sika a ɛba ho."
+    },
+    {
+      "key": "fin.def.rate",
+      "en": "How the month is planned. Not added into any amount.",
+      "tw": "Sɛdeɛ wɔahyehyɛ bosome no. Wɔmfa nka dodoɔ biara ho."
+    },
+    {
+      "key": "fin.rate_name",
+      "en": "Rate",
+      "tw": "Ɛbo"
+    },
+    {
+      "key": "fin.year_title",
+      "en": "Year position",
+      "tw": "Afe gyinabea"
+    },
+    {
+      "key": "fin.orbit_position",
+      "en": "Orbit position",
+      "tw": "Kwan a ɛtwa gyinabea"
+    },
+    {
+      "key": "fin.per_cal_month",
+      "en": "Standard Month",
+      "tw": "Bosome Gyinapɛn"
+    },
+    {
+      "key": "fin.days",
+      "en": "days",
+      "tw": "nna"
+    },
+    {
+      "key": "fin.home",
+      "en": "Back to eXeL AI",
+      "tw": "San kɔ eXeL AI"
+    },
+    {
+      "key": "fin.fshort.a_income_wages",
+      "en": "Wages",
+      "tw": "Akatua"
+    },
+    {
+      "key": "fin.fshort.a_upside",
+      "en": "Upside",
+      "tw": "Mfasoɔ foforɔ"
+    },
+    {
+      "key": "fin.fshort.a_annuity_pension_disability",
+      "en": "Pension",
+      "tw": "Pɛnhyen"
+    },
+    {
+      "key": "fin.fshort.a_alimony_child_support",
+      "en": "Support",
+      "tw": "Mmoa"
+    },
+    {
+      "key": "fin.fshort.a_capital_gains",
+      "en": "Capital Gains",
+      "tw": "Sika mu mfasoɔ"
+    },
+    {
+      "key": "fin.fshort.b_rent_mortgage",
+      "en": "Rent / Mortgage",
+      "tw": "Ɛdan ka / Ɛdan bosea"
+    },
+    {
+      "key": "fin.fshort.b_property_tax_hoa_fees",
+      "en": "Property Tax",
+      "tw": "Agyapadeɛ toɔ"
+    },
+    {
+      "key": "fin.fshort.b_housing_insurance",
+      "en": "Home Insurance",
+      "tw": "Efie inhyɔrans"
+    },
+    {
+      "key": "fin.fshort.b_maintenance_repairs",
+      "en": "Home Repairs",
+      "tw": "Efie siesie"
+    },
+    {
+      "key": "fin.fshort.b_lawn_pest_security",
+      "en": "Lawn / Pest",
+      "tw": "Turo / Mmoawa"
+    },
+    {
+      "key": "fin.fshort.b_other_fees",
+      "en": "Other Fees",
+      "tw": "Ka afoforɔ"
+    },
+    {
+      "key": "fin.fshort.c_auto_payment",
+      "en": "Car Payment",
+      "tw": "Kaa ka tua"
+    },
+    {
+      "key": "fin.fshort.c_fuel",
+      "en": "Fuel",
+      "tw": "Pɛtro"
+    },
+    {
+      "key": "fin.fshort.c_maintenance_other",
+      "en": "Car Upkeep",
+      "tw": "Kaa hwɛ"
+    },
+    {
+      "key": "fin.fshort.c_rideshare_taxi",
+      "en": "Ride-share",
+      "tw": "Taksi"
+    },
+    {
+      "key": "fin.fshort.c_airfare_other",
+      "en": "Airfare",
+      "tw": "Wimhyɛn ka"
+    },
+    {
+      "key": "fin.fshort.d_health_dental_vision",
+      "en": "Health Plan",
+      "tw": "Apɔmuden nhyehyɛeɛ"
+    },
+    {
+      "key": "fin.fshort.d_auto_renters_home",
+      "en": "Insurance",
+      "tw": "Inhyɔrans"
+    },
+    {
+      "key": "fin.fshort.d_life_disability",
+      "en": "Life Insurance",
+      "tw": "Nkwa inhyɔrans"
+    },
+    {
+      "key": "fin.fshort.d_umbrella_pet_other",
+      "en": "Umbrella / Pet",
+      "tw": "Kyinii / Afieboa"
+    },
+    {
+      "key": "fin.fshort.e_electric_gas",
+      "en": "Electric / Gas",
+      "tw": "Anyinam / Gas"
+    },
+    {
+      "key": "fin.fshort.e_water_sewer_trash",
+      "en": "Water / Trash",
+      "tw": "Nsuo / Nwura"
+    },
+    {
+      "key": "fin.fshort.e_internet_phone",
+      "en": "Internet / Phone",
+      "tw": "Intanɛt / Fon"
+    },
+    {
+      "key": "fin.fshort.e_subscriptions_ai_cloud",
+      "en": "Subscriptions",
+      "tw": "Bosome ka tua"
+    },
+    {
+      "key": "fin.fshort.f_groceries",
+      "en": "Groceries",
+      "tw": "Nnuane tɔ"
+    },
+    {
+      "key": "fin.fshort.f_dining_work",
+      "en": "Dining",
+      "tw": "Adidie"
+    },
+    {
+      "key": "fin.fshort.f_alcohol",
+      "en": "Alcohol",
+      "tw": "Nsã"
+    },
+    {
+      "key": "fin.fshort.g_copays_deductibles_rx",
+      "en": "Copays / Rx",
+      "tw": "Ayaresa ka / Nnuro"
+    },
+    {
+      "key": "fin.fshort.g_hsa_fsa",
+      "en": "HSA / FSA",
+      "tw": "HSA / FSA"
+    },
+    {
+      "key": "fin.fshort.g_mental_physical",
+      "en": "Fitness & Health",
+      "tw": "Apɔmuden ne ahoɔden"
+    },
+    {
+      "key": "fin.fshort.g_personal_care_devices",
+      "en": "Personal Care",
+      "tw": "Ankorankoro hwɛ"
+    },
+    {
+      "key": "fin.fshort.h_childcare_elderly_education",
+      "en": "Childcare",
+      "tw": "Mmɔfra hwɛ"
+    },
+    {
+      "key": "fin.fshort.h_pets",
+      "en": "Pets",
+      "tw": "Afieboa"
+    },
+    {
+      "key": "fin.fshort.i_cards_student",
+      "en": "Credit Cards",
+      "tw": "Kredit kaad"
+    },
+    {
+      "key": "fin.fshort.i_other_loans",
+      "en": "Other Loans",
+      "tw": "Bosea afoforɔ"
+    },
+    {
+      "key": "fin.fshort.j_federal_state_income",
+      "en": "Income Tax",
+      "tw": "Sika a ɛba toɔ"
+    },
+    {
+      "key": "fin.fshort.j_fica_self_employment",
+      "en": "FICA",
+      "tw": "FICA"
+    },
+    {
+      "key": "fin.fshort.j_tax_preparation",
+      "en": "Tax Prep",
+      "tw": "Toɔ nhyehyɛeɛ"
+    },
+    {
+      "key": "fin.fshort.k_gear_licenses_tools",
+      "en": "Gear / Tools",
+      "tw": "Nneɛma / Nnwinnadeɛ"
+    },
+    {
+      "key": "fin.fshort.k_education_certifications",
+      "en": "Education",
+      "tw": "Nwomasua"
+    },
+    {
+      "key": "fin.fshort.l_fun_hobbies_clothing",
+      "en": "Fun / Hobbies",
+      "tw": "Anigyedeɛ / Nnwuma a wɔpɛ"
+    },
+    {
+      "key": "fin.fshort.l_gifts_holidays_travel",
+      "en": "Gifts / Travel",
+      "tw": "Akyɛdeɛ / Akwantuo"
+    },
+    {
+      "key": "fin.fshort.l_giving_charity",
+      "en": "Charity",
+      "tw": "Adɔeɛ"
+    },
+    {
+      "key": "fin.fshort.m_emergency_sinking",
+      "en": "Emergency Fund",
+      "tw": "Ɔhaw mu sika"
+    },
+    {
+      "key": "fin.fshort.m_retirement_brokerage_529",
+      "en": "Retirement",
+      "tw": "Adwuma akyi sika"
+    },
+    {
+      "key": "fin.fshort.m_extra_debt_mortgage",
+      "en": "Extra Debt",
+      "tw": "Ɛka foforɔ tua"
+    },
+    {
+      "key": "fin.tx_record",
+      "en": "Transaction Record",
+      "tw": "Sika Adwumayɛ Kyerɛwtohɔ"
+    },
+    {
+      "key": "fin.realtime",
+      "en": "Real-Time Financials",
+      "tw": "Seesei Sikasɛm"
+    },
+    {
+      "key": "fin.perihelion_abc",
+      "en": "Perihelion",
+      "tw": "Perihelion"
+    },
+    {
+      "key": "fin.now_abc",
+      "en": "Now",
+      "tw": "Seesei"
+    },
+    {
+      "key": "fin.revolution",
+      "en": "Revolution",
+      "tw": "Owia ho twa"
+    },
+    {
+      "key": "fin.accrual_rate",
+      "en": "Accrual Rate",
+      "tw": "Sika a ɛboaboa bo"
+    },
+    {
+      "key": "fin.restore_mine",
+      "en": "Put back my entries",
+      "tw": "San fa me nkyerɛwee no bra"
+    },
+    {
+      "key": "fin.restore_note",
+      "en": "Your record on this device is empty",
+      "tw": "Wo kyerɛwtohɔ a ɛwɔ afidie yi so no, hwee nni mu"
+    },
+    {
+      "key": "fin.budget_purpose",
+      "en": "Plan the month. Watch spending by the minute. Keep your savings on track.",
+      "tw": "Hyehyɛ bosome no. Hwɛ sika a wodi no sima biara. Ma wo sika a woakora no nkɔ so yie."
+    },
+    {
+      "key": "fin.cloud_saved",
+      "en": "Saved to your account",
+      "tw": "Wɔakora wɔ wo akaunt so"
+    },
+    {
+      "key": "fin.cloud_not_yet",
+      "en": "Not saved to your account yet",
+      "tw": "Wɔnnya nkoraa wɔ wo akaunt so"
+    },
+    {
+      "key": "fin.zoom_wide",
+      "en": "Widen the time window",
+      "tw": "Trɛ berɛ no mu"
+    },
+    {
+      "key": "fin.zoom_narrow",
+      "en": "Narrow the time window",
+      "tw": "Tew berɛ no so"
+    },
+    {
+      "key": "fin.chart_span",
+      "en": "Span",
+      "tw": "Berɛ tenten"
+    },
+    {
+      "key": "fin.currency",
+      "en": "Currency",
+      "tw": "Sika su"
+    },
+    {
+      "key": "fin.amount_col",
+      "en": "Amount",
+      "tw": "Dodoɔ"
+    },
+    {
+      "key": "fin.mot",
+      "en": "MoT",
+      "tw": "MoT"
+    },
+    {
+      "key": "fin.cards_title",
+      "en": "Credit cards",
+      "tw": "Kredit kaad"
+    },
+    {
+      "key": "fin.card_limit",
+      "en": "Limit",
+      "tw": "Anohyetoɔ"
+    },
+    {
+      "key": "fin.card_balance",
+      "en": "Balance",
+      "tw": "Ɛka a aka"
+    },
+    {
+      "key": "fin.card_available",
+      "en": "Available",
+      "tw": "Ɛwɔ hɔ"
+    },
+    {
+      "key": "fin.card_opening",
+      "en": "Balance as of today",
+      "tw": "Ɛka a aka ɛnnɛ"
+    },
+    {
+      "key": "fin.card_amber_at",
+      "en": "Amber Alert at",
+      "tw": "Akokɔsradeɛ kɔkɔbɔ wɔ"
+    },
+    {
+      "key": "fin.card_red_at",
+      "en": "Red Alert at",
+      "tw": "Kɔkɔɔ kɔkɔbɔ wɔ"
+    },
+    {
+      "key": "fin.card_level_amber",
+      "en": "Amber Alert",
+      "tw": "Akokɔsradeɛ kɔkɔbɔ"
+    },
+    {
+      "key": "fin.card_level_red",
+      "en": "Red Alert",
+      "tw": "Kɔkɔɔ kɔkɔbɔ"
+    },
+    {
+      "key": "fin.card_alerts",
+      "en": "Alerts",
+      "tw": "Kɔkɔbɔ"
+    },
+    {
+      "key": "fin.card_add",
+      "en": "Add card",
+      "tw": "Fa kaad ka ho"
+    },
+    {
+      "key": "fin.card_name",
+      "en": "Name",
+      "tw": "Din"
+    },
+    {
+      "key": "fin.card_remove",
+      "en": "Remove card",
+      "tw": "Yi kaad no"
+    },
+    {
+      "key": "fin.card_name_bad",
+      "en": "Use a name, never a card or account number.",
+      "tw": "Fa din, ɛnyɛ kaad anaa akaunt nɔma da."
+    },
+    {
+      "key": "fin.card_level_over",
+      "en": "Over limit",
+      "tw": "Aboro anohyetoɔ"
+    },
+    {
+      "key": "fin.paid_from",
+      "en": "Paid from",
+      "tw": "Wɔtua firi"
+    },
+    {
+      "key": "fin.debit_account",
+      "en": "Debit Account",
+      "tw": "Dɛbit Akaunt"
+    },
+    {
+      "key": "fin.card_paid",
+      "en": "Card paid",
+      "tw": "Kaad a wɔatua"
+    },
+    {
+      "key": "fin.card_bad",
+      "en": "Check the numbers: amber must be at or below red, and red at or below the limit.",
+      "tw": "Hwɛ nɔma no: ɛsɛ sɛ akokɔsradeɛ no yɛ kɔkɔɔ no pɛ anaa ɛba n'ase, na kɔkɔɔ no nso yɛ anohyetoɔ no pɛ anaa ɛba n'ase."
+    },
+    {
+      "key": "fin.card_none",
+      "en": "None",
+      "tw": "Biara nni hɔ"
+    },
+    {
+      "key": "fin.card_pay",
+      "en": "Pay card",
+      "tw": "Tua kaad"
+    },
+    {
+      "key": "fin.mot_unit",
+      "en": "MoT Unit",
+      "tw": "MoT Susudua"
+    },
+    {
+      "key": "fin.chart_expand",
+      "en": "Full screen",
+      "tw": "Skrin nyinaa"
+    },
+    {
+      "key": "fin.chart_close",
+      "en": "Close full screen",
+      "tw": "To skrin nyinaa mu"
+    },
+    {
+      "key": "fin.edit_tx",
+      "en": "Edit transaction",
+      "tw": "Sesa dwumadi"
+    },
+    {
+      "key": "fin.edit_cancel",
+      "en": "Cancel",
+      "tw": "Gyae"
+    },
+    {
+      "key": "fin.edited",
+      "en": "Edited — the original stays on the record",
+      "tw": "Wɔasesa — deɛ ɛdi kan no da so wɔ kyerɛwtohɔ no mu"
+    },
+    {
+      "key": "fin.spending",
+      "en": "Expenses",
+      "tw": "Ɛka"
+    },
+    {
+      "key": "fin.net_by",
+      "en": "Net by",
+      "tw": "Deɛ ɛbɛka ɛbɛduru"
+    },
+    {
+      "key": "fin.net_up",
+      "en": "Net • Upside / Savings",
+      "tw": "Deɛ aka • Mfasoɔ / Sikakora"
+    },
+    {
+      "key": "fin.net_down",
+      "en": "Net • Downside / Risk",
+      "tw": "Deɛ aka • Ɔhaw / Asiane"
+    },
+    {
+      "key": "fin.per_month",
+      "en": "per month (30 days)",
+      "tw": "ɔbosome biara (nna 30)"
+    },
+    {
+      "key": "fin.per_quarter",
+      "en": "per quarter (91 days)",
+      "tw": "abosome mmiɛnsa biara (nna 91)"
+    },
+    {
+      "key": "fin.reason_amount_form",
+      "en": "Enter the amount in digits, like 1,234.56",
+      "tw": "Fa nɔma kyerɛw sika no dodoɔ, te sɛ 1,234.56"
+    },
+    {
+      "key": "fin.reason_length_other",
+      "en": "Enter how long it covers: a number above zero",
+      "tw": "Kyerɛw berɛ tenten a ɛkata so: nɔma a ɛboro 0"
+    },
+    {
+      "key": "fin.reason_stamp_day",
+      "en": "That day or time does not exist — check the date and the time",
+      "tw": "Saa da anaa berɛ no nni hɔ — hwɛ da no ne berɛ no"
+    },
+    {
+      "key": "fin.length_unit",
+      "en": "Length unit",
+      "tw": "Berɛ tenten susudua"
+    },
+    {
+      "key": "fin.save_retry",
+      "en": "Try saving again",
+      "tw": "Sɔ kora bio"
+    },
+    {
+      "key": "fin.save_failed_form",
+      "en": "This device would not save it. It stays on your record on this page — free some space, then try again.",
+      "tw": "Saa afidie yi ankora. Ɛda wo kyerɛwtohɔ no so wɔ kratafa yi so — yi nneɛma bi firi hɔ, na sɔ bio."
+    },
+    {
+      "key": "fin.reason_amount_large",
+      "en": "Enter an amount below one trillion",
+      "tw": "Kyerɛw sika dodoɔ a ɛnnuru ɔpepepem apem"
+    },
+    {
+      "key": "fin.save_failed_cards",
+      "en": "This device would not save your cards. They are still on this page — free some space, then change them again to keep them here.",
+      "tw": "Saa afidie yi ankora wo kaad ahodoɔ no. Ɛda kratafa yi so ara — yi nneɛma bi firi hɔ, na sesa wɔn bio na ama wɔaka ha."
+    },
+    {
+      "key": "fin.save_failed_plan",
+      "en": "This device would not save your budget. It is still on this page — free some space, then change it again to keep it here.",
+      "tw": "Saa afidie yi ankora wo sikasɛm nhyehyɛeɛ no. Ɛda kratafa yi so ara — yi nneɛma bi firi hɔ, na sesa no bio na ama aka ha."
+    },
+    {
+      "key": "fin.save_failed_cloud",
+      "en": "This device would not keep a copy — it is saved to your account",
+      "tw": "Saa afidie yi ankora bi — wɔakora no wɔ wo akaunt so"
+    },
+    {
+      "key": "fin.guide.first_transaction",
+      "en": "Record your first transaction — amount, day and time, and the MoT it covers",
+      "tw": "Kyerɛw wo dwumadi a ɛdi kan — sika dodoɔ, da ne berɛ, ne MoT a ɛkata so"
+    },
+    {
+      "key": "fin.tx_open",
+      "en": "+ Transaction",
+      "tw": "+ Dwumadi"
+    },
+    {
+      "key": "fin.trinity_aria",
+      "en": "Trinity wheel",
+      "tw": "Trinity hankare"
+    },
+    {
+      "key": "fin.date_format",
+      "en": "Date format",
+      "tw": "Da nhyehyɛeɛ"
+    },
+    {
+      "key": "fin.chart_tap",
+      "en": "Tap the chart to see the day and time",
+      "tw": "Mia mfonini no so na hunu da ne berɛ"
+    },
+    {
+      "key": "fin.rate_unit",
+      "en": "Rate per",
+      "tw": "Dodoɔ wɔ"
+    },
+    {
+      "key": "fin.rate.sec",
+      "en": "/sec",
+      "tw": "/sek"
+    },
+    {
+      "key": "fin.rate.min",
+      "en": "/min",
+      "tw": "/sim"
+    },
+    {
+      "key": "fin.rate.hr",
+      "en": "/hr",
+      "tw": "/dɔn"
+    },
+    {
+      "key": "fin.rate.day",
+      "en": "/day",
+      "tw": "/da"
+    },
+    {
+      "key": "fin.tx_close",
+      "en": "Close",
+      "tw": "To mu"
+    },
+    {
+      "key": "fin.type_select",
+      "en": "Select…",
+      "tw": "Paw…"
+    },
+    {
+      "key": "fin.type_deposit",
+      "en": "Deposit / Funds",
+      "tw": "Sie sika / Sika a ɛba"
+    },
+    {
+      "key": "fin.type_withdrawal",
+      "en": "Withdrawal / Expense",
+      "tw": "Yi sika / Ɛka"
+    },
+    {
+      "key": "fin.reason_insufficient_by",
+      "en": "More than will have come in by",
+      "tw": "Ɛboro deɛ ɛbɛba mu aduru"
+    },
+    {
+      "key": "fin.wheel.hi",
+      "en": "웃 HI",
+      "tw": "웃 HI"
+    },
+    {
+      "key": "fin.wheel.ai",
+      "en": "◬ AI",
+      "tw": "◬ AI"
+    },
+    {
+      "key": "fin.wheel.si",
+      "en": "♡ SI",
+      "tw": "♡ SI"
+    },
+    {
+      "key": "fin.rec.month91",
+      "en": "Quarterly (91 days)",
+      "tw": "Abosome mmiɛnsa biara (nna 91)"
+    },
+    {
+      "key": "fin.ladder_title",
+      "en": "Personal budget",
+      "tw": "Ankasa sikasɛm nhyehyɛeɛ"
+    },
+    {
+      "key": "fin.expand",
+      "en": "Show the lines",
+      "tw": "Kyerɛ nsensaneɛ no"
+    },
+    {
+      "key": "fin.collapse",
+      "en": "Hide the lines",
+      "tw": "Fa nsensaneɛ no sie"
+    },
+    {
+      "key": "fin.stock_note",
+      "en": "Cash, investments, debts, net worth, credit, protection and goals are balances, not per-minute flows — they are not in this budget",
+      "tw": "Sika a ɛwɔ nsam, sika a wɔde ahyɛ adwuma mu, ɛka, ahonyadeɛ dodoɔ, kredit, banbɔ ne botaeɛ yɛ deɛ aka, ɛnyɛ deɛ ɛkɔ sima biara — ɛnni sikasɛm nhyehyɛeɛ yi mu"
+    },
+    {
+      "key": "fin.rec.paymot",
+      "en": "Monthly (30 days)",
+      "tw": "Bosome biara (nna 30)"
+    },
+    {
+      "key": "soi2525.personas",
+      "en": "Personas",
+      "tw": "Nnipa ahodoɔ"
+    },
+    {
+      "key": "soi2525.high_priority_user_stories",
+      "en": "High Priority User Stories",
+      "tw": "Adedifo Nsɛm a Ɛho Hia Pa Ara"
+    },
+    {
+      "key": "arch.room.simple",
+      "en": "Simple",
+      "tw": "Mmerɛw"
+    },
+    {
+      "key": "arch.room.advanced",
+      "en": "⚙ Advanced",
+      "tw": "⚙ Akyiri"
+    },
+    {
+      "key": "arch.room.helpViewsSimple",
+      "en": "one pane, 2D ⇄ 3D — left-drag pan · right-drag rotate/tilt · pinch/scroll zoom.",
+      "tw": "beae baako, 2D ⇄ 3D — twe benkum na fa twe · twe nifa na dan/kyea · mia/scroll na zoom."
+    },
+    {
+      "key": "arch.room.simpleTip",
+      "en": "Simple — tap for ⚙ Advanced (dimensions, second pane, mirror, nudge, BOM, demo)",
+      "tw": "Mmerɛw — mia na kɔ ⚙ Akyiri (nsusuwii, beae a ɛto so abien, ahwehwɛ, piapia, BOM, nkyerɛkyerɛmu)"
+    },
+    {
+      "key": "arch.room.advancedTip",
+      "en": "Advanced: dimensions, second pane, mirror, nudge pad, BOM, demo — tap for Simple",
+      "tw": "Akyiri: nsusuwii, beae a ɛto so abien, ahwehwɛ, piapia pad, BOM, nkyerɛkyerɛmu — mia na kɔ Mmerɛw"
+    },
+    {
+      "key": "arch.room.helpMoveSimple",
+      "en": "drag it on the plan. ⚙ Advanced adds the ↑↓←→ nudge pad, dimension ✎ callouts, mirror, a second pane, the Bill of Materials and the guided demo.",
+      "tw": "twe no wɔ nhyehyɛe no so. ⚙ Akyiri de ↑↓←→ piapia pad, nsusuwii ✎ nkyerɛmu, ahwehwɛ, beae a ɛto so abien, Nneɛma Nkrataa ne nkyerɛkyerɛmu no ka ho."
+    },
+    {
+      "key": "arch.design.tapToAddToHouse",
+      "en": "Tap to add {item} to the house",
+      "tw": "Mia so na fa {item} ka ofie no ho"
+    },
+    {
+      "key": "arch.layertree.tapHouseToAdd",
+      "en": "tap the house to add (or drag)",
+      "tw": "mia fie no so na fa ka ho (anaa twe)"
+    },
+    {
+      "key": "rcore.brand",
+      "en": "R-CORE",
+      "tw": "R-CORE"
+    },
+    {
+      "key": "rcore.version_history",
+      "en": "Version History",
+      "tw": "Version Abakɔsɛm"
+    },
+    {
+      "key": "rcore.icon_aria",
+      "en": "R-CORE — version history",
+      "tw": "R-CORE — version abakɔsɛm"
+    },
+    {
+      "key": "rcore.open_aria",
+      "en": "Open R-CORE version history and compare",
+      "tw": "Bue R-CORE version abakɔsɛm na fa toto ho"
+    },
+    {
+      "key": "rcore.compare",
+      "en": "Compare",
+      "tw": "Fa toto ho"
+    },
+    {
+      "key": "rcore.what_changed",
+      "en": "What changed",
+      "tw": "Nea asesa"
+    },
+    {
+      "key": "rcore.history",
+      "en": "History",
+      "tw": "Abakɔsɛm"
+    },
+    {
+      "key": "rcore.before",
+      "en": "before",
+      "tw": "ansa"
+    },
+    {
+      "key": "rcore.after",
+      "en": "after",
+      "tw": "akyi"
+    },
+    {
+      "key": "rcore.releases_crossed",
+      "en": "releases crossed",
+      "tw": "nsiesie a yɛatwa mu"
+    },
+    {
+      "key": "rcore.added",
+      "en": "added",
+      "tw": "wɔde akaa ho"
+    },
+    {
+      "key": "rcore.revised",
+      "en": "revised",
+      "tw": "wɔasesa"
+    },
+    {
+      "key": "rcore.carried",
+      "en": "carried",
+      "tw": "wɔde akɔ so"
+    },
+    {
+      "key": "rcore.rev_short",
+      "en": "rev",
+      "tw": "nsak"
+    },
+    {
+      "key": "rcore.close",
+      "en": "Close",
+      "tw": "To mu"
+    },
+    {
+      "key": "rcore.same_rev",
+      "en": "Same revision selected on both sides — pick two to see what changed.",
+      "tw": "Woapaw nsakrae koro wɔ afa abien no nyinaa — paw abien na hu nea asesa."
+    },
+    {
+      "key": "rcore.too_large",
+      "en": "These revisions are too large for a word-level view — see the timeline below.",
+      "tw": "Nsakrae yi so dodo sɛ wobɛhwɛ asɛmfua biara — hwɛ bere nhyehyɛe a ɛwɔ ase ha."
+    },
+    {
+      "key": "rcore.fewer_than_two",
+      "en": "Fewer than two revisions on record — nothing to compare yet.",
+      "tw": "Nsakrae a wɔakyerɛw ato hɔ nnu abien — biribiara nni hɔ a wɔde bɛtoto ho."
+    },
+    {
+      "key": "rcore.impact.l1",
+      "en": "L1 · editorial",
+      "tw": "L1 · nkyerɛwee nsiesie"
+    },
+    {
+      "key": "rcore.impact.l2",
+      "en": "L2 · clarification",
+      "tw": "L2 · nkyerɛkyerɛmu"
+    },
+    {
+      "key": "rcore.impact.l3",
+      "en": "L3 · functional",
+      "tw": "L3 · dwumadi"
+    },
+    {
+      "key": "rcore.impact.l4",
+      "en": "L4 · governance / economic",
+      "tw": "L4 · nniso / sikasɛm"
+    },
+    {
+      "key": "rcore.impact.l5",
+      "en": "L5 · constitutional",
+      "tw": "L5 · mmara titiriw"
+    },
+    {
+      "key": "rcore.code",
+      "en": "Code",
+      "tw": "Kood"
+    },
+    {
+      "key": "rcore.code_none",
+      "en": "No code change in this project across these revisions — the commits changed records or documents, not its own source.",
+      "tw": "Kood nsakrae biara nni dwumadi yi mu wɔ nsakrae yi mu — commit ahorow no sesaa nkyerɛwee anaa nkrataa, na ɛnyɛ n'ankasa kood."
+    },
+    {
+      "key": "rcore.code_file_one",
+      "en": "file",
+      "tw": "fael"
+    },
+    {
+      "key": "rcore.code_file_many",
+      "en": "files",
+      "tw": "fael"
+    },
+    {
+      "key": "rcore.code_window",
+      "en": "revisions in this window",
+      "tw": "nsakrae a ɛwɔ bere yi mu"
+    },
+    {
+      "key": "rcore.code_capped",
+      "en": "capped",
+      "tw": "wɔato ano hye"
+    },
+    {
+      "key": "rcore.code_quiet",
+      "en": "unchanged across these revisions",
+      "tw": "ansesa wɔ nsakrae yi mu"
+    },
+    {
+      "key": "rcore.code_quiet_pane",
+      "en": "— this piece did not change across these revisions.",
+      "tw": "— ɔfa yi ansesa wɔ nsakrae yi mu."
+    },
+    {
+      "key": "rcore.code_error",
+      "en": "— this area’s patch could not be loaded. The record still names the commit, and git show on it shows the change.",
+      "tw": "— wɔantumi antwe ɔfa yi nsakrae no. Nkyerɛwee no da so bɔ commit no din, na git show wɔ so kyerɛ nsakrae no."
+    },
+    {
+      "key": "rcore.code_absent",
+      "en": "— no patch is carried for this area at this revision; the record names the commit.",
+      "tw": "— nsakrae biara nni hɔ ma ɔfa yi wɔ nsakrae yi mu; nkyerɛwee no bɔ commit no din."
+    },
+    {
+      "key": "cube2.response_held_offline",
+      "en": "Saved on this device. Your response could not reach the session yet — it will send itself when the connection returns.",
+      "tw": "Wɔakora so wɔ afiri yi so. Wo mmuae no nnya nnuu nhyiam no mu — ɛbɛsoma ne ho bere a nkitahodi no asan aba."
+    },
+    {
+      "key": "cube2.response_not_delivered",
+      "en": "Your response could not be sent, and this device could not save it either. Please keep your words and try again.",
+      "tw": "Wɔantumi ansoma wo mmuae no, na afiri yi nso antumi ankora so. Yɛsrɛ wo, fa wo nsɛm no sie na sɔ hwɛ bio."
+    }
+  ]
+}

@@ -84,6 +84,7 @@ export const SUPPORTED_LANGUAGES = [
   { code: "he", name: "Hebrew", native: "\u05e2\u05d1\u05e8\u05d9\u05ea" },
   { code: "sw", name: "Swahili", native: "Kiswahili" },
   { code: "ne", name: "Nepali", native: "\u0928\u0947\u092a\u093e\u0932\u0940" },
+  { code: "tw", name: "Twi", native: "Twi" },
 ] as const;
 
 // Polling modes for session creation
