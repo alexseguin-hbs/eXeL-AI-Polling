@@ -147,6 +147,7 @@ import { ACCORD_NO } from "@/lib/atlantis-accord-translations/no";
 import { ACCORD_HE } from "@/lib/atlantis-accord-translations/he";
 import { ACCORD_SW } from "@/lib/atlantis-accord-translations/sw";
 import { ACCORD_NE } from "@/lib/atlantis-accord-translations/ne";
+import { ACCORD_TW } from "@/lib/atlantis-accord-translations/tw";
 
 export const ACCORD_TRANSLATIONS: Record<string, AccordSection[]> = {
   en: ACCORD_SECTIONS_EN,
@@ -156,12 +157,13 @@ export const ACCORD_TRANSLATIONS: Record<string, AccordSection[]> = {
   sv: ACCORD_SV, th: ACCORD_TH, uk: ACCORD_UK, zh: ACCORD_ZH,
   ko: ACCORD_KO, bn: ACCORD_BN, pa: ACCORD_PA, vi: ACCORD_VI, tl: ACCORD_TL,
   tr: ACCORD_TR, ro: ACCORD_RO, cs: ACCORD_CS, fi: ACCORD_FI, no: ACCORD_NO,
-  he: ACCORD_HE, sw: ACCORD_SW, ne: ACCORD_NE,
+  he: ACCORD_HE, sw: ACCORD_SW, ne: ACCORD_NE, tw: ACCORD_TW,
 };
 
 // Endonym display names for the reader's language selector (only langs present
 // in ACCORD_TRANSLATIONS are ever shown; extras are harmless).
 export const ACCORD_LANG_NAMES: Record<string, string> = {
+  tw: "Twi",
   en: "English", ar: "العربية", da: "Dansk", de: "Deutsch", el: "Ελληνικά",
   es: "Español", fr: "Français", hi: "हिन्दी", id: "Bahasa Indonesia", it: "Italiano",
   ja: "日本語", ms: "Bahasa Melayu", nl: "Nederlands", pl: "Polski", pt: "Português",

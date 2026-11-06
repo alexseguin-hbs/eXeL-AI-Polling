@@ -71,7 +71,7 @@ for (const s of ACCORD_SECTIONS_EN) {
 const measure = (t) => Math.max((t || "").trim().split(/\s+/).filter(Boolean).length,
   Math.floor((t || "").replace(/\s/g, "").length / 3));   // CJK/Thai have no word spaces
 const allLangs = Object.keys(ACCORD_TRANSLATIONS);
-ok(allLangs.length === 33, `download embeds 33 languages (got ${allLangs.length})`);
+ok(allLangs.length === 34, `download embeds 34 languages (got ${allLangs.length})`);
 for (const [lc, secs] of Object.entries(ACCORD_TRANSLATIONS)) {
   let bad = null;
   if (!Array.isArray(secs) || secs.length !== 7) bad = `sections=${secs?.length}`;
