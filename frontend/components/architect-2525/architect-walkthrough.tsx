@@ -18,7 +18,7 @@
  */
 import { useRef, useState, useEffect, useCallback, useMemo, type PointerEvent as RPE } from "react";
 import type { RoomCell } from "@/lib/room-layout";
-import { STOREY_FT } from "@/lib/room-layout";          // the ONE cube/ceiling height source (10 ft) — never hardcode 8
+import { STOREY_FT, TINY_GRID } from "@/lib/room-layout";          // the ONE cube/ceiling height source (10 ft) — never hardcode 8; TINY_GRID = 3×3 house
 import { footprintOf, heightOf, elevOf, OBJECT_SPEC, defaultObjectsForRoom, groupOf, wallOf, type PlacedObject } from "@/lib/room-objects";
 import { shade, FACE_SHADE, solidFaces, boxFaces, type Vec3, type Quad } from "@/lib/solid-shade";
 import { showGroupInPhase, phaseById } from "@/lib/architect-phases"; // REUSE the SAME phase→layer filter the 2D/3D designer uses
@@ -79,6 +79,10 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
 
   const [yaw, setYaw] = useState(0);      // radians; 0 = facing into the room (+y / far). UNBOUNDED (turn all the way round)
   const [pitch, setPitch] = useState(0);  // radians; + looks up (clamped ±40°)
+  // C1 — the overhead minimap (reads the SAME layout as TinyFloorplan). Collapsible; the walk keeps the majority (E2).
+  const [mapOpen, setMapOpen] = useState(true);
+  useEffect(() => { try { const v = localStorage.getItem("arch2525.walkMap"); if (v != null) setMapOpen(v === "1"); } catch {} }, []);
+  const toggleMap = () => setMapOpen((o) => { const n = !o; try { localStorage.setItem("arch2525.walkMap", n ? "1" : "0"); } catch {} return n; });
   // STICK CALIBRATION (reuse lib/2525-core/stick-sets) — the saved L/R SENS, DEAD apply to both sticks.
   const sets = useRef<StickSets>(getSets());
   useEffect(() => { sets.current = initSets(); const un = subscribeSets((s) => { sets.current = s; }); return un; }, []);
@@ -449,6 +453,39 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
           <span style={{ width: 8, height: 8, borderRadius: 2, background: phaseById(phase)?.color ?? C.gold }} /> {phaseById(phase)?.label} · {shellGeo.label}
         </div>
       )}
+      {/* C1 — OVERHEAD MINIMAP (reads the SAME room layout as TinyFloorplan): the nine rooms, the current room lit, and a
+          live eye dot + facing wedge so you always know where you are and which way you face. Collapsible to a tab (E2:
+          the walk keeps the majority); top-right, under the turn cue, clear of the chips (left) and the sticks (bottom). */}
+      {room && (() => {
+        const cols = Math.max(...layout.map((r) => r.col + r.w), TINY_GRID);
+        const rows = Math.max(...layout.map((r) => r.row + r.d), TINY_GRID);
+        const u = 11;                                   // svg units per 10-ft room cell (compact)
+        const w = cols * u, h = rows * u;
+        const ex = (room.col + (eye.x / ROOM_FT) * room.w) * u;
+        const ey = (room.row + (1 - eye.y / ROOM_FT) * room.d) * u;  // north = top (plan gy 0 = N)
+        const fx = Math.sin(yaw), fy = -Math.cos(yaw);              // yaw 0 faces north (up)
+        const wa = Math.atan2(fy, fx), spread = 0.5, r0 = u * 1.4;
+        const wedge = `${ex},${ey} ${ex + Math.cos(wa - spread) * r0},${ey + Math.sin(wa - spread) * r0} ${ex + Math.cos(wa + spread) * r0},${ey + Math.sin(wa + spread) * r0}`;
+        return (
+          <div data-arch-walk-map className="absolute right-2 top-9 rounded-lg border p-1" style={{ borderColor: `${C.cyan}66`, background: "#0a0f16ee" }}>
+            <button data-arch-walk-map-toggle onClick={toggleMap} className="mb-0.5 flex w-full items-center justify-between gap-2 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
+              <span>map</span><span>{mapOpen ? "▾" : "▸"}</span>
+            </button>
+            {mapOpen && (
+              <svg data-arch-walk-map-svg viewBox={`-1 -1 ${w + 2} ${h + 2}`} width={84} height={84 * (h / w)} style={{ display: "block" }}>
+                <rect x={0} y={0} width={w} height={h} fill="none" stroke={`${C.cyan}44`} strokeWidth={0.6} />
+                {layout.map((r) => {
+                  const here = r.id === room.id;
+                  return <rect key={r.id} x={r.col * u} y={r.row * u} width={r.w * u} height={r.d * u} fill={here ? `${C.gold}33` : "transparent"} stroke={here ? C.gold : `${C.wall}`} strokeWidth={here ? 1 : 0.5} />;
+                })}
+                <polygon data-arch-walk-map-wedge points={wedge} fill={`${C.cyan}66`} stroke="none" />
+                <circle data-arch-walk-map-eye cx={ex} cy={ey} r={1.8} fill={C.cyan} stroke="#070b12" strokeWidth={0.5} />
+              </svg>
+            )}
+          </div>
+        );
+      })()}
+
       {/* QUAD CONTROLLER (reuses Drone-2525's actual <Stick> + its saved calibration via applySets) — L = MOVE (walk in the
           facing direction, collide-and-slide around furniture), R = LOOK (yaw + pitch). Thumb-reachable at the two bottom
           corners; the step to a neighbour runs through onStep in the loop above (the door-span rule gates it). */}

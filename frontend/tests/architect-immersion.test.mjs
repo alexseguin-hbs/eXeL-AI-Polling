@@ -67,6 +67,12 @@ ok(/roomBlockers\(roomObjs, phase, doorLanes\)/.test(walk) && /doorLanes\.push/.
 ok(/framingOn = phaseById\(phase\)\?\.id === "framing"/.test(walk) && /walkFraming\(/.test(walk), "the Framing phase renders the studs (walkFraming) in the walk");
 ok(/const hasPhase = !!phaseById\(phase\)/.test(walk) && /if \(hasPhase\)/.test(walk) && /pShows === "wiring" \|\| pShows === "water" \|\| pShows === "sewer"/.test(walk), "the MEP overlay is phase-gated — a selected phase shows ONLY its own layer");
 ok(/setShowSockets\(shows === "wiring"\)/.test(design), "selectPhase drives sockets from the phase (only Electrical) — no overlay leaks across phases");
+// P2/P3/P4 layers render through the ONE subline + glyph pass (plumbing valves, duct parts, shell cameras/batts all share it)
+ok(/data-arch-walk-subline/.test(walk) && /data-arch-walk-glyph=/.test(walk), "the walk renders MEP/shell sublines + glyphs (P2 valves · P3 ducts · P4 cameras/batts) through one pass");
+ok(/walkShell\(/.test(walk) && /const structureOn = framingOn/.test(walk), "the shell phases draw via walkShell, and roofing/insulation keep the stud frame on");
+// C1 overhead minimap: the current room lit + a live eye dot + facing wedge, collapsible (the walk keeps the majority — E2)
+ok(/data-arch-walk-map\b/.test(walk) && /data-arch-walk-map-eye/.test(walk) && /data-arch-walk-map-wedge/.test(walk), "the walk carries an overhead minimap with a live eye dot + facing wedge");
+ok(/const \[mapOpen, setMapOpen\]/.test(walk) && /data-arch-walk-map-toggle/.test(walk), "the minimap is collapsible (mapOpen) — the walk keeps the majority of the screen (E2)");
 
 // ── custom walkthrough iconology, NOT emoji (operator 2026-11-04: "don't use emojies; create your own walkthrough raster iconology") ──
 ok(/export function WalkGlyph\b/.test(icons) && /export function MoveChevron\b/.test(icons) && /<svg/.test(icons), "architect-walk-icons.tsx is a drawn SVG glyph set (WalkGlyph · MoveChevron · LookGlyph · DoorGlyph · EditGlyph) — my own iconology");
