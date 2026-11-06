@@ -517,12 +517,12 @@ export function simMatrix(models: SimModel[] = SIM_MODELS, optsBy?: Record<strin
 // ── TIME TO BUILD, BY PHASE — the build split across the ten BUILD_PHASES (in build order; Interior Design is staging, excluded). 3D Print collapses the
 //    Framing phase (the printed shell goes up fast) and speeds Roofing, shifting share to MEP + finish. ──────────────
 // IN BUILD ORDER (operator 2026-10-31: roofing right after framing; insulation after the rough-ins). Keyed by phase id;
-// phaseSchedule maps BUILD_PHASES (the 10 construction phases — Interior Design is staging, not a build-time phase).
+// phaseSchedule maps BUILD_PHASES (the 11 construction phases — Interior Design is staging, not a build-time phase).
 // 3D Print collapses Framing (the printed shell goes up fast) and speeds Roofing; cement cuts the finish a touch.
 const PHASE_WEIGHTS: Record<Method, Record<string, number>> = {
-  "stick-framed": { foundation: 0.13, framing: 0.20, roofing: 0.15, plumbing: 0.10, sewer: 0.06, electrical: 0.12, internet: 0.04, security: 0.04, insulation: 0.06, finish: 0.10 },
-  "3d-print":     { foundation: 0.16, framing: 0.08, roofing: 0.18, plumbing: 0.11, sewer: 0.07, electrical: 0.14, internet: 0.05, security: 0.05, insulation: 0.06, finish: 0.10 },
-  "hex-panel":    { foundation: 0.14, framing: 0.12, roofing: 0.20, plumbing: 0.11, sewer: 0.06, electrical: 0.13, internet: 0.04, security: 0.04, insulation: 0.06, finish: 0.10 },
+  "stick-framed": { foundation: 0.13, framing: 0.20, roofing: 0.15, plumbing: 0.10, sewer: 0.06, electrical: 0.12, hvac: 0.07, internet: 0.04, security: 0.04, insulation: 0.06, finish: 0.10 },
+  "3d-print":     { foundation: 0.16, framing: 0.08, roofing: 0.18, plumbing: 0.11, sewer: 0.07, electrical: 0.14, hvac: 0.08, internet: 0.05, security: 0.05, insulation: 0.06, finish: 0.10 },
+  "hex-panel":    { foundation: 0.14, framing: 0.12, roofing: 0.20, plumbing: 0.11, sewer: 0.06, electrical: 0.13, hvac: 0.07, internet: 0.04, security: 0.04, insulation: 0.06, finish: 0.10 },
 };
 const FORM_PHASE_TWEAK: Record<string, Record<string, number>> = {
   "eco-sphere": { roofing: +0.06, framing: -0.03, foundation: -0.03 },
@@ -530,7 +530,7 @@ const FORM_PHASE_TWEAK: Record<string, Record<string, number>> = {
   "3x3-grid":   {},
 };
 export interface PhaseTime { id: string; label: string; color: string; weeks: number; }
-/** The build time split across the ten construction phases for a model at an option (weeks per phase; the ten sum
+/** The build time split across the eleven construction phases for a model at an option (weeks per phase; they sum
  *  EXACTLY to the rounded total — Sofia). Per-form weighting differentiates the hex dome from the Cube (Pangu). */
 export function phaseSchedule(modelId: string, opt?: BuildOption): PhaseTime[] {
   const m = modelById(modelId);

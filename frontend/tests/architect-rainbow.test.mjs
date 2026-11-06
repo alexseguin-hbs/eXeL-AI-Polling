@@ -25,7 +25,7 @@ ok(rainbow(1)[0] && hueOf(rainbow(1)[0]) <= 8, "rainbow(1) is red");
 
 // ── the 11 Design/Simulate phase colours ARE the rainbow, in build order (Foundation red … Interior violet) ──
 const rb11 = rainbow(DEV_PHASES.length);
-ok(DEV_PHASES.length === 11, "11 phases");
+ok(DEV_PHASES.length === 12, "12 phases");
 ok(DEV_PHASES.every((p, i) => p.color === rb11[i]), "every phase colour is the red→violet rainbow value for its build-order slot");
 ok(hueOf(DEV_PHASES[0].color) <= 8 && DEV_PHASES[0].id === "foundation", "Foundation (phase 1) is RED");
 ok(hueOf(DEV_PHASES[DEV_PHASES.length - 1].color) >= 270 && DEV_PHASES[DEV_PHASES.length - 1].id === "interior", "Interior Design (last phase) is VIOLET");
@@ -38,5 +38,5 @@ ok(/rainbow\(DEV_PHASES_SRC\.length\)/.test(ph), "the Design phase colours come 
 const so = read("../components/architect-2525/simulate-options.tsx");
 ok(/rainbow\(SIMS\.length\)/.test(so) && /SIM_RAINBOW\[i\]/.test(so), "the 13 check chips are coloured from rainbow(SIMS.length)");
 
-console.log(`\narchitect-rainbow: ${pass} passed, ${fail} failed · red → violet, one source, 6 phases · 11 phases · 13 checks`);
+console.log(`\narchitect-rainbow: ${pass} passed, ${fail} failed · red → violet, one source, 6 phases · 12 phases · 13 checks`);
 process.exit(fail ? 1 : 0);

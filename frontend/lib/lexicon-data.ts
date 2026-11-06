@@ -2287,6 +2287,8 @@ const siteUxB3: TranslationEntry[] = [
   { key: "arch.walk.legend.trunk", englishDefault: "trunk", context: "Walk HVAC legend: the supply trunk duct", cubeId: 0 },
   { key: "arch.walk.legend.register", englishDefault: "register", context: "Walk HVAC legend: the ceiling supply register", cubeId: 0 },
   { key: "arch.walk.legend.vcd", englishDefault: "damper", context: "Walk HVAC legend: the volume control damper", cubeId: 0 },
+  { key: "arch.walk.legend.camera", englishDefault: "camera", context: "Walk Security legend: a surveillance camera", cubeId: 0 },
+  { key: "arch.walk.legend.coverage", englishDefault: "coverage", context: "Walk Security legend: a camera's floor coverage cone", cubeId: 0 },
   { key: "arch.room.helpTitle", englishDefault: "How this designer works", context: "Tooltip on the help (?) button", cubeId: 0 },
   { key: "arch.room.helpHeading", englishDefault: "How to design this room", context: "Heading of the help panel", cubeId: 0 },
   { key: "arch.room.helpPlace", englishDefault: "tap a palette item (grouped by system) then tap the floor, or drag it onto the 2D plan.", context: "Help panel: Place instruction", cubeId: 0 },

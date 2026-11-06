@@ -104,8 +104,13 @@ export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObj
     // 1 · service trunk riser + MAIN ball valve + PEX manifold
     sublines.push({ pts: [W3(src.gx, src.gy, 0.3, ox, oy), W3(src.gx, src.gy, 3.0, ox, oy)], color: MEP_COLOR.water, w: 3.0 });
     glyphs.push({ kind: "valve", polys: ballValve(W3(src.gx, src.gy, 1.0, ox, oy), [0, 1], 0.5), at: W3(src.gx, src.gy, 1.0, ox, oy), color: MEP_COLOR.water, label: "MAIN" });
+    // the PEX manifold — an OUTLINE box (never a solid cyan panel: Christo) with a ⊟ divider + one run-tick per home-run
     const manZ = 2.7, manPts = wallQuad(src.gx, src.gy, manZ, 1.0, 0.6, ox, oy);
-    glyphs.push({ kind: "manifold", polys: [manPts], at: W3(src.gx, src.gy, manZ, ox, oy), color: MEP_COLOR.water });
+    const mb0 = manPts[0], mb1 = manPts[1], mt3 = manPts[3];                     // bottom edge mb0→mb1, up to mt3
+    const manLines: Vec3[][] = [[[(mb0[0] + mt3[0]) / 2, (mb0[1] + mt3[1]) / 2, manZ], [(mb1[0] + mt3[0]) / 2, (mb1[1] + mt3[1]) / 2, manZ]]]; // mid divider
+    const nTick = Math.max(2, Math.min(8, runs.length));
+    for (let i = 1; i < nTick; i++) { const f = i / nTick; manLines.push([[mb0[0] + (mb1[0] - mb0[0]) * f, mb0[1] + (mb1[1] - mb0[1]) * f, manZ - 0.3], [mb0[0] + (mb1[0] - mb0[0]) * f, mb0[1] + (mb1[1] - mb0[1]) * f, manZ - 0.1]]); }
+    glyphs.push({ kind: "manifold", polys: [manPts], lines: manLines, at: W3(src.gx, src.gy, manZ, ox, oy), color: MEP_COLOR.water, label: "manifold" });
     // P2/#4 — the WATER HEATER lives in the utility room (Storage·Laundry, the furnace room): a tank at the source wall with
     // a hot output riser. One per house — gated to kind S so it never duplicates per room (a partial of the #3 service entry).
     if (roomKind === "S") {

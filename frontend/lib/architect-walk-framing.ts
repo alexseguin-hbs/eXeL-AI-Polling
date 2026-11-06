@@ -52,7 +52,7 @@ export function walkFraming(gauge: StudGauge, openings: WalkOpening[], ox = 0, o
 
   for (const side of ["N", "S", "W", "E"] as Side[]) {
     const op = openings.find((o) => o.side === side);
-    const gL = op ? op.center - (op.z0 === 0 ? 1.6 : 1.8) : 0, gR = op ? op.center + (op.z0 === 0 ? 1.6 : 1.8) : 0;
+    const gL = op ? op.center - op.span / 2 : 0, gR = op ? op.center + op.span / 2 : 0;   // the framed hole tracks the REAL opening span (D3 one source — Enlil)
     const inOpening = (s: number) => !!op && s > gL - 0.25 && s < gR + 0.25;
 
     if (!thisRoom) {   // neighbour backdrop — lines only, no quads, no blocking (overdraw mitigation)
@@ -61,8 +61,8 @@ export function walkFraming(gauge: StudGauge, openings: WalkOpening[], ox = 0, o
       continue;
     }
 
-    // common studs
-    for (const s of offs) { if (inOpening(s)) continue; member(side, s - T / 2, s + T / 2, PLATE, TOP_B, FRAME_COLOR); counts.studs++; }
+    // common studs — skip the s=RF end stud so a corner is not double-counted (the adjacent wall's s=0 stud is that corner post, Enlil)
+    for (const s of offs) { if (s === RF) continue; if (inOpening(s)) continue; member(side, s - T / 2, s + T / 2, PLATE, TOP_B, FRAME_COLOR); counts.studs++; }
     // bottom plate (split across a door that reaches the floor)
     if (op && op.z0 === 0) { member(side, 0, gL, 0, PLATE, FRAME_COLOR); member(side, gR, RF, 0, PLATE, FRAME_COLOR); }
     else member(side, 0, RF, 0, PLATE, FRAME_COLOR);
@@ -75,15 +75,15 @@ export function walkFraming(gauge: StudGauge, openings: WalkOpening[], ox = 0, o
       member(side, gL - 0.25, gL - 0.125, PLATE, TOP_B, FRAME_COLOR); member(side, gR + 0.125, gR + 0.25, PLATE, TOP_B, FRAME_COLOR); counts.kings += 2;
       const jackTop = op.z0 === 0 ? HDR_DOOR : WIN_HEAD;
       member(side, gL - 0.125, gL, PLATE, jackTop, FRAME_COLOR); member(side, gR, gR + 0.125, PLATE, jackTop, FRAME_COLOR); counts.jacks += 2;
-      // header
-      const hdrBot = jackTop, hdrTop = op.z0 === 0 ? TOP_B : HDR_WIN_TOP;
+      // header — ONE convention for both openings (Enlil): a ~9.2" header on the jack, then cripples up to the top plate
+      const HDR_D = HDR_WIN_TOP - WIN_HEAD;                         // 0.77 ft ≈ 9.2" header depth
+      const hdrBot = jackTop, hdrTop = jackTop + HDR_D;
       member(side, gL - 0.125, gR + 0.125, hdrBot, hdrTop, FRAME_HEADER_COLOR); counts.headers++;
-      // cripples above the header (window) / rough sill + cripples below (window)
+      // cripples ABOVE the header (door AND window) + rough sill with cripples BELOW (window only)
       for (const s of offs) {
         if (s <= gL || s >= gR) continue;
-        if (op.z0 === 0) continue;                                  // a door needs no cripples (opening to floor)
-        member(side, s - T / 2, s + T / 2, HDR_WIN_TOP, TOP_B, FRAME_COLOR); counts.cripples++;   // above the header
-        member(side, s - T / 2, s + T / 2, PLATE, WIN_SILL - 0.125, FRAME_COLOR); counts.cripples++; // sill cripple below
+        member(side, s - T / 2, s + T / 2, hdrTop, TOP_B, FRAME_COLOR); counts.cripples++;         // above the header
+        if (op.z0 > 0) { member(side, s - T / 2, s + T / 2, PLATE, WIN_SILL - 0.125, FRAME_COLOR); counts.cripples++; } // sill cripple (window)
       }
       if (op.z0 > 0) member(side, gL, gR, WIN_SILL - 0.125, WIN_SILL, FRAME_COLOR);   // rough sill (window)
     }

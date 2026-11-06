@@ -18,7 +18,7 @@ const gauge = studGaugeById("2x6");
 const openings = ["N", "S", "W", "E"].map((side) => ({ side, center: 5, span: 3.2, z0: 0, z1: 6.67 }));
 const shellOpenings = ["N", "S", "W", "E"].map((side) => ({ side, center: 5, span: 3.2 }));
 const roomObjs = defaultObjectsForRoom("B"); // a bath — richest fixtures for the plumbing phases
-const SHELL = new Set(["foundation", "roofing", "insulation", "security", "internet"]);
+const SHELL = new Set(["foundation", "roofing", "insulation", "security", "internet", "finish"]);
 const STRUCT = new Set(["framing", "roofing", "insulation"]); // phases that keep the stud frame on
 
 // The render signature the WALK produces for a phase — mirrors the walkthrough's phase→module routing.
@@ -28,9 +28,8 @@ function sig(id) {
   if (STRUCT.has(id)) parts.push("studs:" + walkFraming(gauge, openings).counts.studs);
   if (SHELL.has(id)) { const s = walkShell(id, { gauge, openings: shellOpenings, kind: "B", nbS: true }); parts.push("shellQ:" + s.quads.length, "shellS:" + s.sublines.length, "shellG:" + s.glyphs.map((g) => g.kind).sort().join("+")); }
   const shows = phaseById(id)?.shows;
-  if (shows === "wiring" || shows === "water" || shows === "sewer") { const m = walkMep(shows, 6, roomObjs); parts.push("mep:" + shows + ":L" + m.lines.length + ":S" + m.sublines.length + ":G" + m.glyphs.map((g) => g.kind).sort().join("+")); }
+  if (shows === "wiring" || shows === "water" || shows === "sewer" || shows === "duct") { const m = walkMep(shows, 6, roomObjs, 0, 0, "M"); parts.push("mep:" + shows + ":L" + m.lines.length + ":S" + m.sublines.length + ":G" + m.glyphs.map((g) => g.kind).sort().join("+")); }
   if (d.furniture) parts.push("furniture");
-  if (d.openings && !d.furniture && !STRUCT.has(id) && !SHELL.has(id) && !shows) parts.push("finish:openings"); // Finish = the bare finished room
   return parts.join("|");
 }
 
@@ -53,6 +52,8 @@ ok(sigs.plumbing !== sigs.sewer, "Plumbing ≠ Sewer (water supply vs DWV)");
 ok(sigs.framing !== sigs.roofing && sigs.roofing !== sigs.insulation, "Framing ≠ Roofing ≠ Insulation (studs vs trusses vs batts)");
 ok(sigs.foundation !== sigs.insulation && sigs.security !== sigs.internet, "Foundation ≠ Insulation · Security ≠ Internet");
 ok(sigs.electrical !== sigs.plumbing && sigs.interior !== sigs.finish, "Electrical ≠ Plumbing · Interior ≠ Finish");
+ok(sigs.hvac && sigs.hvac.includes("duct") && sigs.hvac !== sigs.electrical, "HVAC renders the duct layer and is distinct from Electrical (the reachable HVAC phase)");
+ok(sigs.framing !== sigs.roofing, "Roofing ≠ Framing (pitched roof in the plenum, distinct colour — not the stud wall)");
 
 console.log(`\nARCHITECT-PHASE-DISTINCT ${pass}/${pass + fail} passed · every phase renders a NON-EMPTY, DISTINCT layer in the walk`);
 if (fail > 0) process.exit(1);

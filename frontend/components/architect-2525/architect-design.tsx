@@ -208,12 +208,13 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
     const shows = phaseById(id)?.shows ?? null;   // framing→structure (always drawn); wiring/water/sewer drive the MEP layer
     // Drive EVERY MEP flag FROM the phase (fleet NEW-2): wiring + sockets only in Electrical, water in Plumbing, sewer in
     // Sewer — so a layer only shows in its own phase (no electrical leaking into framing/plumbing/…).
-    setShowWiring(shows === "wiring"); setShowWater(shows === "water"); setShowSewer(shows === "sewer"); setShowSockets(shows === "wiring");
+    setShowWiring(shows === "wiring"); setShowWater(shows === "water"); setShowSewer(shows === "sewer"); setShowSockets(shows === "wiring"); setHvac(shows === "duct");
     try {
       localStorage.setItem("arch2525.wiring", shows === "wiring" ? "1" : "0");
       localStorage.setItem("arch2525.water", shows === "water" ? "1" : "0");
       localStorage.setItem("arch2525.sewer", shows === "sewer" ? "1" : "0");
       localStorage.setItem("arch2525.sockets", shows === "wiring" ? "1" : "0");
+      localStorage.setItem("arch2525.hvac", shows === "duct" ? "1" : "0");
     } catch {}
   };
   const persistFlag = (k: string, v: boolean) => { try { localStorage.setItem(k, v ? "1" : "0"); } catch {} };
@@ -375,7 +376,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             <div data-arch-roomview-modebar className="mb-1.5 flex items-center gap-2">
               {/* back only — the room NAME is shown once, in the walk's own HUD (no double print, Athena quick-win) */}
               {roomMode === "walk" && (
-                <button data-arch-roomwalk-back onClick={() => setFocusRoomId(null)} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← Back to house</button>
+                <button data-arch-roomwalk-back onClick={() => { setFocusRoomId(null); setRoomSel(null); }} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← Back to house</button>
               )}
               <div className="ml-auto flex gap-1">
                 {(["edit", "walk"] as const).map((m) => (
@@ -512,11 +513,13 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
           )}
         </svg>
         )}
+        {!(focusRoom ? roomMode === "walk" : tinyMode === "walk") && (
         <div className="mt-1 text-[9px]" style={{ color: C.dim }}>
           {voxel ? "3D voxel — click a room to select · drag to orbit/tilt · scroll to zoom · first-floor plan lives in 2D"
             : tiny ? "2D floor plan — nine 10'×10' rooms = 900 ft² · click a room to select · 3D mini-map lower-right · ▦ Voxel for full 3D"
             : view3d ? "3D isometric — edit in 2D" : mode === "wall" ? "Click two grid points to place a 2×4 wall" : `Click near a wall to place a ${mode}`}
         </div>
+        )}
       </div>
   );
 }

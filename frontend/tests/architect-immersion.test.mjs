@@ -73,6 +73,20 @@ ok(/walkShell\(/.test(walk) && /const structureOn = framingOn/.test(walk), "the 
 // C1 overhead minimap: the current room lit + a live eye dot + facing wedge, collapsible (the walk keeps the majority — E2)
 ok(/data-arch-walk-map\b/.test(walk) && /data-arch-walk-map-eye/.test(walk) && /data-arch-walk-map-wedge/.test(walk), "the walk carries an overhead minimap with a live eye dot + facing wedge");
 ok(/const \[mapOpen, setMapOpen\]/.test(walk) && /data-arch-walk-map-toggle/.test(walk), "the minimap is collapsible (mapOpen) — the walk keeps the majority of the screen (E2)");
+// R3 reinforcement — the minimap facing wedge matches the camera forward (E/W no longer mirrored: Aset/Athena/Thor)
+ok(/const fx = -Math\.sin\(yaw\), fy = -Math\.cos\(yaw\)/.test(walk), "the wedge direction is (−sin yaw, −cos yaw) — the camera forward in map coords (LOOK-right → EAST, not mirrored)");
+// the wedge dir dotted with the independently-derived camera-forward-in-map is positive at every quarter-turn (revert-gated)
+const camFwdMap = (yaw) => [-Math.sin(yaw), -Math.cos(yaw)];       // project() forward (−sin,cos) with north→−y
+const wedgeDir  = (yaw) => [-Math.sin(yaw), -Math.cos(yaw)];       // the walkthrough's (fx,fy)
+for (const yaw of [0, Math.PI / 2, -Math.PI / 2, Math.PI, -1.086]) {
+  const c = camFwdMap(yaw), w = wedgeDir(yaw); const dot = c[0] * w[0] + c[1] * w[1];
+  ok(dot > 0.85, `wedge aligns with the camera forward at yaw ${yaw.toFixed(2)} (dot ${dot.toFixed(2)} > 0.85)`);
+}
+// R3 reinforcement — HVAC is a REACHABLE walk phase (the duct engine has a phase), surfaced when shows === "duct"
+ok(/pShows === "wiring" \|\| pShows === "water" \|\| pShows === "sewer" \|\| pShows === "duct"/.test(walk), "the walk phase-gate surfaces the duct layer for a phase whose shows === 'duct' (HVAC reachable while walking phases)");
+// R3 reinforcement — Roofing drops the stud skeleton (reads as a roof) and the ceiling x-rays for the plenum roof
+ok(/const structureOn = framingOn \|\| shellId === "insulation"/.test(walk), "Roofing no longer keeps the full stud skeleton (reads as a roof, not framing)");
+ok(/const ceilXray = layers\.includes\("duct"\) \|\| shellId === "roofing"/.test(walk), "the ceiling x-rays for Roofing (see the pitched roof in the plenum) as it does for ducts");
 
 // ── custom walkthrough iconology, NOT emoji (operator 2026-11-04: "don't use emojies; create your own walkthrough raster iconology") ──
 ok(/export function WalkGlyph\b/.test(icons) && /export function MoveChevron\b/.test(icons) && /<svg/.test(icons), "architect-walk-icons.tsx is a drawn SVG glyph set (WalkGlyph · MoveChevron · LookGlyph · DoorGlyph · EditGlyph) — my own iconology");

@@ -9,11 +9,11 @@
  */
 import { useState } from "react";
 import { DEV_PHASES, phaseById } from "@/lib/architect-phases";
-import { Layers, Frame, Zap, Droplets, Waves, Wifi, Camera, Triangle, Shield, Paintbrush, Sofa, type LucideIcon } from "lucide-react";
+import { Layers, Frame, Zap, Droplets, Waves, Wifi, Camera, Triangle, Shield, Paintbrush, Sofa, Wind, type LucideIcon } from "lucide-react";
 
 const ICON: Record<string, LucideIcon> = {
   layers: Layers, frame: Frame, zap: Zap, droplets: Droplets, waves: Waves, wifi: Wifi, camera: Camera, triangle: Triangle,
-  shield: Shield, paintbrush: Paintbrush, sofa: Sofa,
+  shield: Shield, paintbrush: Paintbrush, sofa: Sofa, wind: Wind,
 };
 const C = { border: "#1e2b3a", dim: "#5f7186", text: "#c8d6e5", panel: "#0a0f16" };
 const CARD_KEY = "arch2525.phaseCardOpen";

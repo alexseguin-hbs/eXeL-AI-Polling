@@ -11,8 +11,8 @@ let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 
 // THE BUILD ORDER — the one source every surface reads (operator 2026-10-31). Roofing is 3 (right after Framing), NOT last.
-const ORDER = ["foundation", "framing", "roofing", "plumbing", "sewer", "electrical", "internet", "security", "insulation", "finish", "interior"];
-ok(DEV_PHASES.length === 11, `exactly 11 phases (got ${DEV_PHASES.length})`);
+const ORDER = ["foundation", "framing", "roofing", "plumbing", "sewer", "electrical", "hvac", "internet", "security", "insulation", "finish", "interior"];
+ok(DEV_PHASES.length === 12, `exactly 12 phases (got ${DEV_PHASES.length})`);
 ok(JSON.stringify(PHASE_ORDER) === JSON.stringify(ORDER), `PHASE_ORDER is the build order (got ${PHASE_ORDER.join(",")})`);
 ORDER.forEach((id, i) => {
   const p = DEV_PHASES[i];
@@ -23,7 +23,10 @@ ORDER.forEach((id, i) => {
 ok(phaseById("roofing").order === 3 && phaseById("framing").order === 2, "Roofing (3) comes right after Framing (2) — dry-in before the rough-ins");
 ok(phaseById("roofing").order < phaseById("plumbing").order && phaseById("roofing").order < phaseById("electrical").order, "Roofing is before the MEP rough-ins");
 ok(phaseById("insulation").order > phaseById("security").order && phaseById("insulation").order < phaseById("finish").order, "Insulation after the rough-ins, before Finish");
-ok(phaseById("interior").order === 11, "Interior Design is the last phase (staging)");
+ok(phaseById("interior").order === 12, "Interior Design is the last phase (staging)");
+// HVAC (Air Flow) is an MEP rough-in: right after Electrical, before Internet (R3 reinforcement — the duct phase the walk reaches)
+ok(phaseById("hvac").order === 7 && phaseById("hvac").shows === "duct" && phaseById("hvac").draw.mep === "duct", "HVAC (Air Flow) is order 7 and shows the duct layer");
+ok(phaseById("hvac").order > phaseById("electrical").order && phaseById("hvac").order < phaseById("internet").order, "HVAC sits between Electrical and Internet");
 
 for (const p of DEV_PHASES) {
   ok(!!p.label && !!p.blurb && p.blurb.length > 10, `${p.id} has a label + blurb`);
@@ -49,7 +52,7 @@ ok(phaseDraw(null).furniture && phaseDraw(null).structure && phaseDraw(null).ope
 ok(phaseDraw("nope").furniture, "an unknown phase id falls back to the full view");
 
 // BUILD_PHASES = the construction phases that take build time (Interior Design excluded)
-ok(BUILD_PHASES.length === 10 && !BUILD_PHASES.some((p) => p.id === "interior"), "BUILD_PHASES = 10 construction phases, Interior Design excluded");
+ok(BUILD_PHASES.length === 11 && !BUILD_PHASES.some((p) => p.id === "interior"), "BUILD_PHASES = 11 construction phases, Interior Design excluded");
 ok(BUILD_PHASES.every((p) => p.buildPhase), "every BUILD_PHASE is a construction phase");
 
 // the operator's intent words survive in the content
@@ -67,10 +70,10 @@ ok(phaseById("nope") === null, "an unknown phase id resolves to null");
 const GROUPS = {
   foundation: "physical/foundation", framing: "physical/structure", roofing: "physical/building-envelope",
   plumbing: "physical/plumbing", sewer: "physical/plumbing", electrical: "physical/electrical",
-  internet: "physical/communications-low-voltage", security: "physical/communications-low-voltage",
+  hvac: "physical/hvac", internet: "physical/communications-low-voltage", security: "physical/communications-low-voltage",
   insulation: "physical/building-envelope", finish: "physical/interior-finish", interior: "physical/interior",
 };
 for (const [id, g] of Object.entries(GROUPS)) ok(phaseById(id).treeGroup === g, `${id} aligns to the Vision-Tree group ${g}`);
 
-console.log(`\narchitect-phases: ${pass} passed, ${fail} failed · 11 build-ordered phase modes (roofing after framing; insulation; interior design)`);
+console.log(`\narchitect-phases: ${pass} passed, ${fail} failed · 12 build-ordered phase modes (roofing after framing; HVAC after electrical; insulation; interior design)`);
 process.exit(fail ? 1 : 0);

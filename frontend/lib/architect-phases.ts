@@ -16,7 +16,7 @@
  */
 import { rainbow } from "./architect-rainbow";
 
-export type PhaseLayer = "structure" | "wiring" | "water" | "sewer" | null;
+export type PhaseLayer = "structure" | "wiring" | "water" | "sewer" | "duct" | null;
 
 /** What a phase DRAWS in the room designer — only its own layer. One source for the layer filter (R5d). */
 export interface PhaseDraw {
@@ -119,7 +119,18 @@ const DEV_PHASES_SRC: DevPhase[] = [
     ],
   },
   {
-    id: "internet", label: "Internet", order: 7, icon: "wifi", color: "#38bdf8",
+    id: "hvac", label: "Air Flow", order: 7, icon: "wind", color: "#38bdf8",
+    blurb: "Heating and cooling — the ducts in the plenum, registers to every room (the MEP rough-in).",
+    treeGroup: "physical/hvac", shows: "duct", buildPhase: true, draw: L({ mep: "duct", note: "trunk + branch + registers" }),
+    specs: [
+      "Trunk + branch supply ducts in the 2-ft plenum above the 10-ft ceiling",
+      "A ceiling supply register + a volume-control damper in every conditioned room",
+      "Return-air grilles where allowed (not bath / kitchen / closet / storage, IRC M1602.2)",
+      "One air handler in the utility room; sized to the Insulation envelope",
+    ],
+  },
+  {
+    id: "internet", label: "Internet", order: 8, icon: "wifi", color: "#38bdf8",
     blurb: "Optimized for Starlink and LAN — dish, backbone and drops.",
     treeGroup: "physical/communications-low-voltage", shows: null, buildPhase: true, draw: L({ note: "dish + LAN drops" }),
     specs: [
@@ -130,7 +141,7 @@ const DEV_PHASES_SRC: DevPhase[] = [
     ],
   },
   {
-    id: "security", label: "Security", order: 8, icon: "camera", color: "#f87171",
+    id: "security", label: "Security", order: 9, icon: "camera", color: "#f87171",
     blurb: "Talisman Security · Powered by SensorFusion-2525 — camera network across the home.",
     treeGroup: "physical/communications-low-voltage", shows: null, buildPhase: true, draw: L({ note: "cameras + coverage" }),
     specs: [
@@ -141,7 +152,7 @@ const DEV_PHASES_SRC: DevPhase[] = [
     ],
   },
   {
-    id: "insulation", label: "Insulation", order: 9, icon: "shield", color: "#f0abfc",
+    id: "insulation", label: "Insulation", order: 10, icon: "shield", color: "#f0abfc",
     blurb: "Envelope insulation throughout — walls, roof and floor (the environmental factor).",
     treeGroup: "physical/building-envelope", shows: null, buildPhase: true, draw: L({ structure: true, note: "R-value envelope" }),
     specs: [
@@ -152,9 +163,9 @@ const DEV_PHASES_SRC: DevPhase[] = [
     ],
   },
   {
-    id: "finish", label: "Finish", order: 10, icon: "paintbrush", color: "#a3e635",
+    id: "finish", label: "Finish", order: 11, icon: "paintbrush", color: "#a3e635",
     blurb: "Interior finish — drywall, flooring, trim and paint, the surfaces you touch.",
-    treeGroup: "physical/interior-finish", shows: null, buildPhase: true, draw: L({ openings: true, note: "drywall + flooring" }),
+    treeGroup: "physical/interior-finish", shows: null, buildPhase: true, draw: L({ openings: true, fixtures: true, note: "drywall + flooring + fixtures set" }),
     specs: [
       "Drywall hung + taped + finished; primed and painted",
       "Flooring by room (tile wet areas, LVP/wood living, carpet sleep)",
@@ -163,7 +174,7 @@ const DEV_PHASES_SRC: DevPhase[] = [
     ],
   },
   {
-    id: "interior", label: "Interior Design", order: 11, icon: "sofa", color: "#c084fc",
+    id: "interior", label: "Interior Design", order: 12, icon: "sofa", color: "#c084fc",
     blurb: "The furniture layer — place and arrange the room's furniture (the staging phase).",
     treeGroup: "physical/interior", shows: null, buildPhase: false, draw: L({ furniture: true, openings: true, note: "furniture" }),
     specs: [
@@ -175,7 +186,7 @@ const DEV_PHASES_SRC: DevPhase[] = [
   },
 ];
 
-// RED → VIOLET across the 11 phases in build order: Foundation = red … Interior Design = violet (one rainbow() source).
+// RED → VIOLET across the 12 phases in build order: Foundation = red … Interior Design = violet (one rainbow() source).
 const _PHASE_RB = rainbow(DEV_PHASES_SRC.length);
 export const DEV_PHASES: DevPhase[] = DEV_PHASES_SRC.map((p, i) => ({ ...p, color: _PHASE_RB[i] }));
 

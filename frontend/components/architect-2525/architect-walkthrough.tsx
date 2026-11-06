@@ -28,7 +28,7 @@ import { walkMep, GLYPH_PATHS, type MepLayer } from "@/lib/architect-walk-mep"; 
 import { walkShell } from "@/lib/architect-walk-shell"; // P4 shell phases: foundation/roofing/insulation/security/internet
 import { MEP_COLOR } from "@/lib/mep-runs"; // one colour source for the Plumbing legend chip
 import { walkFraming, type WalkOpening } from "@/lib/architect-walk-framing"; // the stud layout for the Framing phase
-import { studGaugeById, FRAME_COLOR, FRAME_HEADER_COLOR, STUD_SPACING_IN } from "@/lib/architect-phase-palette"; // REUSE the one stud gauge/palette
+import { studGaugeById, FRAME_COLOR, FRAME_HEADER_COLOR, STUD_SPACING_IN, SHELL_COLOR } from "@/lib/architect-phase-palette"; // REUSE the one stud gauge/palette
 import { applySets, getSets, initSets, subscribeSets, type StickSets } from "@/lib/2525-core/stick-sets"; // REUSE stick calibration
 import { WalkRaster, LookGlyph } from "./architect-walk-icons";
 import { Stick } from "@/components/drone-2525/stick";           // REUSE the actual Drone-2525 thumb-stick (single source)
@@ -40,6 +40,7 @@ const CEIL_FT = STOREY_FT, EYE_FT = 5.5;             // one 10-ft storey = the c
 const START_IN = 1.5;                                // the eye starts this far INSIDE the entry door (near wall behind you)
 const DOOR_H = 6.67;                                 // door opening height (6'-8" standard, real door — unrelated to the storey)
 const WIN_W = 3.6, WIN_SILL = 3, WIN_HEAD = 6.5;     // an exterior window (perimeter wall) — see the outside through it
+const WIN_COL = OBJECT_SPEC.window?.color ?? "#19c8cf"; // window sash colour — drawn translucent in framing so it doesn't break the stud read (Pangu)
 // FPS feel (MoT synthesis): ~4.5 ft/s indoor walk, smooth accel; the saved stick calibration (applySets) shapes the
 // deadzone/sensitivity further. HFOV/VFOV keep the picture framed with no letterbox at any container aspect (WALK-11).
 const MOVE_SPEED = 4.5, MOVE_ACCEL = 11, LOOK_YAW = 2.0, LOOK_PITCH = 1.5;  // ft/s · 1/s accel · rad/s · rad/s
@@ -146,10 +147,12 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
         const nCross = !!n.N && canCrossDoor(desired.x - dc.N), sCross = !!n.S && canCrossDoor(desired.x - dc.S);
         const eCross = !!n.E && canCrossDoor(desired.y - dc.E), wCross = !!n.W && canCrossDoor(desired.y - dc.W);
         let stepped = false;
-        if (!stepLock.current && desired.y > ROOM_FT && nCross) { stepLock.current = true; setEye({ x: desired.x, y: desired.y - ROOM_FT }); stepRef.current(-1, 0); stepped = true; }
-        else if (!stepLock.current && desired.y < 0 && sCross) { stepLock.current = true; setEye({ x: desired.x, y: desired.y + ROOM_FT }); stepRef.current(1, 0); stepped = true; }
-        else if (!stepLock.current && desired.x > ROOM_FT && eCross) { stepLock.current = true; setEye({ x: desired.x - ROOM_FT, y: desired.y }); stepRef.current(0, 1); stepped = true; }
-        else if (!stepLock.current && desired.x < 0 && wCross) { stepLock.current = true; setEye({ x: desired.x + ROOM_FT, y: desired.y }); stepRef.current(0, -1); stepped = true; }
+        // the carried position is clamped into the room it enters so the overhead dot never lands outside the newly-lit room (Aset P2)
+        const cR = (v: number) => clamp(v, WALK_R, ROOM_FT - WALK_R);
+        if (!stepLock.current && desired.y > ROOM_FT && nCross) { stepLock.current = true; setEye({ x: cR(desired.x), y: cR(desired.y - ROOM_FT) }); stepRef.current(-1, 0); stepped = true; }
+        else if (!stepLock.current && desired.y < 0 && sCross) { stepLock.current = true; setEye({ x: cR(desired.x), y: cR(desired.y + ROOM_FT) }); stepRef.current(1, 0); stepped = true; }
+        else if (!stepLock.current && desired.x > ROOM_FT && eCross) { stepLock.current = true; setEye({ x: cR(desired.x - ROOM_FT), y: cR(desired.y) }); stepRef.current(0, 1); stepped = true; }
+        else if (!stepLock.current && desired.x < 0 && wCross) { stepLock.current = true; setEye({ x: cR(desired.x + ROOM_FT), y: cR(desired.y) }); stepRef.current(0, -1); stepped = true; }
         if (!stepped) {
           // clamp against a SOLID wall (no door gap here), then collide-and-slide around the furniture
           const want = {
@@ -251,8 +254,8 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   // P4 — the SHELL phases (foundation/roofing/insulation/security/internet) each draw their own layer; roofing + insulation
   // keep the stud skeleton on (the roof sits on the frame; the batts fill the bays). ONE walkShell source (lib/architect-walk-shell).
   const shellId = phaseById(phase)?.id ?? null;
-  const shellActive = shellId === "foundation" || shellId === "roofing" || shellId === "insulation" || shellId === "security" || shellId === "internet";
-  const structureOn = framingOn || shellId === "roofing" || shellId === "insulation"; // studs shown
+  const shellActive = shellId === "foundation" || shellId === "roofing" || shellId === "insulation" || shellId === "security" || shellId === "internet" || shellId === "finish";
+  const structureOn = framingOn || shellId === "insulation"; // studs shown (Framing + Insulation fills the bays); Roofing DROPS the studs so it reads as a roof, not a wall (Asar/Odin fix)
   const gauge = studGaugeById(studGauge);
   const openingFor = (side: Side): WalkOpening => (nb[side]
     ? { side, center: doorCtr[side], span: DOOR_W, z0: 0, z1: DOOR_H }
@@ -276,11 +279,16 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   const shellKey = `${shellId}|${room?.id}|${doorCtr.N},${doorCtr.S},${doorCtr.E},${doorCtr.W}|${!!nb.N}${!!nb.S}${!!nb.E}${!!nb.W}`;
   const shellGeo = useMemo(() => {
     if (!shellActive) return null;
-    const openings = (["N", "S", "W", "E"] as Side[]).filter((s) => nb[s]).map((s) => ({ side: s, center: doorCtr[s], span: DOOR_W }));
+    // every wall carries an opening the shell must respect: a DOORWAY on a neighbour wall, a WINDOW on an exterior wall
+    // (so insulation skips the window bay too, and the batts never cover the glass — Odin). Exterior walls (no neighbour) also
+    // get the entry/window data the door camera reads.
+    const openings = (["N", "S", "W", "E"] as Side[]).map((s) => nb[s]
+      ? { side: s, center: doorCtr[s], span: DOOR_W, exterior: false }
+      : { side: s, center: doorCtr[s], span: WIN_W, exterior: true });
     return walkShell(shellId, { gauge, openings, kind: room?.k, nbS: !!nb.S, ox: 0, oy: 0 });
   }, [shellKey]); // eslint-disable-line react-hooks/exhaustive-deps
   if (shellGeo) wallQuads.push(...shellGeo.quads);
-  // the wall panels dim for a structure/shell phase so the layer reads "inside" (framing/roofing/insulation 0.15, else the phase's own)
+  // the wall panels dim for a structure/shell phase so the layer reads "inside" (framing/insulation 0.15, else the phase's own)
   const wallDim: number | null = structureOn ? 0.15 : shellGeo?.wallDim ?? null;
 
   const faces = solidFaces([...wallQuads, ...furnQuads], project);
@@ -306,7 +314,7 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   const hasPhase = !!phaseById(phase);
   const layers: MepLayer[] = [];
   if (hasPhase) {
-    if (pShows === "wiring" || pShows === "water" || pShows === "sewer") layers.push(pShows);
+    if (pShows === "wiring" || pShows === "water" || pShows === "sewer" || pShows === "duct") layers.push(pShows);
   } else {
     if (showWiring) layers.push("wiring");
     if (showWater) layers.push("water");
@@ -315,24 +323,33 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   }
   const socketsOnly = !hasPhase && showSockets && !layers.includes("wiring");  // ⚡ Sockets toggle is an overview-only aid
   const mepOn = layers.length > 0 || socketsOnly;
+  // x-ray the inner ceiling to see the plenum: ducts (HVAC) AND the roof plane/rafters (Roofing lives in the 10→12 plenum)
+  const ceilXray = layers.includes("duct") || shellId === "roofing";
   const cellOut = (c: RoomCell | null | undefined) => c?.outlets ?? 0;
   const mepLines: { x1: number; y1: number; x2: number; y2: number; col: string; key: string }[] = [];
   const mepBoxes: { pts: string; col: string; kind: string }[] = [];
   const mepSublines: { x1: number; y1: number; x2: number; y2: number; col: string; dash?: string; w: number }[] = [];
-  const mepGlyphs: { pts: string; col: string; kind: string; lx?: number; ly?: number; label?: string; op?: number }[] = [];
+  const mepGlyphs: { pts: string; col: string; kind: string; op?: number; outline?: boolean }[] = [];
+  const mepGlyphLabels: { x: number; y: number; col: string; text: string }[] = [];   // ONE label per glyph (not per poly — Christo fix)
+  const OUTLINE_GLYPHS = new Set(["manifold", "laundrybox", "heater", "lan", "return"]); // big flat glyphs read as an outline, never a solid panel (Christo)
+  // Shared glyph pass — projects a glyph's polys + lines, emits its label ONCE, culls far glyphs (cameras stay visible across the room).
+  const pushGlyphs = (glyphs: { kind: string; polys: Vec3[][]; lines?: Vec3[][]; at: Vec3; color: string; label?: string }[], opFor: (k: string) => number) => {
+    for (const gl of glyphs) {
+      const at = project(gl.at); if (!at || (at.depth >= 12 && gl.kind !== "camera")) continue;  // keep roof-corner cameras readable from across the room
+      const outline = OUTLINE_GLYPHS.has(gl.kind);
+      for (const pg of gl.polys) { const q = poly(pg); if (q) mepGlyphs.push({ pts: q.d, col: gl.color, kind: gl.kind, op: opFor(gl.kind), outline }); }
+      if (gl.lines) for (const ln of gl.lines) for (let i = 0; i < ln.length - 1; i++) { const a = project(ln[i]), b = project(ln[i + 1]); if (a && b) mepSublines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: gl.color, w: 1.2 }); }
+      if (at.depth < 6 && gl.label) mepGlyphLabels.push({ x: at.x, y: at.y - 6, col: gl.color, text: gl.label });
+    }
+  };
   const addMep = (L: MepLayer, outlets: number, objs: PlacedObject[], ox: number, oy: number, boxesOnly = false, kind?: string) => {
     const g = walkMep(L, outlets, objs, ox, oy, kind);
     if (!boxesOnly) for (const ln of g.lines) for (let i = 0; i < ln.length - 1; i++) { const a = project(ln[i]), b = project(ln[i + 1]); if (a && b) mepLines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: g.color, key: L }); }
     for (const bx of g.boxes) { if (boxesOnly && bx.kind !== "outlet") continue; const q = poly(bx.pts); if (q) mepBoxes.push({ pts: q.d, col: g.color, kind: bx.kind }); }
     if (boxesOnly) return;
-    // P2/P3 — valve/riser/duct sublines (own dash + width) and valve/trap/vent/duct-part GLYPHS; cull a glyph when it is
-    // far (depth ≥ 12), label it only up close (depth < 6). Neighbours get the glyphs too so a shared-wall stack reads in.
+    // P2/P3 — valve/riser/duct sublines (own dash + width) and valve/trap/vent/duct-part GLYPHS (one shared pass).
     for (const sl of g.sublines) for (let i = 0; i < sl.pts.length - 1; i++) { const a = project(sl.pts[i]), b = project(sl.pts[i + 1]); if (a && b) mepSublines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: sl.color, dash: sl.dash, w: sl.w ?? 2.2 }); }
-    for (const gl of g.glyphs) {
-      const at = project(gl.at); if (!at || at.depth >= 12) continue;
-      for (const pg of gl.polys) { const q = poly(pg); if (q) mepGlyphs.push({ pts: q.d, col: gl.color, kind: gl.kind, label: at.depth < 6 ? gl.label : undefined, lx: at.depth < 6 && gl.label ? at.x : undefined, ly: at.depth < 6 && gl.label ? at.y - 6 : undefined }); }
-      if (gl.lines) for (const ln of gl.lines) for (let i = 0; i < ln.length - 1; i++) { const a = project(ln[i]), b = project(ln[i + 1]); if (a && b) mepSublines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: gl.color, w: 1.2 }); }
-    }
+    pushGlyphs(g.glyphs, () => 0.9);
   };
   const forAll = (L: MepLayer, boxesOnly = false) => {
     addMep(L, outletCount0, roomObjs, 0, 0, boxesOnly, room?.k);
@@ -349,12 +366,14 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   // batts + camera wedges draw translucent so the room behind still reads; far glyphs cull like the MEP ones.
   if (shellGeo) {
     for (const sl of shellGeo.sublines) for (let i = 0; i < sl.pts.length - 1; i++) { const a = project(sl.pts[i]), b = project(sl.pts[i + 1]); if (a && b) mepSublines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: sl.color, dash: sl.dash, w: sl.w ?? 2.2 }); }
-    for (const gl of shellGeo.glyphs) {
-      const at = project(gl.at); if (!at || at.depth >= 12) continue;
-      const op = gl.kind === "insulation" ? 0.45 : gl.kind === "wedge" ? 0.12 : 0.9;
-      for (const pg of gl.polys) { const q = poly(pg); if (q) mepGlyphs.push({ pts: q.d, col: gl.color, kind: gl.kind, op, label: at.depth < 6 ? gl.label : undefined, lx: at.depth < 6 && gl.label ? at.x : undefined, ly: at.depth < 6 && gl.label ? at.y - 6 : undefined }); }
-      if (gl.lines) for (const ln of gl.lines) for (let i = 0; i < ln.length - 1; i++) { const a = project(ln[i]), b = project(ln[i + 1]); if (a && b) mepSublines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: gl.color, w: 1.2 }); }
-    }
+    pushGlyphs(shellGeo.glyphs, (k) => k === "insulation" ? 0.45 : k === "wedge" ? 0.22 : 0.9);  // wedge up from 0.12 so the coverage cone reads (Odin)
+    // NEIGHBOUR shell pass (Odin) — the across-doorway strip shows the active layer continuously; glyphs only, no quads (overdraw)
+    const nbShell = (cell: RoomCell, ox: number, oy: number) => {
+      const sg = walkShell(shellId, { gauge, openings: [], kind: cell.k, nbS: false, ox, oy });
+      for (const sl of sg.sublines) for (let i = 0; i < sl.pts.length - 1; i++) { const a = project(sl.pts[i]), b = project(sl.pts[i + 1]); if (a && b) mepSublines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: sl.color, dash: sl.dash, w: (sl.w ?? 2.2) * 0.7 }); }
+      pushGlyphs(sg.glyphs, (k) => k === "insulation" ? 0.3 : k === "wedge" ? 0.14 : 0.6);
+    };
+    if (nb.N) nbShell(nb.N, 0, ROOM_FT); if (nb.S) nbShell(nb.S, 0, -ROOM_FT); if (nb.E) nbShell(nb.E, ROOM_FT, 0); if (nb.W) nbShell(nb.W, -ROOM_FT, 0);
   }
   const shellOn = !!shellGeo && (shellGeo.sublines.length > 0 || shellGeo.glyphs.length > 0 || shellGeo.quads.length > 0);
 
@@ -386,17 +405,13 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
     <div ref={rootRef} data-arch-walkthrough data-arch-walk-eye={`${eye.x.toFixed(2)},${eye.y.toFixed(2)}`} data-arch-walk-yaw={yaw.toFixed(3)} className="relative select-none overflow-hidden rounded-lg" style={{ height: Hpx, background: `radial-gradient(130% 100% at 50% 18%, #16243a, #0d1420 55%, ${C.bg})`, border: `1px solid ${C.edge}`, touchAction: "none" }}>
       <svg data-arch-walk-svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid slice" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} style={{ display: "block", cursor: "grab" }}>
         {/* when a MEP layer is on, the walls go semi-transparent (Enscape x-ray convention) so the runs read "inside" them */}
-        {faces.map((fc, i) => <polygon key={`f${i}`} data-arch-walk-frame-face={fc.color === FRAME_COLOR || fc.color === FRAME_HEADER_COLOR ? "1" : undefined} points={fc.d} fill={fog(shade(fc.color ?? C.wall, FACE_SHADE[fc.kind]), fc.depth)} fillOpacity={wallDim != null && fc.color === C.wall && (fc.kind === "front" || fc.kind === "side") ? wallDim : mepOn && (fc.kind === "front" || fc.kind === "side") ? 0.55 : (layers.includes("duct") && fc.kind === "ceil" && fc.color === C.wall) ? 0.55 : 1} stroke={fc.kind === "front" || fc.kind === "side" ? C.edge : "none"} strokeWidth={fc.kind === "front" || fc.kind === "side" ? 0.6 : 0} />)}
+        {faces.map((fc, i) => <polygon key={`f${i}`} data-arch-walk-frame-face={fc.color === FRAME_COLOR || fc.color === FRAME_HEADER_COLOR ? "1" : undefined} points={fc.d} fill={fog(shade(fc.color ?? C.wall, FACE_SHADE[fc.kind]), fc.depth)} fillOpacity={structureOn && fc.color === WIN_COL ? 0.3 : wallDim != null && fc.color === C.wall && (fc.kind === "front" || fc.kind === "side") ? wallDim : mepOn && (fc.kind === "front" || fc.kind === "side") ? 0.55 : (ceilXray && fc.kind === "ceil" && fc.color === C.wall) ? 0.4 : (shellId === "foundation" && fc.kind === "floor" && fc.color === C.floor) ? 0.25 : 1} stroke={fc.kind === "front" || fc.kind === "side" ? C.edge : "none"} strokeWidth={fc.kind === "front" || fc.kind === "side" ? 0.6 : 0} />)}
         {/* MEP LAYER (E1 / WALK-05) — wires / pipes / ducts + outlet & panel boxes, drawn x-ray between the walls and the grid */}
         {mepLines.map((s, i) => <line key={`m${i}`} data-arch-walk-mep={s.key} x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={s.col} strokeWidth={2.2} strokeDasharray="6 4" strokeLinecap="round" opacity={0.95} />)}
         {/* P2 PLUMBING — risers, hot-over-cold, traps, vents, the stack: each sub-run keeps its own dash + width (Release Process #6: the shipped lines above are untouched) */}
         {mepSublines.map((s, i) => <line key={`ms${i}`} data-arch-walk-subline x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={s.col} strokeWidth={s.w} strokeDasharray={s.dash ?? undefined} strokeLinecap="round" opacity={0.95} />)}
-        {mepGlyphs.map((g, i) => (
-          <g key={`mg${i}`}>
-            <polygon data-arch-walk-glyph={g.kind} points={g.pts} fill={g.col} fillOpacity={g.op ?? 0.9} stroke="#070b12" strokeWidth={0.8} />
-            {g.label && g.lx !== undefined && g.ly !== undefined && <text x={g.lx} y={g.ly} fill={g.col} fontSize={9} textAnchor="middle" style={{ fontFamily: "ui-monospace, Consolas, monospace", paintOrder: "stroke", stroke: "#070b12", strokeWidth: 2 }}>{g.label}</text>}
-          </g>
-        ))}
+        {mepGlyphs.map((g, i) => <polygon key={`mg${i}`} data-arch-walk-glyph={g.kind} points={g.pts} fill={g.outline ? "none" : g.col} fillOpacity={g.outline ? 1 : g.op ?? 0.9} stroke={g.outline ? g.col : "#070b12"} strokeWidth={g.outline ? 1 : 0.8} />)}
+        {mepGlyphLabels.map((l, i) => <text key={`ml${i}`} x={l.x} y={l.y} fill={l.col} fontSize={9} textAnchor="middle" style={{ fontFamily: "ui-monospace, Consolas, monospace", paintOrder: "stroke", stroke: "#070b12", strokeWidth: 2 }}>{l.text}</text>)}
         {mepBoxes.map((b, i) => <polygon key={`mb${i}`} data-arch-walk-outlet={b.kind === "outlet" ? "1" : undefined} data-arch-walk-panel={b.kind === "panel" ? "1" : undefined} points={b.pts} fill={b.col} stroke="#070b12" strokeWidth={0.8} />)}
         {/* FRAMING (P1) — the neighbour rooms' studs as lines only (overdraw mitigation); this room's studs are solid quads above */}
         {frameLines.map((s, i) => <line key={`fr${i}`} data-arch-walk-frame="1" x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={FRAME_COLOR} strokeWidth={1} opacity={0.7} />)}
@@ -432,7 +447,7 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
           : [["manifold", "arch.walk.legend.trunk"], ["mixer", "arch.walk.legend.register"], ["cleanout", "arch.walk.legend.vcd"]];
         const col = chipLayer === "water" ? MEP_COLOR.water : chipLayer === "sewer" ? MEP_COLOR.sewer : MEP_COLOR.duct;
         return (
-          <div data-arch-walk-legend className="absolute left-2 top-[72px] flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg border px-2 py-0.5 text-[9px] font-medium" style={{ borderColor: `${col}88`, color: col, background: "#0a0f16ee", maxWidth: "70%" }}>
+          <div data-arch-walk-legend className="absolute left-2 top-[72px] flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg border px-2 py-0.5 text-[9px] font-medium" style={{ borderColor: `${col}88`, color: col, background: "#0a0f16ee", maxWidth: "calc(100% - 120px)" }}>
             {items.map(([g, k]) => (
               <span key={g} className="flex items-center gap-0.5">
                 <svg width={11} height={11} viewBox="0 0 10 10" style={{ flexShrink: 0 }}><path d={GLYPH_PATHS[g]} fill="none" stroke={col} strokeWidth={1} /></svg>{t(k)}
@@ -441,6 +456,13 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
           </div>
         );
       })()}
+      {/* SECURITY legend (P4/#5) — mirrors the plumbing legend so the cameras + coverage read as what they are (Christo/Odin) */}
+      {shellId === "security" && (
+        <div data-arch-walk-legend className="absolute left-2 top-[72px] flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg border px-2 py-0.5 text-[9px] font-medium" style={{ borderColor: `${SHELL_COLOR.camera}88`, color: SHELL_COLOR.camera, background: "#0a0f16ee", maxWidth: "calc(100% - 120px)" }}>
+          <span className="flex items-center gap-0.5"><svg width={11} height={11} viewBox="0 0 10 10" style={{ flexShrink: 0 }}><rect x={1} y={3} width={5} height={4} fill="none" stroke={SHELL_COLOR.camera} strokeWidth={1} /><path d="M6,4 L9,2.5 L9,7.5 L6,6 Z" fill="none" stroke={SHELL_COLOR.camera} strokeWidth={1} /></svg>{t("arch.walk.legend.camera")}</span>
+          <span className="flex items-center gap-0.5"><svg width={11} height={11} viewBox="0 0 10 10" style={{ flexShrink: 0 }}><path d="M1,9 L1,4 A5,5 0 0,1 6,9 Z" fill={`${SHELL_COLOR.camera}44`} stroke={SHELL_COLOR.camera} strokeWidth={0.8} /></svg>{t("arch.walk.legend.coverage")}</span>
+        </div>
+      )}
       {/* FRAMING gauge chip — the SAME string the 2D plan prints (gauge @ 16" o.c.) in the lumber colour */}
       {framingOn && (
         <div data-arch-walk-layer className="absolute left-2 top-10 flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-semibold" style={{ borderColor: FRAME_COLOR, color: FRAME_COLOR, background: "#0a0f16ee" }}>
@@ -463,7 +485,7 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
         const w = cols * u, h = rows * u;
         const ex = (room.col + (eye.x / ROOM_FT) * room.w) * u;
         const ey = (room.row + (1 - eye.y / ROOM_FT) * room.d) * u;  // north = top (plan gy 0 = N)
-        const fx = Math.sin(yaw), fy = -Math.cos(yaw);              // yaw 0 faces north (up)
+        const fx = -Math.sin(yaw), fy = -Math.cos(yaw);            // camera forward in map coords (−sin,−cos): yaw 0 = north-up, LOOK-right → EAST (Aset/Athena/Thor fix)
         const wa = Math.atan2(fy, fx), spread = 0.5, r0 = u * 1.4;
         const wedge = `${ex},${ey} ${ex + Math.cos(wa - spread) * r0},${ey + Math.sin(wa - spread) * r0} ${ex + Math.cos(wa + spread) * r0},${ey + Math.sin(wa + spread) * r0}`;
         return (

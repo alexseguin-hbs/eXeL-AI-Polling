@@ -16,7 +16,7 @@ ok(studOffsetsFt(10).length === 9, "studOffsetsFt(10) = 9 studs per 10-ft wall @
 
 // ── plain room (no openings): all four walls framed ──
 const plain = walkFraming(g6, []);
-ok(plain.counts.studs === 36, `36 common studs (9 × 4 walls) — got ${plain.counts.studs}`);
+ok(plain.counts.studs === 32, `32 common studs (8 per wall × 4 — the shared corner post is counted once, not twice) — got ${plain.counts.studs}`);
 ok(plain.counts.kings === 0 && plain.counts.jacks === 0 && plain.counts.headers === 0, "a plain wall has no opening framing");
 ok(plain.counts.blocking === 32, `32 blocking rows (8 bays × 4 walls) — got ${plain.counts.blocking}`);
 ok(pts(plain).every((p) => p[2] >= -1e-9 && p[2] <= CEIL + 1e-9), "every member z ∈ [0, 10] (inside the inner cube)");
@@ -34,6 +34,10 @@ const door = walkFraming(g6, [{ side: "N", center: 5, span: 3.2, z0: 0, z1: 6.67
 ok(door.counts.kings === 2 && door.counts.jacks === 2 && door.counts.headers === 1, `a door adds 2 kings + 2 jacks + 1 header (got k${door.counts.kings} j${door.counts.jacks} h${door.counts.headers})`);
 ok(door.counts.studs < plain.counts.studs, "the door removes the common studs inside the opening");
 ok(door.quads.some((q) => q.color === FRAME_HEADER_COLOR), "the door header is drawn in the header colour (heavier member)");
+ok(door.counts.cripples > 0, `the door gets cripples above its header (one convention with the window — got ${door.counts.cripples})`);
+// the framed hole tracks the REAL span (Enlil): a wider opening removes more common studs
+const wideDoor = walkFraming(g6, [{ side: "N", center: 5, span: 6.0, z0: 0, z1: 6.67 }]);
+ok(wideDoor.counts.studs < door.counts.studs, "a wider span (op.span) frames a wider hole — more common studs removed (span is read, not hardcoded)");
 
 // ── a WINDOW (z0=3) on the N wall: header + cripples + rough sill ──
 const win = walkFraming(g6, [{ side: "N", center: 5, span: 3.6, z0: 3, z1: 6.5 }]);

@@ -35,7 +35,7 @@ for (const f of ["../lib/room-layout.ts", "../lib/room-program.ts", "../componen
 // ── 2. ONE PHASE ORDER (operator: "double check order of phases throughout") ──
 ok(PHASE_ORDER[0] === "foundation" && PHASE_ORDER[1] === "framing" && PHASE_ORDER[2] === "roofing", "the phase order starts Foundation → Framing → Roofing (roofing right after framing, not last)");
 ok(phaseById("roofing").order === 3, "Roofing is phase 3, NOT 8 (operator 2026-10-31)");
-ok(BUILD_PHASES.length === 10 && !BUILD_PHASES.some((p) => p.id === "interior"), "BUILD_PHASES = the 10 construction phases (Interior Design excluded — staging)");
+ok(BUILD_PHASES.length === 11 && !BUILD_PHASES.some((p) => p.id === "interior"), "BUILD_PHASES = the 11 construction phases (Interior Design excluded — staging)");
 // the Simulate schedule weights key only build phases, in the same order
 const so = read("../lib/architect-sim-options.ts");
 const pw = so.match(/const PHASE_WEIGHTS[\s\S]*?"stick-framed": \{([^}]*)\}/)[1];
