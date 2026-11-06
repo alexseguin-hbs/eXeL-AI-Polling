@@ -1,5 +1,9 @@
 test-results/
 
+# CACHE CLASS: written at build by next.config.js from the deploying SHA; served at /version.json
+# so the client can self-heal a stale session. Build-generated — never committed.
+public/version.json
+
 # Playwright self-test screenshots (artifacts)
 tests/__shots__/
 shots/

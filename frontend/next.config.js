@@ -57,6 +57,18 @@ const cst = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }
 const buildDate = `${cst.getFullYear()}.${pad(cst.getMonth() + 1)}.${pad(cst.getDate())}`;
 const buildTime = `${pad(cst.getHours())}:${pad(cst.getMinutes())} CST`;
 
+// CACHE CLASS (fix the class, not the instance — r143 · r.202 · DD-81; operator 2026-11-06 "WHERES MY RASTER").
+// Write the deploying build's SHA to a tiny version.json served at /version.json. The running client
+// (components/fresh-build-guard.tsx) polls it and reloads a stale in-memory session — the one failure that
+// no-cache headers cannot fix (an already-open iOS tab restored from memory). The sha here is `gitSha`, the
+// exact value baked into NEXT_PUBLIC_GIT_SHA and shown in the footer banner, so a fresh build matches itself.
+try {
+  fs.writeFileSync(
+    path.join(__dirname, 'public', 'version.json'),
+    JSON.stringify({ sha: gitSha }) + '\n',
+  );
+} catch {}
+
 const nextConfig = {
   output: 'export',
   trailingSlash: true,

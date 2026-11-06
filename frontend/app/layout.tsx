@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { FreshBuildGuard } from "@/components/fresh-build-guard";
 
 export const metadata = {
   title: "eXeL AI Polling",
@@ -16,6 +17,9 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className="min-h-screen bg-background font-sans antialiased">
         <Providers>
+          {/* CACHE CLASS: self-heal a stale in-memory session so a shipped build is never invisible
+              (operator 2026-11-06). Silent, visible-tab-only, once per new SHA. See fresh-build-guard.tsx. */}
+          <FreshBuildGuard />
           {/* Build info banner — auto-populated at build time from git + timestamp.
               `id` is load-bearing: this strip is shared chrome above every route (41px on
               a phone, 25px on desktop), so a page that claims the whole viewport has to
