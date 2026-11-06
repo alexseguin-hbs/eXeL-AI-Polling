@@ -16,7 +16,7 @@
  * run geometry (via lib/architect-walk-mep); the designer's showGroupInPhase phase filter. Adjacent rooms + the exterior
  * ground feed the SAME solidFaces() call so a doorway reveals the next room receding into the distance.
  */
-import { useRef, useState, useEffect, useCallback, type PointerEvent as RPE } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo, type PointerEvent as RPE } from "react";
 import type { RoomCell } from "@/lib/room-layout";
 import { STOREY_FT } from "@/lib/room-layout";          // the ONE cube/ceiling height source (10 ft) — never hardcode 8
 import { footprintOf, heightOf, elevOf, OBJECT_SPEC, defaultObjectsForRoom, groupOf, wallOf, type PlacedObject } from "@/lib/room-objects";
@@ -25,6 +25,8 @@ import { showGroupInPhase, phaseById } from "@/lib/architect-phases"; // REUSE t
 import { canCrossDoor, DOOR_W, ROOM_FT } from "@/lib/architect-walk-nav"; // the pure door-span rule (cannot walk through solid wall)
 import { roomBlockers, walkMove, WALK_R, type Rect } from "@/lib/architect-walk-collide"; // the pure collide-and-slide (never stuck)
 import { walkMep, type MepLayer } from "@/lib/architect-walk-mep"; // REUSE the 2D/3D MEP geometry as walk-world elevation
+import { walkFraming, type WalkOpening } from "@/lib/architect-walk-framing"; // the stud layout for the Framing phase
+import { studGaugeById, FRAME_COLOR, FRAME_HEADER_COLOR, STUD_SPACING_IN } from "@/lib/architect-phase-palette"; // REUSE the one stud gauge/palette
 import { applySets, getSets, initSets, subscribeSets, type StickSets } from "@/lib/2525-core/stick-sets"; // REUSE stick calibration
 import { WalkRaster, LookGlyph } from "./architect-walk-icons";
 import { Stick } from "@/components/drone-2525/stick";           // REUSE the actual Drone-2525 thumb-stick (single source)
@@ -50,10 +52,11 @@ const wallDoorCenter = (objs: PlacedObject[], side: Side): number | null => {
   return null;
 };
 
-export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showWiring = false, showWater = false, showSewer = false, showDucts = false, showSockets = false, height = 380, title }: {
+export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showWiring = false, showWater = false, showSewer = false, showDucts = false, showSockets = false, studGauge = "2x6", height = 380, title }: {
   room?: RoomCell | null; layout: RoomCell[]; onStep?: (dRow: number, dCol: number) => void;
   phase?: string | null;   // the selected build phase — the walk shows ONLY that phase's layer (the SAME filter as 2D/3D)
   showWiring?: boolean; showWater?: boolean; showSewer?: boolean; showDucts?: boolean; showSockets?: boolean;  // MEP layers (E1/WALK-05)
+  studGauge?: "2x4" | "2x6";   // the framing gauge (P1) — the walk shows the studs in the Framing phase
   height?: number; title?: string;
 }) {
   const { t } = useLexicon();
@@ -234,6 +237,30 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   if (nb.S) furnQuads.push(...furnOf(nb.S, 0, -ROOM_FT));
   if (nb.E) furnQuads.push(...furnOf(nb.E, ROOM_FT, 0));
   if (nb.W) furnQuads.push(...furnOf(nb.W, -ROOM_FT, 0));
+
+  // ── FRAMING (P1) — in the Framing phase the walls become their STUDS (lib/architect-walk-framing): this room's members
+  //    are boxFaces pushed into the one solidFaces() call (occlude like furniture); each neighbour is lines only. The wall
+  //    panels drop to 0.15 opacity (the studs ARE the wall). Memoized — the geometry is eye-independent. ──
+  const framingOn = phaseById(phase)?.id === "framing";
+  const gauge = studGaugeById(studGauge);
+  const openingFor = (side: Side): WalkOpening => (nb[side]
+    ? { side, center: doorCtr[side], span: DOOR_W, z0: 0, z1: DOOR_H }
+    : { side, center: doorCtr[side], span: WIN_W, z0: WIN_SILL, z1: WIN_HEAD });
+  const frameKey = `${framingOn}|${studGauge}|${room?.id}|${doorCtr.N},${doorCtr.S},${doorCtr.E},${doorCtr.W}|${!!nb.N}${!!nb.S}${!!nb.E}${!!nb.W}`;
+  const frameGeo = useMemo(() => {
+    if (!framingOn) return null;
+    const openings = (["N", "S", "W", "E"] as Side[]).map(openingFor);
+    const self = walkFraming(gauge, openings, 0, 0);
+    const nbLines: Vec3[][] = [];
+    const nbOf = (cell: RoomCell, ox: number, oy: number) => { const o = openings.map((op) => ({ ...op })); nbLines.push(...walkFraming(gauge, o, ox, oy).lines); };
+    if (nb.N) nbOf(nb.N, 0, ROOM_FT); if (nb.S) nbOf(nb.S, 0, -ROOM_FT); if (nb.E) nbOf(nb.E, ROOM_FT, 0); if (nb.W) nbOf(nb.W, -ROOM_FT, 0);
+    return { quads: self.quads, counts: self.counts, nbLines };
+  }, [frameKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (frameGeo) wallQuads.push(...frameGeo.quads);
+  // neighbour frame lines, projected (lines-only backdrop)
+  const frameLines: { x1: number; y1: number; x2: number; y2: number }[] = [];
+  if (frameGeo) for (const ln of frameGeo.nbLines) { const a = project(ln[0]), b = project(ln[1]); if (a && b) frameLines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y }); }
+
   const faces = solidFaces([...wallQuads, ...furnQuads], project);
   // COLLISION obstacles — this room's phase-visible floor furniture, with a DOOR-WIDTH clear lane carved to EACH doorway
   // (the door-aware fix: reach the door in every room, not just the bedroom).
@@ -250,13 +277,18 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   //    geometry): wiring = panel → top plate → drops to outlets; water/sewer on the floor; duct at the ceiling. The ⚡
   //    Sockets toggle shows the outlets alone. Drawn for THIS room AND every neighbour, through the SAME project()/poly(). ──
   const outletCount0 = room?.outlets ?? 0;
+  // A construction phase that owns its OWN non-MEP layer (framing now; foundation/roofing/insulation/… in P4) suppresses
+  // the MEP/sockets overlay — the selected phase is the view, not the always-on Design-Settings toggles.
+  const phaseOwnsView = framingOn;
   const layers: MepLayer[] = [];
-  if (showWiring) layers.push("wiring");
-  if (showWater) layers.push("water");
-  if (showSewer) layers.push("sewer");
-  if (showDucts) layers.push("duct");
-  if (layers.length === 0 && !showSockets) { const s = phaseById(phase)?.shows; if (s === "wiring" || s === "water" || s === "sewer") layers.push(s); }
-  const socketsOnly = showSockets && !layers.includes("wiring");
+  if (!phaseOwnsView) {
+    if (showWiring) layers.push("wiring");
+    if (showWater) layers.push("water");
+    if (showSewer) layers.push("sewer");
+    if (showDucts) layers.push("duct");
+    if (layers.length === 0 && !showSockets) { const s = phaseById(phase)?.shows; if (s === "wiring" || s === "water" || s === "sewer") layers.push(s); }
+  }
+  const socketsOnly = !phaseOwnsView && showSockets && !layers.includes("wiring");
   const mepOn = layers.length > 0 || socketsOnly;
   const cellOut = (c: RoomCell | null | undefined) => c?.outlets ?? 0;
   const mepLines: { x1: number; y1: number; x2: number; y2: number; col: string; key: string }[] = [];
@@ -305,10 +337,12 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
     <div ref={rootRef} data-arch-walkthrough data-arch-walk-eye={`${eye.x.toFixed(2)},${eye.y.toFixed(2)}`} data-arch-walk-yaw={yaw.toFixed(3)} className="relative select-none overflow-hidden rounded-lg" style={{ height: Hpx, background: `radial-gradient(130% 100% at 50% 18%, #16243a, #0d1420 55%, ${C.bg})`, border: `1px solid ${C.edge}`, touchAction: "none" }}>
       <svg data-arch-walk-svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid slice" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} style={{ display: "block", cursor: "grab" }}>
         {/* when a MEP layer is on, the walls go semi-transparent (Enscape x-ray convention) so the runs read "inside" them */}
-        {faces.map((fc, i) => <polygon key={`f${i}`} points={fc.d} fill={fog(shade(fc.color ?? C.wall, FACE_SHADE[fc.kind]), fc.depth)} fillOpacity={mepOn && (fc.kind === "front" || fc.kind === "side") ? 0.55 : (layers.includes("duct") && fc.kind === "ceil" && fc.color === C.wall) ? 0.55 : 1} stroke={fc.kind === "front" || fc.kind === "side" ? C.edge : "none"} strokeWidth={fc.kind === "front" || fc.kind === "side" ? 0.6 : 0} />)}
+        {faces.map((fc, i) => <polygon key={`f${i}`} data-arch-walk-frame-face={fc.color === FRAME_COLOR || fc.color === FRAME_HEADER_COLOR ? "1" : undefined} points={fc.d} fill={fog(shade(fc.color ?? C.wall, FACE_SHADE[fc.kind]), fc.depth)} fillOpacity={framingOn && fc.color === C.wall && (fc.kind === "front" || fc.kind === "side") ? 0.15 : mepOn && (fc.kind === "front" || fc.kind === "side") ? 0.55 : (layers.includes("duct") && fc.kind === "ceil" && fc.color === C.wall) ? 0.55 : 1} stroke={fc.kind === "front" || fc.kind === "side" ? C.edge : "none"} strokeWidth={fc.kind === "front" || fc.kind === "side" ? 0.6 : 0} />)}
         {/* MEP LAYER (E1 / WALK-05) — wires / pipes / ducts + outlet & panel boxes, drawn x-ray between the walls and the grid */}
         {mepLines.map((s, i) => <line key={`m${i}`} data-arch-walk-mep={s.key} x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={s.col} strokeWidth={2.2} strokeDasharray="6 4" strokeLinecap="round" opacity={0.95} />)}
         {mepBoxes.map((b, i) => <polygon key={`mb${i}`} data-arch-walk-outlet={b.kind === "outlet" ? "1" : undefined} data-arch-walk-panel={b.kind === "panel" ? "1" : undefined} points={b.pts} fill={b.col} stroke="#070b12" strokeWidth={0.8} />)}
+        {/* FRAMING (P1) — the neighbour rooms' studs as lines only (overdraw mitigation); this room's studs are solid quads above */}
+        {frameLines.map((s, i) => <line key={`fr${i}`} data-arch-walk-frame="1" x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2} stroke={FRAME_COLOR} strokeWidth={1} opacity={0.7} />)}
         {gridLines.map((g, i) => <line key={`g${i}`} x1={g.x1} y1={g.y1} x2={g.x2} y2={g.y2} stroke={`${C.cyan}22`} strokeWidth={1} />)}
         {corners.map((c, i) => <line key={`c${i}`} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2} stroke={`${C.cyan}55`} strokeWidth={1.4} />)}
         {doors.map((d, i) => (
@@ -330,6 +364,12 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
       {mepOn && chipLayer && (
         <div data-arch-walk-layer className="absolute left-2 top-10 flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-semibold" style={{ borderColor: mepLines[0]?.col ?? C.gold, color: mepLines[0]?.col ?? C.gold, background: "#0a0f16ee" }}>
           <span style={{ width: 8, height: 8, borderRadius: 2, background: mepLines[0]?.col ?? C.gold }} /> {t(`arch.walk.layer.${chipLayer}`)}
+        </div>
+      )}
+      {/* FRAMING gauge chip — the SAME string the 2D plan prints (gauge @ 16" o.c.) in the lumber colour */}
+      {framingOn && (
+        <div data-arch-walk-layer className="absolute left-2 top-10 flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[10px] font-semibold" style={{ borderColor: FRAME_COLOR, color: FRAME_COLOR, background: "#0a0f16ee" }}>
+          <span style={{ width: 8, height: 8, borderRadius: 2, background: FRAME_COLOR }} /> {gauge.label} @ {STUD_SPACING_IN}″ o.c.
         </div>
       )}
       {/* QUAD CONTROLLER (reuses Drone-2525's actual <Stick> + its saved calibration via applySets) — L = MOVE (walk in the

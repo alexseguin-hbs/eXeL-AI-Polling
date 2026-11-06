@@ -33,6 +33,7 @@ import { phaseDraw, phaseById, showGroupInPhase } from "@/lib/architect-phases";
 import { chromeFor } from "@/lib/room-chrome";
 import {
   phasePaletteMode, phaseAllowedGroups, STUD_GAUGES, studGaugeById, roomStudSkeleton, STUD_SPACING_IN,
+  readStudGauge, writeStudGauge,
   type PhasePaletteMode,
 } from "@/lib/architect-phase-palette";
 import { annotateObject, chainDims, ftIn } from "@/lib/dim-annot";
@@ -90,11 +91,8 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
   // a one-line note names the phase's work — removing the furniture menus declutters so the model is the hero).
   const palMode: PhasePaletteMode = phasePaletteMode(phase);
   // The framing stud gauge (2×4 / 2×6) the operator picks in the Framing phase — persisted; drives the stud skeleton.
-  const [studGaugeId, setStudGaugeId] = useState<"2x4" | "2x6">(() => {
-    if (typeof window === "undefined") return "2x6";
-    try { const v = localStorage.getItem("arch2525.studGauge"); return v === "2x4" || v === "2x6" ? v : "2x6"; } catch { return "2x6"; }
-  });
-  const setStudGauge = (id: "2x4" | "2x6") => { setStudGaugeId(id); try { localStorage.setItem("arch2525.studGauge", id); } catch {} };
+  const [studGaugeId, setStudGaugeId] = useState<"2x4" | "2x6">(() => (typeof window === "undefined" ? "2x6" : readStudGauge()));
+  const setStudGauge = (id: "2x4" | "2x6") => { setStudGaugeId(id); writeStudGauge(id); };   // ONE source — the walk reads the same key
   const studGauge = studGaugeById(studGaugeId);
   const studSkel = roomStudSkeleton(studGaugeId);   // the framing stud layout (16" o.c.) — drawn in plan2D when Framing
   const [tool, setTool] = useState<ObjectKind | null>(null);

@@ -20,6 +20,7 @@ import { ArchitectWalkthrough } from "./architect-walkthrough";
 import { WalkRaster, EditGlyph } from "./architect-walk-icons";
 import { STANDARD_LAYOUT_REV, type PlacedObject } from "@/lib/room-objects";
 import { PhaseBar } from "./phase-bar";
+import { readStudGauge } from "@/lib/architect-phase-palette";   // the saved framing gauge — fed to the walk's studs (P1)
 import { phaseById, phaseDraw } from "@/lib/architect-phases";
 import { Frame, Wind, Zap, Droplets, Settings } from "lucide-react"; // our own iconology (no emojis) for Design Settings
 import { sanitizeRoomLayout } from "@/lib/architect-guard";
@@ -384,7 +385,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             </div>
             {roomMode === "walk" ? (
               <ArchitectWalkthrough room={focusRoom} layout={roomLayout} onStep={focusWalkStep} phase={phase}
-                showWiring={showWiring} showWater={showWater} showSewer={showSewer} showDucts={hvac} showSockets={showSockets} height={walkH} />
+                showWiring={showWiring} showWater={showWater} showSewer={showSewer} showDucts={hvac} showSockets={showSockets} studGauge={readStudGauge()} height={walkH} />
             ) : (
               <RoomDesigner room={focusRoom} onChange={setObjects} onBack={() => setFocusRoomId(null)} phase={phase}
                 showWater={showWater} showSewer={showSewer} showWiring={showWiring} showDucts={hvac}
@@ -410,7 +411,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                     walkthrough. This is a purpose-built interior camera: stand in the room's doorway, drag to look
                     around, step room to room. Custom iconology (no emoji). */}
                 <ArchitectWalkthrough room={walkRoom} layout={roomLayout} onStep={walkStep} phase={phase}
-                  showWiring={showWiring} showWater={showWater} showSewer={showSewer} showDucts={hvac} showSockets={showSockets} height={walkH} />
+                  showWiring={showWiring} showWater={showWater} showSewer={showSewer} showDucts={hvac} showSockets={showSockets} studGauge={readStudGauge()} height={walkH} />
               </div>
             ) : (
             <>
