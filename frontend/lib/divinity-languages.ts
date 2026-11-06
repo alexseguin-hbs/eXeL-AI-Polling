@@ -26,6 +26,7 @@ export const DIVINITY_LANGUAGES = [
   { code: "ne", label: "\u0928\u0947\u092A\u093E\u0932\u0940", flag: "\u{1F1F3}\u{1F1F5}" },
   { code: "th", label: "\u0E44\u0E17\u0E22", flag: "\u{1F1F9}\u{1F1ED}" },
   { code: "fr", label: "Fran\u00E7ais", flag: "\u{1F1EB}\u{1F1F7}" },
+  { code: "tw", label: "Twi", flag: "\u{1F1EC}\u{1F1ED}" },
 ] as const;
 
 export type DivinityLang = typeof DIVINITY_LANGUAGES[number]["code"];

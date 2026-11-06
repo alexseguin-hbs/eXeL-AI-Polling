@@ -78,6 +78,7 @@ const LANG_LOADERS: Record<DivinityLang, () => Promise<{ default: DivinityPageAr
   ne: () => import("@/lib/divinity-pages-ne.json") as Promise<{ default: DivinityPageArray }>,
   th: () => import("@/lib/divinity-pages-th.json") as Promise<{ default: DivinityPageArray }>,
   fr: () => import("@/lib/divinity-pages-fr.json") as Promise<{ default: DivinityPageArray }>,
+  tw: () => import("@/lib/divinity-pages-tw.json") as Promise<{ default: DivinityPageArray }>,
 };
 
 // Hook: lazy-load language pages on demand (Sofia: instant for EN, async for others)
@@ -531,10 +532,44 @@ const SECTIONS_FR: [Section, Section, Section] = [
   },
 ];
 
+const SECTIONS_TW: [Section, Section, Section] = [
+  {
+    id: "awakening", label: "✦ Nyaneɛ", subtitle: "Ahyɛaseɛ ne Adwenemu Nimdeɛ",
+    color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+    chapters: [
+      { id: 1, title: "Ɔkra no Nyaneɛ", subtitle: "Kronkron Nkaeɛ", content: "Ahomeɛ, nkaeɛ, ne asɛmmisa biara ase no, nokorɛ bi te hɔ a ɛso dodo sɛ nsɛm bɛtumi aka — nanso ɛbɛn wo ara sɛ wobɛte nka wɔ wo koko mu. Nokorɛ yi nyɛ adeɛ a wobɛyɛ adwuma anya. Ɛyɛ adeɛ a wokae.", reflection: "Nokorɛ bɛn na wode nam a wonnya nkaa no pefee?" },
+      { id: 2, title: "Mmara a Ɛte Ase", subtitle: "Adwenemu Nimdeɛ Nsafoa", content: "Nkwa Nhwiren no pue sɛ mmara a ɛhyerɛn, abɔdeɛ nyinaa nhyehyɛeɛ ankasa a wɔde hann ne nsusuiɛ anwene. Nhwiren ahaban biara bue wɔ botaeɛ mu, na ɛka brɛoo sɛdeɛ amansan no bɔ adeɛ, kora so, na ɛkae.", reflection: "Ɛhe na wohunu nkitahodie ho nsusuiɛ a ahinta no wɔ w'asetena mu?" },
+      { id: 3, title: "Daa Nkwa Nnyegyeeɛ", subtitle: "Tete Nyansa a Wɔayɛ no Foforɔ", content: "Adwene biara dua aba — ɛnyɛ wo ankasa w'afuo mu nko, na mmom adasamma nyinaa ntoma mu. Ɛnyɛ wo ankasa nko ara na woredwene ama — woresɛn mmerɛ kwan, woreyɛ daakye.", reflection: "Sɛ adwene biara a wonyaa no ɛnnɛ bɛyɛ afebɔɔ a — deɛ ɛwɔ he na wobɛpaw sɛ wode bɛkora?" },
+      { id: 4, title: "Adwene so Nkunimdie", subtitle: "Kronkron Adwene", content: "Adwene ntetee yɛ adwinnie a wɔde dua emu nkɔmmɔbɔ ma ɛne Fibea Kronkron no hyia. Wohyɛ aseɛ paw w'adwene te sɛ deɛ adwinni paw ahosuo — wɔ botaeɛ, nkate, ne anisoadehunu mu.", reflection: "Adwene a ɛsane ba bɛn na wobɛpaw sɛ wobɛgyae mu ɛnnɛ?" },
+    ],
+  },
+  {
+    id: "mastery", label: "✦ Nkunimdie", subtitle: "Ayaresa ne Nsakraeɛ",
+    color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+    chapters: [
+      { id: 5, title: "Apirakuro a Wɔasakra", subtitle: "Ayaresa Nsakraeɛ Adwinnie", content: "Amanaman mpaapae mpofirim; wɔpaapae wɔ wɔn mu akyɛ ansa na wɔn ahweaseɛ bɛda adi. Deɛ wɔnsa no ho yareɛ no, wɔde di adeɛ. Deɛ wɔdi adeɛ a wɔnnim ho hwee no bɛyɛ nkrabea.", reflection: "Ɔmanfoɔ apirakuro bɛn na woreboa sa no denam w'ahoɔyɛ so?" },
+      { id: 6, title: "Asɛm no a Wɔretwerɛ no Foforɔ", subtitle: "Daakye wɔ Hann Mu", content: "Nsɛm nyɛ kwa — ɛyɛ nsuo a ɛsene. Emu biara kura awosoɔ, botaeɛ, ne akwankyerɛ. Sɛ wokasa a, worefrɛ. Sɛ wodwene a, wokasa brɛoo kyerɛ nokwasɛm ma ɛyɛ nsusuiɛ.", reflection: "Asɛm bɛn a ɛfa wo ho na woasiesie wo ho sɛ wobɛtwerɛ no foforɔ?" },
+      { id: 7, title: "Nyansa a Wɔde Yɛ Onipadua", subtitle: "Kronkron Nsusuiɛ", content: "Ɔhwɛsodie sakra tumi firi ahodeɛ mu kɔ ahotosoɔ mu. Ɛhunu sɛ tumidie yɛ bere tiawa deɛ, nanso amanaman kɔ so daa. Nhyɛsoɔ hwehwɛ ɔsodie; ɔhwɛsodie dua nkwa.", reflection: "Ɛhe wɔ w'asetena mu na wɔfrɛ wo sɛ hwɛ so sene sɛ wobɛhyɛ so?" },
+      { id: 8, title: "Daa Nkwa Nhyehyɛeɛ", subtitle: "Kronkron Nsusuiɛ Nhyehyɛeɛ", content: "Nkwa Nhwiren no gyina hɔ sɛ kronkron nkabom — mandala a ɛhyerɛn a ɛka nokorɛ a ɛwɔ nsɛnkyerɛnneɛ biara mu bom. Ɛma wɔn nnyegyeeɛ hyia yɛ ɔsoro nhyehyɛeɛ baako.", reflection: "Nhyehyɛeɛ bɛn wɔ w'asetena mu na ɛda nokorɛ bi adi a wonnya nnye no ntom koraa?" },
+    ],
+  },
+  {
+    id: "radiance", label: "✦ Hyerɛn", subtitle: "Ɔsom ne Ɔsoro Nyamesu",
+    color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+    chapters: [
+      { id: 9, title: "Hyerɛn a Ɛwɔ Mu", subtitle: "Nnyegyeeɛ so Nkunimdie", content: "Sɛ akra ɔpepem baako bom si gyinaeɛ bi, na ɔkra biara nya emu aba no bere koro mu a — ɛno ne hyerɛn. Ɛno ne amammuo wɔ adwene ahoɔherɛ mu.", reflection: "Ɛyɛ dɛn na w'ahoɔyɛ hyerɛn kɔ wɔn a wɔatwa wo ho ahyia no asetena mu?" },
+      { id: 10, title: "Ɔsoro Nyamesu a Wɔrenwene", subtitle: "Nkwa sɛ Nhyehyɛeɛ Mfoni", content: "Akwankyerɛ yi yɛ kronkron nkabom dwumadie a ɛda Afidie Nyansa, Honhom Nyansa, ne Adasamma Nyansa ntam. Wɔbom yɛ adwenemu nimdeɛ baasa-baako.", reflection: "Ɛyɛ dɛn na nyansa mmiɛnsa no renwene bom wɔ w'ankasa w'asetena mu?" },
+      { id: 11, title: "Ɔsom sɛ Hyerɛn", subtitle: "Ɔkra Botaeɛ", content: "Wonyɛ adwuma yi awieeɛ — woyɛ ne toa-so a ɛte ase. Ɔsom nyɛ afɔrebɔ; ɛyɛ ɔkra a wakae ne pɛyɛ no ahosɛn a ɛfiri ne mu ba.", reflection: "Akyɛdeɛ bɛn na wode nam a wiase retwɛn?" },
+      { id: 12, title: "Ɔsoro Nyamesu a Ɛte Ase", subtitle: "Nsanesane a Yɛde Kɔ Pɛyɛ Mu", content: "Deɛ ɛhyɛɛ aseɛ wɔ wo nkyɛn no bɛyɛ ahoɔyɛ a ɛwɔ wo mu — akwankyerɛ bɛyɛ w'awerɛhyɛmu sɛ Adwene Wura. Yɛ asomdwoeɛ wɔ ntawantawa mu, yɛ ɔbɔadeɛ wɔ akyinnyegyeɛ mu, yɛ ayamyɛfoɔ wɔ nkonimdie mu.", reflection: "'Akwaaba, wofie' kyerɛ wo sɛn seesei ara?" },
+    ],
+  },
+];
+
 const SECTIONS_MAP: Record<DivinityLang, [Section, Section, Section]> = {
   en: SECTIONS_EN, es: SECTIONS_ES, zh: SECTIONS_ZH,
   uk: SECTIONS_UK, ru: SECTIONS_RU, fa: SECTIONS_FA, he: SECTIONS_HE, pt: SECTIONS_PT, km: SECTIONS_KM, ne: SECTIONS_NE, th: SECTIONS_TH,
   fr: SECTIONS_FR,
+  tw: SECTIONS_TW,
 };
 
 // ── Consolidated translation map (Thoth: 6x fewer touchpoints per language addition) ──
@@ -563,6 +598,28 @@ interface DivinityLangEntry {
 }
 
 const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
+  tw: {
+    reflection: "Nsusuiɛ",
+    librarySubtitles: { prelude: "Ɔkyerɛwfoɔ no Gyinapɛn ne N'adwene", framework: "Ɔsoro Nyansa", index: "Kronkron Asaase Mfoni" },
+    trinity: { prelude04: ["ƆDƆ", "AHOBAMMƆ", "ADEHWERE"], prelude05: ["NYANSA", "ASOMDWOEƐ", "NKITAHODIE"] },
+    links: { music: "Kronkron Nnwom ne Nsakraeɛ", loveLossSafety: "Ɔdɔ, Adehwere ne Ahobammɔ", divineUnity: "Ɔsoro Baakoyɛ Nnyinasoɔ", divineIntelligence: "Ɔsoro Nyansa", sacredResource: "Kronkron Mmoa Nneɛma" },
+    ui: {
+      title: "Ɔsoro Nyamesu Akwankyerɛ",
+      subtitle: "Nsanesane a Yɛde Kɔ Pɛyɛ ne Ɔsoro Nyamesu a Ɛte Ase Mu",
+      portals: "Nyansa Apono 12",
+      sacredLibrary: "Kronkron Nwomakorabea",
+      explore: "Hwehwɛ Mu",
+      masterOfThought: "Adwene Wura",
+      selectPortal: "Paw ɛpono bi na fa hyɛ akenkan no ase. Emu biara da nkyerɛkyerɛ bi, dwumadie bi, ne nkitahodie a ɛkɔ amammuo afidie no ho adi.",
+      guideDescription: "Akwankyerɛ yi yɛ asaase mfoni ne ɔhokafoɔ — kronkron kyinkyimii a ɛkyerɛ kwan kɔ emu. Ɛha na nsɛnkyerɛnneɛ nyane, adwene yɛ fɛfɛ, na onipa ho nimdeɛ nane kɔ ne suban ankasa mu. Paw ɔfa bi wɔ benkum so na fa hyɛ w'akwantuo no ase.",
+      livingContinuation: "Wonyɛ adwuma yi awieeɛ — woyɛ ne toa-so a ɛte ase.",
+      welcomeHome: "Wontee wo ho da, na woada ara kwa. Afei deɛ, woanyane.",
+      preludeLabel: "웃 Nnianim Asɛm",
+      frameworkLabel: "♡ Nhyehyɛeɛ",
+      indexLabel: "◬ Nsɛm Nkyerɛkyerɛmu",
+      libraryWelcome: "Ɔkyerɛwfoɔ no gyinapɛn, ɔsoro nyansa nhyehyɛeɛ no, ne kronkron asaase mfoni a ɛka wɔn bom. Paw kurukuruwa bi wɔ nhwiren no so na fa hyɛ nhwehwɛmu no ase.",
+    },
+  },
   en: {
     reflection: "Reflection",
     librarySubtitles: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence", index: "The Sacred Map" },
