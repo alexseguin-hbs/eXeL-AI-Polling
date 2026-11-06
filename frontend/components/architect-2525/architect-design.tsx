@@ -206,11 +206,14 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const selectPhase = (id: string | null) => {
     onPhase?.(id);
     const shows = phaseById(id)?.shows ?? null;   // framing→structure (always drawn); wiring/water/sewer drive the MEP layer
-    setShowWiring(shows === "wiring"); setShowWater(shows === "water"); setShowSewer(shows === "sewer");
+    // Drive EVERY MEP flag FROM the phase (fleet NEW-2): wiring + sockets only in Electrical, water in Plumbing, sewer in
+    // Sewer — so a layer only shows in its own phase (no electrical leaking into framing/plumbing/…).
+    setShowWiring(shows === "wiring"); setShowWater(shows === "water"); setShowSewer(shows === "sewer"); setShowSockets(shows === "wiring");
     try {
       localStorage.setItem("arch2525.wiring", shows === "wiring" ? "1" : "0");
       localStorage.setItem("arch2525.water", shows === "water" ? "1" : "0");
       localStorage.setItem("arch2525.sewer", shows === "sewer" ? "1" : "0");
+      localStorage.setItem("arch2525.sockets", shows === "wiring" ? "1" : "0");
     } catch {}
   };
   const persistFlag = (k: string, v: boolean) => { try { localStorage.setItem(k, v ? "1" : "0"); } catch {} };

@@ -63,6 +63,10 @@ ok(/preserveAspectRatio="xMidYMid slice"/.test(walk) && /Math\.min\(\(W \/ 2\) \
 ok(/setYaw\(d\.yaw - \(e\.clientX - d\.x\)/.test(walk) && /setYaw\(\(y\) => y - lk\.x \* LOOK_YAW/.test(walk), "LOOK right → turn right/east (the inverted-look fix)");
 // WALK-05 door-aware collision: the door lanes are carved so every room is reachable, and the shower is served
 ok(/roomBlockers\(roomObjs, phase, doorLanes\)/.test(walk) && /doorLanes\.push/.test(walk), "door-width lanes are carved to every doorway (roomBlockers takes doorLanes)");
+// P1 FRAMING + fleet NEW-2 phase-gated MEP: the walk shows the studs in the Framing phase, and a MEP layer shows ONLY in its own phase.
+ok(/framingOn = phaseById\(phase\)\?\.id === "framing"/.test(walk) && /walkFraming\(/.test(walk), "the Framing phase renders the studs (walkFraming) in the walk");
+ok(/const hasPhase = !!phaseById\(phase\)/.test(walk) && /if \(hasPhase\)/.test(walk) && /pShows === "wiring" \|\| pShows === "water" \|\| pShows === "sewer"/.test(walk), "the MEP overlay is phase-gated — a selected phase shows ONLY its own layer");
+ok(/setShowSockets\(shows === "wiring"\)/.test(design), "selectPhase drives sockets from the phase (only Electrical) — no overlay leaks across phases");
 
 // ── custom walkthrough iconology, NOT emoji (operator 2026-11-04: "don't use emojies; create your own walkthrough raster iconology") ──
 ok(/export function WalkGlyph\b/.test(icons) && /export function MoveChevron\b/.test(icons) && /<svg/.test(icons), "architect-walk-icons.tsx is a drawn SVG glyph set (WalkGlyph · MoveChevron · LookGlyph · DoorGlyph · EditGlyph) — my own iconology");

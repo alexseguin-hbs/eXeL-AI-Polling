@@ -277,18 +277,21 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   //    geometry): wiring = panel → top plate → drops to outlets; water/sewer on the floor; duct at the ceiling. The ⚡
   //    Sockets toggle shows the outlets alone. Drawn for THIS room AND every neighbour, through the SAME project()/poly(). ──
   const outletCount0 = room?.outlets ?? 0;
-  // A construction phase that owns its OWN non-MEP layer (framing now; foundation/roofing/insulation/… in P4) suppresses
-  // the MEP/sockets overlay — the selected phase is the view, not the always-on Design-Settings toggles.
-  const phaseOwnsView = framingOn;
+  // PHASE-GATE the MEP overlays (fleet NEW-1/2/4): a layer shows ONLY in its own phase — wires/outlets in Electrical,
+  // pipes in Plumbing, drains in Sewer — driven by phaseDraw(phase). A selected phase IS the view (no always-on overlay);
+  // only the OVERVIEW (no phase) falls back to the Design-Settings toggles. So framing/foundation/roofing/… show no MEP.
+  const pShows = phaseById(phase)?.shows;
+  const hasPhase = !!phaseById(phase);
   const layers: MepLayer[] = [];
-  if (!phaseOwnsView) {
+  if (hasPhase) {
+    if (pShows === "wiring" || pShows === "water" || pShows === "sewer") layers.push(pShows);
+  } else {
     if (showWiring) layers.push("wiring");
     if (showWater) layers.push("water");
     if (showSewer) layers.push("sewer");
     if (showDucts) layers.push("duct");
-    if (layers.length === 0 && !showSockets) { const s = phaseById(phase)?.shows; if (s === "wiring" || s === "water" || s === "sewer") layers.push(s); }
   }
-  const socketsOnly = !phaseOwnsView && showSockets && !layers.includes("wiring");
+  const socketsOnly = !hasPhase && showSockets && !layers.includes("wiring");  // ⚡ Sockets toggle is an overview-only aid
   const mepOn = layers.length > 0 || socketsOnly;
   const cellOut = (c: RoomCell | null | undefined) => c?.outlets ?? 0;
   const mepLines: { x1: number; y1: number; x2: number; y2: number; col: string; key: string }[] = [];
