@@ -23,6 +23,10 @@ export const SEED_DIVISOR = 7;
 
 /** Country-level rates (no state subdivision). Mirrors _COUNTRY_RATES. */
 export const COUNTRY_RATES: Record<string, number> = {
+  // Ghana — Atlantis Accords pilot (operator 2026-11-06 "update min wage for Ghana as well"). National Daily
+  // Minimum Wage GHS 19.97/day (eff. 1 Mar 2025) ÷ statutory 8 h = GHS 2.496/hr ≈ $0.23 USD-equiv (see
+  // lib/pod-rates.ts GH, approved 2026-09-11). USD-equivalent, matching this table's convention.
+  Ghana: 0.23,
   Nigeria: 0.34,
   Nepal: 0.65,
   Cambodia: 1.04,
@@ -55,7 +59,7 @@ export const US_STATE_RATES: Record<string, number> = {
 const ISO2_TO_COUNTRY: Record<string, string> = {
   US: "United States", NG: "Nigeria", NP: "Nepal", KH: "Cambodia",
   MX: "Mexico", TH: "Thailand", BR: "Brazil", HN: "Honduras",
-  CO: "Colombia", CL: "Chile",
+  CO: "Colombia", CL: "Chile", GH: "Ghana",
 };
 
 /** Cloudflare `regionCode` (e.g. "TX") → US state name, for the states we price. */

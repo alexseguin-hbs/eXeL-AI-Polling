@@ -78,6 +78,10 @@ def settlement_stamp(
 # International rates (country-level, no state subdivision)
 # ---------------------------------------------------------------------------
 _COUNTRY_RATES: dict[str, float] = {
+    # Ghana — Atlantis Accords pilot (operator 2026-11-06). GHS 19.97/day ÷ 8 h = GHS 2.496/hr ≈ $0.23 USD-equiv
+    # (National Daily Minimum Wage eff. 1 Mar 2025; see pod-rates GH, approved 2026-09-11). Keep in sync with
+    # frontend/lib/min-wage.ts COUNTRY_RATES.
+    "Ghana": 0.23,
     "Nigeria": 0.34,
     "Nepal": 0.65,
     "Cambodia": 1.04,

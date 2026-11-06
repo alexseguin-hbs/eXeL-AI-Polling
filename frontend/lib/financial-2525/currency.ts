@@ -10,6 +10,7 @@ import { COUNTRY_RATES, DEFAULT_COUNTRY } from "@/lib/min-wage";
 export interface Currency { code: string; country: string; name: string; /** null = no single symbol: the gray label shows */ symbol: string | null }
 export const CURRENCY_BY_COUNTRY: Record<string, Currency> = {
   "United States": { code: "USD", country: "United States", name: "US dollar", symbol: "$" },
+  Ghana: { code: "GHS", country: "Ghana", name: "Ghanaian cedi", symbol: "\u20B5" },
   Nigeria: { code: "NGN", country: "Nigeria", name: "Nigerian naira", symbol: "\u20A6" },
   Nepal: { code: "NPR", country: "Nepal", name: "Nepalese rupee", symbol: null },
   Cambodia: { code: "KHR", country: "Cambodia", name: "Cambodian riel", symbol: "\u17DB" },
