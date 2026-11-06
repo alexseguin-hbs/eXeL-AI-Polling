@@ -29,7 +29,8 @@ import {
 } from "@/lib/room-objects";
 import { shade, FACE_SHADE } from "@/lib/solid-shade";   // the ONE shared solid-faces shader (de-dup; was a local copy)
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
-import { phaseDraw, phaseById } from "@/lib/architect-phases";
+import { phaseDraw, phaseById, showGroupInPhase } from "@/lib/architect-phases";
+import { chromeFor } from "@/lib/room-chrome";
 import {
   phasePaletteMode, phaseAllowedGroups, STUD_GAUGES, studGaugeById, roomStudSkeleton, STUD_SPACING_IN,
   type PhasePaletteMode,
@@ -77,13 +78,9 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
   // furniture. add Interior Design one element for toggle"). No phase selected → the full design view (everything).
   // Openings draw on framing/finish/interior; fixtures on the plumbing/sewer phases; furniture ONLY on Interior Design.
   const pdraw = phaseDraw(phase);
-  const showInPhase = (o: PlacedObject): boolean => {
-    const g = groupOf(o.kind);
-    if (g === "Openings") return pdraw.openings;
-    if (g === "Shell") return pdraw.structure || pdraw.furniture;
-    if (g === "Bath" || g === "Kitchen") return pdraw.fixtures || pdraw.furniture;   // plumbing fixtures
-    return pdraw.furniture;   // Sleep / Living furniture
-  };
+  // ONE source of the phase layer filter (showGroupInPhase) — the SAME filter the first-person walkthrough uses, so a
+  // phase shows only its layer identically in the 2D/3D designer and the walk (operator 2026-11-06).
+  const showInPhase = (o: PlacedObject): boolean => showGroupInPhase(groupOf(o.kind), phase);
   const visible = objects.filter(showInPhase);
   // R-PAL1 — THE PHASE MENU shows only the selected phase's items (operator 2026-11-01: "Phase menu should only show
   // relevant items for framing; show 2x4 and 2x6 · remove non standard menus · the visual window is key focus like
@@ -342,6 +339,10 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
   const boxStyle = (size?: number) => ({ touchAction: "none" as const, ...(size ? { width: size, height: size } : { width: "100%" }) });
   const svgStyle = (size?: number) => (size ? { width: size, height: size } : { width: "100%", aspectRatio: "1 / 1" as const });
 
+  // ICONOLOGY STANDARD (operator 2026-11-06): the selected element's chrome (grip + nudged, clamped name badge) comes
+  // from the ONE pure source lib/room-chrome.ts, shared by this render AND the no-overlap gate (tests/room-iconology),
+  // so what ships and what is tested cannot drift. `visible` is passed so the badge avoids the room's other elements.
+
   // 2D floor plan. `interactive` (top/main) wires the svgRef + placement handlers; the echo (bottom pane) renders
   // read-only at its own rotation `bear`. This lets two 2D panes hold independent angles.
   const plan2D = (bear: number, setBear: (n: number) => void, interactive: boolean, size?: number) => (
@@ -389,8 +390,6 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
             // jambs on the drawn wall line (0.1 ft inside the edge), the LEAF standing open at 90° from the hinge jamb, the
             // quarter-circle SWING to the strike jamb, into the room. Its group carries no rotation — rot is the hinge side.
             const ds = o.kind === "door" ? doorSymbolSvg(doorSymbol(o, { inset: 0.1 }), 10, 10, 0, 0) : null;
-            // the door's grip sits 2 ft in from its hinge jamb (a corner hinge would clip the grip at the viewBox edge — AsM)
-            const gripAt = ds ? { x: ds.hinge.x + ds.into.x * 2, y: ds.hinge.y + ds.into.y * 2 } : { x: cx - w * 5, y: cy - d * 5 };
             // a door's group is not rotated, so its hit pad takes the ROTATION-AWARE span (a W/E door runs along y — AsM)
             const pad = ds ? worldSpan(o) : { w, d };
             const iconAt = ds ? { x: (ds.opening.x1 + ds.opening.x2) / 2 + ds.into.x * 4.5, y: (ds.opening.y1 + ds.opening.y2) / 2 + ds.into.y * 4.5 } : { x: cx, y: cy };
@@ -429,20 +428,8 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
                   <rect x={cx - w * 5} y={cy - d * 5} width={w * 10} height={d * 10} rx={1.5}
                     fill={`${s.color}${on ? "55" : "2e"}`} stroke={col} strokeWidth={on ? 1.4 : 0.8} />
                 )}
-                {/* upper-left DRAG GRIP — the standard 6-dot handle (2 cols × 3 rows, ⠿) so it reads as "grab to move",
-                    matching the mini-map grip (operator IMG_7593). Visual only; the whole group drags. A door's grip sits
-                    at its hinge jamb. */}
-                {interactive && (() => {
-                  const gx0 = gripAt.x, gy0 = gripAt.y;
-                  return (
-                    <g style={{ pointerEvents: "none" }}>
-                      <rect x={gx0 - 1.15} y={gy0 - 1.65} width={2.3} height={3.3} rx={0.6} fill="#070b12dd" stroke={col} strokeWidth={0.3} />
-                      {[0, 1, 2].map((r) => [0, 1].map((c) => (
-                        <circle key={`${r}${c}`} cx={gx0 - 0.55 + c * 1.1} cy={gy0 - 1.05 + r * 1.05} r={0.26} fill={col} />
-                      )))}
-                    </g>
-                  );
-                })()}
+                {/* DRAG GRIP removed from the always-on loop (operator 2026-11-06 declutter) — only the SELECTED element
+                    carries a grip now, drawn by the selection chrome below (chromeFor), clamped inside the walls. */}
                 {/* center ICON when unselected; when SELECTED the NAME BADGE below names it instead (operator 2026-10-25).
                     A door's icon sits just inside the room off the centre of its opening. */}
                 {!on && (
@@ -516,39 +503,38 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
                       onClick={ne ? (e) => applyEdit(e, ne, fp.w, primary.axis) : undefined}>{n.text}{ne === "size" ? " ✎" : ""}</text>
                   );
                 })}
-                {/* NAME BADGE — the moment an element is clicked, say WHAT IT IS right on it (operator 2026-10-25:
-                    "when I click on active element, i should be able to easily see what it is"). Centered on the object,
-                    clamped on-canvas, shown in place of the tiny icon. */}
+                {/* NAME BADGE + DRAG GRIP — the selection chrome (operator 2026-10-25 "see what it is" · 2026-11-06
+                    "nothing overlaps"). The badge is nudged to a clear side (into the room for a wall piece) and, with the
+                    grip, clamped fully inside the walls — one standard, from chromeFor(). */}
                 {(() => {
-                  const vlab = VARIANTS[sel.kind]?.find((v) => v.id === sel.variant)?.label;
-                  const name = `${vlab ? vlab + " " : ""}${OBJECT_SPEC[sel.kind].label}`;
-                  const cxN = sel.gx * 10 + 5, cyN = sel.gy * 10 + 5;
-                  const halfW = name.length * 0.98 + 2;
-                  const bx = Math.max(1 + halfW, Math.min(99 - halfW, cxN));
-                  const by = Math.max(6, Math.min(94, cyN));
+                  const ch = chromeFor(sel, visible);
                   return (
                     <g data-arch-roomobj-name style={{ pointerEvents: "none" }}>
-                      <rect x={bx - halfW} y={by - 3} width={halfW * 2} height={5.6} rx={1.3} fill="#0a0f16f2" stroke={C.gold} strokeWidth={0.5} />
-                      <text x={bx} y={by + 1} fontSize={3.5} fontWeight={700} fill={C.gold} textAnchor="middle" stroke="#070b12" strokeWidth={0.6} style={{ paintOrder: "stroke" }}>{name}</text>
+                      <rect x={ch.badge.bx - ch.halfW} y={ch.badge.by - 3} width={ch.halfW * 2} height={5.6} rx={1.3} fill="#0a0f16f2" stroke={C.gold} strokeWidth={0.5} />
+                      <text x={ch.badge.bx} y={ch.badge.by + 1} fontSize={3.5} fontWeight={700} fill={C.gold} textAnchor="middle" stroke="#070b12" strokeWidth={0.6} style={{ paintOrder: "stroke" }}>{ch.name}</text>
+                      <rect x={ch.grip.x - 1.15} y={ch.grip.y - 1.65} width={2.3} height={3.3} rx={0.6} fill="#070b12dd" stroke={C.gold} strokeWidth={0.3} />
+                      {[0, 1, 2].map((r) => [0, 1].map((c) => (
+                        <circle key={`${r}${c}`} cx={ch.grip.x - 0.55 + c * 1.1} cy={ch.grip.y - 1.05 + r * 1.05} r={0.26} fill={C.gold} />
+                      )))}
                     </g>
                   );
                 })()}
               </g>
             );
           })()}
-          {/* R5 — the NAME BADGE in SIMPLE mode too (the CAD callouts above are Advanced-only): the moment an element is
-              tapped, say WHAT IT IS right on it (operator 2026-10-25). Same badge, re-homed outside the callouts. */}
+          {/* R5 — the NAME BADGE + DRAG GRIP in SIMPLE mode too (the CAD callouts above are Advanced-only): the moment an
+              element is tapped, say WHAT IT IS right on it (operator 2026-10-25) with a grab handle. Same selection chrome
+              as Advanced (chromeFor) — nudged to a clear side, clamped inside the walls (operator 2026-11-06). */}
           {interactive && sel && simpleMode && (() => {
-            const vlab = VARIANTS[sel.kind]?.find((v) => v.id === sel.variant)?.label;
-            const name = `${vlab ? vlab + " " : ""}${OBJECT_SPEC[sel.kind].label}`;
-            const cxN = sel.gx * 10 + 5, cyN = sel.gy * 10 + 5;
-            const halfW = name.length * 0.98 + 2;
-            const bx = Math.max(1 + halfW, Math.min(99 - halfW, cxN));
-            const by = Math.max(6, Math.min(94, cyN));
+            const ch = chromeFor(sel, visible);
             return (
               <g data-arch-roomobj-name style={{ pointerEvents: "none" }}>
-                <rect x={bx - halfW} y={by - 3} width={halfW * 2} height={5.6} rx={1.3} fill="#0a0f16f2" stroke={C.gold} strokeWidth={0.5} />
-                <text x={bx} y={by + 1} fontSize={3.5} fontWeight={700} fill={C.gold} textAnchor="middle" stroke="#070b12" strokeWidth={0.6} style={{ paintOrder: "stroke" }}>{name}</text>
+                <rect x={ch.badge.bx - ch.halfW} y={ch.badge.by - 3} width={ch.halfW * 2} height={5.6} rx={1.3} fill="#0a0f16f2" stroke={C.gold} strokeWidth={0.5} />
+                <text x={ch.badge.bx} y={ch.badge.by + 1} fontSize={3.5} fontWeight={700} fill={C.gold} textAnchor="middle" stroke="#070b12" strokeWidth={0.6} style={{ paintOrder: "stroke" }}>{ch.name}</text>
+                <rect x={ch.grip.x - 1.15} y={ch.grip.y - 1.65} width={2.3} height={3.3} rx={0.6} fill="#070b12dd" stroke={C.gold} strokeWidth={0.3} />
+                {[0, 1, 2].map((r) => [0, 1].map((c) => (
+                  <circle key={`${r}${c}`} cx={ch.grip.x - 0.55 + c * 1.1} cy={ch.grip.y - 1.05 + r * 1.05} r={0.26} fill={C.gold} />
+                )))}
               </g>
             );
           })()}

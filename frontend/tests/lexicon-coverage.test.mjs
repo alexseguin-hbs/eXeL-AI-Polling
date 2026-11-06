@@ -21,6 +21,9 @@ const AFTER_FILL = new Set([
   // tap-to-place path. ENGLISH ONLY until the operator says the Architect UI/UX is final — staged, never filled early.
   'arch.layertree.tapHouseToAdd',
   'arch.design.tapToAddToHouse',
+  // Architect-2525 first-person walkthrough controls (operator 2026-11-06): MOVE/LOOK stick labels, the look hint, the
+  // caption. ENGLISH ONLY — staged until the Architect UI/UX is final; no fill dispatched.
+  'arch.walk.move', 'arch.walk.look', 'arch.walk.hint', 'arch.walk.title',
   // R-CORE </> Code mode (operator 2026-10-15, DD-61/DD-65). ENGLISH ONLY: DD-60 of the same day holds ALL
   // translation work until he says the UX is complete — "dont worry anlut translations until Ux is complete".
   // Listed here, never silent; no fill is dispatched for it.

@@ -194,3 +194,17 @@ export function phaseDraw(id: string | null | undefined): PhaseDraw {
   if (!p) return { mep: null, structure: true, openings: true, fixtures: true, furniture: true, note: "all" };
   return p.draw;
 }
+
+/**
+ * Does an object of this palette GROUP draw in the given phase? ONE source for the room layer filter — reused by the
+ * room designer's 2D/3D (showInPhase) AND the first-person walkthrough, so "a phase shows only its layer" is the same
+ * everywhere (operator 2026-11-06: the walk must honour the selected phase — walk the framing shell, not the furnished
+ * room). Takes the group string (from room-objects' groupOf) so this stays pure data with no room-objects dependency.
+ */
+export function showGroupInPhase(group: string, id: string | null | undefined): boolean {
+  const d = phaseDraw(id);
+  if (group === "Openings") return d.openings;              // doors + windows
+  if (group === "Shell") return d.structure || d.furniture; // shell / roof panels
+  if (group === "Bath" || group === "Kitchen") return d.fixtures || d.furniture; // plumbing fixtures
+  return d.furniture;                                        // Sleep / Living furniture
+}

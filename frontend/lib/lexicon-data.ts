@@ -2264,6 +2264,11 @@ const siteUxB3: TranslationEntry[] = [
   { key: "arch.room.mirrorHorizontal", englishDefault: "Mirror left↔right", context: "Tooltip on horizontal mirror button", cubeId: 0 },
   { key: "arch.room.mirrorVertical", englishDefault: "Mirror top↔bottom", context: "Tooltip on vertical mirror button", cubeId: 0 },
   { key: "arch.room.tapAToolHint", englishDefault: "tap a tool, tap the floor", context: "Room header hint after the 10'x10' room size", cubeId: 0 },
+  // First-person walkthrough controls (operator 2026-11-06). STAGED English only — listed in AFTER_FILL, not translated until the Architect UI/UX is finalized.
+  { key: "arch.walk.move", englishDefault: "MOVE", context: "Label on the first-person walk LEFT thumb-stick (strafe across the doorway, push forward to step to the next room)", cubeId: 0 },
+  { key: "arch.walk.look", englishDefault: "LOOK", context: "Label on the first-person walk RIGHT thumb-stick (turn + look up/down)", cubeId: 0 },
+  { key: "arch.walk.hint", englishDefault: "drag / right stick", context: "Look-around hint in the first-person walk (drag the view or use the right stick)", cubeId: 0 },
+  { key: "arch.walk.title", englishDefault: "walk this room · drag or the right stick to look · left stick to move", context: "Bottom caption of the first-person walkthrough", cubeId: 0 },
   { key: "arch.room.helpTitle", englishDefault: "How this designer works", context: "Tooltip on the help (?) button", cubeId: 0 },
   { key: "arch.room.helpHeading", englishDefault: "How to design this room", context: "Heading of the help panel", cubeId: 0 },
   { key: "arch.room.helpPlace", englishDefault: "tap a palette item (grouped by system) then tap the floor, or drag it onto the 2D plan.", context: "Help panel: Place instruction", cubeId: 0 },

@@ -74,6 +74,9 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const [tinyMode, setTinyMode] = useState<"edit" | "walk">("edit"); // edit the plan ⇄ walk the wireframe
   const [walkRoomId, setWalkRoomId] = useState<string>("entry");     // low-fi walkthrough position
   const [focusRoomId, setFocusRoomId] = useState<string | null>(null); // ⏎ Enter a room → optimize it only
+  // Edit ⇄ Walk for the ENTERED room (operator 2026-11-06): once inside a room, switch between the RoomDesigner (edit)
+  // and the first-person ArchitectWalkthrough (walk). Default edit; reset to edit each time a room is entered.
+  const [roomMode, setRoomMode] = useState<"edit" | "walk">("edit");
   const tiny = homeType === "tiny";
   // The room-based design tooling (⚙ settings · Move Room · ⏎ Enter · exploded RoomDesigner · room 2D/3D) is
   // offered for every UNLOCKED market — Tiny Home AND Home (operator: "replicate tiny features for other options";
@@ -114,6 +117,13 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
     if (next) setWalkRoomId(next.id);
   };
   const walkRoom = roomLayout.find((r) => r.id === walkRoomId);
+  // Walk the ENTERED room to its neighbour through a doorway: stepping moves the focused room so Edit then opens the one
+  // you walked into (the focused-room analogue of walkStep, which drives the overview walk's walkRoomId).
+  const focusWalkStep = (dRow: number, dCol: number) => {
+    const cur = focusRoomId ? roomLayout.find((r) => r.id === focusRoomId) : undefined; if (!cur) return;
+    const next = roomLayout.find((r) => r.row === cur.row + dRow && r.col === cur.col + dCol);
+    if (next) setFocusRoomId(next.id);
+  };
   // P3 cube modification — move the selected room within the 3×3 grid, swapping with whatever it displaces
   // (keeps the nine-room grid full; adjacency only, so cost is unchanged — honors the operator's rule).
   const moveRoom = (dRow: number, dCol: number) => {
@@ -350,10 +360,32 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
         )}
         {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} showFurniture={phaseDraw(phase).furniture} /> : designable && focusRoom ? (
           // EXPLODED single-room designer (operator IMG_7489: Enter → just this 10×10 in 2D + 10×10×10 in 3D)
+          // + Edit ⇄ Walk for the entered room (operator 2026-11-06): the same toggle the overview carries, now inside a
+          //   room, so you can walk the room you entered and step back to edit. Reuses EditGlyph + the operator's WalkRaster.
           <div data-arch-tiny-view className="relative">
-            <RoomDesigner room={focusRoom} onChange={setObjects} onBack={() => setFocusRoomId(null)} phase={phase}
-              showWater={showWater} showSewer={showSewer} showWiring={showWiring} showDucts={hvac}
-              topView={view3d ? "3D" : "2D"} onTopView={(v) => setView3d(v === "3D")} />
+            <div data-arch-roomview-modebar className="mb-1.5 flex items-center gap-2">
+              {roomMode === "walk" && (
+                <>
+                  <button data-arch-roomwalk-back onClick={() => setFocusRoomId(null)} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← Back to house</button>
+                  <span className="text-[11px] font-bold" style={{ color: C.gold }}>{focusRoom.k} · {focusRoom.label}</span>
+                </>
+              )}
+              <div className="ml-auto flex gap-1">
+                {(["edit", "walk"] as const).map((m) => (
+                  <button key={m} data-arch-room-mode={m} onClick={() => setRoomMode(m)} className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold"
+                    style={{ borderColor: roomMode === m ? C.cyan : C.border, color: roomMode === m ? C.cyan : C.dim, background: roomMode === m ? "#0e2233" : "transparent" }}>
+                    {m === "edit" ? <><EditGlyph size={12} /> Edit</> : <><WalkRaster size={14} /> Walk</>}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {roomMode === "walk" ? (
+              <ArchitectWalkthrough room={focusRoom} layout={roomLayout} onStep={focusWalkStep} phase={phase} height={420} />
+            ) : (
+              <RoomDesigner room={focusRoom} onChange={setObjects} onBack={() => setFocusRoomId(null)} phase={phase}
+                showWater={showWater} showSewer={showSewer} showWiring={showWiring} showDucts={hvac}
+                topView={view3d ? "3D" : "2D"} onTopView={(v) => setView3d(v === "3D")} />
+            )}
           </div>
         ) : designable ? (
           <div data-arch-tiny-view className="relative">
@@ -372,7 +404,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                     around to see walls, corners"). The prior walk was the voxel dollhouse tilted into a corner — not a
                     walkthrough. This is a purpose-built interior camera: stand in the room's doorway, drag to look
                     around, step room to room. Custom iconology (no emoji). */}
-                <ArchitectWalkthrough room={walkRoom} layout={roomLayout} onStep={walkStep} height={380} title="walk the floors · drag to look around" />
+                <ArchitectWalkthrough room={walkRoom} layout={roomLayout} onStep={walkStep} phase={phase} height={380} />
               </div>
             ) : (
             <>
@@ -400,7 +432,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                   <button data-arch-roommove-e onClick={() => moveRoom(0, 1)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
                 </div>
                 <button data-arch-roommove-s onClick={() => moveRoom(1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
-                <button data-arch-room-enter onClick={() => setFocusRoomId(roomSel)} className="mt-0.5 rounded border px-2 text-[10px] font-semibold" style={{ borderColor: C.gold, color: C.gold }}>⏎ Enter &amp; Design</button>
+                <button data-arch-room-enter onClick={() => { setFocusRoomId(roomSel); setRoomMode("edit"); }} className="mt-0.5 rounded border px-2 text-[10px] font-semibold" style={{ borderColor: C.gold, color: C.gold }}>⏎ Enter &amp; Design</button>
                 <button data-arch-roommove-reset onClick={resetLayout} className="mt-0.5 rounded border px-1 text-[8px]" style={{ borderColor: C.border, color: C.dim }}>reset</button>
               </div>
             )}
