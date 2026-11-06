@@ -61,6 +61,13 @@ export const STUD_SPACING_IN = 16; // studs on-centre
 export const FRAME_COLOR = "#e0b872";          // SPF dimensional lumber
 export const FRAME_HEADER_COLOR = "#b88a4a";   // header / LVL (the heavier member over an opening)
 
+// P4 SHELL PHASES — one colour source for foundation/roofing/insulation/security/internet, reused by the walk shell layer.
+// camera matches the Security phase's inline colour; truss shares the lumber colour (a roof is framing).
+export const SHELL_COLOR = {
+  slab: "#8f98a3", footing: "#6b7280", rebar: "#b45309", truss: FRAME_COLOR,
+  insulation: "#f0abfc", camera: "#f87171", lan: "#38bdf8",
+} as const;
+
 export function studGaugeById(id: string | null | undefined): StudGauge {
   return STUD_GAUGES.find((g) => g.id === id) ?? STUD_GAUGES.find((g) => g.id === DEFAULT_STUD_GAUGE)!;
 }
