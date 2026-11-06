@@ -366,6 +366,13 @@ function FullscreenViewer({
     setShowQr(false);
     setQrMax(false);
   };
+  // Escape un-maximizes (back to the card) — never a full close; the card's X is that.
+  useEffect(() => {
+    if (!qrMax) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setQrMax(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [qrMax]);
 
   // mode 'file' = self-contained offline .html (Android/PC). mode 'link' =
   // universal link that opens the hosted reader on ANY device incl. iPhone.
@@ -881,30 +888,45 @@ function FullscreenViewer({
           Direct deep-link to /atlantis (the Accords), shown with a Copy button;
           the Maximize icon blows the QR up to full screen for room-scale scans. */}
       {showQr && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4" onClick={closeQr}>
-          {qrMax ? (
-            <div className="flex flex-col items-center gap-4" onClick={(e) => e.stopPropagation()}>
-              <div className="rounded-2xl bg-white p-4 shadow-2xl">
+        qrMax ? (
+          // MAXIMIZED — a true, opaque full-screen QR for room-scale scanning.
+          // Opaque bg-background backdrop so NO page content bleeds through. The column
+          // scrolls (overflow-y-auto + safe-area padding) so the exit control never falls
+          // below the fold in landscape. Tapping the backdrop or pressing Escape only
+          // UN-maximizes (back to the card) — the card's X is the single full close.
+          // Mirrors the shared QrMaxScreen overlay pattern (bg-background, role=dialog,
+          // theme-aware text); kept in-place because QrMaxScreen's API is built around a
+          // join code + copy button and caps the QR at 320px.
+          <div
+            className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-4 overflow-y-auto bg-background p-4 pb-[env(safe-area-inset-bottom)]"
+            onClick={() => setQrMax(false)}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="flex max-w-full flex-col items-center gap-4" onClick={(e) => e.stopPropagation()}>
+              <div className="rounded-2xl bg-white p-3 shadow-2xl">
                 <QRCodeSVG
                   value={ATLANTIS_PAGE_URL}
                   size={512}
                   level="Q"
                   fgColor="#000000"
                   bgColor="#ffffff"
-                  className="rounded-lg"
-                  style={{ width: "min(86vw, 72vh)", height: "min(86vw, 72vh)" }}
+                  className="max-w-full rounded-lg"
+                  style={{ width: "min(84vw, 60dvh)", height: "min(84vw, 60dvh)", maxWidth: "100%" }}
                 />
               </div>
-              <p className="text-sm text-white/90">{t("atlantis.scan_to_open")}</p>
+              <p className="text-sm font-medium text-foreground">{t("atlantis.scan_to_open")}</p>
               <button
                 onClick={() => setQrMax(false)}
-                className="flex items-center gap-2 rounded-lg border border-white/30 px-4 py-2 text-sm text-white hover:bg-white/10"
+                className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-accent/50"
                 aria-label={t("atlantis.exit_fullscreen_qr")}
               >
-                <Minimize2 className="h-4 w-4" /> Exit full screen
+                <Minimize2 className="h-4 w-4" /> {t("atlantis.exit_fullscreen_qr")}
               </button>
             </div>
-          ) : (
+          </div>
+        ) : (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4" onClick={closeQr}>
             <div className="w-full max-w-xs rounded-xl border border-border bg-background p-5 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-base font-semibold">{t("atlantis.accords_title")}</h3>
@@ -938,8 +960,8 @@ function FullscreenViewer({
                 </button>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )
       )}
     </div>
   );
