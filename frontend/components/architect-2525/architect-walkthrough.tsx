@@ -80,6 +80,12 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
 
   const [yaw, setYaw] = useState(0);      // radians; 0 = facing into the room (+y / far). UNBOUNDED (turn all the way round)
   const [pitch, setPitch] = useState(0);  // radians; + looks up (clamped ±40°)
+  // PLENUM PHASES READ ON ENTRY (rewalk2 P0, Christo/Krishna): HVAC ducts + roof rafters live in the 10→12 plenum, above the
+  // default gaze. On selecting a plenum phase, pitch the gaze up ~13° ONCE (the user can look back down); reset flat otherwise.
+  useEffect(() => {
+    const p = phaseById(phase);
+    setPitch((p?.shows === "duct" || p?.id === "roofing") ? 0.23 : 0);
+  }, [phase]);
   // C1 — the overhead minimap (reads the SAME layout as TinyFloorplan). Collapsible; the walk keeps the majority (E2).
   const [mapOpen, setMapOpen] = useState(true);
   useEffect(() => { try { const v = localStorage.getItem("arch2525.walkMap"); if (v != null) setMapOpen(v === "1"); } catch {} }, []);
@@ -159,7 +165,13 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
             x: clamp(desired.x, wCross ? -WALK_R : WALK_R, eCross ? ROOM_FT + WALK_R : ROOM_FT - WALK_R),
             y: clamp(desired.y, sCross ? -WALK_R : WALK_R, nCross ? ROOM_FT + WALK_R : ROOM_FT - WALK_R),
           };
-          setEye(walkMove(from, { x: want.x - from.x, y: want.y - from.y }, furnRects.current));
+          // RE-CLAMP the collide-and-slide RESULT into the door-aware bounds so pushOut can never eject the body THROUGH a
+          // solid wall after a crossing (rewalk2 P0, Thor): a solid wall caps at ±WALK_R inside; a door wall still reaches the edge.
+          const m = walkMove(from, { x: want.x - from.x, y: want.y - from.y }, furnRects.current);
+          setEye({
+            x: clamp(m.x, wCross ? -WALK_R : WALK_R, eCross ? ROOM_FT + WALK_R : ROOM_FT - WALK_R),
+            y: clamp(m.y, sCross ? -WALK_R : WALK_R, nCross ? ROOM_FT + WALK_R : ROOM_FT - WALK_R),
+          });
         }
       }
       raf = requestAnimationFrame(tick);
@@ -323,8 +335,8 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   }
   const socketsOnly = !hasPhase && showSockets && !layers.includes("wiring");  // ⚡ Sockets toggle is an overview-only aid
   const mepOn = layers.length > 0 || socketsOnly;
-  // x-ray the inner ceiling to see the plenum: ducts (HVAC) AND the roof plane/rafters (Roofing lives in the 10→12 plenum)
-  const ceilXray = layers.includes("duct") || shellId === "roofing";
+  // x-ray the inner ceiling to see the plenum: ducts (HVAC), the roof plane/rafters (Roofing), and the Starlink dish (Internet) — all in the 10→12 plenum
+  const ceilXray = layers.includes("duct") || shellId === "roofing" || shellId === "internet";
   const cellOut = (c: RoomCell | null | undefined) => c?.outlets ?? 0;
   const mepLines: { x1: number; y1: number; x2: number; y2: number; col: string; key: string }[] = [];
   const mepBoxes: { pts: string; col: string; kind: string }[] = [];
@@ -332,14 +344,18 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   const mepGlyphs: { pts: string; col: string; kind: string; op?: number; outline?: boolean }[] = [];
   const mepGlyphLabels: { x: number; y: number; col: string; text: string }[] = [];   // ONE label per glyph (not per poly — Christo fix)
   const OUTLINE_GLYPHS = new Set(["manifold", "laundrybox", "heater", "lan", "return"]); // big flat glyphs read as an outline, never a solid panel (Christo)
-  // Shared glyph pass — projects a glyph's polys + lines, emits its label ONCE, culls far glyphs (cameras stay visible across the room).
+  const KEEP_VISIBLE = new Set(["camera", "ahu"]);   // the one AHU + the roof-corner cameras stay readable across the room (Krishna/Christo)
+  // in-world labels carry trade codes; route them through the lexicon to a homeowner WORD so RG/SR/AHU/VTR/CO/AP/LAN/WH decode (Christo)
+  const LABEL_KEY: Record<string, string> = { SR: "register", RG: "return", AHU: "ahu", VTR: "vtr", CO: "co", MAIN: "main", manifold: "manifold", WH: "wh", box: "box", CAM: "camera", out: "camera", stop: "stop", dish: "dish", LAN: "lan", AP: "ap" };
+  const labelWord = (code?: string) => code ? (LABEL_KEY[code] ? t(`arch.walk.legend.${LABEL_KEY[code]}`) : code) : undefined;
+  // Shared glyph pass — projects a glyph's polys + lines, emits its label ONCE (decoded, clamped into the viewport), culls far glyphs.
   const pushGlyphs = (glyphs: { kind: string; polys: Vec3[][]; lines?: Vec3[][]; at: Vec3; color: string; label?: string }[], opFor: (k: string) => number) => {
     for (const gl of glyphs) {
-      const at = project(gl.at); if (!at || (at.depth >= 12 && gl.kind !== "camera")) continue;  // keep roof-corner cameras readable from across the room
+      const at = project(gl.at); if (!at || (at.depth >= 12 && !KEEP_VISIBLE.has(gl.kind))) continue;
       const outline = OUTLINE_GLYPHS.has(gl.kind);
       for (const pg of gl.polys) { const q = poly(pg); if (q) mepGlyphs.push({ pts: q.d, col: gl.color, kind: gl.kind, op: opFor(gl.kind), outline }); }
       if (gl.lines) for (const ln of gl.lines) for (let i = 0; i < ln.length - 1; i++) { const a = project(ln[i]), b = project(ln[i + 1]); if (a && b) mepSublines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, col: gl.color, w: 1.2 }); }
-      if (at.depth < 6 && gl.label) mepGlyphLabels.push({ x: at.x, y: at.y - 6, col: gl.color, text: gl.label });
+      if (at.depth < 6 && gl.label) { const word = labelWord(gl.label); if (word) mepGlyphLabels.push({ x: clamp(at.x, 24, W - 24), y: clamp(at.y - 6, 14, H - 8), col: gl.color, text: word }); }
     }
   };
   const addMep = (L: MepLayer, outlets: number, objs: PlacedObject[], ox: number, oy: number, boxesOnly = false, kind?: string) => {
@@ -441,10 +457,10 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
       {/* P2/P3 PLUMBING + HVAC legend — the glyph silhouettes (one GLYPH_PATHS source) so the valve/trap/duct marks are named */}
       {mepOn && (chipLayer === "water" || chipLayer === "sewer" || chipLayer === "duct") && (() => {
         const items = chipLayer === "water"
-          ? [["valve", "arch.walk.legend.main"], ["stop", "arch.walk.legend.stop"], ["manifold", "arch.walk.legend.manifold"], ["mixer", "arch.walk.legend.mixer"]]
+          ? [["valve", "arch.walk.legend.main"], ["stop", "arch.walk.legend.stop"], ["manifold", "arch.walk.legend.manifold"], ["mixer", "arch.walk.legend.mixer"], ["manifold", "arch.walk.legend.wh"]]
           : chipLayer === "sewer"
           ? [["trap", "arch.walk.legend.trap"], ["cleanout", "arch.walk.legend.co"], ["vent", "arch.walk.legend.vtr"]]
-          : [["manifold", "arch.walk.legend.trunk"], ["mixer", "arch.walk.legend.register"], ["cleanout", "arch.walk.legend.vcd"]];
+          : [["register", "arch.walk.legend.register"], ["vcd", "arch.walk.legend.vcd"], ["return", "arch.walk.legend.return"], ["ahu", "arch.walk.legend.ahu"]];
         const col = chipLayer === "water" ? MEP_COLOR.water : chipLayer === "sewer" ? MEP_COLOR.sewer : MEP_COLOR.duct;
         return (
           <div data-arch-walk-legend className="absolute left-2 top-[72px] flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg border px-2 py-0.5 text-[9px] font-medium" style={{ borderColor: `${col}88`, color: col, background: "#0a0f16ee", maxWidth: "calc(100% - 120px)" }}>
@@ -461,6 +477,16 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
         <div data-arch-walk-legend className="absolute left-2 top-[72px] flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg border px-2 py-0.5 text-[9px] font-medium" style={{ borderColor: `${SHELL_COLOR.camera}88`, color: SHELL_COLOR.camera, background: "#0a0f16ee", maxWidth: "calc(100% - 120px)" }}>
           <span className="flex items-center gap-0.5"><svg width={11} height={11} viewBox="0 0 10 10" style={{ flexShrink: 0 }}><rect x={1} y={3} width={5} height={4} fill="none" stroke={SHELL_COLOR.camera} strokeWidth={1} /><path d="M6,4 L9,2.5 L9,7.5 L6,6 Z" fill="none" stroke={SHELL_COLOR.camera} strokeWidth={1} /></svg>{t("arch.walk.legend.camera")}</span>
           <span className="flex items-center gap-0.5"><svg width={11} height={11} viewBox="0 0 10 10" style={{ flexShrink: 0 }}><path d="M1,9 L1,4 A5,5 0 0,1 6,9 Z" fill={`${SHELL_COLOR.camera}44`} stroke={SHELL_COLOR.camera} strokeWidth={0.8} /></svg>{t("arch.walk.legend.coverage")}</span>
+        </div>
+      )}
+      {/* INTERNET legend (rewalk2 #8) — dish / Wi-Fi / LAN so the homeowner decodes the low-voltage marks */}
+      {shellId === "internet" && (
+        <div data-arch-walk-legend className="absolute left-2 top-[72px] flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg border px-2 py-0.5 text-[9px] font-medium" style={{ borderColor: `${SHELL_COLOR.lan}88`, color: SHELL_COLOR.lan, background: "#0a0f16ee", maxWidth: "calc(100% - 120px)" }}>
+          {[["dish", "arch.walk.legend.dish"], ["ap", "arch.walk.legend.ap"], ["lan", "arch.walk.legend.lan"]].map(([g, k]) => (
+            <span key={g} className="flex items-center gap-0.5">
+              <svg width={11} height={11} viewBox="0 0 10 10" style={{ flexShrink: 0 }}><path d={GLYPH_PATHS[g]} fill="none" stroke={SHELL_COLOR.lan} strokeWidth={1} /></svg>{t(k)}
+            </span>
+          ))}
         </div>
       )}
       {/* FRAMING gauge chip — the SAME string the 2D plan prints (gauge @ 16" o.c.) in the lumber colour */}
@@ -515,7 +541,8 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
         <div className="pointer-events-auto"><Stick label={t("arch.walk.move")} hex={moveHex} size={84} onMove={(x, y) => { moveVec.current = applySets({ x, y }, "L", sets.current); }} /></div>
         <div className="pointer-events-auto"><Stick label={t("arch.walk.look")} hex={lookHex} size={84} onMove={(x, y) => { lookVec.current = applySets({ x, y }, "R", sets.current); }} /></div>
       </div>
-      <div className="pointer-events-none absolute bottom-1 left-1/2 flex -translate-x-1/2 items-center gap-1 text-[9px]" style={{ color: C.dim }}><LookGlyph size={11} /> {title ?? t("arch.walk.title")}</div>
+      {/* one SHORT centred caption that stays in the gap between the two thumb-sticks at 375/390 (rewalk2 #7, Sofia) */}
+      <div className="pointer-events-none absolute bottom-1 left-1/2 flex -translate-x-1/2 items-center gap-1 overflow-hidden whitespace-nowrap text-[9px]" style={{ color: C.dim, maxWidth: "calc(100% - 210px)", textOverflow: "ellipsis" }}><LookGlyph size={11} /> {title ?? t("arch.walk.title")}</div>
     </div>
   );
 }

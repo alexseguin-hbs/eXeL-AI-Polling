@@ -16,7 +16,14 @@ ok(studOffsetsFt(10).length === 9, "studOffsetsFt(10) = 9 studs per 10-ft wall @
 
 // ── plain room (no openings): all four walls framed ──
 const plain = walkFraming(g6, []);
-ok(plain.counts.studs === 32, `32 common studs (8 per wall × 4 — the shared corner post is counted once, not twice) — got ${plain.counts.studs}`);
+ok(plain.counts.studs === 28, `28 FIELD studs (7 per wall × 4, ends excluded) — got ${plain.counts.studs}`);
+ok(plain.counts.corners === 4, `exactly 4 corner posts — got ${plain.counts.corners}`);
+// EVERY corner has exactly one post within 0.35 ft (rewalk2 P1, Enlil — NE no longer empty, SW no longer doubled)
+const cornerXY = plain.quads.flatMap((q) => q.pts).map((p) => [p[0], p[1]]);
+for (const [cx, cy] of [[0, 0], [10, 0], [0, 10], [10, 10]]) {
+  const hits = cornerXY.filter(([x, y]) => Math.abs(x - cx) < 0.35 && Math.abs(y - cy) < 0.35).length;
+  ok(hits > 0, `corner (${cx},${cy}) has a post (≥1 quad vertex within 0.35 ft) — got ${hits}`);
+}
 ok(plain.counts.kings === 0 && plain.counts.jacks === 0 && plain.counts.headers === 0, "a plain wall has no opening framing");
 ok(plain.counts.blocking === 32, `32 blocking rows (8 bays × 4 walls) — got ${plain.counts.blocking}`);
 ok(pts(plain).every((p) => p[2] >= -1e-9 && p[2] <= CEIL + 1e-9), "every member z ∈ [0, 10] (inside the inner cube)");

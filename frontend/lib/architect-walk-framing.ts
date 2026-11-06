@@ -19,7 +19,7 @@ const WIN_SILL = 3.0, WIN_HEAD = 6.5, HDR_WIN_TOP = 7.27;  // window: rough sill
 
 export type Side = "N" | "S" | "W" | "E";
 export interface WalkOpening { side: Side; center: number; span: number; z0: number; z1: number }  // z0=0 door · z0>0 window (world along-wall centre)
-export interface WalkFraming { quads: Quad[]; lines: Vec3[][]; counts: { studs: number; kings: number; jacks: number; headers: number; cripples: number; blocking: number } }
+export interface WalkFraming { quads: Quad[]; lines: Vec3[][]; counts: { studs: number; corners: number; kings: number; jacks: number; headers: number; cripples: number; blocking: number } }
 
 /**
  * The framing of one room. `openings` are the SAME {side,center,span,z0,z1} the walk feeds vwall() (doorOpen at the
@@ -30,7 +30,7 @@ export function walkFraming(gauge: StudGauge, openings: WalkOpening[], ox = 0, o
   const d = gauge.depthIn / 12;      // stud depth into the room (2×4 0.292 · 2×6 0.458)
   const thisRoom = ox === 0 && oy === 0;
   const quads: Quad[] = []; const lines: Vec3[][] = [];
-  const counts = { studs: 0, kings: 0, jacks: 0, headers: 0, cripples: 0, blocking: 0 };
+  const counts = { studs: 0, corners: 0, kings: 0, jacks: 0, headers: 0, cripples: 0, blocking: 0 };
   const offs = studOffsetsFt(RF);
 
   // a member: along the wall [s0,s1] (world x for N/S · world y for W/E), depth d into the room, z [z0,z1].
@@ -61,8 +61,9 @@ export function walkFraming(gauge: StudGauge, openings: WalkOpening[], ox = 0, o
       continue;
     }
 
-    // common studs — skip the s=RF end stud so a corner is not double-counted (the adjacent wall's s=0 stud is that corner post, Enlil)
-    for (const s of offs) { if (s === RF) continue; if (inOpening(s)) continue; member(side, s - T / 2, s + T / 2, PLATE, TOP_B, FRAME_COLOR); counts.studs++; }
+    // FIELD studs only — skip BOTH ends (s=0 and s=RF): the 4 corners are drawn ONCE, below, so every corner gets exactly one
+    // post and none is doubled (rewalk2 P1, Enlil). 7 field studs/wall × 4 = 28, + 4 corner posts = 32.
+    for (const s of offs) { if (s === 0 || s === RF) continue; if (inOpening(s)) continue; member(side, s - T / 2, s + T / 2, PLATE, TOP_B, FRAME_COLOR); counts.studs++; }
     // bottom plate (split across a door that reaches the floor)
     if (op && op.z0 === 0) { member(side, 0, gL, 0, PLATE, FRAME_COLOR); member(side, gR, RF, 0, PLATE, FRAME_COLOR); }
     else member(side, 0, RF, 0, PLATE, FRAME_COLOR);
@@ -94,6 +95,12 @@ export function walkFraming(gauge: StudGauge, openings: WalkOpening[], ox = 0, o
       const z = i % 2 ? 4.125 : 4.0;
       member(side, a + 0.0625, b - 0.0625, z, z + 0.125, FRAME_COLOR); counts.blocking++;
     }
+  }
+
+  // FOUR CORNER POSTS — drawn once each, after the per-wall field studs (rewalk2 P1, Enlil). A T×T post in each inner corner.
+  if (thisRoom) {
+    const cs: [number, number][] = [[PUSH, PUSH], [RF - T - PUSH, PUSH], [PUSH, RF - T - PUSH], [RF - T - PUSH, RF - T - PUSH]];
+    for (const [x0, y0] of cs) { quads.push(...boxFaces(x0, y0, PLATE, T, T, TOP_B - PLATE, FRAME_COLOR)); counts.corners++; }
   }
   return { quads, lines, counts };
 }

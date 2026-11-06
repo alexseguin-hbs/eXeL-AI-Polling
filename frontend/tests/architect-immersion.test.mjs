@@ -87,6 +87,14 @@ ok(/pShows === "wiring" \|\| pShows === "water" \|\| pShows === "sewer" \|\| pSh
 // R3 reinforcement — Roofing drops the stud skeleton (reads as a roof) and the ceiling x-rays for the plenum roof
 ok(/const structureOn = framingOn \|\| shellId === "insulation"/.test(walk), "Roofing no longer keeps the full stud skeleton (reads as a roof, not framing)");
 ok(/const ceilXray = layers\.includes\("duct"\) \|\| shellId === "roofing"/.test(walk), "the ceiling x-rays for Roofing (see the pitched roof in the plenum) as it does for ducts");
+// rewalk2 P0 — plenum phases read on entry: a default up-pitch on selecting HVAC/roofing, and the ceiling x-rays for internet too
+ok(/setPitch\(\(p\?\.shows === "duct" \|\| p\?\.id === "roofing"\) \? 0\.23 : 0\)/.test(walk), "a plenum phase (HVAC/roofing) auto-pitches the gaze up on select so the ducts/rafters read on entry");
+ok(/shellId === "internet"/.test(walk) && /const ceilXray = /.test(walk), "the ceiling x-rays for the Internet dish in the plenum too");
+// rewalk2 P0 — the collide-and-slide RESULT is re-clamped into the door-aware bounds so pushOut can't eject THROUGH a wall
+ok(/const m = walkMove\(from,/.test(walk) && /x: clamp\(m\.x, wCross \? -WALK_R : WALK_R/.test(walk), "the walkMove result is re-clamped into the door-aware bounds (no through-wall freeze after a crossing)");
+// rewalk2 E2 — the walk viewer holds ≥60% of the viewport from 667→926 (Athena)
+ok(/const walkH = Math\.max\(340, Math\.round\(viewportH \* 0\.68\)\)/.test(design), "walkH is 68% of the viewport (≥60% E2 bar holds on short phones)");
+ok(Math.round(667 * 0.68) / 667 >= 0.6, `at 667px the viewer is ${(Math.round(667 * 0.68) / 667 * 100).toFixed(0)}% ≥ 60% (E2)`);
 
 // ── custom walkthrough iconology, NOT emoji (operator 2026-11-04: "don't use emojies; create your own walkthrough raster iconology") ──
 ok(/export function WalkGlyph\b/.test(icons) && /export function MoveChevron\b/.test(icons) && /<svg/.test(icons), "architect-walk-icons.tsx is a drawn SVG glyph set (WalkGlyph · MoveChevron · LookGlyph · DoorGlyph · EditGlyph) — my own iconology");

@@ -73,6 +73,14 @@ export const GLYPH_PATHS: Record<string, string> = {
   cleanout: "M5,5 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0",       // ○
   vent: "M0,10 L5,0 L10,10 Z",                                 // ▲ (VTR)
   flange: "M5,5 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0 M1,5 H9",// ⊘
+  // P3 HVAC + P4 Internet silhouettes — match the world glyphs so the legend reads true (rewalk2, Christo)
+  register: "M1,1 H9 V9 H1 Z M1,1 L9,9 M9,1 L1,9",            // ceiling diffuser (square + diagonals)
+  vcd: "M5,5 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0 M2.5,7.5 L7.5,2.5", // damper disc + slash
+  return: "M1,2 H9 V8 H1 Z M3.5,2 V8 M6.5,2 V8",              // return grille (louvres)
+  ahu: "M2,1 H8 V9 H2 Z M2,4 H8",                              // air-handler box
+  dish: "M1,7 Q5,1 9,7 M5,7 V9",                               // Starlink dish on a mast
+  ap: "M2,8 A4,4 0 0,1 8,8 M3.6,8 A2.2,2.2 0 0,1 6.4,8 M5,8 h0.1", // Wi-Fi arcs
+  lan: "M2,2 H8 V6 H2 Z M4,6 V9 M6,6 V9",                      // LAN plate + drop
 };
 
 // direction (plan-grid) between two cells, Y-flipped into world xy.
@@ -91,6 +99,10 @@ export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObj
     const panelTop = W3(panel.gx, panel.gy, TOP_PLATE, ox, oy);
     boxes.push({ kind: "panel", pts: wallQuad(panel.gx, panel.gy, PANEL_BOT + PANEL_H / 2, PANEL_W, PANEL_H, ox, oy), z: PANEL_BOT + PANEL_H / 2 });
     lines.push([W3(panel.gx, panel.gy, PANEL_BOT + PANEL_H, ox, oy), panelTop]);  // panel top → top plate
+    // a continuous TOP-PLATE RING run around all 4 walls (panel → around → drops) so a wire is always in the forward cone,
+    // not just the one wall the panel sits on (rewalk2 P1, Asar). Inset just under the top plate.
+    { const RZ = TOP_PLATE - 0.1, IN = 0.3;
+      lines.push([[ox + IN, oy + IN, RZ], [ox + RF - IN, oy + IN, RZ], [ox + RF - IN, oy + RF - IN, RZ], [ox + IN, oy + RF - IN, RZ], [ox + IN, oy + IN, RZ]]); }
     for (const o of outs) {
       const top = W3(o.gx, o.gy, TOP_PLATE, ox, oy);
       lines.push([panelTop, top]);                                 // along the top plate (panel → above the outlet)
@@ -101,19 +113,19 @@ export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObj
     const runs = waterRuns(objects).runs;
     const kindAt = new Map(fixtureEndpoints(objects, WATER_FIXTURES).map((e) => [`${e.gx},${e.gy}`, e.kind]));
     const src = MEP_SOURCE.water;                                  // NW
-    // 1 · service trunk riser + MAIN ball valve + PEX manifold
-    sublines.push({ pts: [W3(src.gx, src.gy, 0.3, ox, oy), W3(src.gx, src.gy, 3.0, ox, oy)], color: MEP_COLOR.water, w: 3.0 });
-    glyphs.push({ kind: "valve", polys: ballValve(W3(src.gx, src.gy, 1.0, ox, oy), [0, 1], 0.5), at: W3(src.gx, src.gy, 1.0, ox, oy), color: MEP_COLOR.water, label: "MAIN" });
-    // the PEX manifold — an OUTLINE box (never a solid cyan panel: Christo) with a ⊟ divider + one run-tick per home-run
-    const manZ = 2.7, manPts = wallQuad(src.gx, src.gy, manZ, 1.0, 0.6, ox, oy);
-    const mb0 = manPts[0], mb1 = manPts[1], mt3 = manPts[3];                     // bottom edge mb0→mb1, up to mt3
-    const manLines: Vec3[][] = [[[(mb0[0] + mt3[0]) / 2, (mb0[1] + mt3[1]) / 2, manZ], [(mb1[0] + mt3[0]) / 2, (mb1[1] + mt3[1]) / 2, manZ]]]; // mid divider
-    const nTick = Math.max(2, Math.min(8, runs.length));
-    for (let i = 1; i < nTick; i++) { const f = i / nTick; manLines.push([[mb0[0] + (mb1[0] - mb0[0]) * f, mb0[1] + (mb1[1] - mb0[1]) * f, manZ - 0.3], [mb0[0] + (mb1[0] - mb0[0]) * f, mb0[1] + (mb1[1] - mb0[1]) * f, manZ - 0.1]]); }
-    glyphs.push({ kind: "manifold", polys: [manPts], lines: manLines, at: W3(src.gx, src.gy, manZ, ox, oy), color: MEP_COLOR.water, label: "manifold" });
-    // P2/#4 — the WATER HEATER lives in the utility room (Storage·Laundry, the furnace room): a tank at the source wall with
-    // a hot output riser. One per house — gated to kind S so it never duplicates per room (a partial of the #3 service entry).
+    // 1 · the HOUSE-LEVEL water service — MAIN shutoff + PEX manifold + ¾" trunk riser + water heater — is drawn ONCE, in the
+    // utility room (kind S), never per-room (rewalk2 P0, Enki). A dry room (no fixtures, not S) therefore draws NOTHING.
     if (roomKind === "S") {
+      sublines.push({ pts: [W3(src.gx, src.gy, 0.3, ox, oy), W3(src.gx, src.gy, 3.0, ox, oy)], color: MEP_COLOR.water, w: 3.0 });
+      glyphs.push({ kind: "valve", polys: ballValve(W3(src.gx, src.gy, 1.0, ox, oy), [0, 1], 0.5), at: W3(src.gx, src.gy, 1.0, ox, oy), color: MEP_COLOR.water, label: "MAIN" });
+      // the PEX manifold — an OUTLINE box (never a solid cyan panel: Christo) with a ⊟ divider + one run-tick per home-run
+      const manZ = 2.7, manPts = wallQuad(src.gx, src.gy, manZ, 1.0, 0.6, ox, oy);
+      const mb0 = manPts[0], mb1 = manPts[1], mt3 = manPts[3];                     // bottom edge mb0→mb1, up to mt3
+      const manLines: Vec3[][] = [[[(mb0[0] + mt3[0]) / 2, (mb0[1] + mt3[1]) / 2, manZ], [(mb1[0] + mt3[0]) / 2, (mb1[1] + mt3[1]) / 2, manZ]]]; // mid divider
+      const nTick = Math.max(2, Math.min(8, runs.length || 2));
+      for (let i = 1; i < nTick; i++) { const f = i / nTick; manLines.push([[mb0[0] + (mb1[0] - mb0[0]) * f, mb0[1] + (mb1[1] - mb0[1]) * f, manZ - 0.3], [mb0[0] + (mb1[0] - mb0[0]) * f, mb0[1] + (mb1[1] - mb0[1]) * f, manZ - 0.1]]); }
+      glyphs.push({ kind: "manifold", polys: [manPts], lines: manLines, at: W3(src.gx, src.gy, manZ, ox, oy), color: MEP_COLOR.water, label: "manifold" });
+      // the WATER HEATER (the furnace room) — a tank at the source wall with a hot output riser
       glyphs.push({ kind: "heater", polys: [wallQuad(src.gx, src.gy, 2.0, 1.3, 4.0, ox, oy)], at: W3(src.gx, src.gy, 4.0, ox, oy), color: MEP_COLOR.water, label: "WH" });
       sublines.push({ pts: [W3(src.gx, src.gy, 4.0, ox, oy), [ox + src.gx + 0.5 + HOT_DX, oy + (RF - (src.gy + 0.5)), 3.0]], color: MEP_COLOR.hot, w: 2.0 }); // hot out
     }
@@ -163,12 +175,15 @@ export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObj
       // 3 · vent per run — up through the roof from the fixture (first corner), dashed, in vent green
       sublines.push({ pts: [W3(from.gx, from.gy, 1.2, ox, oy), W3(from.gx, from.gy, CEIL, ox, oy)], color: MEP_COLOR.vent, dash: "2 4", w: 1.6 });
     }
-    // 4 · the main stack at the SE anchor: solid 0→4, vent "2 4" above to the ceiling; cleanout at the base; VTR at the top
-    sublines.push({ pts: [W3(stack.gx, stack.gy, 0, ox, oy), W3(stack.gx, stack.gy, 4, ox, oy)], color: MEP_COLOR.sewer, w: 4.0 });
-    sublines.push({ pts: [W3(stack.gx, stack.gy, 4, ox, oy), W3(stack.gx, stack.gy, CEIL, ox, oy)], color: MEP_COLOR.vent, dash: "2 4", w: 4.0 });
-    glyphs.push({ kind: "cleanout", polys: [ring(W3(stack.gx, stack.gy, 0.6, ox, oy), 0.15, 8, [1, 0])], at: W3(stack.gx, stack.gy, 0.6, ox, oy), color: MEP_COLOR.sewer, label: "CO" });
-    const vtr = W3(stack.gx, stack.gy, CEIL - 0.2, ox, oy);
-    glyphs.push({ kind: "vent", polys: [[[vtr[0] - 0.2, vtr[1], vtr[2]], [vtr[0] + 0.2, vtr[1], vtr[2]], [vtr[0], vtr[1], vtr[2] + 0.4]]], at: vtr, color: MEP_COLOR.vent, label: "VTR" });
+    // 4 · the HOUSE-LEVEL DWV stack (main stack + base cleanout + vent-through-roof) is drawn ONCE, in the utility room (kind
+    // S), not per-room (rewalk2 P0, Enki). Every room's drains fall to this one house stack; a dry room draws nothing.
+    if (roomKind === "S") {
+      sublines.push({ pts: [W3(stack.gx, stack.gy, 0, ox, oy), W3(stack.gx, stack.gy, 4, ox, oy)], color: MEP_COLOR.sewer, w: 4.0 });
+      sublines.push({ pts: [W3(stack.gx, stack.gy, 4, ox, oy), W3(stack.gx, stack.gy, CEIL, ox, oy)], color: MEP_COLOR.vent, dash: "2 4", w: 4.0 });
+      glyphs.push({ kind: "cleanout", polys: [ring(W3(stack.gx, stack.gy, 0.6, ox, oy), 0.15, 8, [1, 0])], at: W3(stack.gx, stack.gy, 0.6, ox, oy), color: MEP_COLOR.sewer, label: "CO" });
+      const vtr = W3(stack.gx, stack.gy, CEIL - 0.2, ox, oy);
+      glyphs.push({ kind: "vent", polys: [[[vtr[0] - 0.2, vtr[1], vtr[2]], [vtr[0] + 0.2, vtr[1], vtr[2]], [vtr[0], vtr[1], vtr[2] + 0.4]]], at: vtr, color: MEP_COLOR.vent, label: "VTR" });
+    }
   } else if (layer === "duct") {
     const d = ductRuns(objects, roomKind);
     for (const r of d.runs) lines.push(r.path.map((p) => W3(p.gx, p.gy, DUCT_Z, ox, oy))); // centreline (shipped `lines`, unchanged)
@@ -200,6 +215,8 @@ export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObj
         [[ax, ay, 5], [ax + 1, ay, 5]], [[ax + 1, ay, 5], [ax + 1, ay - 1, 5]], [[ax + 1, ay - 1, 5], [ax, ay - 1, 5]], [[ax, ay - 1, 5], [ax, ay, 5]],
       ];
       for (const ln of box) sublines.push({ pts: ln, color: MEP_COLOR.duct, w: 1.4 });
+      // supply riser: the air handler's top (z 5) up to the plenum trunk (z 11) — so the AHU connects to the ducts, not floats apart (Krishna)
+      sublines.push({ pts: [[ax + 0.5, ay - 0.5, 5], [ax + 0.5, ay - 0.5, DUCT_Z]], color: MEP_COLOR.duct, w: 1.6 });
       glyphs.push({ kind: "ahu", polys: [[[ax, ay, 5], [ax + 1, ay, 5], [ax + 1, ay - 1, 5], [ax, ay - 1, 5]]], at: [ax + 0.5, ay - 0.5, 5], color: MEP_COLOR.duct, label: "AHU" });
     }
   }

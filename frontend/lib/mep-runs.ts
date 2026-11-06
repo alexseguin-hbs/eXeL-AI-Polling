@@ -28,10 +28,11 @@ export const MEP_SOURCE: Record<"water" | "sewer" | "panel" | "air", MepPt> = {
   air:   { gx: MEP_GRID - 1, gy: 0 },
 };
 
-// Which placed objects need water supply / drain (DWV). Kitchen counter carries a sink → include it; the shower is a
-// default bath fixture and MUST be served (operator 2026-11-06, Enki).
-export const WATER_FIXTURES: ObjectKind[] = ["sink", "tub", "shower", "toilet", "washer", "counter"];
-export const DRAIN_FIXTURES: ObjectKind[] = ["sink", "tub", "shower", "toilet", "washer", "counter"];
+// Which placed objects need water supply / drain (DWV). We serve the SINK fixture, not the countertop it sits on — a
+// `counter` is dry (the Dining Room has a counter and no sink, and must draw no plumbing); the kitchen/laundry carry a
+// real `sink` (rewalk2, Enki). The shower is a default bath fixture and MUST be served (operator 2026-11-06).
+export const WATER_FIXTURES: ObjectKind[] = ["sink", "tub", "shower", "toilet", "washer"];
+export const DRAIN_FIXTURES: ObjectKind[] = ["sink", "tub", "shower", "toilet", "washer"];
 
 // P2 PLUMBING — rough-in stub heights above finished floor (builder practice, "typical"): sink/counter stops ~20″,
 // toilet supply 6″, washer box 42″, tub/shower mixing valve 48″. One source, reused by the walk + any spec readout.

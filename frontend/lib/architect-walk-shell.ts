@@ -96,19 +96,17 @@ export function walkShell(phaseId: string | null | undefined, ctx: ShellCtx = {}
     const cam = SHELL_COLOR.camera;
     const corners: [number, number][] = [[0.3, 0.3], [RF - 0.3, 0.3], [0.3, RF - 0.3], [RF - 0.3, RF - 0.3]];
     corners.forEach(([cx, cy], i) => {
-      const at: Vec3 = [ox + cx, oy + cy, CEIL - 0.3];
-      // lens ring + a short housing stub pointing into the room → reads as a camera, not a bare dot
-      const hx = cx < RF / 2 ? 0.3 : -0.3, hy = cy < RF / 2 ? 0.3 : -0.3;
-      glyphs.push({ kind: "camera", polys: [ring(at, 0.18, 8, [1, 0])], lines: [[at, [at[0] + hx, at[1] + hy, at[2] - 0.1]]], at, color: cam, label: i === 0 ? "CAM" : undefined });
+      const dx = cx < RF / 2 ? 1 : -1, dy = cy < RF / 2 ? 1 : -1;
+      glyphs.push({ ...cameraGlyph(ox + cx, oy + cy, CEIL - 0.3, dx, dy), kind: "camera", color: cam, label: i === 0 ? "CAM" : undefined });
       glyphs.push({ kind: "wedge", polys: [fanWedge(ox + cx, oy + cy, 6, cx < RF / 2, cy < RF / 2)], at: [ox + cx, oy + cy, 0.02], color: cam });
     });
     for (const op of openings) {
       if (!op.exterior) continue;                                                           // outward cam only on exterior walls
-      const c = op.center, atW: Record<Side, Vec3> = {
-        N: [ox + c, oy + RF - PUSH, CEIL - 0.8], S: [ox + c, oy + PUSH, CEIL - 0.8],
-        W: [ox + PUSH, oy + (RF - c), CEIL - 0.8], E: [ox + RF - PUSH, oy + (RF - c), CEIL - 0.8],
+      const c = op.center, w: Record<Side, [number, number, number, number]> = {
+        N: [c, RF - PUSH, 0, 1], S: [c, PUSH, 0, -1], W: [PUSH, RF - c, -1, 0], E: [RF - PUSH, RF - c, 1, 0],
       };
-      glyphs.push({ kind: "camera", polys: [ring(atW[op.side], 0.15, 8, [1, 0])], at: atW[op.side], color: cam, label: "out" });
+      const [wx, wy, dx, dy] = w[op.side];
+      glyphs.push({ ...cameraGlyph(ox + wx, oy + wy, CEIL - 0.8, dx, dy), kind: "camera", color: cam, label: "out" });
     }
     return { quads, sublines, glyphs, wallDim: 0.2, label: "cameras + coverage" };
   }
@@ -164,3 +162,13 @@ function fanWedge(cx: number, cy: number, r: number, east: boolean, north: boole
   return poly;
 }
 const clampRoom = (v: number) => Math.max(0, Math.min(RF, v));
+
+// a camera SILHOUETTE at (x,y,z) aimed into the room along (dx,dy): a housing body quad + a lens-frustum trapezoid (polys) that
+// reads as a camera at ~0.4 ft, not a bare dot — matching the legend's rect+frustum icon (rewalk2 P1, Christo).
+function cameraGlyph(x: number, y: number, z: number, dx: number, dy: number): { polys: Vec3[][]; at: Vec3 } {
+  const m = Math.hypot(dx, dy) || 1, fx = dx / m, fy = dy / m, px = -fy, py = fx;   // forward + perp (horizontal)
+  const body: Vec3[] = [[x - px * 0.22, y - py * 0.22, z + 0.17], [x + px * 0.22, y + py * 0.22, z + 0.17], [x + px * 0.22, y + py * 0.22, z - 0.17], [x - px * 0.22, y - py * 0.22, z - 0.17]];
+  const fcx = x + fx * 1.0, fcy = y + fy * 1.0, fz = z - 0.45;                      // lens cone reaches ~1 ft into the room, tilted down
+  const frustum: Vec3[] = [[x + px * 0.1, y + py * 0.1, z - 0.05], [fcx + px * 0.35, fcy + py * 0.35, fz], [fcx - px * 0.35, fcy - py * 0.35, fz], [x - px * 0.1, y - py * 0.1, z - 0.05]];
+  return { polys: [body, frustum], at: [x, y, z] };
+}

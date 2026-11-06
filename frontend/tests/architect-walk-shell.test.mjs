@@ -47,7 +47,7 @@ ok(secIn.glyphs.filter((g) => g.kind === "wedge").length === 4, `4 coverage wedg
 const allWedgePts = secIn.glyphs.filter((g) => g.kind === "wedge").flatMap((g) => g.polys.flat());
 ok(allWedgePts.every((p) => p[0] >= 0 && p[0] <= RF && p[1] >= 0 && p[1] <= RF), "every coverage wedge stays inside the room [0,10]²");
 ok(secIn.glyphs.some((g) => g.kind === "camera" && g.label === "CAM"), "at least one corner camera is labelled CAM");
-ok(secIn.glyphs.some((g) => g.kind === "camera" && g.lines && g.lines.length > 0), "cameras carry a housing stub (lens + body silhouette, not a bare dot)");
+ok(secIn.glyphs.every((g) => g.kind !== "camera" || g.polys.length >= 2), "every camera is a housing BODY + a lens FRUSTUM (≥2 polys, reads as a camera, not a bare dot)");
 // a room with an EXTERIOR opening (no neighbour → a window/door facing out) gets an outward camera there
 const secExt = walkShell("security", { openings: [{ side: "S", center: 5, span: 3.6, exterior: true }, { side: "N", center: 5, span: 3.2, exterior: false }], kind: "E" });
 ok(secExt.glyphs.filter((g) => g.kind === "camera").length === 5, `an exterior opening adds an OUTWARD camera (4 corner + 1 outward = 5, got ${secExt.glyphs.filter((g) => g.kind === "camera").length})`);

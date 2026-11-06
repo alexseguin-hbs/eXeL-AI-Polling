@@ -22,7 +22,7 @@ function layersFor(phaseId, { showSockets = true } = {}) {
   const hasPhase = !!phaseById(phaseId);
   const layers = [];
   if (hasPhase) {
-    if (pShows === "wiring" || pShows === "water" || pShows === "sewer") layers.push(pShows);
+    if (pShows === "wiring" || pShows === "water" || pShows === "sewer" || pShows === "duct") layers.push(pShows); // mirror the walk (incl. HVAC 'duct') — Thoth
   }
   const socketsOnly = !hasPhase && showSockets && !layers.includes("wiring");
   return { layers, socketsOnly };
@@ -57,6 +57,7 @@ for (const p of DEV_PHASES) {
 ok(layersFor("plumbing").layers.join() === "water", "Plumbing draws only the water layer");
 ok(layersFor("sewer").layers.join() === "sewer", "Sewer draws only the sewer layer");
 ok(layersFor("electrical").layers.join() === "wiring", "Electrical draws only the wiring layer");
+ok(layersFor("hvac").layers.join() === "duct", "HVAC draws only the duct layer (the walked HVAC phase)");
 ok(layersFor("framing").layers.length === 0, "Framing draws NO MEP layer (it is the structure phase)");
 ok(layersFor("foundation").layers.length === 0 && !layersFor("foundation").socketsOnly, "Foundation draws no MEP + no ⚡ aid");
 

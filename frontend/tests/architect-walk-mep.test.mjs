@@ -57,45 +57,45 @@ const trunkZ = dM.sublines.filter((s) => s.pts.every((p) => p[2] > 10.5 && p[2] 
 ok(trunkZ.length >= 4, `the trunk+branch prism runs in the plenum (≥4 longitudinal edges, got ${trunkZ.length})`);
 
 // ══ P2 PLUMBING — valves, risers, hot-over-cold, traps, vents (ISA-flavoured glyphs, IRC placement) ════════════════════
-const BATH = defaultObjectsForRoom("B"); // tub · shower · toilet · sink (+ shelving/mirror, not fixtures)
-const wp = walkMep("water", 0, BATH);
+// rewalk2 P0 (Enki): the HOUSE-LEVEL service equipment (MAIN/manifold/WH water · stack/CO/VTR sewer) is drawn ONCE, in the
+// utility room (kind S). A wet room keeps its per-fixture risers/stops/mixers/traps/vents; a DRY room draws NOTHING.
+const BATH = defaultObjectsForRoom("B"); // tub · shower · toilet · sink
+const STORE = defaultObjectsForRoom("S"); // washer · sink (counter no longer a fixture)
 const gk = (g, k) => g.glyphs.filter((x) => x.kind === k);
-// 1 · one MAIN ball valve + one PEX manifold at the water source
-ok(gk(wp, "valve").length === 1, `water draws exactly one MAIN ball valve (got ${gk(wp, "valve").length})`);
-ok(gk(wp, "manifold").length === 1, `water draws exactly one PEX manifold (got ${gk(wp, "manifold").length})`);
-// 2 · stops per kind — tub/shower get a mixing valve (0 stops), sink 2, toilet 1 → mixer 2 + stop 3
-ok(gk(wp, "mixer").length === 2, `tub + shower each get a mixing valve (2 mixers, got ${gk(wp, "mixer").length})`);
-ok(gk(wp, "stop").length === 3, `sink 2 + toilet 1 angle stops = 3 (got ${gk(wp, "stop").length})`);
-// 3 · every angle stop sits at a real rough-in stub height
-const stubVals = new Set(Object.values(STUB_AFF_FT));
-ok(gk(wp, "stop").every((s) => stubVals.has(Number(s.at[2].toFixed(2)))), "every angle stop sits at a rough-in stub height (STUB_AFF_FT)");
-// 4 · hot-over-cold — hot sublines exist for the non-toilet runs, and NEVER for a toilet-only room
-const hot = wp.sublines.filter((s) => s.color === MEP_COLOR.hot);
-ok(hot.length > 0, `hot (red) supply sublines exist for the non-toilet fixtures (${hot.length})`);
-const toiletOnly = walkMep("water", 0, [{ kind: "toilet", gx: 5, gy: 5 }]);
-ok(toiletOnly.sublines.filter((s) => s.color === MEP_COLOR.hot).length === 0, "a toilet has NO hot supply (0 hot sublines)");
-// 5 · cold floor run is unchanged (Release Process #6) — the shipped `lines` still run at z 0.3
-ok(wp.lines.length > 0 && wp.lines.flat().every((p) => near(p[2], 0.3)), "water cold floor runs stay at z 0.3 (shipped lines untouched)");
-
-// ── #4 PLUMBING REALISM: a water heater in the utility room (kind S) + a laundry box at the washer ──
-const STORE = defaultObjectsForRoom("S"); // counter · washer · sink
+// service equipment appears ONCE, in the utility room (kind S)
 const wpS = walkMep("water", 0, STORE, 0, 0, "S");
+ok(gk(wpS, "valve").length === 1, `the utility room draws the ONE MAIN ball valve (got ${gk(wpS, "valve").length})`);
+ok(gk(wpS, "manifold").length === 1, `the utility room draws the ONE PEX manifold (got ${gk(wpS, "manifold").length})`);
 ok(gk(wpS, "heater").length === 1, `the utility room gets ONE water heater (got ${gk(wpS, "heater").length})`);
 ok(gk(wpS, "laundrybox").length === 1, `the washer gets a recessed laundry box (got ${gk(wpS, "laundrybox").length})`);
-const wpM = walkMep("water", 0, BATH, 0, 0, "B"); // a bath is not the utility room → no heater, no laundry box
-ok(gk(wpM, "heater").length === 0 && gk(wpM, "laundrybox").length === 0, "a non-utility room draws no water heater / laundry box (one per house)");
+// a wet room (bath) draws its per-fixture realism but NO house service equipment
+const wp = walkMep("water", 0, BATH, 0, 0, "B");
+ok(gk(wp, "valve").length === 0 && gk(wp, "manifold").length === 0 && gk(wp, "heater").length === 0, "a wet room draws NO house service equipment (one per house, in the utility room)");
+ok(gk(wp, "mixer").length === 2, `tub + shower each get a mixing valve (2 mixers, got ${gk(wp, "mixer").length})`);
+ok(gk(wp, "stop").length === 3, `sink 2 + toilet 1 angle stops = 3 (got ${gk(wp, "stop").length})`);
+const stubVals = new Set(Object.values(STUB_AFF_FT));
+ok(gk(wp, "stop").every((s) => stubVals.has(Number(s.at[2].toFixed(2)))), "every angle stop sits at a rough-in stub height (STUB_AFF_FT)");
+const hot = wp.sublines.filter((s) => s.color === MEP_COLOR.hot);
+ok(hot.length > 0, `hot (red) supply sublines exist for the non-toilet fixtures (${hot.length})`);
+ok(wp.lines.length > 0 && wp.lines.flat().every((p) => near(p[2], 0.3)), "water cold floor runs stay at z 0.3 (shipped lines untouched)");
+// a DRY room (no fixtures, not the utility room) draws NOTHING in plumbing (rewalk2 P0)
+const dry = walkMep("water", 0, [], 0, 0, "M");
+ok(dry.glyphs.length === 0 && dry.sublines.length === 0 && dry.lines.length === 0, "a dry room (Office/Dining/Bedroom) draws ZERO plumbing glyphs/lines");
 
-// ── SEWER: drains FALL to the SE stack; traps, vents, cleanout, vent-through-roof ──
-const sp = walkMep("sewer", 0, BATH);
-// every drain line falls (z non-increasing) and bottoms out near the stack datum 0.1
+// ── SEWER: drains FALL to the stack; the stack + cleanout + VTR are ONCE (utility room); dry rooms draw nothing ──
+const sp = walkMep("sewer", 0, BATH, 0, 0, "B");
 let allFall = true, bottomsOut = true;
 for (const ln of sp.lines) { for (let i = 1; i < ln.length; i++) if (ln[i][2] > ln[i - 1][2] + 1e-9) allFall = false; if (Math.abs(ln[ln.length - 1][2] - 0.1) > 1e-6) bottomsOut = false; }
 ok(allFall, "every sewer drain FALLS toward the stack (z strictly non-increasing — ¼″/ft slope)");
 ok(bottomsOut, "every drain bottoms out at the stack datum z 0.1");
-ok(gk(sp, "cleanout").length === 1, `exactly one cleanout at the stack base (got ${gk(sp, "cleanout").length})`);
-ok(gk(sp, "vent").length === 1, `exactly one vent-through-roof terminal (VTR) (got ${gk(sp, "vent").length})`);
 ok(gk(sp, "flange").length === 1, `the toilet drains through a closet flange, not a trap (${gk(sp, "flange").length})`);
-// vent sublines rise to the 10-ft ceiling, dashed, in vent green
+ok(gk(sp, "cleanout").length === 0 && gk(sp, "vent").length === 0, "a wet room draws NO stack/cleanout/VTR (the house stack is in the utility room)");
+const spS = walkMep("sewer", 0, STORE, 0, 0, "S");
+ok(gk(spS, "cleanout").length === 1, `the utility room draws the ONE stack cleanout (got ${gk(spS, "cleanout").length})`);
+ok(gk(spS, "vent").length === 1, `the utility room draws the ONE vent-through-roof (got ${gk(spS, "vent").length})`);
+const drySewer = walkMep("sewer", 0, [], 0, 0, "M");
+ok(drySewer.glyphs.length === 0 && drySewer.sublines.length === 0 && drySewer.lines.length === 0, "a dry room draws ZERO sewer glyphs/lines");
+// vent sublines rise to the 10-ft ceiling, dashed, in vent green (per fixture, in the wet room)
 const vents = sp.sublines.filter((s) => s.color === MEP_COLOR.vent && s.dash);
 ok(vents.length > 0 && vents.every((v) => v.pts.some((p) => near(p[2], 10, 1e-6))), "vents rise dashed to the 10-ft ceiling (vent-through-roof)");
 

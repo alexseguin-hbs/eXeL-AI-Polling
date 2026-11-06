@@ -29,6 +29,8 @@ const AFTER_FILL = new Set([
   'arch.walk.layer.hot', 'arch.walk.layer.vent', 'arch.walk.legend.main', 'arch.walk.legend.stop', 'arch.walk.legend.manifold',
   'arch.walk.legend.mixer', 'arch.walk.legend.trap', 'arch.walk.legend.co', 'arch.walk.legend.vtr',
   'arch.walk.legend.trunk', 'arch.walk.legend.register', 'arch.walk.legend.vcd', 'arch.walk.legend.camera', 'arch.walk.legend.coverage',
+  'arch.walk.legend.return', 'arch.walk.legend.ahu', 'arch.walk.legend.wh', 'arch.walk.legend.box', 'arch.walk.legend.dish',
+  'arch.walk.legend.router', 'arch.walk.legend.ap', 'arch.walk.legend.lan',
   // R-CORE </> Code mode (operator 2026-10-15, DD-61/DD-65). ENGLISH ONLY: DD-60 of the same day holds ALL
   // translation work until he says the UX is complete — "dont worry anlut translations until Ux is complete".
   // Listed here, never silent; no fill is dispatched for it.

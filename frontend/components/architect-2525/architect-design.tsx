@@ -82,7 +82,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   // phase bar collapses to a single chip while walking so nothing crowds the picture.
   const [viewportH, setViewportH] = useState(760);
   useEffect(() => { const u = () => setViewportH(window.innerHeight); u(); window.addEventListener("resize", u); return () => window.removeEventListener("resize", u); }, []);
-  const walkH = Math.max(340, viewportH - 300);   // fill the viewport but leave the top chrome room so BOTH sticks stay on-screen (375/390/428)
+  const walkH = Math.max(340, Math.round(viewportH * 0.68));   // ≥60% of the viewport from 667→926 (rewalk2 E2, Athena); the chrome budget scales, not a fixed 300px
   const tiny = homeType === "tiny";
   // The room-based design tooling (⚙ settings · Move Room · ⏎ Enter · exploded RoomDesigner · room 2D/3D) is
   // offered for every UNLOCKED market — Tiny Home AND Home (operator: "replicate tiny features for other options";
