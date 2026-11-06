@@ -9,9 +9,9 @@ import { ROOM_GRID, type PlacedObject } from "./room-objects";
 import { outletPositions, panelAt, OUTLET_AFF_FT, waterRuns, sewerRuns, ductRuns, MEP_COLOR } from "./mep-runs";
 import type { Vec3 } from "./solid-shade";
 
-const RF = ROOM_GRID;                 // 10
-const TOP_PLATE = 8;                  // the 8-ft top plate the wiring ring runs along
-export const DUCT_Z = TOP_PLATE - 0.33;  // 7.67 ft — centreline of an 8-in trunk whose top sits on the 8-ft ceiling (P0: was 9.5, above the ceiling)
+const RF = ROOM_GRID;                 // 10 = the INNER clear room / finished ceiling (ROOM_GRID, one source)
+const TOP_PLATE = RF;                 // the top plate / wiring ring runs just under the 10-ft inner ceiling (keyed to the cube)
+export const DUCT_Z = RF + 1;         // 11 ft — the trunk centreline sits in the PLENUM (10→12), ABOVE the 10-ft inner ceiling (room-layout SHELL_FT)
 const PANEL_BOT = 4, PANEL_H = 2.5, PANEL_W = 1.2;   // the service panel: 1.2×2.5 ft, bottom at 4 ft
 const OUT_W = 0.45, OUT_H = 0.65, PUSH = 0.03;        // an outlet: 0.45×0.65 ft on the wall face, pushed into the room
 

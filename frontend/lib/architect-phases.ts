@@ -70,7 +70,7 @@ const DEV_PHASES_SRC: DevPhase[] = [
     specs: [
       "2×4 / 2×6 studs at 16\" o.c., doubled top plate, single bottom plate",
       "Headers over every opening; king + jack studs carry the load down",
-      "8' wall height; sheathing ties the shear walls",
+      "10' storey (the 10-ft cube); sheathing ties the shear walls",
       "Member depth follows the Design-Settings stud gauge",
     ],
   },

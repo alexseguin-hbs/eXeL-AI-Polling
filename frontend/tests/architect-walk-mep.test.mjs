@@ -20,7 +20,7 @@ ok(w.boxes.filter((b) => b.kind === "outlet").length === 6, `6 outlets → 6 out
 ok(w.boxes.filter((b) => b.kind === "panel").length === 1, "exactly one service panel box");
 ok(w.boxes.filter((b) => b.kind === "outlet").every((b) => near(b.z, OUTLET_AFF_FT)), `every outlet box sits at receptacle height (${OUTLET_AFF_FT} ft)`);
 const zs = lineZs(w);
-ok(zs.length > 0 && Math.min(...zs) >= OUTLET_AFF_FT - 1e-9 && Math.max(...zs) <= 8 + 1e-9, `wires run only between ${OUTLET_AFF_FT} and 8 ft (min ${Math.min(...zs)} · max ${Math.max(...zs)})`);
+ok(zs.length > 0 && Math.min(...zs) >= OUTLET_AFF_FT - 1e-9 && Math.max(...zs) <= ROOM_FT + 1e-9, `wires run only between ${OUTLET_AFF_FT} and the 10-ft top plate (min ${Math.min(...zs)} · max ${Math.max(...zs)})`);
 
 // ── the Y-FLIP — a north-wall outlet (plan gy 0) projects to the FAR half of the walk (world y near ROOM_FT) ──
 ok(w.boxes.some((b) => b.kind === "outlet" && b.pts.some((p) => p[1] > ROOM_FT - 1.5)), "a north-wall outlet is Y-FLIPPED to the FAR side of the walk (not in front of the eye)");
@@ -38,7 +38,7 @@ ok(wa.lines.length > 0 && wa.lines.flat().every((p) => near(p[2], 0.3)), "water 
 
 // ── Duct: at the ceiling but BELOW the 8-ft slab (P0 fix — was 9.5, above the ceiling) ──
 const du = walkMep("duct", 0, []);
-ok(du.lines.length > 0 && du.lines.flat().every((p) => p[2] >= 7.3 && p[2] <= 8.0), "ducts run just under the 8-ft ceiling (z ∈ [7.3, 8.0]), not above it");
+ok(du.lines.length > 0 && du.lines.flat().every((p) => p[2] > 10.0 && p[2] <= 12.0), "ducts run in the PLENUM above the 10-ft inner ceiling (z ∈ (10, 12]) — the nested-cube shell");
 
 console.log(`\nARCHITECT-WALK-MEP ${pass}/${pass + fail} passed · wires+outlets+panel · floor pipes · Y-flip · shared MEP_COLOR`);
 if (fail > 0) process.exit(1);

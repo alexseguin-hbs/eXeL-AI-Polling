@@ -37,7 +37,16 @@ export const TINY_SIDE_FT = ROOM_FT * TINY_GRID; // 30 ft
  * (3 rooms × 3 rooms × 3 storeys of 10-ft voxels = 30 × 30 × 30 ft = 66 × 66 × 66 px), the house its level 1. Gated by
  * tests/architect-voxel-proportion.test.mjs; STOREY_FT must equal TINY_HOME.ceilingFt (room-program) and the room designer's N. */
 export const VOXEL_PX_PER_FT = 66 / TINY_SIDE_FT;   // 2.2 px per foot
-export const STOREY_FT = ROOM_FT;                     // 10 ft — one storey = one room edge = one ceiling
+export const STOREY_FT = ROOM_FT;                     // 10 ft — one storey = one room edge = one INNER clear ceiling
+// THE NESTED CUBE (operator 2026-11-06: "12×12×12 is outer shell to allow for inner of 10×10×10"; "36x36x12 ft is outer
+// shell"). INNER clear room 10×10×10 (what you walk) nested in an OUTER structural shell 12×12×12; the 2-ft band is the
+// plenum/construction zone where the ducts, roof/joists, above-ceiling insulation and the wall assembly live. The whole
+// house is ONE storey (9 rooms on one floor = 900 ft²), so its outer envelope is 36×36×12. ONE source each — the walk,
+// MEP, framing and the house-level roof/foundation/overhead all key off these so the cube can never drift back to 8.
+export const SHELL_FT = ROOM_FT + 2;                  // 12 ft — per-room OUTER shell edge (1-ft construction each side)
+export const PLENUM_FT = SHELL_FT - STOREY_FT;        // 2 ft — the zone ABOVE the 10-ft ceiling (ducts / roof / insulation)
+export const HOUSE_FT = TINY_GRID * SHELL_FT;         // 36 ft — whole-house outer width = depth (3 rooms × 12)
+export const HOUSE_H = SHELL_FT;                       // 12 ft — whole-house outer height (10 inner clear + 2 plenum), ONE storey
 export const STEP_RISE_FT = 7 / 12;                   // a 7-in riser (IRC R311.7.5.1 allows up to 7¾ in)
 
 /** Finalized Tiny Home (operator design) — index = row*3 + col, read top→bottom / left→right.

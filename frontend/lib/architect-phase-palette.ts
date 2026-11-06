@@ -57,10 +57,31 @@ export const STUD_GAUGES: StudGauge[] = [
 /** Exterior / load-bearing is the home's envelope default (the Tiny Home + Cube exterior walls are 2×6). */
 export const DEFAULT_STUD_GAUGE: StudGauge["id"] = "2x6";
 export const STUD_SPACING_IN = 16; // studs on-centre
+// ONE framing palette (reused by the plan 2D, the walk studs AND the roofing/insulation shell — never inline a colour).
+export const FRAME_COLOR = "#e0b872";          // SPF dimensional lumber
+export const FRAME_HEADER_COLOR = "#b88a4a";   // header / LVL (the heavier member over an opening)
 
 export function studGaugeById(id: string | null | undefined): StudGauge {
   return STUD_GAUGES.find((g) => g.id === id) ?? STUD_GAUGES.find((g) => g.id === DEFAULT_STUD_GAUGE)!;
 }
+
+/** ONE stud layout for the plan AND the walk: the on-centre offsets along a wall (ft), 0 … sideFt, always ending at the
+ *  far corner. 10-ft wall @16" o.c. → 0, 1.333 … 9.333, 10 (9 studs). Pure + deterministic (replay law). */
+export function studOffsetsFt(sideFt: number): number[] {
+  const stepFt = STUD_SPACING_IN / 12;   // 16" → 1.333 ft
+  const offs: number[] = [];
+  for (let f = 0; f <= sideFt - 1e-9; f += stepFt) offs.push(f);
+  if (offs[offs.length - 1] < sideFt - 1e-9) offs.push(sideFt);
+  return offs;
+}
+
+const STUD_GAUGE_KEY = "arch2525.studGauge";
+/** Read the operator's saved framing gauge (localStorage, wrapped — a file:// copy has no storage). Default 2×6. */
+export function readStudGauge(): StudGauge["id"] {
+  try { const v = localStorage.getItem(STUD_GAUGE_KEY); if (v === "2x4" || v === "2x6") return v; } catch { /* no storage */ }
+  return DEFAULT_STUD_GAUGE;
+}
+export function writeStudGauge(id: StudGauge["id"]): void { try { localStorage.setItem(STUD_GAUGE_KEY, id); } catch { /* no storage */ } }
 
 /** One stud member mark on the plan (viewBox units, 0..100 for the 10-ft room). */
 export interface StudTick { x1: number; y1: number; x2: number; y2: number; }

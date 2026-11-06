@@ -18,6 +18,7 @@
  */
 import { useRef, useState, useEffect, useCallback, type PointerEvent as RPE } from "react";
 import type { RoomCell } from "@/lib/room-layout";
+import { STOREY_FT } from "@/lib/room-layout";          // the ONE cube/ceiling height source (10 ft) — never hardcode 8
 import { footprintOf, heightOf, elevOf, OBJECT_SPEC, defaultObjectsForRoom, groupOf, wallOf, type PlacedObject } from "@/lib/room-objects";
 import { shade, FACE_SHADE, solidFaces, boxFaces, type Vec3, type Quad } from "@/lib/solid-shade";
 import { showGroupInPhase, phaseById } from "@/lib/architect-phases"; // REUSE the SAME phase→layer filter the 2D/3D designer uses
@@ -31,9 +32,9 @@ import { semanticHex } from "@/lib/wire-core/palette";           // Drone-2525's
 import { useLexicon } from "@/lib/lexicon-context";
 
 const C = { bg: "#0a0f16", ink: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", gold: "#ffd400", wall: "#2a3a4f", floor: "#121b26", ceil: "#0c131c", edge: "#1e2b3a", ground: "#0b1410" };
-const CEIL_FT = 8, EYE_FT = 5.5;                     // one 8-ft storey (the Framing 8' spec); eye at ~5.5 ft (FPS standard)
+const CEIL_FT = STOREY_FT, EYE_FT = 5.5;             // one 10-ft storey = the cube (ONE source: room-layout STOREY_FT); eye ~5.5 ft
 const START_IN = 1.5;                                // the eye starts this far INSIDE the entry door (near wall behind you)
-const DOOR_H = 6.67;                                 // door opening height (6'-8" standard, fits the 8-ft storey)
+const DOOR_H = 6.67;                                 // door opening height (6'-8" standard, real door — unrelated to the storey)
 const WIN_W = 3.6, WIN_SILL = 3, WIN_HEAD = 6.5;     // an exterior window (perimeter wall) — see the outside through it
 // FPS feel (MoT synthesis): ~4.5 ft/s indoor walk, smooth accel; the saved stick calibration (applySets) shapes the
 // deadzone/sensitivity further. HFOV/VFOV keep the picture framed with no letterbox at any container aspect (WALK-11).
