@@ -15,6 +15,13 @@
   your own decisions; document changes") AND presented back as an HTML options card (the ARCH-SIM-PLAN format) carrying the
   risk feedback, so he can SEE → UNDERSTAND → DECIDE and override. Trivial, reversible mechanics (a rename, a typo, a
   re-run) do not need the fleet; when unsure whether a decision is trivial, run the sim.
+  **Implementation runs ADVERSARIAL / REINFORCEMENT ROUNDS, as many as needed, fixing as you go (operator
+  2026-11-06: "do adversarial / reinforcement learning round as needed to implement and simulate risks and fixing as you
+  go").** Do not ship a first cut on its own self-test. Each build iterates: IMPLEMENT → the AsM adversarially ATTACK it
+  by actually exercising the built thing (walk it, stress every room/edge/width, try to break it) and simulate the risks →
+  MoT FIXES what is confirmed (in place, that round) → REBUILD → RE-ATTACK → repeat until a round surfaces zero real
+  defects (loop-until-dry / convergence), each round learning from the last. Only a converged, re-attacked build ships,
+  through the normal gates. This is why the Walk-R2 self-test "green" was NOT shipped — the adversarial round caught 2 P0s.
 - **"SIMULATE" ALWAYS ALSO MEANS "COME UP WITH OPTIONS" (operator 2026-10-25: "any time I say simulate, I also mean
   come up with some options. you must figure out when I mean the simulate menu vs others").** When the operator says
   "simulate", produce 2–4 real, distinct alternatives — never a single answer, never a forced menu he must pick from
