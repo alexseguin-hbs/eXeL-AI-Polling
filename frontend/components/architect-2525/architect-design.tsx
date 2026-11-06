@@ -17,7 +17,7 @@ import type { RoomProgram } from "@/lib/room-program";
 import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, setRoomObjects, toggleRoomFurniture, ROOM_FT, type RoomCell, type ElementKind } from "@/lib/room-layout";
 import { RoomDesigner } from "./room-designer";
 import { ArchitectWalkthrough } from "./architect-walkthrough";
-import { WalkGlyph, EditGlyph } from "./architect-walk-icons";
+import { WalkRaster, EditGlyph } from "./architect-walk-icons";
 import { STANDARD_LAYOUT_REV, type PlacedObject } from "@/lib/room-objects";
 import { PhaseBar } from "./phase-bar";
 import { phaseById, phaseDraw } from "@/lib/architect-phases";
@@ -362,7 +362,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
               {(["edit", "walk"] as const).map((m) => (
                 <button key={m} data-arch-tiny-mode={m} onClick={() => setTinyMode(m)} className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold"
                   style={{ borderColor: tinyMode === m ? C.cyan : C.border, color: tinyMode === m ? C.cyan : C.dim, background: tinyMode === m ? "#0e2233" : "transparent" }}>
-                  {m === "edit" ? <><EditGlyph size={12} /> Edit</> : <><WalkGlyph size={12} /> Walk</>}
+                  {m === "edit" ? <><EditGlyph size={12} /> Edit</> : <><WalkRaster size={14} /> Walk</>}
                 </button>
               ))}
             </div>

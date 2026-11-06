@@ -17,7 +17,7 @@ import { useRef, useState, useCallback, type PointerEvent as RPE } from "react";
 import type { RoomCell } from "@/lib/room-layout";
 import { footprintOf, heightOf, elevOf, OBJECT_SPEC, defaultObjectsForRoom } from "@/lib/room-objects";
 import { shade, FACE_SHADE, solidFaces, boxFaces, type Vec3, type Quad } from "@/lib/solid-shade";
-import { WalkGlyph, LookGlyph, MoveChevron, DoorGlyph } from "./architect-walk-icons";
+import { WalkRaster, LookGlyph, MoveChevron, DoorGlyph } from "./architect-walk-icons";
 
 const C = { bg: "#0a0f16", ink: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", gold: "#ffd400", wall: "#2a3a4f", floor: "#121b26", ceil: "#0c131c", edge: "#1e2b3a" };
 const ROOM_FT = 10, CEIL_FT = 10, EYE_FT = 5.5;      // one storey; eye at ~5.5 ft
@@ -121,9 +121,9 @@ export function ArchitectWalkthrough({ room, layout, onStep, height = 380, title
         {corners.map((c, i) => <line key={`c${i}`} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2} stroke={`${C.cyan}55`} strokeWidth={1.4} />)}
       </svg>
 
-      {/* current-room HUD (custom WalkGlyph, no emoji) */}
+      {/* current-room HUD (operator's WALK MODE raster, no emoji) */}
       <div data-arch-walk-room className="absolute left-2 top-2 flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[11px] font-semibold" style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16ee" }}>
-        <WalkGlyph size={14} /> {room ? `${room.k} · ${room.label}` : "—"}
+        <WalkRaster size={16} /> {room ? `${room.k} · ${room.label}` : "—"}
       </div>
       {/* look-around hint (custom LookGlyph) */}
       <div className="absolute right-2 top-2 flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px]" style={{ borderColor: C.edge, color: C.dim, background: "#0a0f16cc" }}>

@@ -26,6 +26,22 @@ export function WalkGlyph({ size = 16, color = "currentColor", title, style }: I
   );
 }
 
+/** WALK (operator's own raster, 2026-11-06: "use this"). His "WALK MODE" figure from eXeL AI, cropped to a
+ *  transparent-background icon and used on the Edit⇄Walk toggle and the room HUD in place of the drawn WalkGlyph —
+ *  "his pictures, never drawn." Source card: docs/architecture-2525/img/walk-mode-card.png; shipped icon:
+ *  public/architect-2525/walk-mode-icon.png (pinned by sha256 in tests/architect-walk-raster.test.mjs). */
+export function WalkRaster({ size = 14, title, style }: { size?: number; title?: string; style?: CSSProperties }) {
+  return (
+    <img
+      src="/architect-2525/walk-mode-icon.png"
+      alt={title ?? ""}
+      aria-hidden={title ? undefined : true}
+      height={size}
+      style={{ height: size, width: "auto", display: "inline-block", objectFit: "contain", ...style }}
+    />
+  );
+}
+
 /** LOOK — an eye; drag-to-look-around affordance. */
 export function LookGlyph({ size = 16, color = "currentColor", title, style }: IconProps) {
   return (

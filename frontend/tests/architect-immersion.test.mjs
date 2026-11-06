@@ -60,10 +60,10 @@ ok(/addDoor\(/.test(walk) && /nb\.N/.test(walk), "doorways are drawn on walls th
 ok(/export function WalkGlyph\b/.test(icons) && /export function MoveChevron\b/.test(icons) && /<svg/.test(icons), "architect-walk-icons.tsx is a drawn SVG glyph set (WalkGlyph · MoveChevron · LookGlyph · DoorGlyph · EditGlyph) — my own iconology");
 ok(!/🚶|✎|🏃|👣|➡|⬆|⬇|⬅/.test(icons), "the icon set contains NO emoji — every glyph is drawn SVG");
 
-// ── the Design walk mode renders the walkthrough, and the toggle uses the drawn glyphs (no emoji) ──
+// ── the Design walk mode renders the walkthrough; the toggle uses the drawn EditGlyph + the operator's WalkRaster (no emoji) ──
 ok(/<ArchitectWalkthrough\s+room=\{walkRoom\}\s+layout=\{roomLayout\}\s+onStep=\{walkStep\}/.test(design), "Design → Walk renders <ArchitectWalkthrough> (not the tilted voxel dollhouse)");
-ok(/\{m === "edit" \? <><EditGlyph[\s\S]{0,80}?<WalkGlyph/.test(design), "the Edit ⇄ Walk toggle uses the drawn EditGlyph / WalkGlyph");
-ok(!/🚶|✎/.test(design), "no 🚶 / ✎ emoji remain in architect-design.tsx — replaced by the drawn iconology");
+ok(/\{m === "edit" \? <><EditGlyph[\s\S]{0,80}?<WalkRaster/.test(design), "the Edit ⇄ Walk toggle uses EditGlyph (Edit) + the operator's WalkRaster (Walk) — his picture, not a drawing (2026-11-06 'use this'); locked further by architect-walk-raster");
+ok(!/🚶|✎/.test(design), "no 🚶 / ✎ emoji remain in architect-design.tsx");
 
 // ── R6c · ONE shared solid-faces shader (operator 2026-11-04: "use mission planning radar 3D visual … objects and walls mimic shading … same function") ──
 ok(/export function shade\b/.test(solid) && /export const FACE_SHADE\b/.test(solid) && /export function solidFaces\b/.test(solid) && /export function boxFaces\b/.test(solid), "lib/solid-shade.ts exports the one shared shader: shade · FACE_SHADE · solidFaces · boxFaces");
