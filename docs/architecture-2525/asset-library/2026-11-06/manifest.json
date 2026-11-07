@@ -1,0 +1,341 @@
+{
+  "library": "Architect-2525 Asset Library",
+  "export_date": "2026-11-06",
+  "purpose": "Curated export of Architect-2525 visual asset boards generated during the session.",
+  "design_rules": {
+    "primary_style": "dark navy grid, cyan/teal geometry, purple accents",
+    "wood_rule": "Only wood is tan",
+    "usage": "Visual specifications/reference boards; not canonical project truth",
+    "recommended_runtime_pipeline": "GLB + JSON metadata + SVG plan symbol + thumbnail"
+  },
+  "pack_index": {
+    "1": "Shell & Structure (represented in combined Pack 1+2 reference and standalone shell/framing/openings boards)",
+    "2": "Interiors & Fixtures",
+    "3": "Finishes, Lighting & Site",
+    "4": "Appliances, Utilities & Life Systems",
+    "5": "Smart Home & Automation",
+    "6": "Site & Landscape",
+    "7": "Accessibility & Inclusion",
+    "8": "Sustainability & Resilience",
+    "9": "Lifestyle & Personalization",
+    "10": "Operations & Maintenance"
+  },
+  "files": [
+    {
+      "file": "standalone/01_furniture_pack.png",
+      "source": "neon_furniture_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1537342,
+      "sha256": "b943abf268ee26a2d79099aa542c9ccec49b9ea3b597d2d59a0222259224fe7c"
+    },
+    {
+      "file": "standalone/02_utility_pack.png",
+      "source": "futuristic_utility_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1607711,
+      "sha256": "5124ceb1d31198963e9ebea0004fa115802bde989c7c555c1a1e288954af4081"
+    },
+    {
+      "file": "standalone/03_kitchen_pack.png",
+      "source": "architect_2525_neon_kitchen_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1686400,
+      "sha256": "a8297536e08f4e12820871120730c44cabca8a506fa09c24faa281d29b4f093e"
+    },
+    {
+      "file": "standalone/04_bedroom_bath_pack.png",
+      "source": "futuristic_bedroom_and_bath_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1674245,
+      "sha256": "1d739107f0d1aaafb729fe48d8d5ebabd08562e5f53011941d567c792add4f91"
+    },
+    {
+      "file": "standalone/05_openings_pack.png",
+      "source": "architect_2525_openings_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1565432,
+      "sha256": "8fe11f8e283e76eb6d79247ec1e25ef17dfc5f3254723bb9478f3e4edb608128"
+    },
+    {
+      "file": "standalone/06_shell_framing_pack.png",
+      "source": "neon_cad_shell_and_framing_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1749990,
+      "sha256": "da015440720d05aeab8ad685b135b7aa4d35d74883c6e2254e4a39fa1b1e1a49"
+    },
+    {
+      "file": "standalone/07_security_lighting_pack.png",
+      "source": "futuristic_security_and_lighting_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1652054,
+      "sha256": "05391a1d40429998b7ece79dff33139209d65921aa7cf95e8f098db6a3529d89"
+    },
+    {
+      "file": "standalone/08_systems_pack.png",
+      "source": "futuristic_home_systems_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1661009,
+      "sha256": "2dc280453d3a6f6e5494a7c22b85d3fcb4358b12e87abeea303221594e96ed8d"
+    },
+    {
+      "file": "library/01_asset_library_overview.png",
+      "source": "a_highly_detailed_neon_outline_infographic_dashbo.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "PNG",
+      "bytes": 1867441,
+      "sha256": "c8760a519a5745fa68e9767d9a5d72f67e11d4c2a5fb79895a716c794c52581a"
+    },
+    {
+      "file": "library/02_living_room_complete_set.png",
+      "source": "a_single_detailed_isometric_3d_asset_board_info.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "PNG",
+      "bytes": 1874494,
+      "sha256": "c892a57ce1ec07677af6fb2c59120d42088db36059ecf8d994db08909fca4f6a"
+    },
+    {
+      "file": "library/03_living_room_pack_detailed.png",
+      "source": "a_high_detail_neon_cyan_concept_asset_board_in.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1786039,
+      "sha256": "5dcc76bc73814e31d2033f2d987aec4f71e126040f2112815d2374ffaa5db389"
+    },
+    {
+      "file": "library/04_living_room_standalone_assets.png",
+      "source": "a_clean_dark_neon_exel_ai_architect_2525_conc.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1655278,
+      "sha256": "df2b9e9da6a3240592db7f01689243499410d6b5f50609651c48c61b4ae601ff"
+    },
+    {
+      "file": "library/05_house_complete_pack.png",
+      "source": "a_large_detailed_ui_infographic_in_a_dark_neon_c.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1917623,
+      "sha256": "f5cb94a4f60316da2de66ae997e1e016dabbbec0af13f324e93b4d461852e2c3"
+    },
+    {
+      "file": "library/06_10_room_key_elements_grid_v1.png",
+      "source": "a_clean_high_contrast_neon_concept_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 2054007,
+      "sha256": "12c332b4da1a353ef63e37cdec5cebf003946af29d0029096d6b2ffee5c7644f"
+    },
+    {
+      "file": "library/07_10_room_key_elements_grid_v2.png",
+      "source": "a_set_of_10_separate_concept_asset_board_panel.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 2002554,
+      "sha256": "a7610c16aeb535031d6037f57e979cf5f65dca66836427fbf584af223d655df1"
+    },
+    {
+      "file": "packs/pack_01_02_shell_structure_plus_mep_reference.png",
+      "source": "a_widescreen_futuristic_neon_concept_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1857916,
+      "sha256": "93364e80c3803697fc36e07e226038a9f8ff62311bb3eddf43333ae01645d8ae"
+    },
+    {
+      "file": "packs/pack_02_interiors_fixtures.png",
+      "source": "a_highly_detailed_neon_3d_style_ui_concept_asset_b.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1959497,
+      "sha256": "9f4efdb2d04c96d5179ed601eaf7dd604f07098465469426a0025e7ce7e180a7"
+    },
+    {
+      "file": "packs/pack_03_finishes_lighting_site.png",
+      "source": "a_highly_detailed_neon_tech_infographic_with_a_dar.png",
+      "width": 1671,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 2090942,
+      "sha256": "5443f047ade95aa8f5bbbe8de64028c4883bc2eeca7e9caf8a0838c2f2584914"
+    },
+    {
+      "file": "packs/pack_04_appliances_utilities_life_systems.png",
+      "source": "a_highly_detailed_neon_cyber_concept_asset_board.png",
+      "width": 1671,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 2116501,
+      "sha256": "9edd3cc757e5b7d921ee0939da2a9326c68bd270aed6fcd9d189f89a69764ae3"
+    },
+    {
+      "file": "packs/pack_05_smart_home_automation.png",
+      "source": "neon_smart_home_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1715814,
+      "sha256": "f9d41c16aaf20ba601a490bcc913fdb8b17800e2e63a0cfc56dc77a2cfbea3ab"
+    },
+    {
+      "file": "packs/pack_06_site_landscape.png",
+      "source": "neon_cyber_site_landscape_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1817668,
+      "sha256": "4dc8e59f302f73c3dbdd7030a3b48c34676d740b561604e0f182f393628510c7"
+    },
+    {
+      "file": "packs/pack_07_accessibility_inclusion.png",
+      "source": "neon_accessibility_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1640734,
+      "sha256": "3f7cfad83f21a759237ca5ecb62df09e4ba43a60144a297616a2205057fdd26b"
+    },
+    {
+      "file": "packs/pack_08_sustainability_resilience.png",
+      "source": "neon_sustainability_resilience_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1751519,
+      "sha256": "32f613a56081719295604b7791a1bb0256d95fecface31812abe3d64a619c3b1"
+    },
+    {
+      "file": "packs/pack_09_lifestyle_personalization.png",
+      "source": "neon_cyber_lifestyle_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1871061,
+      "sha256": "5dbf86810d82fd88bda7d4829afe7b26bbe29003e8c7ff6a6b30c2f2993d4d4d"
+    },
+    {
+      "file": "packs/pack_10_operations_maintenance.png",
+      "source": "neon_operations_maintenance_asset_board.png",
+      "width": 1672,
+      "height": 941,
+      "format": "PNG",
+      "bytes": 1813700,
+      "sha256": "e489b3b542ede1b2da18dd076077fb44ef64915f42a6d11d935a40a15937ba11"
+    },
+    {
+      "file": "rooms/living_room.png",
+      "source": "architect2525_living_room_asset_board.png",
+      "width": 334,
+      "height": 470,
+      "format": "PNG",
+      "bytes": 199978,
+      "sha256": "ef2b8f2df96be3fd28e44c63ee4a476a92f917dc88b99abc269caa90ea6e81e7"
+    },
+    {
+      "file": "rooms/dining_room.png",
+      "source": "architect2525_dining_room_asset_board.png",
+      "width": 335,
+      "height": 470,
+      "format": "PNG",
+      "bytes": 189118,
+      "sha256": "0341452a448f02a69375c1e016fbce9792943a1208da3437627c7c895cbe2a71"
+    },
+    {
+      "file": "rooms/kitchen.png",
+      "source": "architect2525_kitchen_asset_board.png",
+      "width": 334,
+      "height": 470,
+      "format": "PNG",
+      "bytes": 200549,
+      "sha256": "01de5efc24857c4a65cf87d7be32ba3ab2cb5fd16f32b8488a7df473b3581225"
+    },
+    {
+      "file": "rooms/office.png",
+      "source": "architect2525_office_asset_board.png",
+      "width": 335,
+      "height": 470,
+      "format": "PNG",
+      "bytes": 187349,
+      "sha256": "24eeb4acfebef569048c2ea3efb68c1ab1d5d6659592fc70cfa62bf2a55c40e3"
+    },
+    {
+      "file": "rooms/master_bedroom.png",
+      "source": "architect2525_master_bedroom_asset_board.png",
+      "width": 334,
+      "height": 470,
+      "format": "PNG",
+      "bytes": 193888,
+      "sha256": "b0915ae04c02ed7ecf60b8fa420fe026c2118c29f0f042634d0053559edbc0ba"
+    },
+    {
+      "file": "rooms/master_closet.png",
+      "source": "architect2525_master_closet_asset_board.png",
+      "width": 334,
+      "height": 471,
+      "format": "PNG",
+      "bytes": 194696,
+      "sha256": "a93396a05784dcb2f1d8a3b6182178da030e016c1e4344da10e836d84712b084"
+    },
+    {
+      "file": "rooms/master_bath.png",
+      "source": "architect2525_master_bath_asset_board.png",
+      "width": 335,
+      "height": 471,
+      "format": "PNG",
+      "bytes": 189230,
+      "sha256": "58dd16900b9a1dbb01be24e76e3abc6908332a02da885ece81622c4ec5fbfb17"
+    },
+    {
+      "file": "rooms/laundry.png",
+      "source": "architect2525_laundry_asset_board.png",
+      "width": 334,
+      "height": 471,
+      "format": "PNG",
+      "bytes": 191328,
+      "sha256": "1a2f1090738a44fab62a4c0621c1f6348ef828f7af62cbdda80634dabd1bd903"
+    },
+    {
+      "file": "rooms/entry_porch.png",
+      "source": "architect2525_entry_porch_asset_board.png",
+      "width": 335,
+      "height": 471,
+      "format": "PNG",
+      "bytes": 185615,
+      "sha256": "fe577d87e649b4d7e60028b20803a23dfd7dbef79a15d40a3a6b46fbb73c57d7"
+    },
+    {
+      "file": "rooms/storage.png",
+      "source": "architect2525_storage_asset_board.png",
+      "width": 334,
+      "height": 471,
+      "format": "PNG",
+      "bytes": 185145,
+      "sha256": "14647778b80420a6349ac32794509d3ada9952baaaefefb99271273a41c50d7d"
+    }
+  ],
+  "missing": []
+}
