@@ -6,8 +6,9 @@
  * finished floor). All coordinates are in FEET on the 10×10 room grid (0..10); the renderer scales ×10 to viewBox.
  */
 import { wallOf, type PlacedObject, type ObjectKind } from "./room-objects";
+import { ROOM_FT } from "./room-layout";
 
-export const ROOM_FT = 10; // 10 ft room edge (one grid cell = 1 ft)
+export { ROOM_FT }; // 10 ft room edge (one grid cell = 1 ft) — ONE source (room-layout, Wave 0 · P0·I), re-exported for the existing consumers
 
 /** Format decimal feet as standard feet-inches, inches rounded to the nearest inch: 3 → 3'-0", 6.7 → 6'-8". */
 export function ftIn(feet: number): string {

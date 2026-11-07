@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0",
+  "id": "furniture.dining_chair.v1",
+  "label": "Dining Chair",
+  "category": "FURNITURE",
+  "model": "../models/dining_chair.glb",
+  "planSymbol": "../plan/dining_chair.svg",
+  "dimensionsM": {
+    "width": 0.46,
+    "depth": 0.46,
+    "height": 1.1
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ],
+    "freeRotation": false
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "rooms": [
+    "DINING"
+  ],
+  "phaseCompatibility": [
+    "INTERIOR_DESIGN"
+  ],
+  "placement": {
+    "collisionFootprint": "BOUNDING_BOX_XY",
+    "allowTranslate": true,
+    "allowRotate": true,
+    "allowScale": false
+  },
+  "rebuildSpec": {
+    "generator": "source/build_assets.py::dining_chair",
+    "targetLOD": "browser-lightweight",
+    "sourceReference": "ARCHITECT-2525 3D ASSET STARTER PACK concept board",
+    "notes": "Simplified native geometry intended for browser placement. Rebuild or replace model while preserving id, dimensions contract, pivot, mounting and metadata."
+  }
+}

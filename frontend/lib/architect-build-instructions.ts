@@ -19,9 +19,20 @@
  * fixture-unit sizing and the adopted local code edition — so each rule-of-thumb carries a `codeFlag`. Counts are PLANNING
  * quantities (round up + add waste on site). Pure + deterministic (no Date.now / Math.random) → replay-safe + gate-tested.
  * Crew-days assume a 4-person crew (friends/family + paid help).
+ *
+ * REVISION A · P0·H — THE DIRECTIONS MATCH THE DRAWING (2026-11-07). Every number the walk draws is read from ITS source,
+ * never retyped here: the wall height is the storey (room-layout STOREY_FT), the stud spacing + members are the framing
+ * phase's own (architect-phase-palette STUD_SPACING_IN · STUD_GAUGES · studOffsetsFt), the outlet height is where the walk
+ * mounts them (mep-runs OUTLET_AFF_FT, printed through dim-annot ftIn) and circuits/amps/wire come from the SAME
+ * electricSpecs the room designer, BOM and walk read. The numbers are also carried as a NUMERIC `truth` block so the gate
+ * (tests/architect-directions-drift.test.mjs) compares numbers, not prose.
  */
 import type { FormId } from "@/lib/architect-sim-environment";
 import { ELEMENTS, FRAME_MATERIALS, METHODS, PRINT_MATERIALS, ROOFS, SIM_MODELS, modelById, optFor, type BuildOption, type ElementName, type SimModel } from "@/lib/architect-sim-options";
+import { STOREY_FT, TINY_ROOM_LAYOUT, layoutTotals } from "@/lib/room-layout";
+import { STUD_SPACING_IN, STUD_GAUGES, studOffsetsFt } from "@/lib/architect-phase-palette";
+import { OUTLET_AFF_FT, electricSpecs } from "@/lib/mep-runs";
+import { ftIn } from "@/lib/dim-annot";
 
 /** One line of the take-off: a piece of Equipment / Material, its Dimensions, and the Count (Number / Length). */
 export interface MaterialItem {
@@ -46,6 +57,7 @@ export interface BuildInstructions {
   totalCrewDays: number;
   weeks: number;       // crew-days → calendar weeks at a 4-person crew, 5 days/week
   note: string;
+  truth: DirectionsTruth;   // the NUMERIC one-source facts the directions print (H1) — gated against the drawing
 }
 
 export const CREW = 4;              // a crew of four — friends/family + paid help (Vision-2525)
@@ -74,18 +86,22 @@ const r0 = (n: number) => Math.round(n);
 export function formGeometry(m: SimModel): FormGeo {
   const a = m.areaFt2;
   if (m.id === "tiny") {
-    const L = 28, W = 10, per = 2 * (L + W), ht = 8;              // 10 × 28 catalog preset
+    const L = 28, W = 10, per = 2 * (L + W), ht = STOREY_FT;      // 10 × 28 catalog preset · the one storey the walk draws
     return { areaFt2: a, sideFt: L, perimeterFt: per, wallHt: ht, extWallLF: per, intWallLF: 18, wallAreaFt2: r0(per * ht), roofAreaFt2: r0(a * 1.05), windows: 4, doors: 1 };
   }
   if (m.id === "eco-sphere") {
-    const rad = Math.sqrt(a / Math.PI), circ = 2 * Math.PI * rad, ht = 8;   // dome footprint → radius
+    const rad = Math.sqrt(a / Math.PI), circ = 2 * Math.PI * rad, ht = STOREY_FT;   // dome footprint → radius · the one storey
     return { areaFt2: a, sideFt: r0(2 * rad), perimeterFt: r0(circ), wallHt: ht, extWallLF: r0(circ), intWallLF: 60, wallAreaFt2: r0(2 * Math.PI * rad * rad), roofAreaFt2: r0(2 * Math.PI * rad * rad), windows: 6, doors: 1 };
   }
-  const side = Math.sqrt(a), per = 4 * side, ht = 8;             // cube 3×3 (30 × 30 @ 900 ft²)
+  const side = Math.sqrt(a), per = 4 * side, ht = STOREY_FT;     // cube 3×3 (30 × 30 @ 900 ft²) · the 10-ft storey the walk draws
   return { areaFt2: a, sideFt: r0(side), perimeterFt: r0(per), wallHt: ht, extWallLF: r0(per), intWallLF: r0(per), wallAreaFt2: r0(per * ht), roofAreaFt2: r0(a * 1.15), windows: 9, doors: 10 };
 }
 const cubicYards = (ft2: number, inches: number) => Math.round((ft2 * (inches / 12) / 27) * 10) / 10;
-const studs = (lf: number) => r0(lf / (16 / 12) * 1.15);        // @16" o.c. + 15% for corners / openings
+/** Stud count along wall runs — the SAME on-centre layout the plan + walk draw (studOffsetsFt @ STUD_SPACING_IN), + 15% for
+ *  corners / openings. Never a private stud step here — the one spacing lives in architect-phase-palette. */
+const studs = (...runsFt: number[]) => r0(runsFt.reduce((s, lf) => s + studOffsetsFt(lf).length, 0) * 1.15);
+const REBAR_GRID_IN = 16;         // the slab rebar grid (#4 both ways) — its own rule, NOT the stud spacing
+const WIRE_LF_PER_CIRCUIT = 40;   // planning wire run per home-run circuit, for a form with no room layout to route
 const sheets = (ft2: number) => r0(ft2 / 32 + 0.5);             // 4×8 = 32 ft² panels, round up
 const commas = (n: number) => String(r0(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");  // deterministic thousands (no locale)
 
@@ -120,6 +136,38 @@ export function frameWeight(m: SimModel, opt: BuildOption, g: FormGeo = formGeom
   return { key: frameSystemKey(opt), label: sys.label, wallPsf: sys.wallPsf, wallLb, roofLb, totalLb: wallLb + roofLb, sw: sys.sw };
 }
 
+// ── ELECTRICAL TAKE-OFF — the drawing's own numbers (Revision A · P0·H) ──────────────────────────────────────────────
+export interface ElectricTakeoff { outlets: number; circuits: number; amps: number; wireFt: number; }
+/** The electrical numbers come from the SAME electricSpecs the room designer, BOM and walk read (≤8 outlets per 15 A
+ *  circuit · panel→outlet wire), so the directions match the drawing. The Cube sums the standard 9-room layout room by
+ *  room — the walk draws each room's own outlets + wiring (room.outlets → walkMep). A form with no room layout spreads
+ *  outlets at the NEC 210.52 6-ft rule and takes circuits/amps from the one formula, with wire as a planning run per
+ *  circuit (its grid route would be the wrong geometry). Pure + deterministic. */
+export function electricTakeoff(m: SimModel, g: FormGeo): ElectricTakeoff {
+  if (m.id === "3x3-grid") {
+    const per = TINY_ROOM_LAYOUT.map((r) => electricSpecs(r.outlets));
+    const sum = (k: keyof ReturnType<typeof electricSpecs>) => per.reduce((s, x) => s + x[k], 0);
+    return { outlets: layoutTotals(TINY_ROOM_LAYOUT).outlets, circuits: sum("circuits"), amps: sum("amps"), wireFt: sum("wireFt") };
+  }
+  const outlets = r0(g.perimeterFt / 6);        // NEC 210.52: no point along a wall is > 6 ft from a receptacle
+  const es = electricSpecs(outlets);
+  return { outlets, circuits: es.circuits, amps: es.amps, wireFt: r0(es.circuits * WIRE_LF_PER_CIRCUIT) };
+}
+
+/** The NUMERIC facts the directions print — each read from its one source (H1: numbers, not prose), so a gate can compare
+ *  them to the drawing's constants instead of parsing text. */
+export interface DirectionsTruth extends ElectricTakeoff {
+  wallHtFt: number;        // = formGeometry.wallHt = STOREY_FT (the storey the walk draws)
+  studSpacingIn: number;   // = STUD_SPACING_IN (the plan's + walk's stud layout)
+  studGauges: string[];    // = STUD_GAUGES labels (the framing phase's 2×4 / 2×6)
+  outletAffFt: number;     // = OUTLET_AFF_FT (where the walk mounts a receptacle)
+  outletAffText: string;   // = ftIn(OUTLET_AFF_FT) — the feet-inches the directions print
+}
+export function directionsTruth(m: SimModel | null, g?: FormGeo): DirectionsTruth {
+  const e: ElectricTakeoff = m && g ? electricTakeoff(m, g) : { outlets: 0, circuits: 0, amps: 0, wireFt: 0 };
+  return { wallHtFt: g?.wallHt ?? STOREY_FT, studSpacingIn: STUD_SPACING_IN, studGauges: STUD_GAUGES.map((x) => x.label), outletAffFt: OUTLET_AFF_FT, outletAffText: ftIn(OUTLET_AFF_FT), ...e };
+}
+
 // ── FOUNDATION ──────────────────────────────────────────────────────────────────────────────────────────────────────
 function foundationSteps(m: SimModel, g: FormGeo): Omit<InstructionStep, "n">[] {
   if (tiny(m)) return [
@@ -139,7 +187,7 @@ function foundationSteps(m: SimModel, g: FormGeo): Omit<InstructionStep, "n">[] 
       mi("Compacted base", "4–6″ gravel", `${g.areaFt2} ft²`),
     ] },
     { title: "Rebar & vapor barrier", crewDays: 1, items: [
-      mi("Rebar grid", "#4 (½″) @ 16″ o.c. both ways", `≈ ${r0(2 * g.areaFt2 / (16 / 12))} LF`),
+      mi("Rebar grid", `#4 (½″) @ ${REBAR_GRID_IN}″ o.c. both ways`, `≈ ${r0(2 * g.areaFt2 / (REBAR_GRID_IN / 12))} LF`),
       mi("Vapor barrier", "10-mil poly over fill", `${r0(g.areaFt2 * 1.1)} ft²`),
     ] },
     { title: "Pour & cure slab", crewDays: 2, codeFlag: "mix PSI + adopted IRC edition", items: [
@@ -188,10 +236,11 @@ function framingSteps(m: SimModel, opt: BuildOption, g: FormGeo): Omit<Instructi
   const fm = FRAME_MATERIALS[opt.frameMaterial];
   const raise = opt.frameMaterial === "aluminum" ? 4 : opt.frameMaterial === "all-steel" ? 3 : opt.frameMaterial === "steel-corners" ? 2 : 2;
   const totalWallLF = g.extWallLF + g.intWallLF;
-  const member = opt.frameMaterial === "wood" ? "2×4 / 2×6 stud" : `${fm.label} stud`;
+  const gauges = STUD_GAUGES.map((x) => x.label).join(" / ");           // "2×4 / 2×6" — the framing phase's own members
+  const member = opt.frameMaterial === "wood" ? `${gauges} stud` : `${fm.label} stud (${gauges} equivalent)`;
   return [
     { title: `Sill & wall framing (${fm.label.toLowerCase()})`, crewDays: raise, codeFlag: opt.frameMaterial !== "wood" ? "metal-frame thermal break + connectors" : undefined, items: [
-      mi(member, `${fm.spec}; ${g.wallHt}′ wall`, `≈ ${studs(totalWallLF)} studs @16″ o.c.`),
+      mi(member, `${fm.spec}; ${g.wallHt}′ wall`, `≈ ${studs(g.extWallLF, g.intWallLF)} studs @${STUD_SPACING_IN}″ o.c.`),
       mi("Plates", "1 bottom + 2 top", `≈ ${r0(totalWallLF * 3)} LF`),
     ] },
     { title: "Headers & openings", crewDays: 1, items: [
@@ -298,18 +347,18 @@ function electricalSteps(m: SimModel, opt: BuildOption, g: FormGeo): Omit<Instru
       mi("Panel directory + trip test", "GFCI/AFCI", "× 1"),
     ] },
   ];
-  const circuits = r0(g.areaFt2 / 60);
-  const outlets = r0(g.perimeterFt / 6);        // NEC 210.52 spacing
+  const e = electricTakeoff(m, g);              // the drawing's own outlets · circuits · amps · wire (mep-runs electricSpecs)
+  const { outlets, circuits } = e;
   return [
     { title: "Service & panel", crewDays: 1, codeFlag: "NEC load calc", items: [
-      mi("Main panel", "200 A", "× 1"),
+      mi("Main panel", `sized by the NEC load calc; carries ≥ ${e.amps} A of 15 A branch circuits (${circuits} × 15 A)`, "× 1"),
       mi("Feeder", "2/0 Cu (or 4/0 Al)", `≈ ${r0(g.sideFt)} LF`),
       mi("Ground electrode conductor", "#4 Cu", "1 run"),
     ] },
     { title: "Rough-in & protection", crewDays: 3, codeFlag: "NEC 210 + adopted edition", items: [
-      mi("Outlets / boxes", "12–16″ AFF; NEC 210.52 (≤6 ft / ≤12 ft)", `≈ ${outlets} outlets`),
+      mi("Outlets / boxes", `${ftIn(OUTLET_AFF_FT)} AFF (where the walk mounts them); NEC 210.52 (≤6 ft / ≤12 ft)`, `≈ ${outlets} outlets`),
       mi("Circuits", printed ? "fed down pre-printed chases" : "home-run to the panel", `≈ ${circuits}`),
-      mi("Cable", "14/12-ga Romex (or conduit)", `≈ ${r0(circuits * 40)} LF`),
+      mi("Cable", "14/12-ga Romex (or conduit)", `≈ ${e.wireFt} LF`),
     ] },
     { title: "Trim-out & final test", crewDays: 2, items: [
       mi("Devices & plates", "switches, receptacles, fixtures", `≈ ${outlets}`),
@@ -370,7 +419,7 @@ export function phaseLabel(element: ElementName, m: SimModel, opt: BuildOption):
 /** The full per-phase build plan for a form at a build option. */
 export function buildInstructions(formId: FormId, opt?: BuildOption): BuildInstructions {
   const m = modelById(formId);
-  if (!m) return { formId, label: formId, option: opt ?? { method: "stick-framed", printMaterial: "cement", frameMaterial: "wood", roof: "gable" }, methodLabel: "", phases: [], totalCrewDays: 0, weeks: 0, note: "unknown form" };
+  if (!m) return { formId, label: formId, option: opt ?? { method: "stick-framed", printMaterial: "cement", frameMaterial: "wood", roof: "gable" }, methodLabel: "", phases: [], totalCrewDays: 0, weeks: 0, note: "unknown form", truth: directionsTruth(null) };
   const o = opt ?? m.native;
   const g = formGeometry(m);
   const phases: PhaseInstructions[] = BUILD_ORDER.map((element) => {
@@ -387,7 +436,7 @@ export function buildInstructions(formId: FormId, opt?: BuildOption): BuildInstr
   const weeks = Math.round((totalCrewDays / (CREW * DAYS_PER_WEEK)) * 2) / 2;
   return {
     formId, label: m.label, option: o, methodLabel: METHODS[o.method].label,
-    phases, totalCrewDays, weeks,
+    phases, totalCrewDays, weeks, truth: directionsTruth(m, g),
     note: `Each step lists the equipment, its size, and how much — a planning take-off you can price and buy from. Counts come from this design's footprint, perimeter and wall length (round up and add waste on site). Crew-days are hands-on work for a ${CREW}-person crew — not calendar time; the real calendar time (including the 28-day concrete cure, inspections and trade sequencing) is the months shown in Time to build above. This is a planning estimate — the buildable numbers come from a licensed pro and your local building code, and each phase flags where.`,
   };
 }

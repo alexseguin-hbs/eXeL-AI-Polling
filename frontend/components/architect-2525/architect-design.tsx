@@ -146,8 +146,9 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const focusRoom = focusRoomId ? roomLayout.find((r) => r.id === focusRoomId) : undefined;
   // Emit the entered room UP so the left Vision Tree can context-scope to it (additive; null on Back-to-house).
   useEffect(() => { onFocusRoom?.(focusRoom ? { k: focusRoom.k, label: focusRoom.label } : null); }, [focusRoomId, focusRoom?.k, focusRoom?.label]);
-  // F9 stretch — resize the focused room's width/depth within the 10-ft envelope (1..2 cells = 10..20 ft),
-  // clamped by the pure resizeRoomInLayout; persisted; feeds layoutSqft so area/cost track the change.
+  // F9 stretch — resize the focused room's width/depth in 10-ft cells, clamped by the pure resizeRoomInLayout — FENCED at 1 cell
+  // (room-layout STRETCH_MAX_CELLS, operator 2026-11-07 via MoT P0·I) until the WalkSpace contract (Rev K) honours w/d: the
+  // walk/framing/MEP/shell libs draw a hardcoded 10×10, so a 20×10 room must not exist. Persisted; feeds layoutSqft.
   const stretch = (dim: "w" | "d", delta: number) => {
     if (!focusRoomId || !focusRoom) return;
     const w = dim === "w" ? focusRoom.w + delta : focusRoom.w;
@@ -465,14 +466,16 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                     </span>
                   </div>
                 ))}
-                {/* F9 stretch — widen/deepen the room within the 10-ft envelope (10↔20 ft); feeds sqft/cost. */}
+                {/* F9 stretch — FENCED at 10 ft (operator 2026-11-07 via MoT P0·I): the control stays but is disabled, fenced until the
+                    WalkSpace contract (Rev K) honours w/d — a 20×10 room must not exist while the walk draws 10×10. The clamp itself
+                    lives in room-layout (STRETCH_MAX_CELLS); a dead-but-enabled button would be a defect, so it reads disabled. */}
                 {([["Width", "w"], ["Depth", "d"]] as const).map(([lbl, dim]) => (
                   <div key={dim} className="flex items-center justify-between gap-2 text-[10px]" style={{ color: C.text }}>
                     <span style={{ color: C.dim }}>{lbl}</span>
                     <span className="flex items-center gap-1">
-                      <button data-arch-stretch-dec={dim} onClick={() => stretch(dim, -1)} className="rounded border px-1.5" style={{ borderColor: C.border, color: C.text }}>◀</button>
+                      <button data-arch-stretch-dec={dim} disabled aria-disabled onClick={() => stretch(dim, -1)} className="rounded border px-1.5" style={{ borderColor: C.border, color: C.dim, opacity: 0.4 }}>◀</button>
                       <span className="w-8 text-center tabular-nums" style={{ color: C.gold }}>{focusRoom[dim] * ROOM_FT} ft</span>
-                      <button data-arch-stretch-inc={dim} onClick={() => stretch(dim, 1)} className="rounded border px-1.5" style={{ borderColor: C.border, color: C.text }}>▶</button>
+                      <button data-arch-stretch-inc={dim} disabled aria-disabled onClick={() => stretch(dim, 1)} className="rounded border px-1.5" style={{ borderColor: C.border, color: C.dim, opacity: 0.4 }}>▶</button>
                     </span>
                   </div>
                 ))}
