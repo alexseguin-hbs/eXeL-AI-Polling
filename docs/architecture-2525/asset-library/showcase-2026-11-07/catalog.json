@@ -1,0 +1,948 @@
+{
+  "source": "Architect2525_10Pack_Select_Asset_Spin.html (operator 2026-11-07; sha256 6e43620e99e4fd36c70471e43bc83603a7a71a3aef0766d779ab7239c85fcaa5)",
+  "extracted": "const PACKS (line 127) parsed as JSON — no code executed",
+  "packs": [
+    {
+      "n": 1,
+      "title": "Shell & Structure",
+      "assets": [
+        {
+          "label": "Foundation Slab",
+          "family": "slab",
+          "glb": null,
+          "id": "foundation.slab.v1"
+        },
+        {
+          "label": "Wall Framing",
+          "family": "wallFrame",
+          "glb": null,
+          "id": "wall.framing.v1"
+        },
+        {
+          "label": "Wall Sheathing",
+          "family": "panel",
+          "glb": null,
+          "id": "wall.sheathing.v1"
+        },
+        {
+          "label": "Roof Truss",
+          "family": "roofTruss",
+          "glb": null,
+          "id": "roof.truss.v1"
+        },
+        {
+          "label": "Roof Sheathing",
+          "family": "roofPanel",
+          "glb": null,
+          "id": "roof.sheathing.v1"
+        },
+        {
+          "label": "Door (Interior / Exterior)",
+          "family": "door",
+          "glb": "opening.door.interior.v1",
+          "id": "opening.door.interior.v1"
+        },
+        {
+          "label": "Sliding Glass Door",
+          "family": "slidingDoor",
+          "glb": null,
+          "id": "sliding.glass.door.v1"
+        },
+        {
+          "label": "Window (Single)",
+          "family": "window",
+          "glb": "opening.window.unit.v1",
+          "id": "opening.window.unit.v1"
+        },
+        {
+          "label": "Window (Wide)",
+          "family": "wideWindow",
+          "glb": null,
+          "id": "window.wide.v1"
+        },
+        {
+          "label": "Skylight",
+          "family": "skylight",
+          "glb": null,
+          "id": "skylight.v1"
+        },
+        {
+          "label": "Exterior Siding",
+          "family": "siding",
+          "glb": null,
+          "id": "exterior.siding.v1"
+        },
+        {
+          "label": "Electrical Panel",
+          "family": "electricalPanel",
+          "glb": null,
+          "id": "electrical.panel.v1"
+        },
+        {
+          "label": "Outlet + Switch",
+          "family": "outletSwitch",
+          "glb": null,
+          "id": "outlet.switch.v1"
+        },
+        {
+          "label": "Air Handler (HVAC)",
+          "family": "airHandler",
+          "glb": null,
+          "id": "air.handler.hvac.v1"
+        },
+        {
+          "label": "Vent Register",
+          "family": "vent",
+          "glb": null,
+          "id": "vent.register.v1"
+        },
+        {
+          "label": "Water Heater",
+          "family": "waterHeater",
+          "glb": null,
+          "id": "water.heater.v1"
+        },
+        {
+          "label": "Plumbing Manifold + Utility Sink",
+          "family": "plumbingManifold",
+          "glb": null,
+          "id": "plumbing.manifold.utility.sink.v1"
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "title": "Interiors & Fixtures",
+      "assets": [
+        {
+          "label": "Sofa",
+          "family": "sofa",
+          "glb": "furniture.sofa.3seat.v1",
+          "id": "furniture.sofa.3seat.v1"
+        },
+        {
+          "label": "Armchair",
+          "family": "chair",
+          "glb": "furniture.lounge_chair.v1",
+          "id": "furniture.lounge_chair.v1"
+        },
+        {
+          "label": "Coffee Table",
+          "family": "coffeeTable",
+          "glb": "furniture.coffee_table.v1",
+          "id": "furniture.coffee_table.v1"
+        },
+        {
+          "label": "TV Console",
+          "family": "console",
+          "glb": null,
+          "id": "tv.console.v1"
+        },
+        {
+          "label": "Bookshelf",
+          "family": "shelf",
+          "glb": null,
+          "id": "bookshelf.v1"
+        },
+        {
+          "label": "Floor Lamp",
+          "family": "floorLamp",
+          "glb": null,
+          "id": "floor.lamp.v1"
+        },
+        {
+          "label": "Refrigerator",
+          "family": "fridge",
+          "glb": "appliance.refrigerator.frenchdoor.v1",
+          "id": "appliance.refrigerator.frenchdoor.v1"
+        },
+        {
+          "label": "Range + Oven",
+          "family": "range",
+          "glb": null,
+          "id": "range.oven.v1"
+        },
+        {
+          "label": "Range Hood",
+          "family": "hood",
+          "glb": null,
+          "id": "range.hood.v1"
+        },
+        {
+          "label": "Base Cabinets (w/ Sink)",
+          "family": "baseCabinet",
+          "glb": "kitchen.base_run.sink.v1",
+          "id": "kitchen.base_run.sink.v1"
+        },
+        {
+          "label": "Wall Cabinets",
+          "family": "wallCabinet",
+          "glb": "kitchen.upper_cabinets.v1",
+          "id": "kitchen.upper_cabinets.v1"
+        },
+        {
+          "label": "Kitchen Island + Stools",
+          "family": "island",
+          "glb": null,
+          "id": "kitchen.island.stools.v1"
+        },
+        {
+          "label": "Toilet",
+          "family": "toilet",
+          "glb": "bath.toilet.v1",
+          "id": "bath.toilet.v1"
+        },
+        {
+          "label": "Bath Vanity + Sink",
+          "family": "vanity",
+          "glb": "bath.vanity_sink.v1",
+          "id": "bath.vanity_sink.v1"
+        },
+        {
+          "label": "Shower Stall",
+          "family": "shower",
+          "glb": "bath.shower.enclosure.v1",
+          "id": "bath.shower.enclosure.v1"
+        },
+        {
+          "label": "Bathtub",
+          "family": "tub",
+          "glb": null,
+          "id": "bathtub.v1"
+        },
+        {
+          "label": "Mirror (LED)",
+          "family": "mirror",
+          "glb": null,
+          "id": "mirror.led.v1"
+        },
+        {
+          "label": "Towel Bar",
+          "family": "towelBar",
+          "glb": null,
+          "id": "towel.bar.v1"
+        },
+        {
+          "label": "Bed (Queen / King)",
+          "family": "bed",
+          "glb": "furniture.bed.queen.v1",
+          "id": "furniture.bed.queen.v1"
+        },
+        {
+          "label": "Nightstand",
+          "family": "nightstand",
+          "glb": "furniture.nightstand.v1",
+          "id": "furniture.nightstand.v1"
+        },
+        {
+          "label": "Dresser",
+          "family": "dresser",
+          "glb": "furniture.dresser.v1",
+          "id": "furniture.dresser.v1"
+        },
+        {
+          "label": "Wardrobe",
+          "family": "wardrobe",
+          "glb": null,
+          "id": "wardrobe.v1"
+        },
+        {
+          "label": "Bedroom Bench",
+          "family": "bench",
+          "glb": null,
+          "id": "bedroom.bench.v1"
+        },
+        {
+          "label": "Table Lamp",
+          "family": "tableLamp",
+          "glb": null,
+          "id": "table.lamp.v1"
+        },
+        {
+          "label": "Desk",
+          "family": "desk",
+          "glb": null,
+          "id": "desk.v1"
+        },
+        {
+          "label": "Office Chair",
+          "family": "officeChair",
+          "glb": null,
+          "id": "office.chair.v1"
+        },
+        {
+          "label": "File Cabinet",
+          "family": "fileCabinet",
+          "glb": null,
+          "id": "file.cabinet.v1"
+        },
+        {
+          "label": "Monitor",
+          "family": "monitor",
+          "glb": null,
+          "id": "monitor.v1"
+        },
+        {
+          "label": "Desk Lamp",
+          "family": "deskLamp",
+          "glb": null,
+          "id": "desk.lamp.v1"
+        },
+        {
+          "label": "Washer",
+          "family": "washer",
+          "glb": "appliance.washer.frontload.v1",
+          "id": "appliance.washer.frontload.v1"
+        },
+        {
+          "label": "Dryer",
+          "family": "dryer",
+          "glb": "appliance.dryer.frontload.v1",
+          "id": "appliance.dryer.frontload.v1"
+        },
+        {
+          "label": "Utility Sink",
+          "family": "utilitySink",
+          "glb": null,
+          "id": "utility.sink.v1"
+        },
+        {
+          "label": "Storage Shelving",
+          "family": "storageShelf",
+          "glb": null,
+          "id": "storage.shelving.v1"
+        },
+        {
+          "label": "Storage Cabinet",
+          "family": "storageCabinet",
+          "glb": null,
+          "id": "storage.cabinet.v1"
+        },
+        {
+          "label": "Storage Bin",
+          "family": "storageBin",
+          "glb": null,
+          "id": "storage.bin.v1"
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "title": "Finishes, Lighting & Site",
+      "assets": [
+        {
+          "label": "Drywall Panel",
+          "family": "panel",
+          "glb": null,
+          "id": "drywall.panel.v1"
+        },
+        {
+          "label": "Paint (Can)",
+          "family": "paintCan",
+          "glb": null,
+          "id": "paint.can.v1"
+        },
+        {
+          "label": "Flooring (Wood/LVP)",
+          "family": "flooring",
+          "glb": null,
+          "id": "flooring.wood.lvp.v1"
+        },
+        {
+          "label": "Tile",
+          "family": "tile",
+          "glb": null,
+          "id": "tile.v1"
+        },
+        {
+          "label": "Baseboard",
+          "family": "trim",
+          "glb": null,
+          "id": "baseboard.v1"
+        },
+        {
+          "label": "Crown Molding",
+          "family": "trim",
+          "glb": null,
+          "id": "crown.molding.v1"
+        },
+        {
+          "label": "Trim Casing",
+          "family": "trimCasing",
+          "glb": null,
+          "id": "trim.casing.v1"
+        },
+        {
+          "label": "Ceiling Light (LED)",
+          "family": "ceilingLight",
+          "glb": null,
+          "id": "ceiling.light.led.v1"
+        },
+        {
+          "label": "Recessed Light",
+          "family": "recessedLight",
+          "glb": null,
+          "id": "recessed.light.v1"
+        },
+        {
+          "label": "Pendant Light",
+          "family": "pendant",
+          "glb": null,
+          "id": "pendant.light.v1"
+        },
+        {
+          "label": "Chandelier",
+          "family": "chandelier",
+          "glb": null,
+          "id": "chandelier.v1"
+        },
+        {
+          "label": "Wall Sconce",
+          "family": "sconce",
+          "glb": null,
+          "id": "wall.sconce.v1"
+        },
+        {
+          "label": "Track Light",
+          "family": "trackLight",
+          "glb": null,
+          "id": "track.light.v1"
+        },
+        {
+          "label": "Under-Cabinet Light",
+          "family": "underCabinet",
+          "glb": null,
+          "id": "under.cabinet.light.v1"
+        },
+        {
+          "label": "Security Camera",
+          "family": "camera",
+          "glb": null,
+          "id": "security.camera.v1"
+        },
+        {
+          "label": "Video Doorbell",
+          "family": "doorbell",
+          "glb": null,
+          "id": "video.doorbell.v1"
+        },
+        {
+          "label": "Motion Sensor (PIR)",
+          "family": "sensor",
+          "glb": null,
+          "id": "motion.sensor.pir.v1"
+        },
+        {
+          "label": "Smart Thermostat",
+          "family": "thermostat",
+          "glb": null,
+          "id": "smart.thermostat.v1"
+        },
+        {
+          "label": "Smart Hub",
+          "family": "hub",
+          "glb": null,
+          "id": "smart.hub.v1"
+        },
+        {
+          "label": "Smart Lock",
+          "family": "smartLock",
+          "glb": null,
+          "id": "smart.lock.v1"
+        },
+        {
+          "label": "Smoke / CO Detector",
+          "family": "detector",
+          "glb": null,
+          "id": "smoke.co.detector.v1"
+        },
+        {
+          "label": "Exterior Door",
+          "family": "door",
+          "glb": null,
+          "id": "exterior.door.v1"
+        },
+        {
+          "label": "Garage Door",
+          "family": "garageDoor",
+          "glb": null,
+          "id": "garage.door.v1"
+        },
+        {
+          "label": "Exterior Siding",
+          "family": "siding",
+          "glb": null,
+          "id": "exterior.siding.v1"
+        },
+        {
+          "label": "Roofing (Shingle)",
+          "family": "roofPanel",
+          "glb": null,
+          "id": "roofing.shingle.v1"
+        },
+        {
+          "label": "Gutter + Downspout",
+          "family": "gutter",
+          "glb": null,
+          "id": "gutter.downspout.v1"
+        },
+        {
+          "label": "Deck / Porch",
+          "family": "deck",
+          "glb": null,
+          "id": "deck.porch.v1"
+        },
+        {
+          "label": "Fence (Panel)",
+          "family": "fence",
+          "glb": null,
+          "id": "fence.panel.v1"
+        },
+        {
+          "label": "HVAC Condenser",
+          "family": "condenser",
+          "glb": null,
+          "id": "hvac.condenser.v1"
+        },
+        {
+          "label": "Generator (Standby)",
+          "family": "generator",
+          "glb": null,
+          "id": "generator.standby.v1"
+        },
+        {
+          "label": "Septic System",
+          "family": "tank",
+          "glb": null,
+          "id": "septic.system.v1"
+        },
+        {
+          "label": "Water Well System",
+          "family": "well",
+          "glb": null,
+          "id": "water.well.system.v1"
+        },
+        {
+          "label": "Irrigation System",
+          "family": "irrigation",
+          "glb": null,
+          "id": "irrigation.system.v1"
+        },
+        {
+          "label": "Path Light",
+          "family": "pathLight",
+          "glb": null,
+          "id": "path.light.v1"
+        },
+        {
+          "label": "Landscape Light (Spot)",
+          "family": "spotLight",
+          "glb": null,
+          "id": "landscape.light.spot.v1"
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "title": "Appliances, Utilities & Life Systems",
+      "assets": [
+        {
+          "label": "Refrigerator",
+          "family": "fridge",
+          "glb": "appliance.refrigerator.frenchdoor.v1",
+          "id": "appliance.refrigerator.frenchdoor.v1"
+        },
+        {
+          "label": "Range + Oven",
+          "family": "range",
+          "glb": null,
+          "id": "range.oven.v1"
+        },
+        {
+          "label": "Range Hood",
+          "family": "hood",
+          "glb": null,
+          "id": "range.hood.v1"
+        },
+        {
+          "label": "Dishwasher",
+          "family": "dishwasher",
+          "glb": null,
+          "id": "dishwasher.v1"
+        },
+        {
+          "label": "Microwave",
+          "family": "microwave",
+          "glb": null,
+          "id": "microwave.v1"
+        },
+        {
+          "label": "Garbage Disposal",
+          "family": "disposal",
+          "glb": null,
+          "id": "garbage.disposal.v1"
+        },
+        {
+          "label": "Washer",
+          "family": "washer",
+          "glb": "appliance.washer.frontload.v1",
+          "id": "appliance.washer.frontload.v1"
+        },
+        {
+          "label": "Dryer",
+          "family": "dryer",
+          "glb": "appliance.dryer.frontload.v1",
+          "id": "appliance.dryer.frontload.v1"
+        },
+        {
+          "label": "Laundry Sink",
+          "family": "utilitySink",
+          "glb": null,
+          "id": "laundry.sink.v1"
+        },
+        {
+          "label": "Drying Rack",
+          "family": "dryingRack",
+          "glb": null,
+          "id": "drying.rack.v1"
+        },
+        {
+          "label": "Iron + Board",
+          "family": "ironBoard",
+          "glb": null,
+          "id": "iron.board.v1"
+        },
+        {
+          "label": "Utility Shelving",
+          "family": "storageShelf",
+          "glb": null,
+          "id": "utility.shelving.v1"
+        },
+        {
+          "label": "Water Heater",
+          "family": "waterHeater",
+          "glb": null,
+          "id": "water.heater.v1"
+        },
+        {
+          "label": "Water Softener",
+          "family": "softener",
+          "glb": null,
+          "id": "water.softener.v1"
+        },
+        {
+          "label": "HVAC (Furnace)",
+          "family": "airHandler",
+          "glb": null,
+          "id": "hvac.furnace.v1"
+        },
+        {
+          "label": "AC Condenser",
+          "family": "condenser",
+          "glb": null,
+          "id": "ac.condenser.v1"
+        },
+        {
+          "label": "Air Purifier",
+          "family": "purifier",
+          "glb": null,
+          "id": "air.purifier.v1"
+        },
+        {
+          "label": "Dehumidifier",
+          "family": "dehumidifier",
+          "glb": null,
+          "id": "dehumidifier.v1"
+        },
+        {
+          "label": "Electrical Panel",
+          "family": "electricalPanel",
+          "glb": null,
+          "id": "electrical.panel.v1"
+        },
+        {
+          "label": "Battery (Home)",
+          "family": "battery",
+          "glb": null,
+          "id": "battery.home.v1"
+        },
+        {
+          "label": "Inverter",
+          "family": "inverter",
+          "glb": null,
+          "id": "inverter.v1"
+        },
+        {
+          "label": "Generator (Standby)",
+          "family": "generator",
+          "glb": null,
+          "id": "generator.standby.v1"
+        },
+        {
+          "label": "EV Charger",
+          "family": "evCharger",
+          "glb": null,
+          "id": "ev.charger.v1"
+        },
+        {
+          "label": "Solar Inverter",
+          "family": "solarInverter",
+          "glb": null,
+          "id": "solar.inverter.v1"
+        },
+        {
+          "label": "Smoke Detector",
+          "family": "detector",
+          "glb": null,
+          "id": "smoke.detector.v1"
+        },
+        {
+          "label": "CO Detector",
+          "family": "coDetector",
+          "glb": null,
+          "id": "co.detector.v1"
+        },
+        {
+          "label": "Leak Detector",
+          "family": "leakDetector",
+          "glb": null,
+          "id": "leak.detector.v1"
+        },
+        {
+          "label": "Water Shutoff Valve",
+          "family": "shutoffValve",
+          "glb": null,
+          "id": "water.shutoff.valve.v1"
+        },
+        {
+          "label": "Air Quality Monitor",
+          "family": "airQuality",
+          "glb": null,
+          "id": "air.quality.monitor.v1"
+        },
+        {
+          "label": "Smart Hub (Home)",
+          "family": "hub",
+          "glb": null,
+          "id": "smart.hub.home.v1"
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "title": "Smart Home & Automation",
+      "assets": [
+        {
+          "label": "Smart Thermostat",
+          "family": "thermostat",
+          "glb": null,
+          "id": "smart.thermostat.v1"
+        },
+        {
+          "label": "Smart Hub + Router",
+          "family": "router",
+          "glb": null,
+          "id": "smart.hub.router.v1"
+        },
+        {
+          "label": "Entry Access Keypad / Smart Lock",
+          "family": "keypad",
+          "glb": null,
+          "id": "entry.access.keypad.smart.lock.v1"
+        },
+        {
+          "label": "Scene Switch / Control Panel",
+          "family": "controlPanel",
+          "glb": null,
+          "id": "scene.switch.control.panel.v1"
+        },
+        {
+          "label": "Motorized Shade + Track",
+          "family": "shade",
+          "glb": null,
+          "id": "motorized.shade.track.v1"
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "title": "Site & Landscape",
+      "assets": [
+        {
+          "label": "Driveway Pad",
+          "family": "driveway",
+          "glb": null,
+          "id": "driveway.pad.v1"
+        },
+        {
+          "label": "Front Steps + Landing",
+          "family": "steps",
+          "glb": null,
+          "id": "front.steps.landing.v1"
+        },
+        {
+          "label": "Fence + Gate Section",
+          "family": "gate",
+          "glb": null,
+          "id": "fence.gate.section.v1"
+        },
+        {
+          "label": "Walkway Pavers",
+          "family": "pavers",
+          "glb": null,
+          "id": "walkway.pavers.v1"
+        },
+        {
+          "label": "Planter Bed + Tree",
+          "family": "planterTree",
+          "glb": null,
+          "id": "planter.bed.tree.v1"
+        }
+      ]
+    },
+    {
+      "n": 7,
+      "title": "Accessibility & Inclusion",
+      "assets": [
+        {
+          "label": "Entry Ramp",
+          "family": "ramp",
+          "glb": null,
+          "id": "entry.ramp.v1"
+        },
+        {
+          "label": "Grab Bar Set",
+          "family": "grabBars",
+          "glb": null,
+          "id": "grab.bar.set.v1"
+        },
+        {
+          "label": "Lever Handle Door Set",
+          "family": "leverDoor",
+          "glb": null,
+          "id": "lever.handle.door.set.v1"
+        },
+        {
+          "label": "Roll-In Shower Bench",
+          "family": "rollInShower",
+          "glb": null,
+          "id": "roll.in.shower.bench.v1"
+        },
+        {
+          "label": "Accessible Toilet",
+          "family": "accessibleToilet",
+          "glb": null,
+          "id": "accessible.toilet.v1"
+        }
+      ]
+    },
+    {
+      "n": 8,
+      "title": "Sustainability & Resilience",
+      "assets": [
+        {
+          "label": "Solar Panel Array",
+          "family": "solarArray",
+          "glb": null,
+          "id": "solar.panel.array.v1"
+        },
+        {
+          "label": "Home Battery Pack",
+          "family": "battery",
+          "glb": null,
+          "id": "home.battery.pack.v1"
+        },
+        {
+          "label": "Rainwater Cistern",
+          "family": "cistern",
+          "glb": null,
+          "id": "rainwater.cistern.v1"
+        },
+        {
+          "label": "Backup Inverter + Controller",
+          "family": "inverterController",
+          "glb": null,
+          "id": "backup.inverter.controller.v1"
+        },
+        {
+          "label": "Storm Shutter Window",
+          "family": "stormShutter",
+          "glb": null,
+          "id": "storm.shutter.window.v1"
+        }
+      ]
+    },
+    {
+      "n": 9,
+      "title": "Lifestyle & Personalization",
+      "assets": [
+        {
+          "label": "Area Rug",
+          "family": "rug",
+          "glb": null,
+          "id": "area.rug.v1"
+        },
+        {
+          "label": "Entertainment Console + TV",
+          "family": "entertainmentTV",
+          "glb": null,
+          "id": "entertainment.console.tv.v1"
+        },
+        {
+          "label": "Accent Chair + Side Table",
+          "family": "accentChairTable",
+          "glb": null,
+          "id": "accent.chair.side.table.v1"
+        },
+        {
+          "label": "Bookshelf + Decor",
+          "family": "bookshelfDecor",
+          "glb": null,
+          "id": "bookshelf.decor.v1"
+        },
+        {
+          "label": "Wall Art Set",
+          "family": "wallArt",
+          "glb": null,
+          "id": "wall.art.set.v1"
+        }
+      ]
+    },
+    {
+      "n": 10,
+      "title": "Operations & Maintenance",
+      "assets": [
+        {
+          "label": "Tool Cart + Kit",
+          "family": "toolCart",
+          "glb": null,
+          "id": "tool.cart.kit.v1"
+        },
+        {
+          "label": "Access Ladder",
+          "family": "ladder",
+          "glb": null,
+          "id": "access.ladder.v1"
+        },
+        {
+          "label": "Service Access Panel",
+          "family": "servicePanel",
+          "glb": null,
+          "id": "service.access.panel.v1"
+        },
+        {
+          "label": "Filter Set",
+          "family": "filters",
+          "glb": null,
+          "id": "filter.set.v1"
+        },
+        {
+          "label": "Shutoff Valve Manifold",
+          "family": "valveManifold",
+          "glb": null,
+          "id": "shutoff.valve.manifold.v1"
+        }
+      ]
+    }
+  ]
+}
