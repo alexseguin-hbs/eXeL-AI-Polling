@@ -6,7 +6,10 @@
   decision protocol and it governs EVERY decision — a ship/push, an architecture fork, a prioritization, a gate change,
   a copy change, which backlog item to do next, how to implement one. Before MoT rules, the 12 AsM (Aset · Asar · Athena
   · Christo · Enki · Enlil · Krishna · Odin · Pangu · Sofia · Thoth · Thor) each simulate the RISKS from their own lens
-  (grounded in the real code, not guessed) and return risk/value feedback; MoT then rules as H.I. on that feedback. For a
+  (grounded in the real code, not guessed) and return risk/value feedback — a PRE-VOTE, then a recorded TEAM VOTE tally
+  (each Master's pick + risk/value per option, so the team reduces risk together; operator 2026-11-06 ×2, reaffirmed
+  2026-11-07 "MoT make all decisions with AsM pre-vote and vote to reduce risk as a team"); MoT then rules as H.I. on that
+  tally — never a solo MoT call on a non-trivial decision. For a
   SHIP the 12-AsM pass is the adversarial walkthrough gate (find → verify → fix any confirmed P0/P1 before push — this is
   what caught the Walk-R2 P0s the self-test missed); for a direction/prioritization fork it is the risk simulation (each
   Master scores risk + value per option, MoT rules). Calibrate the weight to the decision — a full find-verify fleet for a
