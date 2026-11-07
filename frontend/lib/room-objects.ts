@@ -6,7 +6,6 @@
  * wireframe box (voxel-house furnBox) at the same cell. Pure + deterministic (no Math.random — replay law):
  * ids are derived from kind + a running index, so identical actions produce identical layouts.
  */
-
 export const ROOM_GRID = 10; // 10×10 ft floor (1-ft cells), matching a 10'×10' room voxel
 
 export type ObjectKind =
@@ -18,7 +17,12 @@ export type ObjectKind =
   | "closetrod" | "shelving" | "shoerack" | "rug" | "mirror" | "lamp" | "rangehood"
   // S3 — structural SHELL system (hex wall panel + roof panel) — the EcoSpheres shell folded into Architect assets
   | "shell" | "roof"
-  | "door" | "window";
+  | "door" | "window"
+  // Rev A' — the LIBRARY-ASSET CARRIER: a PlacedObject whose geometry/dimensions come from a GLB in the operator's 139-asset
+  // library (resolved by `assetId`), for the ~112 library assets that have NO legacy ObjectKind. It is NOT a palette/registry
+  // kind (filtered out of OBJECT_KINDS); OBJECT_SPEC / OBJECT_ICON / ASSET_GROUP carry a generic entry so every keyed read
+  // stays total, while footprintOf / heightOf read the real dims from LIBRARY_METADATA via assetDimsFt.
+  | "asset";
 
 export type Rot = 0 | 90 | 180 | 270;
 
@@ -27,7 +31,7 @@ export type Rot = 0 | 90 | 180 | 270;
  *  the placed object, read by footprintOf / heightOf as size → variant → kind default (every caller inherits). Set ONLY
  *  through setSize (range- + room-clamped); a missing axis falls through to the variant / kind default. */
 export interface ObjectSize { w?: number; d?: number; h?: number }
-export interface PlacedObject { id: string; kind: ObjectKind; gx: number; gy: number; rot: Rot; variant?: string; elev?: number; /* ft above finished floor — window sill, wall-mounted TV, etc. */ size?: ObjectSize; /* Rev A — per-instance dims (ft) */ }
+export interface PlacedObject { id: string; kind: ObjectKind; gx: number; gy: number; rot: Rot; variant?: string; elev?: number; /* ft above finished floor — window sill, wall-mounted TV, etc. */ size?: ObjectSize; /* Rev A — per-instance dims (ft) */ assetId?: string; /* Rev A' — for kind "asset", the operator's library id (architect2525.asset.*) whose GLB + dimensionsM drive it */ }
 
 /** Size variants (feet) for kinds that come in standard sizes — beds Twin/Full/Queen/King; doors/windows standard R.O.
  *  sizes (FIX-1). `h` (height, ft) is optional — set for openings where height matters (operator: window height). */
@@ -85,6 +89,8 @@ export function heightOf(o: PlacedObject): number {
   if (o.size && isPosFinite(o.size.h)) return o.size.h;
   const vs = VARIANTS[o.kind];
   if (vs && o.variant) { const v = vs.find((x) => x.id === o.variant); if (v && typeof v.h === "number") return v.h; }
+  // Rev A' — kind "asset" falls through to OBJECT_SPEC.asset (the generic box); a placed library asset carries its real
+  // GLB dims on `o.size` (set by fromPlacedAsset from the registry), which the first line already returns.
   return OBJECT_SPEC[o.kind].h;
 }
 
@@ -125,9 +131,13 @@ export const OBJECT_SPEC: Record<ObjectKind, { label: string; emoji: string; w: 
   roof:      { label: "Roof Panel", emoji: "🔺", w: 5,  d: 5,   h: 0.7, onWall: false, color: "#8899aa" },
   door:    { label: "Door",    emoji: "🚪", w: 3, d: 0.4, h: 6.7, onWall: true,  color: "#22c55e" }, // FIX-2 thin panel, 6'8" opening
   window:  { label: "Window",  emoji: "▭",  w: 3, d: 0.5, h: 4,   onWall: true,  color: "#19c8cf" }, // FIX-2 thin sash, ~4'
+  // Rev A' — generic carrier spec for a library asset: per-instance dims come from LIBRARY_METADATA via assetDimsFt; this
+  // cyan box is only the absent-mesh fallback (the real GLB faces come from the loader). Filtered out of OBJECT_KINDS.
+  asset:   { label: "Asset",   emoji: "📦", w: 2, d: 2, h: 2,     onWall: false, color: "#19c8cf" },
 };
 
-export const OBJECT_KINDS = Object.keys(OBJECT_SPEC) as ObjectKind[];
+/** The placeable palette/registry kinds — every OBJECT_SPEC key EXCEPT the generic "asset" carrier (Rev A'). */
+export const OBJECT_KINDS = (Object.keys(OBJECT_SPEC) as ObjectKind[]).filter((k): k is Exclude<ObjectKind, "asset"> => k !== "asset");
 
 const clampCell = (n: number) => Math.max(0, Math.min(ROOM_GRID - 1, Math.round(n)));
 
@@ -343,7 +353,7 @@ export function rotateObject(objs: PlacedObject[], id: string): PlacedObject[] {
 /** Footprint (ft) for a placed object — per axis: its per-instance size (Rev A) → its variant's size → the kind default. */
 export function footprintOf(o: PlacedObject): { w: number; d: number } {
   const vs = VARIANTS[o.kind];
-  let base = { w: OBJECT_SPEC[o.kind].w, d: OBJECT_SPEC[o.kind].d };
+  let base = { w: OBJECT_SPEC[o.kind].w, d: OBJECT_SPEC[o.kind].d };   // kind "asset" → the generic box; o.size (below) carries the real GLB dims
   if (vs && o.variant) { const v = vs.find((x) => x.id === o.variant); if (v) base = { w: v.w, d: v.d }; }
   const sz = o.size;
   if (!sz) return base;
@@ -647,6 +657,10 @@ export const ASSET_PARAMS: Record<ObjectKind, AssetParams> = {
   roof:       A("roof.sheathing",          ["roof.sheathing.v1"],                       "roof-sheathing",           true,  "BUILDING_ELEMENTS",  "STRUCTURE",         "GENERAL",                 PH_SHELL, "BUILT_IN", ["ROOF_LINE"], [1],    R(2, 10), R(2, 10),   R(0.3, 1.5)),
   door:       A("door.interior.exterior",  ["opening.door.interior.v1"],                "door-interior-exterior",   true,  "DOORS_WINDOWS",      "OPENING",           "GENERAL",                 PH_OPEN,  "WALL",     WL,            [1],    R(2, 4),      R(0.1, 0.75), R(6.5, 8),    "ARCH_ACCENT", "REFERENCE"),
   window:     A("window.single",           ["opening.window.unit.v1"],                  "window-single",            true,  "DOORS_WINDOWS",      "OPENING",           "GENERAL",                 PH_OPEN,  "WALL",     WL,            [1],    R(1.5, 8),    R(0.2, 0.75), R(1.5, 6),    "GLASS", "REFERENCE"),
+  // Rev A' — the generic LIBRARY-ASSET CARRIER's defaults (kind "asset"): a sentinel id (never a real library id, never in
+  // OBJECT_KINDS/registry/palette — gates iterate OBJECT_KINDS, which excludes it), GENERAL room, a wide resize range so
+  // setSize works on any of the 139. Real dims come from LIBRARY_METADATA via assetDimsFt; this row only backs the keyed reads.
+  asset:      A("carrier",                  [],                                          "carrier",                  false, "FURNITURE",          "FURNITURE",         "GENERAL",                 PH_FURN,  "FLOOR",    FL,            [],     R(0.1, 20),   R(0.1, 20),   R(0.1, 12)),
 };
 /** The asset definition of a kind (Rev A). */
 export function assetParamsOf(kind: ObjectKind): AssetParams { return ASSET_PARAMS[kind]; }
@@ -828,6 +842,7 @@ const ASSET_GROUP: Record<ObjectKind, AssetGroup> = {
   toilet: "Bath", tub: "Bath", shower: "Bath", sink: "Bath", washer: "Bath",
   door: "Openings", window: "Openings",
   shell: "Shell", roof: "Shell",
+  asset: "Living", // Rev A' — generic carrier; never surfaced in the palette (OBJECT_KINDS excludes "asset")
 };
 /** Which system group a kind belongs to (S7). */
 export function groupOf(kind: ObjectKind): AssetGroup { return ASSET_GROUP[kind]; }

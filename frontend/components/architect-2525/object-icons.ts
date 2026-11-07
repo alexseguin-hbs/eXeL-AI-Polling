@@ -6,7 +6,7 @@
 import {
   Bed, Sofa, CookingPot, Utensils, Monitor, Toilet, Bath, Droplet, WashingMachine, DoorOpen,
   RectangleHorizontal, Archive, Lamp, Tv, Refrigerator, Flame, ShowerHead, DoorClosed, Library, Armchair,
-  Hexagon, Triangle, Shirt, Rows3, Footprints, Frame, RectangleVertical, LampFloor, Fan, type LucideIcon,
+  Hexagon, Triangle, Shirt, Rows3, Footprints, Frame, RectangleVertical, LampFloor, Fan, Package, type LucideIcon,
 } from "lucide-react";
 import { type ObjectKind } from "@/lib/room-objects";
 
@@ -18,4 +18,5 @@ export const OBJECT_ICON: Record<ObjectKind, LucideIcon> = {
   shell: Hexagon, roof: Triangle,
   closetrod: Shirt, shelving: Rows3, shoerack: Footprints, rug: Frame, mirror: RectangleVertical, lamp: LampFloor, rangehood: Fan,
   door: DoorOpen, window: RectangleHorizontal,
+  asset: Package, // Rev A' — generic library-asset carrier (not surfaced in the palette)
 };

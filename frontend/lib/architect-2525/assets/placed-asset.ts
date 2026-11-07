@@ -10,9 +10,9 @@
  * through fromPlacedAsset keeps them when the prior object is passed. Pure + deterministic; nothing here can reach
  * canonical truth (a PlacedAsset is never written into an ArchitectProject).
  */
-import { ROOM_GRID, elevOf, kindByAssetId, ASSET_PARAMS, type ObjectKind, type PlacedObject, type Rot } from "@/lib/room-objects";
+import { ROOM_GRID, elevOf, kindByAssetId, ASSET_PARAMS, type PlacedObject, type Rot } from "@/lib/room-objects";
 import { ftFromM, mFromFt } from "./dimensions";
-import { ALLOWED_DEGREES } from "./registry";
+import { ALLOWED_DEGREES, assetById } from "./registry";
 
 export interface PlacedAsset {
   instanceId: string;
@@ -27,7 +27,7 @@ export interface PlacedAsset {
 export function toPlacedAsset(o: PlacedObject, roomId: string): PlacedAsset {
   return {
     instanceId: o.id,
-    assetId: ASSET_PARAMS[o.kind].id,
+    assetId: o.kind === "asset" ? (o.assetId ?? "") : ASSET_PARAMS[o.kind].id,
     roomId,
     positionM: { x: mFromFt(o.gx + 0.5), y: mFromFt(ROOM_GRID - (o.gy + 0.5)), z: mFromFt(elevOf(o)) },
     rotationDeg: o.rot,
@@ -51,14 +51,21 @@ export function snapRotation(deg: number): Rot {
 /** PlacedAsset → PlacedObject. An unknown assetId yields null (WireGuard: never a crash). `prior` (the object this record
  *  was made from, when known) carries its variant / per-instance size, which the semantic record does not hold. */
 export function fromPlacedAsset(a: PlacedAsset, prior?: PlacedObject): PlacedObject | null {
-  const kind: ObjectKind | undefined = kindByAssetId(a.assetId);
-  if (!kind) return null;
+  const kind = kindByAssetId(a.assetId);
+  // Rev A' — a library asset with no legacy kind is carried as kind "asset" + assetId, so all 139 round-trip (never null
+  // for a known library id; truly-unknown ids still yield null — WireGuard). Its real GLB dims (ft) ride on `size`, which
+  // footprintOf / heightOf read, so PLAN and WALK share one footprint. `prior.size` (a user resize) wins via `keep` below.
+  const def = kind ? null : assetById(a.assetId);
+  if (!kind && !def) return null;
   const gx = ftFromM(a.positionM.x) - 0.5;
   const gy = ROOM_GRID - ftFromM(a.positionM.y) - 0.5;
   const elev = ftFromM(a.positionM.z);
   const r6 = (n: number) => Math.round(n * 1e6) / 1e6;
-  const base: PlacedObject = { id: a.instanceId, kind, gx: r6(gx), gy: r6(gy), rot: snapRotation(a.rotationDeg) };
-  const keep = prior && prior.kind === kind ? { ...(prior.variant ? { variant: prior.variant } : {}), ...(prior.size ? { size: prior.size } : {}) } : {};
+  const base: PlacedObject = kind
+    ? { id: a.instanceId, kind, gx: r6(gx), gy: r6(gy), rot: snapRotation(a.rotationDeg) }
+    : { id: a.instanceId, kind: "asset", assetId: a.assetId, size: { w: def!.dimensions.w, d: def!.dimensions.d, h: def!.dimensions.h }, gx: r6(gx), gy: r6(gy), rot: snapRotation(a.rotationDeg) };
+  const sameId = prior && (kind ? prior.kind === kind : prior.kind === "asset" && prior.assetId === a.assetId);
+  const keep = sameId ? { ...(prior!.variant ? { variant: prior!.variant } : {}), ...(prior!.size ? { size: prior!.size } : {}) } : {};
   // an elevation that is just the kind's default (a window's 3-ft sill) stays implicit, as the designer stores it
   const explicit = prior && typeof prior.elev === "number";
   const withElev = explicit || Math.abs(elev - elevOf(base)) > 1e-6 ? { elev: r6(elev) } : {};

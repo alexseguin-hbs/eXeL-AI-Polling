@@ -377,8 +377,12 @@ ok(!resolvePlacement({ ...SOFA, dimensionsM: { width: 0, depth: 1, height: 1 } }
   ok(layouts.every((lay) => roomObjectsToPlaced(lay, "x").instances.every((i) => metadataById(i.assetId) && i.authority === "ILLUSTRATIVE" && [0, 90, 180, 270].includes(i.rotationDeg) && [i.positionM.x, i.positionM.y, i.positionM.z].every((n) => Number.isFinite(n) && n >= 0))), "every standard-layout instance maps to registry metadata, ILLUSTRATIVE, an orthogonal yaw, finite non-negative metres (the designer's ft box, not his dimensionsM, is what those layouts were clamped against — see the report)");
   const libOnly = Object.values(ASSET_REGISTRY).find((a) => a.kind === null && a.mounting === "FLOOR");
   if (libOnly) {
+    const baseN = placedToRoomObjects(seq.state, ASSET_REGISTRY, "B1").length;
     const lo = placeAsset(seq.state, { assetId: libOnly.id, roomId: "B1", positionM: { x: 1.5, y: 1.5 } }, rctx);
-    ok(lo.ok && placedToRoomObjects(lo.state, ASSET_REGISTRY, "B1").length === 4 && unpersistableInstances(lo.state, ASSET_REGISTRY).length === 1 && unpersistableInstances(lo.state, ASSET_REGISTRY)[0].assetId === libOnly.id && unpersistableInstances(seq.state, ASSET_REGISTRY).length === 0, `a library asset with no legacy kind (${libOnly.id}) places fine but cannot enter RoomCell.objects — listed by unpersistableInstances, never silently lost`);
+    const loObjs = placedToRoomObjects(lo.state, ASSET_REGISTRY, "B1");
+    const loAsset = loObjs.find((o) => o.kind === "asset" && o.assetId === libOnly.id);
+    const loRound = placedToRoomObjects(roomObjectsToPlaced(loObjs, "B1"), ASSET_REGISTRY, "B1", loObjs);
+    ok(lo.ok && loObjs.length === baseN + 1 && !!loAsset && unpersistableInstances(lo.state, ASSET_REGISTRY).length === 0 && unpersistableInstances(seq.state, ASSET_REGISTRY).length === 0 && J(loRound) === J(loObjs), `Rev A' — a library asset with no legacy kind (${libOnly.id}) now PLACES and PERSISTS into RoomCell.objects via the kind "asset" carrier (round-trips byte-identical); nothing unpersistable`);
   }
   const unknown = placedToRoomObjects({ instances: [{ ...seq.state.instances[0], assetId: "nope.v1" }] }, ASSET_REGISTRY);
   ok(unknown.length === 0 && placedToRoomObjects({ instances: [{ ...seq.state.instances[0], assetId: "constructor" }] }, ASSET_REGISTRY).length === 0, "an unknown / prototype assetId is skipped, never a crash");

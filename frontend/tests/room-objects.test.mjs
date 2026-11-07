@@ -28,7 +28,7 @@ ok(removeObject(a2, "bed-1").length === 1, "remove drops one");
 ok(countKind(a2, "bed") === 2, "countKind bed = 2 (feeds metrics)");
 
 // Palette integrity — every kind has spec + wall openings flagged.
-ok(OBJECT_KINDS.length === Object.keys(OBJECT_SPEC).length && OBJECT_KINDS.length >= 11, "palette has >=11 kinds with specs");
+ok(OBJECT_KINDS.length === Object.keys(OBJECT_SPEC).length - 1 && !OBJECT_KINDS.includes("asset") && Object.hasOwn(OBJECT_SPEC, "asset") && OBJECT_KINDS.length >= 11, "palette = every OBJECT_SPEC kind EXCEPT the generic 'asset' library carrier (Rev A'); >=11 kinds with specs");
 ok(OBJECT_SPEC.door.onWall && OBJECT_SPEC.window.onWall && !OBJECT_SPEC.bed.onWall, "door/window snap to wall; bed does not");
 ok(OBJECT_KINDS.every((k) => OBJECT_SPEC[k].w > 0 && OBJECT_SPEC[k].d > 0 && OBJECT_SPEC[k].emoji), "every kind has a positive footprint + glyph");
 ok(OBJECT_KINDS.every((k) => OBJECT_SPEC[k].h > 0), "every kind has a real 3D height (L×W×H)");

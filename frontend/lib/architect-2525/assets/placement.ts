@@ -196,17 +196,19 @@ export function placedToRoomObjects(state: PlacementState, registry: Readonly<Re
   const out: PlacedObject[] = [];
   for (const inst of state.instances) {
     if (roomId !== undefined && inst.roomId !== roomId) continue;
-    if (!Object.hasOwn(registry, inst.assetId) || !registry[inst.assetId].kind) continue;
+    if (!Object.hasOwn(registry, inst.assetId)) continue;
+    // Rev A' — a library asset with no legacy kind round-trips as a kind "asset" PlacedObject (fromPlacedAsset), so all 139
+    // persist into RoomCell.objects; only a truly-unknown id is skipped (WireGuard, never a crash).
     const o = fromPlacedAsset(inst, byId.get(inst.instanceId));
     if (o) out.push(o);
   }
   return out;
 }
 
-/** The instances placedToRoomObjects CANNOT carry into RoomCell.objects today — a library asset with no legacy kind (the
- *  store's PlacedObject needs one). Surfaced, never silently lost: the UI can warn, the persistence slice can extend the store. */
+/** The instances placedToRoomObjects CANNOT carry into RoomCell.objects — only an assetId the registry does not know (every
+ *  library asset now persists via the kind "asset" carrier). Surfaced, never silently lost. */
 export function unpersistableInstances(state: PlacementState, registry: Readonly<Record<string, { kind: unknown }>>): PlacedAsset[] {
-  return state.instances.filter((i) => !Object.hasOwn(registry, i.assetId) || !registry[i.assetId].kind);
+  return state.instances.filter((i) => !Object.hasOwn(registry, i.assetId));
 }
 
 /** RoomCell.objects → PlacementState through the existing adapter (placedAssetsOf). */
