@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.air.handler.hvac.v1",
+  "label": "Air Handler (HVAC)",
+  "packs": [
+    1
+  ],
+  "sections": [
+    "MEP strip on source board"
+  ],
+  "sourcePlacementIds": [
+    "P01-S02-A03"
+  ],
+  "model": "../models/air-handler-hvac.glb",
+  "planSymbol": "../plan/air-handler-hvac.svg",
+  "dimensionsM": {
+    "width": 0.85,
+    "depth": 0.65,
+    "height": 1.9249999999999998
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.entry.ramp.v1",
+  "label": "Entry Ramp",
+  "packs": [
+    7
+  ],
+  "sections": [
+    "Accessibility & Inclusion"
+  ],
+  "sourcePlacementIds": [
+    "P07-S01-A01"
+  ],
+  "model": "../models/entry-ramp.glb",
+  "planSymbol": "../plan/entry-ramp.svg",
+  "dimensionsM": {
+    "width": 1.0,
+    "depth": 2.0,
+    "height": 0.7000000000000001
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

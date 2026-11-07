@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.battery.home.v1",
+  "label": "Battery (Home)",
+  "packs": [
+    4
+  ],
+  "sections": [
+    "Power & Energy"
+  ],
+  "sourcePlacementIds": [
+    "P04-S04-A02"
+  ],
+  "model": "../models/battery-home.glb",
+  "planSymbol": "../plan/battery-home.svg",
+  "dimensionsM": {
+    "width": 0.68,
+    "depth": 0.275,
+    "height": 1.0
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

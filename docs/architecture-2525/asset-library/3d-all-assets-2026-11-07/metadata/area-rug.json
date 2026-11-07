@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.area.rug.v1",
+  "label": "Area Rug",
+  "packs": [
+    9
+  ],
+  "sections": [
+    "Lifestyle & Personalization"
+  ],
+  "sourcePlacementIds": [
+    "P09-S01-A01"
+  ],
+  "model": "../models/area-rug.glb",
+  "planSymbol": "../plan/area-rug.svg",
+  "dimensionsM": {
+    "width": 1.8,
+    "depth": 1.2,
+    "height": 0.052000000000000005
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

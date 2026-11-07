@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.fence.panel.v1",
+  "label": "Fence (Panel)",
+  "packs": [
+    3
+  ],
+  "sections": [
+    "Exterior & Site"
+  ],
+  "sourcePlacementIds": [
+    "P03-S04-A07"
+  ],
+  "model": "../models/fence-panel.glb",
+  "planSymbol": "../plan/fence-panel.svg",
+  "dimensionsM": {
+    "width": 2.4,
+    "depth": 0.09,
+    "height": 1.15
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

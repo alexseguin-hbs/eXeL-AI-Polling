@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.leak.detector.v1",
+  "label": "Leak Detector",
+  "packs": [
+    4
+  ],
+  "sections": [
+    "Safety, Health & Environment"
+  ],
+  "sourcePlacementIds": [
+    "P04-S05-A03"
+  ],
+  "model": "../models/leak-detector.glb",
+  "planSymbol": "../plan/leak-detector.svg",
+  "dimensionsM": {
+    "width": 0.32,
+    "depth": 0.22999999999999998,
+    "height": 0.32000000000000006
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.planter.bed.tree.v1",
+  "label": "Planter Bed + Tree",
+  "packs": [
+    6
+  ],
+  "sections": [
+    "Site & Landscape"
+  ],
+  "sourcePlacementIds": [
+    "P06-S01-A05"
+  ],
+  "model": "../models/planter-bed-tree.glb",
+  "planSymbol": "../plan/planter-bed-tree.svg",
+  "dimensionsM": {
+    "width": 1.9,
+    "depth": 0.8400000000000001,
+    "height": 1.63
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

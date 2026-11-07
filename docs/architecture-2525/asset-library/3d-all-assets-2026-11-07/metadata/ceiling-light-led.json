@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.ceiling.light.led.v1",
+  "label": "Ceiling Light (LED)",
+  "packs": [
+    3
+  ],
+  "sections": [
+    "Lighting"
+  ],
+  "sourcePlacementIds": [
+    "P03-S02-A01"
+  ],
+  "model": "../models/ceiling-light-led.glb",
+  "planSymbol": "../plan/ceiling-light-led.svg",
+  "dimensionsM": {
+    "width": 0.68,
+    "depth": 0.68,
+    "height": 0.16000000000000003
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "CEILING",
+  "snap": [
+    "CEILING"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

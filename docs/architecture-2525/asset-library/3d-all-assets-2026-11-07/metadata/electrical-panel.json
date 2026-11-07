@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.electrical.panel.v1",
+  "label": "Electrical Panel",
+  "packs": [
+    1,
+    4
+  ],
+  "sections": [
+    "MEP strip on source board",
+    "Power & Energy"
+  ],
+  "sourcePlacementIds": [
+    "P01-S02-A01",
+    "P04-S04-A01"
+  ],
+  "model": "../models/electrical-panel.glb",
+  "planSymbol": "../plan/electrical-panel.svg",
+  "dimensionsM": {
+    "width": 0.72,
+    "depth": 0.32499999999999996,
+    "height": 1.05
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

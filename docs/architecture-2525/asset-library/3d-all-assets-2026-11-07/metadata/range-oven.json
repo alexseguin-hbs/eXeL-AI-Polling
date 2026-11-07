@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.range.oven.v1",
+  "label": "Range + Oven",
+  "packs": [
+    2,
+    4
+  ],
+  "sections": [
+    "Kitchen",
+    "Kitchen Appliances"
+  ],
+  "sourcePlacementIds": [
+    "P02-S02-A02",
+    "P04-S01-A02"
+  ],
+  "model": "../models/range-oven.glb",
+  "planSymbol": "../plan/range-oven.svg",
+  "dimensionsM": {
+    "width": 0.76,
+    "depth": 0.745,
+    "height": 0.9325
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

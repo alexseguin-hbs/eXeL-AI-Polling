@@ -1,0 +1,1482 @@
+[
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "Shell & Structure",
+    "placementId": "P01-S01-A01",
+    "label": "Foundation Slab",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.foundation.slab.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "Shell & Structure",
+    "placementId": "P01-S01-A02",
+    "label": "Wall Framing",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.wall.framing.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "Shell & Structure",
+    "placementId": "P01-S01-A03",
+    "label": "Wall Sheathing",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.wall.sheathing.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "Shell & Structure",
+    "placementId": "P01-S01-A04",
+    "label": "Roof Truss",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.roof.truss.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "Shell & Structure",
+    "placementId": "P01-S01-A05",
+    "label": "Roof Sheathing",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.roof.sheathing.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "Shell & Structure",
+    "placementId": "P01-S01-A06",
+    "label": "Door (Interior / Exterior)",
+    "status": "partial",
+    "glb": "opening.door.interior.v1",
+    "assetId": "architect2525.asset.door.interior.exterior.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "Shell & Structure",
+    "placementId": "P01-S01-A07",
+    "label": "Sliding Glass Door",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.sliding.glass.door.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "Shell & Structure",
+    "placementId": "P01-S01-A08",
+    "label": "Window (Single)",
+    "status": "verified",
+    "glb": "opening.window.unit.v1",
+    "assetId": "architect2525.asset.window.single.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "Shell & Structure",
+    "placementId": "P01-S01-A09",
+    "label": "Window (Wide)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.window.wide.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "Shell & Structure",
+    "placementId": "P01-S01-A10",
+    "label": "Skylight",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.skylight.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "Shell & Structure",
+    "placementId": "P01-S01-A11",
+    "label": "Exterior Siding",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.exterior.siding.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "MEP strip on source board",
+    "placementId": "P01-S02-A01",
+    "label": "Electrical Panel",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.electrical.panel.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "MEP strip on source board",
+    "placementId": "P01-S02-A02",
+    "label": "Outlet + Switch",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.outlet.switch.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "MEP strip on source board",
+    "placementId": "P01-S02-A03",
+    "label": "Air Handler (HVAC)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.air.handler.hvac.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "MEP strip on source board",
+    "placementId": "P01-S02-A04",
+    "label": "Vent Register",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.vent.register.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "MEP strip on source board",
+    "placementId": "P01-S02-A05",
+    "label": "Water Heater",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.water.heater.v1"
+  },
+  {
+    "pack": 1,
+    "packTitle": "Shell & Structure",
+    "section": "MEP strip on source board",
+    "placementId": "P01-S02-A06",
+    "label": "Plumbing Manifold + Utility Sink",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.plumbing.manifold.utility.sink.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Living / Common",
+    "placementId": "P02-S01-A01",
+    "label": "Sofa",
+    "status": "verified",
+    "glb": "furniture.sofa.3seat.v1",
+    "assetId": "architect2525.asset.sofa.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Living / Common",
+    "placementId": "P02-S01-A02",
+    "label": "Armchair",
+    "status": "verified",
+    "glb": "furniture.lounge_chair.v1",
+    "assetId": "architect2525.asset.armchair.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Living / Common",
+    "placementId": "P02-S01-A03",
+    "label": "Coffee Table",
+    "status": "verified",
+    "glb": "furniture.coffee_table.v1",
+    "assetId": "architect2525.asset.coffee.table.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Living / Common",
+    "placementId": "P02-S01-A04",
+    "label": "TV Console",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.tv.console.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Living / Common",
+    "placementId": "P02-S01-A05",
+    "label": "Bookshelf",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.bookshelf.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Living / Common",
+    "placementId": "P02-S01-A06",
+    "label": "Floor Lamp",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.floor.lamp.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Kitchen",
+    "placementId": "P02-S02-A01",
+    "label": "Refrigerator",
+    "status": "verified",
+    "glb": "appliance.refrigerator.frenchdoor.v1",
+    "assetId": "architect2525.asset.refrigerator.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Kitchen",
+    "placementId": "P02-S02-A02",
+    "label": "Range + Oven",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.range.oven.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Kitchen",
+    "placementId": "P02-S02-A03",
+    "label": "Range Hood",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.range.hood.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Kitchen",
+    "placementId": "P02-S02-A04",
+    "label": "Base Cabinets (w/ Sink)",
+    "status": "verified",
+    "glb": "kitchen.base_run.sink.v1",
+    "assetId": "architect2525.asset.base.cabinets.w.sink.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Kitchen",
+    "placementId": "P02-S02-A05",
+    "label": "Wall Cabinets",
+    "status": "verified",
+    "glb": "kitchen.upper_cabinets.v1",
+    "assetId": "architect2525.asset.wall.cabinets.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Kitchen",
+    "placementId": "P02-S02-A06",
+    "label": "Kitchen Island + Stools",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.kitchen.island.stools.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Bathroom",
+    "placementId": "P02-S03-A01",
+    "label": "Toilet",
+    "status": "verified",
+    "glb": "bath.toilet.v1",
+    "assetId": "architect2525.asset.toilet.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Bathroom",
+    "placementId": "P02-S03-A02",
+    "label": "Bath Vanity + Sink",
+    "status": "verified",
+    "glb": "bath.vanity_sink.v1",
+    "assetId": "architect2525.asset.bath.vanity.sink.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Bathroom",
+    "placementId": "P02-S03-A03",
+    "label": "Shower Stall",
+    "status": "verified",
+    "glb": "bath.shower.enclosure.v1",
+    "assetId": "architect2525.asset.shower.stall.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Bathroom",
+    "placementId": "P02-S03-A04",
+    "label": "Bathtub",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.bathtub.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Bathroom",
+    "placementId": "P02-S03-A05",
+    "label": "Mirror (LED)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.mirror.led.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Bathroom",
+    "placementId": "P02-S03-A06",
+    "label": "Towel Bar",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.towel.bar.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Bedroom",
+    "placementId": "P02-S04-A01",
+    "label": "Bed (Queen/King)",
+    "status": "verified",
+    "glb": "furniture.bed.queen.v1",
+    "assetId": "architect2525.asset.bed.queen.king.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Bedroom",
+    "placementId": "P02-S04-A02",
+    "label": "Nightstand",
+    "status": "verified",
+    "glb": "furniture.nightstand.v1",
+    "assetId": "architect2525.asset.nightstand.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Bedroom",
+    "placementId": "P02-S04-A03",
+    "label": "Dresser",
+    "status": "verified",
+    "glb": "furniture.dresser.v1",
+    "assetId": "architect2525.asset.dresser.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Bedroom",
+    "placementId": "P02-S04-A04",
+    "label": "Wardrobe",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.wardrobe.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Bedroom",
+    "placementId": "P02-S04-A05",
+    "label": "Bedroom Bench",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.bedroom.bench.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Bedroom",
+    "placementId": "P02-S04-A06",
+    "label": "Table Lamp",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.table.lamp.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Office",
+    "placementId": "P02-S05-A01",
+    "label": "Desk",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.desk.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Office",
+    "placementId": "P02-S05-A02",
+    "label": "Office Chair",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.office.chair.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Office",
+    "placementId": "P02-S05-A03",
+    "label": "File Cabinet",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.file.cabinet.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Office",
+    "placementId": "P02-S05-A04",
+    "label": "Bookshelf",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.bookshelf.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Office",
+    "placementId": "P02-S05-A05",
+    "label": "Monitor",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.monitor.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Office",
+    "placementId": "P02-S05-A06",
+    "label": "Desk Lamp",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.desk.lamp.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Laundry / Storage",
+    "placementId": "P02-S06-A01",
+    "label": "Washer",
+    "status": "verified",
+    "glb": "appliance.washer.frontload.v1",
+    "assetId": "architect2525.asset.washer.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Laundry / Storage",
+    "placementId": "P02-S06-A02",
+    "label": "Dryer",
+    "status": "correction",
+    "glb": "appliance.dryer.frontload.v1",
+    "assetId": "architect2525.asset.dryer.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Laundry / Storage",
+    "placementId": "P02-S06-A03",
+    "label": "Utility Sink",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.utility.sink.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Laundry / Storage",
+    "placementId": "P02-S06-A04",
+    "label": "Storage Shelving",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.storage.shelving.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Laundry / Storage",
+    "placementId": "P02-S06-A05",
+    "label": "Storage Cabinet",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.storage.cabinet.v1"
+  },
+  {
+    "pack": 2,
+    "packTitle": "Interiors & Fixtures",
+    "section": "Laundry / Storage",
+    "placementId": "P02-S06-A06",
+    "label": "Storage Bin",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.storage.bin.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Finishes",
+    "placementId": "P03-S01-A01",
+    "label": "Drywall Panel",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.drywall.panel.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Finishes",
+    "placementId": "P03-S01-A02",
+    "label": "Paint (Can)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.paint.can.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Finishes",
+    "placementId": "P03-S01-A03",
+    "label": "Flooring (Wood/LVP)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.flooring.wood.lvp.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Finishes",
+    "placementId": "P03-S01-A04",
+    "label": "Tile",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.tile.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Finishes",
+    "placementId": "P03-S01-A05",
+    "label": "Baseboard",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.baseboard.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Finishes",
+    "placementId": "P03-S01-A06",
+    "label": "Crown Molding",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.crown.molding.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Finishes",
+    "placementId": "P03-S01-A07",
+    "label": "Trim Casing",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.trim.casing.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Lighting",
+    "placementId": "P03-S02-A01",
+    "label": "Ceiling Light (LED)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.ceiling.light.led.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Lighting",
+    "placementId": "P03-S02-A02",
+    "label": "Recessed Light",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.recessed.light.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Lighting",
+    "placementId": "P03-S02-A03",
+    "label": "Pendant Light",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.pendant.light.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Lighting",
+    "placementId": "P03-S02-A04",
+    "label": "Chandelier",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.chandelier.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Lighting",
+    "placementId": "P03-S02-A05",
+    "label": "Wall Sconce",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.wall.sconce.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Lighting",
+    "placementId": "P03-S02-A06",
+    "label": "Track Light",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.track.light.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Lighting",
+    "placementId": "P03-S02-A07",
+    "label": "Under-Cabinet Light",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.under.cabinet.light.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Security & Smart",
+    "placementId": "P03-S03-A01",
+    "label": "Security Camera",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.security.camera.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Security & Smart",
+    "placementId": "P03-S03-A02",
+    "label": "Video Doorbell",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.video.doorbell.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Security & Smart",
+    "placementId": "P03-S03-A03",
+    "label": "Motion Sensor (PIR)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.motion.sensor.pir.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Security & Smart",
+    "placementId": "P03-S03-A04",
+    "label": "Smart Thermostat",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.smart.thermostat.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Security & Smart",
+    "placementId": "P03-S03-A05",
+    "label": "Smart Hub",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.smart.hub.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Security & Smart",
+    "placementId": "P03-S03-A06",
+    "label": "Smart Lock",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.smart.lock.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Security & Smart",
+    "placementId": "P03-S03-A07",
+    "label": "Smoke / CO Detector",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.smoke.co.detector.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Exterior & Site",
+    "placementId": "P03-S04-A01",
+    "label": "Exterior Door",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.exterior.door.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Exterior & Site",
+    "placementId": "P03-S04-A02",
+    "label": "Garage Door",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.garage.door.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Exterior & Site",
+    "placementId": "P03-S04-A03",
+    "label": "Exterior Siding",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.exterior.siding.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Exterior & Site",
+    "placementId": "P03-S04-A04",
+    "label": "Roofing (Shingle)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.roofing.shingle.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Exterior & Site",
+    "placementId": "P03-S04-A05",
+    "label": "Gutter + Downspout",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.gutter.downspout.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Exterior & Site",
+    "placementId": "P03-S04-A06",
+    "label": "Deck / Porch",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.deck.porch.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Exterior & Site",
+    "placementId": "P03-S04-A07",
+    "label": "Fence (Panel)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.fence.panel.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Site Utilities & Outdoor Systems",
+    "placementId": "P03-S05-A01",
+    "label": "HVAC Condenser",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.hvac.condenser.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Site Utilities & Outdoor Systems",
+    "placementId": "P03-S05-A02",
+    "label": "Generator (Standby)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.generator.standby.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Site Utilities & Outdoor Systems",
+    "placementId": "P03-S05-A03",
+    "label": "Septic System",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.septic.system.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Site Utilities & Outdoor Systems",
+    "placementId": "P03-S05-A04",
+    "label": "Water Well System",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.water.well.system.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Site Utilities & Outdoor Systems",
+    "placementId": "P03-S05-A05",
+    "label": "Irrigation System",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.irrigation.system.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Site Utilities & Outdoor Systems",
+    "placementId": "P03-S05-A06",
+    "label": "Path Light",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.path.light.v1"
+  },
+  {
+    "pack": 3,
+    "packTitle": "Finishes, Lighting & Site",
+    "section": "Site Utilities & Outdoor Systems",
+    "placementId": "P03-S05-A07",
+    "label": "Landscape Light (Spot)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.landscape.light.spot.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Kitchen Appliances",
+    "placementId": "P04-S01-A01",
+    "label": "Refrigerator",
+    "status": "verified",
+    "glb": "appliance.refrigerator.frenchdoor.v1",
+    "assetId": "architect2525.asset.refrigerator.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Kitchen Appliances",
+    "placementId": "P04-S01-A02",
+    "label": "Range + Oven",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.range.oven.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Kitchen Appliances",
+    "placementId": "P04-S01-A03",
+    "label": "Range Hood",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.range.hood.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Kitchen Appliances",
+    "placementId": "P04-S01-A04",
+    "label": "Dishwasher",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.dishwasher.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Kitchen Appliances",
+    "placementId": "P04-S01-A05",
+    "label": "Microwave",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.microwave.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Kitchen Appliances",
+    "placementId": "P04-S01-A06",
+    "label": "Garbage Disposal",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.garbage.disposal.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Laundry",
+    "placementId": "P04-S02-A01",
+    "label": "Washer",
+    "status": "verified",
+    "glb": "appliance.washer.frontload.v1",
+    "assetId": "architect2525.asset.washer.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Laundry",
+    "placementId": "P04-S02-A02",
+    "label": "Dryer",
+    "status": "correction",
+    "glb": "appliance.dryer.frontload.v1",
+    "assetId": "architect2525.asset.dryer.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Laundry",
+    "placementId": "P04-S02-A03",
+    "label": "Laundry Sink",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.laundry.sink.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Laundry",
+    "placementId": "P04-S02-A04",
+    "label": "Drying Rack",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.drying.rack.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Laundry",
+    "placementId": "P04-S02-A05",
+    "label": "Iron + Board",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.iron.board.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Laundry",
+    "placementId": "P04-S02-A06",
+    "label": "Utility Shelving",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.utility.shelving.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Water & Air",
+    "placementId": "P04-S03-A01",
+    "label": "Water Heater",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.water.heater.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Water & Air",
+    "placementId": "P04-S03-A02",
+    "label": "Water Softener",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.water.softener.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Water & Air",
+    "placementId": "P04-S03-A03",
+    "label": "HVAC (Furnace)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.hvac.furnace.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Water & Air",
+    "placementId": "P04-S03-A04",
+    "label": "AC Condenser",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.ac.condenser.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Water & Air",
+    "placementId": "P04-S03-A05",
+    "label": "Air Purifier",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.air.purifier.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Water & Air",
+    "placementId": "P04-S03-A06",
+    "label": "Dehumidifier",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.dehumidifier.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Power & Energy",
+    "placementId": "P04-S04-A01",
+    "label": "Electrical Panel",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.electrical.panel.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Power & Energy",
+    "placementId": "P04-S04-A02",
+    "label": "Battery (Home)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.battery.home.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Power & Energy",
+    "placementId": "P04-S04-A03",
+    "label": "Inverter",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.inverter.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Power & Energy",
+    "placementId": "P04-S04-A04",
+    "label": "Generator (Standby)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.generator.standby.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Power & Energy",
+    "placementId": "P04-S04-A05",
+    "label": "EV Charger",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.ev.charger.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Power & Energy",
+    "placementId": "P04-S04-A06",
+    "label": "Solar Inverter",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.solar.inverter.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Safety, Health & Environment",
+    "placementId": "P04-S05-A01",
+    "label": "Smoke Detector",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.smoke.detector.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Safety, Health & Environment",
+    "placementId": "P04-S05-A02",
+    "label": "CO Detector",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.co.detector.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Safety, Health & Environment",
+    "placementId": "P04-S05-A03",
+    "label": "Leak Detector",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.leak.detector.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Safety, Health & Environment",
+    "placementId": "P04-S05-A04",
+    "label": "Water Shutoff Valve",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.water.shutoff.valve.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Safety, Health & Environment",
+    "placementId": "P04-S05-A05",
+    "label": "Air Quality Monitor",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.air.quality.monitor.v1"
+  },
+  {
+    "pack": 4,
+    "packTitle": "Appliances, Utilities & Life Systems",
+    "section": "Safety, Health & Environment",
+    "placementId": "P04-S05-A06",
+    "label": "Smart Hub (Home)",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.smart.hub.home.v1"
+  },
+  {
+    "pack": 5,
+    "packTitle": "Smart Home & Automation",
+    "section": "Smart Home & Automation",
+    "placementId": "P05-S01-A01",
+    "label": "Smart Thermostat",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.smart.thermostat.v1"
+  },
+  {
+    "pack": 5,
+    "packTitle": "Smart Home & Automation",
+    "section": "Smart Home & Automation",
+    "placementId": "P05-S01-A02",
+    "label": "Smart Hub + Router",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.smart.hub.router.v1"
+  },
+  {
+    "pack": 5,
+    "packTitle": "Smart Home & Automation",
+    "section": "Smart Home & Automation",
+    "placementId": "P05-S01-A03",
+    "label": "Entry Access Keypad / Smart Lock",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.entry.access.keypad.smart.lock.v1"
+  },
+  {
+    "pack": 5,
+    "packTitle": "Smart Home & Automation",
+    "section": "Smart Home & Automation",
+    "placementId": "P05-S01-A04",
+    "label": "Scene Switch / Control Panel",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.scene.switch.control.panel.v1"
+  },
+  {
+    "pack": 5,
+    "packTitle": "Smart Home & Automation",
+    "section": "Smart Home & Automation",
+    "placementId": "P05-S01-A05",
+    "label": "Motorized Shade + Track",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.motorized.shade.track.v1"
+  },
+  {
+    "pack": 6,
+    "packTitle": "Site & Landscape",
+    "section": "Site & Landscape",
+    "placementId": "P06-S01-A01",
+    "label": "Driveway Pad",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.driveway.pad.v1"
+  },
+  {
+    "pack": 6,
+    "packTitle": "Site & Landscape",
+    "section": "Site & Landscape",
+    "placementId": "P06-S01-A02",
+    "label": "Front Steps + Landing",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.front.steps.landing.v1"
+  },
+  {
+    "pack": 6,
+    "packTitle": "Site & Landscape",
+    "section": "Site & Landscape",
+    "placementId": "P06-S01-A03",
+    "label": "Fence + Gate Section",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.fence.gate.section.v1"
+  },
+  {
+    "pack": 6,
+    "packTitle": "Site & Landscape",
+    "section": "Site & Landscape",
+    "placementId": "P06-S01-A04",
+    "label": "Walkway Pavers",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.walkway.pavers.v1"
+  },
+  {
+    "pack": 6,
+    "packTitle": "Site & Landscape",
+    "section": "Site & Landscape",
+    "placementId": "P06-S01-A05",
+    "label": "Planter Bed + Tree",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.planter.bed.tree.v1"
+  },
+  {
+    "pack": 7,
+    "packTitle": "Accessibility & Inclusion",
+    "section": "Accessibility & Inclusion",
+    "placementId": "P07-S01-A01",
+    "label": "Entry Ramp",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.entry.ramp.v1"
+  },
+  {
+    "pack": 7,
+    "packTitle": "Accessibility & Inclusion",
+    "section": "Accessibility & Inclusion",
+    "placementId": "P07-S01-A02",
+    "label": "Grab Bar Set",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.grab.bar.set.v1"
+  },
+  {
+    "pack": 7,
+    "packTitle": "Accessibility & Inclusion",
+    "section": "Accessibility & Inclusion",
+    "placementId": "P07-S01-A03",
+    "label": "Lever Handle Door Set",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.lever.handle.door.set.v1"
+  },
+  {
+    "pack": 7,
+    "packTitle": "Accessibility & Inclusion",
+    "section": "Accessibility & Inclusion",
+    "placementId": "P07-S01-A04",
+    "label": "Roll-In Shower Bench",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.roll.in.shower.bench.v1"
+  },
+  {
+    "pack": 7,
+    "packTitle": "Accessibility & Inclusion",
+    "section": "Accessibility & Inclusion",
+    "placementId": "P07-S01-A05",
+    "label": "Accessible Toilet",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.accessible.toilet.v1"
+  },
+  {
+    "pack": 8,
+    "packTitle": "Sustainability & Resilience",
+    "section": "Sustainability & Resilience",
+    "placementId": "P08-S01-A01",
+    "label": "Solar Panel Array",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.solar.panel.array.v1"
+  },
+  {
+    "pack": 8,
+    "packTitle": "Sustainability & Resilience",
+    "section": "Sustainability & Resilience",
+    "placementId": "P08-S01-A02",
+    "label": "Home Battery Pack",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.home.battery.pack.v1"
+  },
+  {
+    "pack": 8,
+    "packTitle": "Sustainability & Resilience",
+    "section": "Sustainability & Resilience",
+    "placementId": "P08-S01-A03",
+    "label": "Rainwater Cistern",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.rainwater.cistern.v1"
+  },
+  {
+    "pack": 8,
+    "packTitle": "Sustainability & Resilience",
+    "section": "Sustainability & Resilience",
+    "placementId": "P08-S01-A04",
+    "label": "Backup Inverter + Controller",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.backup.inverter.controller.v1"
+  },
+  {
+    "pack": 8,
+    "packTitle": "Sustainability & Resilience",
+    "section": "Sustainability & Resilience",
+    "placementId": "P08-S01-A05",
+    "label": "Storm Shutter Window",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.storm.shutter.window.v1"
+  },
+  {
+    "pack": 9,
+    "packTitle": "Lifestyle & Personalization",
+    "section": "Lifestyle & Personalization",
+    "placementId": "P09-S01-A01",
+    "label": "Area Rug",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.area.rug.v1"
+  },
+  {
+    "pack": 9,
+    "packTitle": "Lifestyle & Personalization",
+    "section": "Lifestyle & Personalization",
+    "placementId": "P09-S01-A02",
+    "label": "Entertainment Console + TV",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.entertainment.console.tv.v1"
+  },
+  {
+    "pack": 9,
+    "packTitle": "Lifestyle & Personalization",
+    "section": "Lifestyle & Personalization",
+    "placementId": "P09-S01-A03",
+    "label": "Accent Chair + Side Table",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.accent.chair.side.table.v1"
+  },
+  {
+    "pack": 9,
+    "packTitle": "Lifestyle & Personalization",
+    "section": "Lifestyle & Personalization",
+    "placementId": "P09-S01-A04",
+    "label": "Bookshelf + Decor",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.bookshelf.decor.v1"
+  },
+  {
+    "pack": 9,
+    "packTitle": "Lifestyle & Personalization",
+    "section": "Lifestyle & Personalization",
+    "placementId": "P09-S01-A05",
+    "label": "Wall Art Set",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.wall.art.set.v1"
+  },
+  {
+    "pack": 10,
+    "packTitle": "Operations & Maintenance",
+    "section": "Operations & Maintenance",
+    "placementId": "P10-S01-A01",
+    "label": "Tool Cart + Kit",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.tool.cart.kit.v1"
+  },
+  {
+    "pack": 10,
+    "packTitle": "Operations & Maintenance",
+    "section": "Operations & Maintenance",
+    "placementId": "P10-S01-A02",
+    "label": "Access Ladder",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.access.ladder.v1"
+  },
+  {
+    "pack": 10,
+    "packTitle": "Operations & Maintenance",
+    "section": "Operations & Maintenance",
+    "placementId": "P10-S01-A03",
+    "label": "Service Access Panel",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.service.access.panel.v1"
+  },
+  {
+    "pack": 10,
+    "packTitle": "Operations & Maintenance",
+    "section": "Operations & Maintenance",
+    "placementId": "P10-S01-A04",
+    "label": "Filter Set",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.filter.set.v1"
+  },
+  {
+    "pack": 10,
+    "packTitle": "Operations & Maintenance",
+    "section": "Operations & Maintenance",
+    "placementId": "P10-S01-A05",
+    "label": "Shutoff Valve Manifold",
+    "status": "missing",
+    "glb": null,
+    "assetId": "architect2525.asset.shutoff.valve.manifold.v1"
+  }
+]

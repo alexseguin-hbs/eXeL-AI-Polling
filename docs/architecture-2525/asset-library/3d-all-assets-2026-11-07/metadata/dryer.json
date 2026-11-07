@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.dryer.v1",
+  "label": "Dryer",
+  "packs": [
+    2,
+    4
+  ],
+  "sections": [
+    "Laundry",
+    "Laundry / Storage"
+  ],
+  "sourcePlacementIds": [
+    "P02-S06-A02",
+    "P04-S02-A02"
+  ],
+  "model": "../models/dryer.glb",
+  "planSymbol": "../plan/dryer.svg",
+  "dimensionsM": {
+    "width": 0.7,
+    "depth": 0.815,
+    "height": 0.96
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

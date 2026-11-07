@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.roof.truss.v1",
+  "label": "Roof Truss",
+  "packs": [
+    1
+  ],
+  "sections": [
+    "Shell & Structure"
+  ],
+  "sourcePlacementIds": [
+    "P01-S01-A04"
+  ],
+  "model": "../models/roof-truss.glb",
+  "planSymbol": "../plan/roof-truss.svg",
+  "dimensionsM": {
+    "width": 2.454,
+    "depth": 0.1,
+    "height": 0.981
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "BUILT_IN",
+  "snap": [
+    "ROOF_LINE"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}
