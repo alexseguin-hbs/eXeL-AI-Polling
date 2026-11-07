@@ -113,3 +113,6 @@ perf/run.json
 # two-commit closeout force-adds it (git add -f) at Commit B, after which git keeps tracking it. A fresh
 # `git checkout A` + that one command regenerates it byte-identical.
 docs/architecture-2525/HASH_PROOF.json
+
+# node_modules as a bare name too — a symlink named node_modules is a file, which "node_modules/" (dir-only) does NOT ignore (caused a committed self-loop 2026-11-07)
+node_modules
