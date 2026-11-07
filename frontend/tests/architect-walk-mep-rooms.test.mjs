@@ -15,7 +15,13 @@ const WET = new Set(["B", "K", "S"]);        // rooms with water fixtures
 const DRY = new Set(["M", "C", "L", "D", "O", "E"]);
 const SERVICE = "S";                          // the ONE utility room that holds the house service + air handler
 const gk = (g) => { const m = {}; for (const x of g.glyphs) m[x.kind] = (m[x.kind] || 0) + 1; return m; };
-const empty = (w) => w.lines.length === 0 && w.sublines.length === 0 && w.glyphs.length === 0;
+// P0·E (Revision A · Wave 0, MoT 2026-11-07): a dry room draws NOTHING in EVERY array-valued field of the walkMep result —
+// lines · sublines · glyphs · boxes today, and any future solids/quads/faces. Iterating Object.keys (not naming three fields)
+// means a new field can never let a dry room draw solid bodies while this gate stays green. `drawn` keeps the shipped
+// wet-room presence check exactly as it was.
+const drawnFields = (w) => Object.keys(w).filter((k) => Array.isArray(w[k]) && w[k].length > 0);
+const empty = (w) => drawnFields(w).length === 0;
+const drawn = (w) => w.lines.length > 0 || w.sublines.length > 0 || w.glyphs.length > 0;
 
 for (const k of KINDS) {
   const objs = defaultObjectsForRoom(k);
@@ -32,10 +38,10 @@ for (const k of KINDS) {
   }
   // ── wet rooms draw their own fixtures; dry rooms draw NOTHING in plumbing/sewer ──
   if (DRY.has(k)) {
-    ok(empty(wa), `DRY ${k} draws NOTHING in plumbing (0 lines/sublines/glyphs)`);
-    ok(empty(se), `DRY ${k} draws NOTHING in sewer`);
+    ok(empty(wa), `DRY ${k} draws NOTHING in plumbing (EVERY array field empty — drew: ${drawnFields(wa).join(",") || "—"})`);
+    ok(empty(se), `DRY ${k} draws NOTHING in sewer (EVERY array field empty — drew: ${drawnFields(se).join(",") || "—"})`);
   } else {
-    ok(!empty(wa), `WET ${k} draws its own water fixtures (non-empty)`);
+    ok(drawn(wa), `WET ${k} draws its own water fixtures (non-empty)`);
     ok(se.lines.length > 0, `WET ${k} draws its own drain runs`);
   }
   // ── HVAC: the air handler renders ONLY in the utility room; every room still gets its own register ──
@@ -44,11 +50,16 @@ for (const k of KINDS) {
   ok((dg.register || 0) >= 1, `${k} gets its own ceiling register`);
 }
 
+// ── the every-array check is not vacuous: the result carries the four shipped array fields (a renamed/removed field surfaces here) ──
+const shape = walkMep("water", 0, [], 0, 0, "M");
+ok(["lines", "sublines", "glyphs", "boxes"].every((f) => Array.isArray(shape[f])), "walkMep returns lines/sublines/glyphs/boxes arrays (the fields the dry-room every-array check iterates — plus any future solids/quads/faces)");
+ok(Object.keys(shape).filter((f) => Array.isArray(shape[f])).length >= 4, `the dry-room check iterates ≥4 array fields (got ${Object.keys(shape).filter((f) => Array.isArray(shape[f])).join(",")})`);
+
 // ── fixture specifics: the bath serves tub/shower/sink/toilet; the kitchen its sink; the utility its washer+sink ──
 ok((gk(walkMep("water", 6, defaultObjectsForRoom("B"), 0, 0, "B")).mixer || 0) === 2, "the bath serves the tub + shower (2 mixing valves)");
 ok((gk(walkMep("sewer", 6, defaultObjectsForRoom("B"), 0, 0, "B")).flange || 0) === 1, "the bath's toilet drains through a closet flange");
 ok((gk(walkMep("water", 6, defaultObjectsForRoom("K"), 0, 0, "K")).stop || 0) >= 1, "the kitchen serves its sink");
 ok((gk(walkMep("water", 6, defaultObjectsForRoom("D"), 0, 0, "D")).stop || 0) === 0, "the dining room (counter, no sink) draws NO plumbing (counter is dry)");
 
-console.log(`\nARCHITECT-WALK-MEP-ROOMS ${pass}/${pass + fail} passed · per-room correctness · wet own · service+AHU only in utility · dry rooms empty`);
+console.log(`\nARCHITECT-WALK-MEP-ROOMS ${pass}/${pass + fail} passed · per-room correctness · wet own · service+AHU only in utility · dry rooms empty in EVERY array field`);
 if (fail > 0) process.exit(1);

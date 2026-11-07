@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.0",
+  "id": "structure.stud.2x4.v1",
+  "label": "Stud 2×4 (8 ft)",
+  "category": "STRUCTURE",
+  "model": "../models/stud_2x4.glb",
+  "planSymbol": "../plan/stud_2x4.svg",
+  "dimensionsM": {
+    "width": 0.0381,
+    "depth": 0.0889,
+    "height": 2.4384
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "allowedDegrees": [
+      0,
+      90,
+      180,
+      270
+    ],
+    "freeRotation": false
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR",
+    "WALL"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "rooms": [
+    "ANY"
+  ],
+  "phaseCompatibility": [
+    "FRAMING"
+  ],
+  "placement": {
+    "collisionFootprint": "BOUNDING_BOX_XY",
+    "allowTranslate": true,
+    "allowRotate": true,
+    "allowScale": false
+  },
+  "rebuildSpec": {
+    "generator": "lib/architect-2525/assets/compositions/index.ts::structure.stud.2x4.v1",
+    "targetLOD": "browser-lightweight",
+    "sourceReference": "Architect-2525 asset compositions (concept + starter pack by eXeL AI)",
+    "notes": "Placeholder L1 box composition of a nominal 2×4 stud (actual 1.5 in × 3.5 in × 8 ft). Rebuild or replace the geometry while preserving id, dimensions contract, floor-centre pivot, mounting and metadata."
+  }
+}

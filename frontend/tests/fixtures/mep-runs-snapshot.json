@@ -1,0 +1,1336 @@
+{
+  "grid": 10,
+  "rooms": {
+    "dining": {
+      "duct": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": {
+          "gx": 2,
+          "gy": 9
+        },
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "ductBare": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": {
+          "gx": 2,
+          "gy": 9
+        },
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "k": "D",
+      "objectCount": 3,
+      "outletPositions": [
+        {
+          "gx": 0,
+          "gy": 0
+        },
+        {
+          "gx": 9,
+          "gy": 3
+        },
+        {
+          "gx": 3,
+          "gy": 9
+        }
+      ],
+      "outlets": 3,
+      "panel": {
+        "gx": 0,
+        "gy": 9
+      }
+    },
+    "entry": {
+      "duct": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": {
+          "gx": 2,
+          "gy": 9
+        },
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "ductBare": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": {
+          "gx": 2,
+          "gy": 9
+        },
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "k": "E",
+      "objectCount": 3,
+      "outletPositions": [
+        {
+          "gx": 0,
+          "gy": 0
+        }
+      ],
+      "outlets": 1,
+      "panel": {
+        "gx": 0,
+        "gy": 9
+      }
+    },
+    "kitchen": {
+      "duct": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": null,
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "ductBare": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": null,
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "k": "K",
+      "objectCount": 5,
+      "outletPositions": [
+        {
+          "gx": 0,
+          "gy": 0
+        },
+        {
+          "gx": 9,
+          "gy": 0
+        },
+        {
+          "gx": 9,
+          "gy": 9
+        },
+        {
+          "gx": 0,
+          "gy": 9
+        }
+      ],
+      "outlets": 4,
+      "panel": {
+        "gx": 0,
+        "gy": 9
+      }
+    },
+    "living": {
+      "duct": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": {
+          "gx": 2,
+          "gy": 9
+        },
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "ductBare": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": {
+          "gx": 2,
+          "gy": 9
+        },
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "k": "L",
+      "objectCount": 6,
+      "outletPositions": [
+        {
+          "gx": 0,
+          "gy": 0
+        },
+        {
+          "gx": 9,
+          "gy": 0
+        },
+        {
+          "gx": 9,
+          "gy": 9
+        },
+        {
+          "gx": 0,
+          "gy": 9
+        }
+      ],
+      "outlets": 4,
+      "panel": {
+        "gx": 0,
+        "gy": 9
+      }
+    },
+    "master-bath": {
+      "duct": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": null,
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "ductBare": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": null,
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "k": "B",
+      "objectCount": 6,
+      "outletPositions": [
+        {
+          "gx": 0,
+          "gy": 0
+        },
+        {
+          "gx": 9,
+          "gy": 9
+        }
+      ],
+      "outlets": 2,
+      "panel": {
+        "gx": 0,
+        "gy": 9
+      }
+    },
+    "master-bed": {
+      "duct": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": {
+          "gx": 3,
+          "gy": 9
+        },
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "ductBare": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": {
+          "gx": 2,
+          "gy": 9
+        },
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "k": "M",
+      "objectCount": 8,
+      "outletPositions": [
+        {
+          "gx": 0,
+          "gy": 0
+        },
+        {
+          "gx": 8,
+          "gy": 0
+        },
+        {
+          "gx": 9,
+          "gy": 7
+        },
+        {
+          "gx": 3,
+          "gy": 9
+        }
+      ],
+      "outlets": 4,
+      "panel": {
+        "gx": 0,
+        "gy": 8
+      }
+    },
+    "master-closet": {
+      "duct": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": null,
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "ductBare": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": null,
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "k": "C",
+      "objectCount": 6,
+      "outletPositions": [
+        {
+          "gx": 0,
+          "gy": 0
+        },
+        {
+          "gx": 9,
+          "gy": 9
+        }
+      ],
+      "outlets": 2,
+      "panel": {
+        "gx": 0,
+        "gy": 9
+      }
+    },
+    "office": {
+      "duct": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": {
+          "gx": 2,
+          "gy": 9
+        },
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "ductBare": {
+        "airHandler": false,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": {
+          "gx": 2,
+          "gy": 9
+        },
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "k": "O",
+      "objectCount": 4,
+      "outletPositions": [
+        {
+          "gx": 0,
+          "gy": 0
+        },
+        {
+          "gx": 9,
+          "gy": 0
+        },
+        {
+          "gx": 9,
+          "gy": 9
+        },
+        {
+          "gx": 0,
+          "gy": 9
+        }
+      ],
+      "outlets": 4,
+      "panel": {
+        "gx": 0,
+        "gy": 9
+      }
+    },
+    "storage": {
+      "duct": {
+        "airHandler": true,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": null,
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "ductBare": {
+        "airHandler": true,
+        "branch": [
+          {
+            "gx": 5,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 5
+          }
+        ],
+        "register": {
+          "gx": 5,
+          "gy": 5
+        },
+        "returnGrille": null,
+        "runs": [
+          {
+            "from": {
+              "gx": 9,
+              "gy": 0
+            },
+            "lengthFt": 9,
+            "path": [
+              {
+                "gx": 9,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 0
+              },
+              {
+                "gx": 5,
+                "gy": 5
+              }
+            ],
+            "to": {
+              "gx": 5,
+              "gy": 5
+            }
+          }
+        ],
+        "totalFt": 9,
+        "trunk": [
+          {
+            "gx": 9,
+            "gy": 0
+          },
+          {
+            "gx": 5,
+            "gy": 0
+          }
+        ],
+        "vcd": {
+          "gx": 5,
+          "gy": 1
+        }
+      },
+      "k": "S",
+      "objectCount": 3,
+      "outletPositions": [
+        {
+          "gx": 0,
+          "gy": 0
+        },
+        {
+          "gx": 9,
+          "gy": 9
+        }
+      ],
+      "outlets": 2,
+      "panel": {
+        "gx": 0,
+        "gy": 9
+      }
+    }
+  },
+  "source": {
+    "air": {
+      "gx": 9,
+      "gy": 0
+    },
+    "panel": {
+      "gx": 0,
+      "gy": 9
+    },
+    "sewer": {
+      "gx": 9,
+      "gy": 9
+    },
+    "water": {
+      "gx": 0,
+      "gy": 0
+    }
+  }
+}

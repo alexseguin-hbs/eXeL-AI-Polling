@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Architect-2525 Asset Metadata",
+  "type": "object",
+  "required": [
+    "id",
+    "label",
+    "category",
+    "model",
+    "dimensionsM",
+    "pivot",
+    "rotation",
+    "mounting",
+    "snap",
+    "authority",
+    "rooms"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "planSymbol": {
+      "type": "string"
+    },
+    "dimensionsM": {
+      "type": "object",
+      "required": [
+        "width",
+        "depth",
+        "height"
+      ],
+      "properties": {
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "depth": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "pivot": {
+      "type": "object",
+      "properties": {
+        "origin": {
+          "const": "FLOOR_CENTER"
+        },
+        "axes": {
+          "const": "X=width,Y=depth,Z=up"
+        }
+      }
+    },
+    "rotation": {
+      "type": "object",
+      "required": [
+        "axis",
+        "allowedDegrees"
+      ],
+      "properties": {
+        "axis": {
+          "const": "Z"
+        },
+        "allowedDegrees": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "mounting": {
+      "enum": [
+        "FLOOR",
+        "WALL",
+        "CEILING",
+        "SURFACE",
+        "BUILT_IN"
+      ]
+    },
+    "snap": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "authority": {
+      "enum": [
+        "ILLUSTRATIVE",
+        "REFERENCE",
+        "CANONICAL"
+      ]
+    },
+    "rooms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "phaseCompatibility": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

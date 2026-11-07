@@ -1,6 +1,6 @@
 // ARCHITECT-2525 room-layout lock — pure move/swap/resize/sqft semantics (P3 cube modification).
 // Run: node --experimental-strip-types tests/room-layout.test.mjs
-import { TINY_ROOM_LAYOUT, cloneLayout, roomAt, layoutSqft, moveRoomInLayout, resizeRoomInLayout, TINY_SIDE_FT, setRoomElement, toggleRoomFurniture, layoutTotals, moduleHash, ELEMENT_MAX } from "../lib/room-layout.ts";
+import { TINY_ROOM_LAYOUT, cloneLayout, roomAt, layoutSqft, moveRoomInLayout, resizeRoomInLayout, TINY_SIDE_FT, setRoomElement, toggleRoomFurniture, layoutTotals, moduleHash, ELEMENT_MAX, STRETCH_MAX_CELLS } from "../lib/room-layout.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log("PASS", m); } else { fail++; console.log("FAIL", m); } };
@@ -31,12 +31,15 @@ ok(roomAt(oob, 0, 0)?.k === "M", "out-of-bounds move is a no-op");
 // 6. move is pure — the source is never mutated.
 ok(TINY_ROOM_LAYOUT[0].row === 0 && TINY_ROOM_LAYOUT[0].col === 0, "moveRoomInLayout does not mutate source");
 
-// 7. resize within the 10-ft envelope grows area; clamps to max 2 cells.
+// 7. resize is FENCED at 1 cell (10 ft) — operator 2026-11-07 via MoT P0·I: the walk/framing/MEP libs draw a hardcoded 10×10,
+//    so a 20×10 room must not exist until the WalkSpace contract (Rev K) honours w/d. (Was max 2 = 10↔20 ft; re-pinned here.)
 const grown = resizeRoomInLayout(TINY_ROOM_LAYOUT, "living", 2, 1);
-ok(grown.find((r) => r.id === "living").w === 2, "living stretched to 2 cells wide");
-ok(layoutSqft(grown) === 1000, "sqft tracks the stretch (900 + 100)");
-const clamped = resizeRoomInLayout(TINY_ROOM_LAYOUT, "living", 9, 9);
-ok(clamped.find((r) => r.id === "living").w === 2, "resize clamps to max 2 cells (within 10 ft)");
+ok(grown.find((r) => r.id === "living").w === 1, "living stays 1 cell wide (the F9 stretch is fenced at 10 ft)");
+ok(layoutSqft(grown) === 900, "sqft is unchanged by a fenced stretch (900)");
+const clamped = resizeRoomInLayout(TINY_ROOM_LAYOUT, "living", 9, 9, 9);
+ok(clamped.find((r) => r.id === "living").w === 1 && clamped.find((r) => r.id === "living").d === 1, "resize clamps to STRETCH_MAX_CELLS = 1 even when a caller passes a larger max (the fence cannot be bypassed)");
+ok(STRETCH_MAX_CELLS === 1, "STRETCH_MAX_CELLS = 1 (fenced until Rev K)");
+ok(resizeRoomInLayout(TINY_ROOM_LAYOUT, "living", 0, -3).find((r) => r.id === "living").w === 1, "a shrink below 1 cell still clamps up to 1 (a room never vanishes)");
 
 // 8. per-room element editing (Enter-room → optimize it only).
 const w0 = TINY_ROOM_LAYOUT.find((r) => r.id === "living").windows;

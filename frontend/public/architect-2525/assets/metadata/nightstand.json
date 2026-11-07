@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.0",
+  "id": "furniture.nightstand.v1",
+  "label": "Nightstand",
+  "category": "FURNITURE",
+  "model": "../models/nightstand.glb",
+  "planSymbol": "../plan/nightstand.svg",
+  "dimensionsM": {
+    "width": 0.58,
+    "depth": 0.46,
+    "height": 0.7
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "allowedDegrees": [
+      0,
+      90,
+      180,
+      270
+    ],
+    "freeRotation": false
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR",
+    "WALL_BACK"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "rooms": [
+    "MASTER_BEDROOM"
+  ],
+  "phaseCompatibility": [
+    "INTERIOR_DESIGN"
+  ],
+  "placement": {
+    "collisionFootprint": "BOUNDING_BOX_XY",
+    "allowTranslate": true,
+    "allowRotate": true,
+    "allowScale": false
+  },
+  "rebuildSpec": {
+    "generator": "source/build_assets.py::nightstand",
+    "targetLOD": "browser-lightweight",
+    "sourceReference": "ARCHITECT-2525 3D ASSET STARTER PACK concept board",
+    "notes": "Simplified native geometry intended for browser placement. Rebuild or replace model while preserving id, dimensions contract, pivot, mounting and metadata."
+  }
+}

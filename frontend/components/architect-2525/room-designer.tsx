@@ -22,10 +22,10 @@ import { MiniPanel } from "./mini-panel";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import {
   OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
-  footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette, worldSpan,
-  nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setVariantByHeight, setGap, elevOf, setElev,
+  footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, partRects, paletteForRoom, groupPalette, worldSpan,
+  nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, applyTypedSize, applyTypedHeight, setGap, elevOf, setElev,
   defaultObjectsForRoom, groupOf,
-  type PlacedObject, type ObjectKind, type Wall, type ShapePart,
+  type PlacedObject, type ObjectKind, type Wall,
 } from "@/lib/room-objects";
 import { shade, FACE_SHADE } from "@/lib/solid-shade";   // the ONE shared solid-faces shader (de-dup; was a local copy)
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, MEP_COLOR, type MepRun } from "@/lib/mep-runs";
@@ -560,9 +560,9 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
               e === "oc" ? setAlongWall(objects, sel.id, v, ax)
               : e === "gapNear" ? setGap(objects, sel.id, "near", v, ax)
               : e === "gapFar" ? setGap(objects, sel.id, "far", v, ax)
-              : e === "height" ? setVariantByHeight(objects, sel.id, v)   // 3D height edit (e.g. window head height)
-              : e === "elev" ? setElev(objects, sel.id, v)                // 3D distance-off-ground edit (window sill etc.)
-              : setVariantByWidth(objects, sel.id, v, ax)
+              : e === "height" ? applyTypedHeight(objects, sel.id, v)   // 3D height edit — variant snap (window/door) or the EXACT size (Rev A setSize)
+              : e === "elev" ? setElev(objects, sel.id, v)              // 3D distance-off-ground edit (window sill etc.)
+              : applyTypedSize(objects, sel.id, v, ax)                  // size — variant snap for kinds with standards, else the EXACT size (Rev A setSize)
             );
           }
           setDimEntry(null);
@@ -631,19 +631,10 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
           <polygon points={poly(ceil)} fill="none" stroke={`${C.cyan}33`} strokeWidth={0.7} />
           {objs.map((o) => {
             const s = OBJECT_SPEC[o.kind];
-            const fp = footprintOf(o);
-            const swap = o.rot === 90 || o.rot === 270;
-            const W = swap ? fp.d : fp.w, D = swap ? fp.w : fp.d, hgt = heightOf(o);   // world footprint + variant height
-            const ox = o.gx + 0.5 - W / 2, oy = o.gy + 0.5 - D / 2;           // object origin corner in world
+            const hgt = heightOf(o);                                          // variant / per-instance height (the door leaf below)
             const on = o.id === selId;
-            // S2 — rotate a part's unit-square footprint rect by o.rot (single M90 map, others composed) so the
-            // pillow/back/legs stay attached to the right side as the object turns.
-            const rotRect = (p: ShapePart) => {
-              if (o.rot === 90)  return { x: p.y, y: 1 - (p.x + p.w), w: p.d, d: p.w };
-              if (o.rot === 180) return { x: 1 - (p.x + p.w), y: 1 - (p.y + p.d), w: p.w, d: p.d };
-              if (o.rot === 270) return { x: 1 - (p.y + p.d), y: p.x, w: p.d, d: p.w };
-              return { x: p.x, y: p.y, w: p.w, d: p.d };
-            };
+            // S2 → Rev A (P0·K): a part's rotation + placement + lift is the ONE law partRects() in lib/room-objects (plan
+            // feet, worldSpan centre convention) — shared with the walk and the voxel; no inline rotRect here any more.
             // R5c — a DOOR in 3D is its LEAF standing open at 90° from the hinge jamb (door-width long, door-height tall, a
             // thin panel) with the swing arc on the floor — never a slab in the wall.
             if (o.kind === "door") {
@@ -670,13 +661,9 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
               // FIX-E — click an object in 3D to select it (stopPropagation so it selects instead of orbiting the camera).
               <g key={o.id} data-arch-roomobj3d={o.kind} style={{ cursor: "pointer" }}
                 onPointerDown={(e) => { e.stopPropagation(); setSelId(o.id); }}>
-                {shapePartsOf(o.kind).map((p, pi) => {
-                  const r = rotRect(p);
-                  const x0 = ox + r.x * W, y0 = oy + r.y * D, w = r.w * W, d = r.d * D;
-                  const e0 = elevOf(o);                       // lift the whole object by its distance off the floor
-                  const z0 = p.z * hgt + e0, z1 = (p.z + p.h) * hgt + e0;
-                  const base = [iso(x0, y0, z0), iso(x0 + w, y0, z0), iso(x0 + w, y0 + d, z0), iso(x0, y0 + d, z0)];
-                  const top = [iso(x0, y0, z1), iso(x0 + w, y0, z1), iso(x0 + w, y0 + d, z1), iso(x0, y0 + d, z1)];
+                {partRects(o).map((r, pi) => {
+                  const base = [iso(r.x1, r.y1, r.z0), iso(r.x2, r.y1, r.z0), iso(r.x2, r.y2, r.z0), iso(r.x1, r.y2, r.z0)];
+                  const top = [iso(r.x1, r.y1, r.z1), iso(r.x2, r.y1, r.z1), iso(r.x2, r.y2, r.z1), iso(r.x1, r.y2, r.z1)];
                   return (
                     <g key={pi} data-arch-roomobj3d-part={o.kind}>
                       {/* FIX-D solid shaded faces (top brightest → sides darker); selected = gold tint */}
