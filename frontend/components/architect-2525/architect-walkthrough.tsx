@@ -36,6 +36,8 @@ import { WalkRaster, LookGlyph } from "./architect-walk-icons";
 import { Stick } from "@/components/drone-2525/stick";           // REUSE the actual Drone-2525 thumb-stick (single source)
 import { semanticHex } from "@/lib/wire-core/palette";           // Drone-2525's own stick colours (mount = body, frustum = head)
 import { useLexicon } from "@/lib/lexicon-context";
+import { loadAssetMeshFt, instanceTriangles, meshToFaces, type AssetMesh } from "@/lib/architect-2525/assets/index-runtime"; // Rev A' — the 139-GLB library, consumed by the SVG projector (E3 core)
+import { ASSET_ID_BY_KIND } from "@/lib/architect-2525/assets/registry";                                                    // a kind → its library id (so the 29 kinds render their real mesh too)
 
 const C = { bg: "#0a0f16", ink: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", gold: "#ffd400", wall: "#2a3a4f", floor: "#121b26", ceil: "#0c131c", edge: "#1e2b3a", ground: "#0b1410" };
 const CEIL_FT = STOREY_FT, EYE_FT = 5.5;             // one 10-ft storey = the cube (ONE source: room-layout STOREY_FT); eye ~5.5 ft
@@ -121,6 +123,23 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   // The eye POSITION (feet, world: x 0=west..10=east · y 0=south/near..10=north/far). Spawns at the ENTRY door, just inside,
   // facing INTO the room (not a blank wall): at the S-door x if entered from the south, else room centre.
   const ez = Number.isFinite(eyeHt) ? eyeHt : EYE_FT;   // the eye's z = the adjustable eye height (EYE_FT the named fallback); collision stays horizontal-only
+  // Rev A' — load the GLB meshes for THIS room's placed objects (a kind resolves to its library id via ASSET_ID_BY_KIND),
+  // so the walk paints the operator's real 139-library geometry instead of a plain box. Async + memoised in the module
+  // cache (one fetch + one parse per id for the page); a not-yet-loaded or PENDING asset (closet rod / shoe rack) falls
+  // back to boxFaces, and neighbour rooms stay boxes (LOD0). No render blocks on the network.
+  const [meshes, setMeshes] = useState<Map<string, AssetMesh>>(() => new Map());
+  const meshReq = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const ids = new Set(roomObjs.map((o) => o.assetId ?? ASSET_ID_BY_KIND[o.kind]).filter((id): id is string => !!id));
+    let alive = true;
+    for (const id of ids) {
+      if (meshReq.current.has(id)) continue;
+      meshReq.current.add(id);
+      loadAssetMeshFt(id).then((m) => { if (alive) setMeshes((prev) => new Map(prev).set(id, m)); }).catch(() => { meshReq.current.delete(id); });
+    }
+    return () => { alive = false; };
+  }, [roomObjs]);
+
   const [eye, setEye] = useState(() => ({ x: wallDoorCenter(roomObjs, "S") ?? ROOM_FT / 2, y: START_IN }));
   const drag = useRef<{ x: number; y: number; yaw: number; pitch: number } | null>(null);
 
@@ -272,9 +291,19 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   const winOpen = { span: WIN_W, z0: WIN_SILL, z1: WIN_HEAD };
   const inPhase = (o: PlacedObject) => showGroupInPhase(groupOf(o.kind), phase);
   // FURNITURE box with the Y-FLIP (plan gy 0 = NORTH → world far): worldCY = oy + (ROOM_FT − (gy + 0.5)).
-  const furnBox = (o: PlacedObject, ox: number, oy: number): Quad[] => {
+  const furnBox = (o: PlacedObject, ox: number, oy: number, lod1 = false): Quad[] => {
     const fp = footprintOf(o); const swap = o.rot === 90 || o.rot === 270;
     const w = swap ? fp.d : fp.w, dp = swap ? fp.w : fp.d;
+    // Rev A' — THIS room (lod1): the real GLB mesh, centred at the cell on the floor, yaw = o.rot, fed into the SAME
+    // solidFaces() pass. A not-yet-loaded / PENDING asset and every neighbour room (lod0) keep the shaded boxFaces fallback.
+    if (lod1) {
+      const id = o.assetId ?? ASSET_ID_BY_KIND[o.kind];
+      const mesh = id ? meshes.get(id) : undefined;
+      if (mesh) {
+        const cx = ox + o.gx + 0.5, cy = oy + (ROOM_FT - (o.gy + 0.5));
+        return meshToFaces({ ...mesh, triangles: instanceTriangles(mesh, { x: cx, y: cy, z: elevOf(o), rotationDeg: o.rot }) });
+      }
+    }
     return boxFaces(ox + o.gx + 0.5 - w / 2, oy + (ROOM_FT - (o.gy + 0.5)) - dp / 2, elevOf(o), w, dp, heightOf(o), OBJECT_SPEC[o.kind]?.color);
   };
   const furnOf = (cell: RoomCell | null | undefined, ox: number, oy: number): Quad[] =>
@@ -311,7 +340,7 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   // FURNITURE — this room's objects (the SAME source the 2D plan + voxel use), FILTERED to the selected phase's layer and
   // Y-FLIPPED, plus the neighbours'.
   const objects = roomObjs.filter(inPhase);
-  const furnQuads: Quad[] = objects.flatMap((o) => furnBox(o, 0, 0));
+  const furnQuads: Quad[] = objects.flatMap((o) => furnBox(o, 0, 0, true));   // Rev A' — this room draws the real GLB geometry (lod1)
   if (nb.N) furnQuads.push(...furnOf(nb.N, 0, ROOM_FT));
   if (nb.S) furnQuads.push(...furnOf(nb.S, 0, -ROOM_FT));
   if (nb.E) furnQuads.push(...furnOf(nb.E, ROOM_FT, 0));
