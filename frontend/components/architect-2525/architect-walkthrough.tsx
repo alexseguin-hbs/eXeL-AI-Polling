@@ -129,16 +129,17 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   // back to boxFaces, and neighbour rooms stay boxes (LOD0). No render blocks on the network.
   const [meshes, setMeshes] = useState<Map<string, AssetMesh>>(() => new Map());
   const meshReq = useRef<Set<string>>(new Set());
+  // roomObjs is a FRESH array every render (defaultObjectsForRoom), and the RAF loop re-renders each frame — so the effect
+  // must key off a STABLE signature of the needed library ids, not the array reference, or an in-flight load is discarded
+  // before it resolves. No per-effect `alive` guard (a setState after unmount is a harmless no-op in React 18).
+  const roomAssetSig = roomObjs.map((o) => (o.assetId ?? ASSET_ID_BY_KIND[o.kind]) || "").filter(Boolean).join(",");
   useEffect(() => {
-    const ids = new Set(roomObjs.map((o) => o.assetId ?? ASSET_ID_BY_KIND[o.kind]).filter((id): id is string => !!id));
-    let alive = true;
-    for (const id of ids) {
+    for (const id of new Set(roomAssetSig.split(",").filter(Boolean))) {
       if (meshReq.current.has(id)) continue;
       meshReq.current.add(id);
-      loadAssetMeshFt(id).then((m) => { if (alive) setMeshes((prev) => new Map(prev).set(id, m)); }).catch(() => { meshReq.current.delete(id); });
+      loadAssetMeshFt(id).then((m) => setMeshes((prev) => new Map(prev).set(id, m))).catch(() => { meshReq.current.delete(id); });
     }
-    return () => { alive = false; };
-  }, [roomObjs]);
+  }, [roomAssetSig]);
 
   const [eye, setEye] = useState(() => ({ x: wallDoorCenter(roomObjs, "S") ?? ROOM_FT / 2, y: START_IN }));
   const drag = useRef<{ x: number; y: number; yaw: number; pitch: number } | null>(null);
@@ -562,7 +563,7 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   const moveHex = semanticHex("mount"), lookHex = semanticHex("frustum"); // Drone-2525's body / head stick colours
 
   return (
-    <div ref={rootRef} data-arch-walkthrough data-arch-walk-eye={`${eye.x.toFixed(2)},${eye.y.toFixed(2)}`} data-arch-walk-yaw={yaw.toFixed(3)} data-arch-walk-zoom={zoom} data-arch-walk-eye-ht={ez.toFixed(2)} data-arch-walk-dims={dims ? "1" : "0"} data-arch-walk-facing={facing} className="relative select-none overflow-hidden rounded-lg" style={{ height: Hpx, background: `radial-gradient(130% 100% at 50% 18%, #16243a, #0d1420 55%, ${C.bg})`, border: `1px solid ${C.edge}`, touchAction: "none" }}>
+    <div ref={rootRef} data-arch-walkthrough data-arch-asset-meshes={meshes.size} data-arch-walk-eye={`${eye.x.toFixed(2)},${eye.y.toFixed(2)}`} data-arch-walk-yaw={yaw.toFixed(3)} data-arch-walk-zoom={zoom} data-arch-walk-eye-ht={ez.toFixed(2)} data-arch-walk-dims={dims ? "1" : "0"} data-arch-walk-facing={facing} className="relative select-none overflow-hidden rounded-lg" style={{ height: Hpx, background: `radial-gradient(130% 100% at 50% 18%, #16243a, #0d1420 55%, ${C.bg})`, border: `1px solid ${C.edge}`, touchAction: "none" }}>
       <svg data-arch-walk-svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid slice" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} style={{ display: "block", cursor: "grab" }}>
         {/* when a MEP layer is on, the walls go semi-transparent (Enscape x-ray convention) so the runs read "inside" them */}
         {faces.map((fc, i) => <polygon key={`f${i}`} data-arch-walk-frame-face={fc.color === FRAME_COLOR || fc.color === FRAME_HEADER_COLOR ? "1" : undefined} points={fc.d} fill={fog(shade(fc.color ?? C.wall, FACE_SHADE[fc.kind]), fc.depth)} fillOpacity={structureOn && fc.color === WIN_COL ? 0.3 : wallDim != null && fc.color === C.wall && (fc.kind === "front" || fc.kind === "side") ? wallDim : mepOn && (fc.kind === "front" || fc.kind === "side") ? 0.55 : (ceilXray && fc.kind === "ceil" && fc.color === C.wall) ? 0.4 : (shellId === "foundation" && fc.kind === "floor" && fc.color === C.floor) ? 0.25 : 1} stroke={fc.kind === "front" || fc.kind === "side" ? C.edge : "none"} strokeWidth={fc.kind === "front" || fc.kind === "side" ? 0.6 : 0} />)}
