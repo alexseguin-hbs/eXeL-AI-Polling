@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0",
+  "id": "furniture.coffee_table.v1",
+  "label": "Coffee Table",
+  "category": "FURNITURE",
+  "model": "../models/coffee_table.glb",
+  "planSymbol": "../plan/coffee_table.svg",
+  "dimensionsM": {
+    "width": 1.2,
+    "depth": 0.65,
+    "height": 0.5
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "allowedDegrees": [
+      0,
+      90,
+      180,
+      270
+    ],
+    "freeRotation": false
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "rooms": [
+    "LIVING"
+  ],
+  "phaseCompatibility": [
+    "INTERIOR_DESIGN"
+  ],
+  "placement": {
+    "collisionFootprint": "BOUNDING_BOX_XY",
+    "allowTranslate": true,
+    "allowRotate": true,
+    "allowScale": false
+  },
+  "rebuildSpec": {
+    "generator": "source/build_assets.py::coffee_table",
+    "targetLOD": "browser-lightweight",
+    "sourceReference": "ARCHITECT-2525 3D ASSET STARTER PACK concept board",
+    "notes": "Simplified native geometry intended for browser placement. Rebuild or replace model while preserving id, dimensions contract, pivot, mounting and metadata."
+  }
+}

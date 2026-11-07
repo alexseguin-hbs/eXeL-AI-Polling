@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.0",
+  "id": "appliance.refrigerator.frenchdoor.v1",
+  "label": "Refrigerator",
+  "category": "APPLIANCE",
+  "model": "../models/refrigerator.glb",
+  "planSymbol": "../plan/refrigerator.svg",
+  "dimensionsM": {
+    "width": 0.88,
+    "depth": 0.78,
+    "height": 1.78
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "allowedDegrees": [
+      0,
+      90,
+      180,
+      270
+    ],
+    "freeRotation": false
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR",
+    "WALL_BACK"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "rooms": [
+    "KITCHEN"
+  ],
+  "phaseCompatibility": [
+    "INTERIOR_DESIGN"
+  ],
+  "placement": {
+    "collisionFootprint": "BOUNDING_BOX_XY",
+    "allowTranslate": true,
+    "allowRotate": true,
+    "allowScale": false
+  },
+  "rebuildSpec": {
+    "generator": "source/build_assets.py::refrigerator",
+    "targetLOD": "browser-lightweight",
+    "sourceReference": "ARCHITECT-2525 3D ASSET STARTER PACK concept board",
+    "notes": "Simplified native geometry intended for browser placement. Rebuild or replace model while preserving id, dimensions contract, pivot, mounting and metadata."
+  }
+}

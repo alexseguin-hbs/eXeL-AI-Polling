@@ -1,0 +1,20 @@
+{
+  "title": "Architect-2525 3D Asset Handoff",
+  "date": "2026-11-06",
+  "masterInstructions": "ARCHITECT2525_3D_ASSET_INTAKE_MASTER.md",
+  "visualReferenceArchive": "Architect-2525_All_Assets_2026-11-06(1).zip",
+  "native3DStarterArchive": "Architect2525_3D_Asset_Starter_Pack.zip",
+  "observed": {
+    "visualReferenceBoards": 35,
+    "nativeGLBStarterAssets": 18,
+    "nativePlanSVGStarterAssets": 18
+  },
+  "requiredTarget": "All distinct approved Architect-2525 assets normalized to semantic IDs and supplied as GLB + metadata + PLAN SVG + thumbnail.",
+  "coordinateContract": {
+    "units": "meters",
+    "sourceAxes": "X=width,Y=depth,Z=up",
+    "defaultPivot": "FLOOR_CENTER"
+  },
+  "authorityDefault": "ILLUSTRATIVE",
+  "criticalRule": "GLB support is part of the base architecture and is not deferred to Level 2+."
+}

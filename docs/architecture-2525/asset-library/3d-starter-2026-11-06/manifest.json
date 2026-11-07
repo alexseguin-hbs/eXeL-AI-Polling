@@ -1,0 +1,154 @@
+{
+  "library": "Architect-2525 3D Asset Starter Pack",
+  "version": "1.0.0",
+  "coordinateSystem": "right-handed; X width, Y depth, Z up",
+  "units": "meters",
+  "pivotConvention": "floor-center at (0,0,0)",
+  "authorityDefault": "ILLUSTRATIVE",
+  "assets": [
+    {
+      "id": "furniture.sofa.3seat.v1",
+      "label": "Sofa",
+      "category": "FURNITURE",
+      "model": "models/sofa_3seat.glb",
+      "metadata": "metadata/sofa_3seat.json",
+      "planSymbol": "plan/sofa_3seat.svg"
+    },
+    {
+      "id": "furniture.lounge_chair.v1",
+      "label": "Lounge Chair",
+      "category": "FURNITURE",
+      "model": "models/lounge_chair.glb",
+      "metadata": "metadata/lounge_chair.json",
+      "planSymbol": "plan/lounge_chair.svg"
+    },
+    {
+      "id": "furniture.coffee_table.v1",
+      "label": "Coffee Table",
+      "category": "FURNITURE",
+      "model": "models/coffee_table.glb",
+      "metadata": "metadata/coffee_table.json",
+      "planSymbol": "plan/coffee_table.svg"
+    },
+    {
+      "id": "furniture.bed.queen.v1",
+      "label": "Bed",
+      "category": "FURNITURE",
+      "model": "models/bed_queen.glb",
+      "metadata": "metadata/bed_queen.json",
+      "planSymbol": "plan/bed_queen.svg"
+    },
+    {
+      "id": "furniture.nightstand.v1",
+      "label": "Nightstand",
+      "category": "FURNITURE",
+      "model": "models/nightstand.glb",
+      "metadata": "metadata/nightstand.json",
+      "planSymbol": "plan/nightstand.svg"
+    },
+    {
+      "id": "furniture.dresser.v1",
+      "label": "Dresser",
+      "category": "FURNITURE",
+      "model": "models/dresser.glb",
+      "metadata": "metadata/dresser.json",
+      "planSymbol": "plan/dresser.svg"
+    },
+    {
+      "id": "furniture.dining_table.v1",
+      "label": "Dining Table",
+      "category": "FURNITURE",
+      "model": "models/dining_table.glb",
+      "metadata": "metadata/dining_table.json",
+      "planSymbol": "plan/dining_table.svg"
+    },
+    {
+      "id": "furniture.dining_chair.v1",
+      "label": "Dining Chair",
+      "category": "FURNITURE",
+      "model": "models/dining_chair.glb",
+      "metadata": "metadata/dining_chair.json",
+      "planSymbol": "plan/dining_chair.svg"
+    },
+    {
+      "id": "kitchen.base_run.sink.v1",
+      "label": "Kitchen Base Cabinet Run (with Sink)",
+      "category": "KITCHEN",
+      "model": "models/kitchen_base_run_sink.glb",
+      "metadata": "metadata/kitchen_base_run_sink.json",
+      "planSymbol": "plan/kitchen_base_run_sink.svg"
+    },
+    {
+      "id": "kitchen.upper_cabinets.v1",
+      "label": "Upper Cabinets",
+      "category": "KITCHEN",
+      "model": "models/upper_cabinets.glb",
+      "metadata": "metadata/upper_cabinets.json",
+      "planSymbol": "plan/upper_cabinets.svg"
+    },
+    {
+      "id": "appliance.refrigerator.frenchdoor.v1",
+      "label": "Refrigerator",
+      "category": "APPLIANCE",
+      "model": "models/refrigerator.glb",
+      "metadata": "metadata/refrigerator.json",
+      "planSymbol": "plan/refrigerator.svg"
+    },
+    {
+      "id": "bath.toilet.v1",
+      "label": "Toilet",
+      "category": "PLUMBING_FIXTURE",
+      "model": "models/toilet.glb",
+      "metadata": "metadata/toilet.json",
+      "planSymbol": "plan/toilet.svg"
+    },
+    {
+      "id": "bath.vanity_sink.v1",
+      "label": "Vanity Sink",
+      "category": "PLUMBING_FIXTURE",
+      "model": "models/vanity_sink.glb",
+      "metadata": "metadata/vanity_sink.json",
+      "planSymbol": "plan/vanity_sink.svg"
+    },
+    {
+      "id": "bath.shower.enclosure.v1",
+      "label": "Shower Enclosure",
+      "category": "PLUMBING_FIXTURE",
+      "model": "models/shower_enclosure.glb",
+      "metadata": "metadata/shower_enclosure.json",
+      "planSymbol": "plan/shower_enclosure.svg"
+    },
+    {
+      "id": "appliance.washer.frontload.v1",
+      "label": "Washer",
+      "category": "APPLIANCE",
+      "model": "models/washer.glb",
+      "metadata": "metadata/washer.json",
+      "planSymbol": "plan/washer.svg"
+    },
+    {
+      "id": "appliance.dryer.frontload.v1",
+      "label": "Dryer",
+      "category": "APPLIANCE",
+      "model": "models/dryer.glb",
+      "metadata": "metadata/dryer.json",
+      "planSymbol": "plan/dryer.svg"
+    },
+    {
+      "id": "opening.door.interior.v1",
+      "label": "Interior Door",
+      "category": "OPENING",
+      "model": "models/interior_door.glb",
+      "metadata": "metadata/interior_door.json",
+      "planSymbol": "plan/interior_door.svg"
+    },
+    {
+      "id": "opening.window.unit.v1",
+      "label": "Window Unit",
+      "category": "OPENING",
+      "model": "models/window_unit.glb",
+      "metadata": "metadata/window_unit.json",
+      "planSymbol": "plan/window_unit.svg"
+    }
+  ]
+}

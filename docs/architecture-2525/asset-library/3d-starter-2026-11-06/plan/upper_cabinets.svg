@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-label="Upper Cabinets">
+  <rect width="240" height="160" fill="none"/>
+  <rect x="25.0" y="50.0" width="190.0" height="40.0" rx="8" fill="#123c43" stroke="#00dddd" stroke-width="4"/>
+  <line x1="120" y1="50.0" x2="120" y2="90.0" stroke="#a050dc" stroke-width="2" opacity="0.55"/>
+  <text x="120" y="152" text-anchor="middle" font-size="12" font-family="Arial" fill="#00dddd">Upper Cabinets</text>
+</svg>
