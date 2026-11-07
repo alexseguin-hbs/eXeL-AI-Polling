@@ -67,17 +67,3 @@ export function boxFaces(x: number, y: number, z: number, w: number, d: number, 
     { kind: "side", color, pts: [[x1, y, z], [x1, y1, z], [x1, y1, z1], [x1, y, z1]] },  // east
   ];
 }
-
-/** NEAR-PLANE SEGMENT CLIPPING (pure). Given a world segment a→b and each end's camera depth (the projector's `depth`,
- *  an affine function of the world point, so linear interpolation is exact), return the segment with a behind-the-eye end
- *  moved onto the near plane (depth = near + eps, so it passes the projector's `depth > near` test) — instead of dropping
- *  the whole segment, which made a wire/duct/dimension line beside the eye vanish the moment one end passed behind the
- *  head. Both ends behind → null (nothing to draw). Both in front → the segment unchanged. */
-export function clipNear(a: Vec3, b: Vec3, da: number, db: number, near: number, eps = 0.02): [Vec3, Vec3] | null {
-  const aIn = da > near, bIn = db > near;
-  if (aIn && bIn) return [a, b];
-  if (!aIn && !bIn) return null;
-  const t = (near + eps - da) / (db - da);                       // where depth crosses the near plane, 0 at a → 1 at b
-  const c: Vec3 = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
-  return aIn ? [a, c] : [c, b];
-}

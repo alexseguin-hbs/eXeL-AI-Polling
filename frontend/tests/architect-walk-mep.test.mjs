@@ -12,9 +12,6 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL", m); } }
 const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const ROOM_FT = 10;
 const lineZs = (g) => g.lines.flat().map((p) => p[2]);
-// P0·E (Revision A · Wave 0): the array-valued fields of a walkMep result that hold anything — lines/sublines/glyphs/boxes today,
-// any future solids/quads/faces — so a dry-room assert can never be satisfied by three named fields while a fourth draws.
-const drawnFields = (g) => Object.keys(g).filter((k) => Array.isArray(g[k]) && g[k].length > 0);
 
 // ── Electrical: 6 outlets → 6 outlet boxes + 1 panel box; wires only z∈[1.5,8]; colour = MEP_COLOR.wiring ──
 const w = walkMep("wiring", 6, []);
@@ -84,7 +81,6 @@ ok(wp.lines.length > 0 && wp.lines.flat().every((p) => near(p[2], 0.3)), "water 
 // a DRY room (no fixtures, not the utility room) draws NOTHING in plumbing (rewalk2 P0)
 const dry = walkMep("water", 0, [], 0, 0, "M");
 ok(dry.glyphs.length === 0 && dry.sublines.length === 0 && dry.lines.length === 0, "a dry room (Office/Dining/Bedroom) draws ZERO plumbing glyphs/lines");
-ok(drawnFields(dry).length === 0, `a dry room draws NOTHING in ANY array field of the water result — boxes + any future solids too (drew: ${drawnFields(dry).join(",") || "—"})`);
 
 // ── SEWER: drains FALL to the stack; the stack + cleanout + VTR are ONCE (utility room); dry rooms draw nothing ──
 const sp = walkMep("sewer", 0, BATH, 0, 0, "B");
@@ -99,7 +95,6 @@ ok(gk(spS, "cleanout").length === 1, `the utility room draws the ONE stack clean
 ok(gk(spS, "vent").length === 1, `the utility room draws the ONE vent-through-roof (got ${gk(spS, "vent").length})`);
 const drySewer = walkMep("sewer", 0, [], 0, 0, "M");
 ok(drySewer.glyphs.length === 0 && drySewer.sublines.length === 0 && drySewer.lines.length === 0, "a dry room draws ZERO sewer glyphs/lines");
-ok(drawnFields(drySewer).length === 0, `a dry room draws NOTHING in ANY array field of the sewer result — boxes + any future solids too (drew: ${drawnFields(drySewer).join(",") || "—"})`);
 // vent sublines rise to the 10-ft ceiling, dashed, in vent green (per fixture, in the wet room)
 const vents = sp.sublines.filter((s) => s.color === MEP_COLOR.vent && s.dash);
 ok(vents.length > 0 && vents.every((v) => v.pts.some((p) => near(p[2], 10, 1e-6))), "vents rise dashed to the 10-ft ceiling (vent-through-roof)");

@@ -64,16 +64,3 @@ export function sqftFromUm2(um2: number): number {
 export function ftFromUm(um: number): number {
   return um / UM_PER_FT;
 }
-
-/**
- * Rev A (2026-11-07) — feet → INTEGER µm for the asset projection (the ILLUSTRATIVE asset layer's export seam and its
- * dimension system, brief §10): rounded to the nearest µm, then §24 safe-int checked. The inverse of ftFromUm within
- * 1 µm (gated: ftFromUm(umFromFt(x)) ≈ x). Canonical Spaces are authored in µm and never pass through it; throws on a
- * non-finite value rather than storing a NaN (never floats as a shortcut).
- */
-export function umFromFt(ft: number): number {
-  if (typeof ft !== "number" || !Number.isFinite(ft)) {
-    throw new Error(`ARCHITECT §24: non-finite feet value @ umFromFt: ${String(ft)}`);
-  }
-  return assertSafeInt(Math.round(ft * UM_PER_FT), "umFromFt");
-}

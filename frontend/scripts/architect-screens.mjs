@@ -15,10 +15,7 @@ import { resolve } from 'node:path';
 const BASE = (process.env.ARCH_URL || 'https://exel-ai-polling.explore-096.workers.dev').replace(/\/$/, '');
 const ROUTE = process.env.ARCH_ROUTE || '/Architect-2525/';
 const OUTDIR = resolve(new URL('..', import.meta.url).pathname, 'shots/architect');
-// Viewports: desktop + the operator's phone (390×844 keeps the legacy 'phone' name the CI artifact consumers read) + the brief
-// §16 proof widths — 375×667 ("also test 375px") and 428×926 (the "primary proof target") — width-suffixed so no existing file
-// name changes (overview-/design-/design-ws- × desktop · phone · phone-375 · phone-428).
-const VPS = [{ w: 1440, h: 900, name: 'desktop' }, { w: 390, h: 844, name: 'phone' }, { w: 375, h: 667, name: 'phone-375' }, { w: 428, h: 926, name: 'phone-428' }];
+const VPS = [{ w: 1440, h: 900, name: 'desktop' }, { w: 390, h: 844, name: 'phone' }];
 
 const shots = [];
 try {

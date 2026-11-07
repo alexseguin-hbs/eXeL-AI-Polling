@@ -21,15 +21,7 @@ export interface ShellSub { pts: Vec3[]; color: string; dash?: string; w?: numbe
 export interface ShellGlyph { kind: string; polys: Vec3[][]; lines?: Vec3[][]; at: Vec3; color: string; label?: string }
 export interface WalkShell { quads: Quad[]; sublines: ShellSub[]; glyphs: ShellGlyph[]; wallDim: number | null; label?: string }
 export interface ShellOpening { side: Side; center: number; span: number; exterior?: boolean }
-export interface ShellCtx {
-  gauge?: StudGauge; openings?: ShellOpening[]; kind?: string; nbS?: boolean; ox?: number; oy?: number;
-  /** HOUSE-LEVEL security (P0·A — spec #119 = 4 cameras per HOUSE, not 4 per room): which of THIS room's walls face outside (no
-   *  neighbour), derived from the layout's adjacency by the caller. GIVEN → the Security phase emits a corner camera + an OUTWARD
-   *  coverage wedge ONLY at a corner whose BOTH walls are exterior (the 3×3's four house corners) and nothing at interior corners;
-   *  the exterior-OPENING cams are unchanged. ABSENT → byte-identical to the legacy draw (4 inward corner cams + wedges clamped
-   *  inside the room), so an unwired caller keeps rendering until it passes the map. */
-  exterior?: { N?: boolean; S?: boolean; E?: boolean; W?: boolean };
-}
+export interface ShellCtx { gauge?: StudGauge; openings?: ShellOpening[]; kind?: string; nbS?: boolean; ox?: number; oy?: number }
 
 const W3 = (gx: number, gy: number, z: number, ox: number, oy: number): Vec3 => [ox + gx + 0.5, oy + (RF - (gy + 0.5)), z];
 // a small vertical quad on the perimeter wall the cell sits on, centred at height z, pushed PUSH into the room.
@@ -99,36 +91,15 @@ export function walkShell(phaseId: string | null | undefined, ctx: ShellCtx = {}
   }
 
   if (phaseId === "security") {
-    // Ceiling-corner cameras (lens + housing silhouette) + 90° floor coverage wedges, and an OUTWARD camera over each EXTERIOR
+    // 4 ceiling-corner cameras (lens + housing silhouette) + 90° floor coverage wedges; an OUTWARD camera over each EXTERIOR
     // opening (a wall with no neighbour — the building faces out there), per spec A8, not interior doorways (Odin fix).
     const cam = SHELL_COLOR.camera;
     const corners: [number, number][] = [[0.3, 0.3], [RF - 0.3, 0.3], [0.3, RF - 0.3], [RF - 0.3, RF - 0.3]];
-    const ext = ctx.exterior;
-    if (!ext) {
-      // LEGACY (no exterior map): 4 corner cameras aimed INTO the room + inward wedges clamped to [0,RF]² — byte-identical to the
-      // pre-house-level draw (tests/architect-walk-shell.test.mjs keeps the 4-cam / 4-wedge / inside-the-room assertions).
-      corners.forEach(([cx, cy], i) => {
-        const dx = cx < RF / 2 ? 1 : -1, dy = cy < RF / 2 ? 1 : -1;
-        glyphs.push({ ...cameraGlyph(ox + cx, oy + cy, CEIL - 0.3, dx, dy), kind: "camera", color: cam, label: i === 0 ? "CAM" : undefined });
-        glyphs.push({ kind: "wedge", polys: [fanWedge(ox + cx, oy + cy, 6, cx < RF / 2, cy < RF / 2)], at: [ox + cx, oy + cy, 0.02], color: cam });
-      });
-    } else {
-      // HOUSE-LEVEL (P0·A, spec #119 = 4 per HOUSE): a corner cam + OUTWARD wedge only where BOTH adjoining walls are exterior —
-      // aimed away from the room centre through the corner; the wedge's apex sits ON the room corner and its fan crosses the room
-      // edge into the exterior half-space (clipped to that side only, never back into [0,RF]²). Interior corners emit nothing.
-      let labelled = false;
-      corners.forEach(([cx, cy]) => {
-        const west = cx < RF / 2, south = cy < RF / 2;
-        if (!(west ? ext.W : ext.E) || !(south ? ext.S : ext.N)) return;                   // both walls must face outside
-        const dx = west ? -1 : 1, dy = south ? -1 : 1;                                      // OUTWARD aim
-        glyphs.push({ ...cameraGlyph(ox + cx, oy + cy, CEIL - 0.3, dx, dy), kind: "camera", color: cam, label: labelled ? undefined : "CAM" });
-        labelled = true;
-        const ax = ox + (west ? 0 : RF), ay = oy + (south ? 0 : RF);                        // apex ON the room corner
-        const clampX = (v: number) => (west ? Math.min(ox, v) : Math.max(ox + RF, v));      // exterior half-space only
-        const clampY = (v: number) => (south ? Math.min(oy, v) : Math.max(oy + RF, v));
-        glyphs.push({ kind: "wedge", polys: [fanWedge(ax, ay, 6, !west, !south, 6, clampX, clampY)], at: [ax, ay, 0.02], color: cam });
-      });
-    }
+    corners.forEach(([cx, cy], i) => {
+      const dx = cx < RF / 2 ? 1 : -1, dy = cy < RF / 2 ? 1 : -1;
+      glyphs.push({ ...cameraGlyph(ox + cx, oy + cy, CEIL - 0.3, dx, dy), kind: "camera", color: cam, label: i === 0 ? "CAM" : undefined });
+      glyphs.push({ kind: "wedge", polys: [fanWedge(ox + cx, oy + cy, 6, cx < RF / 2, cy < RF / 2)], at: [ox + cx, oy + cy, 0.02], color: cam });
+    });
     for (const op of openings) {
       if (!op.exterior) continue;                                                           // outward cam only on exterior walls
       const c = op.center, w: Record<Side, [number, number, number, number]> = {
@@ -183,13 +154,11 @@ function wallBay(side: Side, a: number, b: number, z0: number, z1: number, ox: n
   return [[ox + RF - PUSH, oy + a, z0], [ox + RF - PUSH, oy + b, z0], [ox + RF - PUSH, oy + b, z1], [ox + RF - PUSH, oy + a, z1]];
 }
 
-// a 90° floor coverage fan from a corner camera, radius r, aimed along the (east, north) diagonal — the room interior for the
-// legacy corner cams, the exterior quadrant for a house-corner cam; each rim point is clipped by clampX/clampY (the room [0,RF]
-// by default, the exterior half-space for an outward wedge).
-function fanWedge(cx: number, cy: number, r: number, east: boolean, north: boolean, n = 6, clampX: (v: number) => number = clampRoom, clampY: (v: number) => number = clampRoom): Vec3[] {
-  const a0 = Math.atan2(north ? 1 : -1, east ? 1 : -1) - Math.PI / 4;  // aim the 90° cone along the diagonal
+// a 90° floor coverage fan from a ceiling-corner camera, pointing into the room (toward the far corner), radius r.
+function fanWedge(cx: number, cy: number, r: number, east: boolean, north: boolean, n = 6): Vec3[] {
+  const a0 = Math.atan2(north ? 1 : -1, east ? 1 : -1) - Math.PI / 4;  // aim the 90° cone at the room interior
   const poly: Vec3[] = [[cx, cy, 0.02]];
-  for (let i = 0; i <= n; i++) { const a = a0 + (Math.PI / 2) * (i / n); poly.push([clampX(cx + Math.cos(a) * r), clampY(cy + Math.sin(a) * r), 0.02]); }
+  for (let i = 0; i <= n; i++) { const a = a0 + (Math.PI / 2) * (i / n); poly.push([clampRoom(cx + Math.cos(a) * r), clampRoom(cy + Math.sin(a) * r), 0.02]); }
   return poly;
 }
 const clampRoom = (v: number) => Math.max(0, Math.min(RF, v));

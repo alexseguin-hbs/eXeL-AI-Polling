@@ -14,7 +14,7 @@
 import { DEFAULT_PARAMS, type FinishTier, type GlobalParams, type HouseStyle } from "./architect-project";
 import { DEFAULT_PROGRAM, type RoomProgram } from "./room-program";
 import { cloneLayout, ELEMENT_MAX, TINY_GRID, type RoomCell } from "./room-layout";
-import { OBJECT_SPEC, ROOM_GRID, VARIANTS, ASSET_PARAMS, STANDARD_LAYOUT_REV, standardLayoutFor, standardLayoutAt, sameArrangement, wallOfObject, alignedRot, footprintOf, clampFootprint, type PlacedObject, type ObjectKind, type ObjectSize, type Rot } from "./room-objects";
+import { OBJECT_SPEC, ROOM_GRID, VARIANTS, STANDARD_LAYOUT_REV, standardLayoutFor, standardLayoutAt, sameArrangement, wallOfObject, alignedRot, footprintOf, clampFootprint, type PlacedObject, type ObjectKind, type Rot } from "./room-objects";
 
 /** The most placements one 10×10 room may hold (a stored array of 50,000 was kept whole — AsM-caught, Thor). */
 export const MAX_OBJECTS_PER_ROOM = 99;
@@ -42,24 +42,15 @@ function sanitizeObjects(raw: unknown): PlacedObject[] | undefined {
     const kind = r.kind as ObjectKind;
     const variant = typeof r.variant === "string" && VARIANTS[kind]?.some((v) => v.id === r.variant) ? r.variant : undefined;
     const elev = typeof r.elev === "number" && Number.isFinite(r.elev) ? boundNum(r.elev, ROOM_GRID) : undefined; // ft off floor (window sill etc.)
-    // Rev A — a stored per-instance size (ft) is kept per axis only as a finite number clamped into the kind's parametric
-    // range (ASSET_PARAMS.params — what setSize would have stored); anything else is dropped to the variant / kind default.
-    const szRaw = asRecord(r.size);
-    const size: ObjectSize = {};
-    for (const ax of ["w", "d", "h"] as const) {
-      const n = szRaw[ax];
-      if (typeof n === "number" && Number.isFinite(n) && n > 0) size[ax] = boundNum(n, ASSET_PARAMS[kind].params[ax].max, ASSET_PARAMS[kind].params[ax].min);
-    }
-    const sized = Object.keys(size).length > 0 ? { size } : {};
     // R5 / R5b: coordinates are finite numbers, NOT rounded (half-foot centres are the convention: a 5-ft bed centred in a
     // 10-ft room is gx 4.5); the legal window reaches −0.4 for a thin wall piece flush to the W/N wall, so the pre-clamp is
     // [−1, ROOM_GRID] and the WHOLE FOOTPRINT is then clamped inside (a stored bed at gx 9 spanned [7,12] through the wall).
     const gx0 = boundNum(r.gx, ROOM_GRID, -1), gy0 = boundNum(r.gy, ROOM_GRID, -1);
     // a stored wall object is normalised to its wall's alignment (a legacy window at rot 0 on the W wall → 90)
     const rot = OBJECT_SPEC[kind].onWall ? alignedRot(rot0, wallOfObject({ gx: gx0, gy: gy0, rot: rot0 })) : rot0;
-    const fp = footprintOf({ id, kind, gx: gx0, gy: gy0, rot, ...(variant ? { variant } : {}), ...sized });
+    const fp = footprintOf({ id, kind, gx: gx0, gy: gy0, rot, ...(variant ? { variant } : {}) });
     const c = clampFootprint(gx0, gy0, fp.w, fp.d, rot, false);
-    out.push({ id, kind, gx: c.gx, gy: c.gy, rot, ...(variant ? { variant } : {}), ...(elev !== undefined ? { elev } : {}), ...sized });
+    out.push({ id, kind, gx: c.gx, gy: c.gy, rot, ...(variant ? { variant } : {}), ...(elev !== undefined ? { elev } : {}) });
   }
   return out;
 }

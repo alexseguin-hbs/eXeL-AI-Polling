@@ -23,11 +23,7 @@ export type ObjectKind =
 export type Rot = 0 | 90 | 180 | 270;
 
 /** One placed object on the room floor grid. gx/gy = grid cell (0..9); rot = 0|90|180|270°; variant = size id. */
-/** Rev A (operator 2026-11-07, "level 1 of 5 · every item PARAMETRIC"): per-instance ADJUSTABLE dims in FEET — overrides on
- *  the placed object, read by footprintOf / heightOf as size → variant → kind default (every caller inherits). Set ONLY
- *  through setSize (range- + room-clamped); a missing axis falls through to the variant / kind default. */
-export interface ObjectSize { w?: number; d?: number; h?: number }
-export interface PlacedObject { id: string; kind: ObjectKind; gx: number; gy: number; rot: Rot; variant?: string; elev?: number; /* ft above finished floor — window sill, wall-mounted TV, etc. */ size?: ObjectSize; /* Rev A — per-instance dims (ft) */ }
+export interface PlacedObject { id: string; kind: ObjectKind; gx: number; gy: number; rot: Rot; variant?: string; elev?: number; /* ft above finished floor — window sill, wall-mounted TV, etc. */ }
 
 /** Size variants (feet) for kinds that come in standard sizes — beds Twin/Full/Queen/King; doors/windows standard R.O.
  *  sizes (FIX-1). `h` (height, ft) is optional — set for openings where height matters (operator: window height). */
@@ -78,11 +74,8 @@ export const SHELVING_VARIANTS: SizeVariant[] = [
 ];
 export const VARIANTS: Partial<Record<ObjectKind, SizeVariant[]>> = { bed: BED_VARIANTS, door: DOOR_VARIANTS, window: WINDOW_VARIANTS, closetrod: CLOSETROD_VARIANTS, shelving: SHELVING_VARIANTS };
 
-const isPosFinite = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n) && n > 0;
-
-/** Height (ft) of a placed object — its per-instance size (Rev A) → its variant's height → the kind default (FIX-1). */
+/** Height (ft) of a placed object — its variant's height when set, else the kind default (FIX-1). */
 export function heightOf(o: PlacedObject): number {
-  if (o.size && isPosFinite(o.size.h)) return o.size.h;
   const vs = VARIANTS[o.kind];
   if (vs && o.variant) { const v = vs.find((x) => x.id === o.variant); if (v && typeof v.h === "number") return v.h; }
   return OBJECT_SPEC[o.kind].h;
@@ -340,14 +333,11 @@ export function rotateObject(objs: PlacedObject[], id: string): PlacedObject[] {
   });
 }
 
-/** Footprint (ft) for a placed object — per axis: its per-instance size (Rev A) → its variant's size → the kind default. */
+/** Footprint (ft) for a placed object — its variant's size when set, else the kind default. */
 export function footprintOf(o: PlacedObject): { w: number; d: number } {
   const vs = VARIANTS[o.kind];
-  let base = { w: OBJECT_SPEC[o.kind].w, d: OBJECT_SPEC[o.kind].d };
-  if (vs && o.variant) { const v = vs.find((x) => x.id === o.variant); if (v) base = { w: v.w, d: v.d }; }
-  const sz = o.size;
-  if (!sz) return base;
-  return { w: isPosFinite(sz.w) ? sz.w : base.w, d: isPosFinite(sz.d) ? sz.d : base.d };
+  if (vs && o.variant) { const v = vs.find((x) => x.id === o.variant); if (v) return { w: v.w, d: v.d }; }
+  return { w: OBJECT_SPEC[o.kind].w, d: OBJECT_SPEC[o.kind].d };
 }
 
 /**
@@ -393,70 +383,6 @@ export function setElev(objs: PlacedObject[], id: string, ft: number): PlacedObj
   });
 }
 
-/**
- * Rev A — set ONE per-instance dimension (ft) EXACTLY: snapped to the kind's parametric step, clamped to its range
- * (ASSET_PARAMS.params — the Revit-style instance parameters) and to the room — a widened piece re-clamps its footprint
- * like setVariantByWidth (never through a wall), a height keeps the top under the 10-ft ceiling like setElev. Pure,
- * deterministic (the same typed value → the same stored value); no-op for an unknown id or a non-finite value. This is the
- * ONLY writer of PlacedObject.size; the ✎ dim-edit path reaches it through applyTypedSize / applyTypedHeight.
- */
-export function setSize(objs: PlacedObject[], id: string, axis: "w" | "d" | "h", ft: number): PlacedObject[] {
-  return objs.map((o) => {
-    if (o.id !== id || !Number.isFinite(ft)) return o;
-    const r = ASSET_PARAMS[o.kind].params[axis];
-    const stepped = r.step > 0 ? Math.round(ft / r.step) * r.step : ft;
-    let v = Math.round(Math.max(r.min, Math.min(r.max, stepped)) * 1e6) / 1e6;   // kill the step's float noise (replay law)
-    if (axis === "h") v = Math.min(v, Math.max(r.min, ROOM_GRID - elevOf(o)));     // the top stays under the ceiling (setElev's law)
-    else v = Math.min(v, ROOM_GRID);                                                // never wider than the room
-    const next: PlacedObject = { ...o, size: { ...(o.size ?? {}), [axis]: v } };
-    const fp = footprintOf(next);
-    const c = clampFootprint(o.gx, o.gy, fp.w, fp.d, o.rot, false);
-    return { ...next, gx: c.gx, gy: c.gy };
-  });
-}
-
-/** Rev A — the ✎ dim-edit ROUTER (room-designer applyDim, "size"): a kind WITH standard size variants snaps to its nearest
- *  variant (unchanged behaviour: beds, doors, windows, closet rods, shelving); every other kind takes the EXACT typed size
- *  (axis "x" = its width w, "y" = its depth d — the same object-local axes chainDims measures). Pure. */
-export function applyTypedSize(objs: PlacedObject[], id: string, ft: number, axis: "x" | "y" = "x"): PlacedObject[] {
-  const o = objs.find((x) => x.id === id);
-  if (!o) return objs;
-  return (VARIANTS[o.kind]?.length ?? 0) > 0 ? setVariantByWidth(objs, id, ft, axis) : setSize(objs, id, axis === "y" ? "d" : "w", ft);
-}
-/** Rev A — the ✎ dim-edit ROUTER ("height"): a kind whose variants carry a height snaps to the nearest (doors, windows,
- *  closet rods, shelving — unchanged); every other kind (a bed, a sofa …) takes the EXACT typed height. Pure. */
-export function applyTypedHeight(objs: PlacedObject[], id: string, ft: number): PlacedObject[] {
-  const o = objs.find((x) => x.id === id);
-  if (!o) return objs;
-  const hasH = VARIANTS[o.kind]?.some((v) => typeof v.h === "number") ?? false;
-  return hasH ? setVariantByHeight(objs, id, ft) : setSize(objs, id, "h", ft);
-}
-
-/**
- * Rev A · P0·K (MoT ruling 2026-11-07) — ONE PLACEMENT LAW FOR PARTS. The rotated, placed, lifted sub-boxes of an object
- * in PLAN FEET (the worldSpan centre-of-cell convention: x right/east, y DOWN/south on the plan, z up from the finished
- * floor): each part's unit rect is turned by o.rot — 90: (x,y,w,d) → (y, 1−x−w, d, w) · 180: (1−x−w, 1−y−d, w, d) ·
- * 270: (1−y−d, x, d, w) — then scaled by the world footprint (rotation-aware W×D) and lifted by elevOf. Lifted VERBATIM
- * from room-designer.tsx's inline rotRect so the designer 3D, the first-person walk and the voxel import this instead of
- * each doing its own (the walk's furnBox still extrudes ONE box today — the next slice; its Y-flip is the caller's:
- * worldY = ROOM_FT − y). Pure + deterministic; `lod` picks the authored level (default L1, today's data).
- */
-export interface PartRect { x1: number; y1: number; x2: number; y2: number; z0: number; z1: number; part: ShapePart }
-export function partRects(o: PlacedObject, lod: Lod = 1): PartRect[] {
-  const fp = footprintOf(o);
-  const swap = o.rot === 90 || o.rot === 270;
-  const W = swap ? fp.d : fp.w, D = swap ? fp.w : fp.d, hgt = heightOf(o), e0 = elevOf(o);
-  const ox = o.gx + 0.5 - W / 2, oy = o.gy + 0.5 - D / 2;   // object origin corner in world (plan feet)
-  return shapePartsAt(o.kind, lod).map((p) => {
-    const r = o.rot === 90 ? { x: p.y, y: 1 - (p.x + p.w), w: p.d, d: p.w }
-      : o.rot === 180 ? { x: 1 - (p.x + p.w), y: 1 - (p.y + p.d), w: p.w, d: p.d }
-      : o.rot === 270 ? { x: 1 - (p.y + p.d), y: p.x, w: p.d, d: p.w }
-      : { x: p.x, y: p.y, w: p.w, d: p.d };
-    const x1 = ox + r.x * W, y1 = oy + r.y * D;
-    return { x1, y1, x2: x1 + r.w * W, y2: y1 + r.d * D, z0: p.z * hgt + e0, z1: (p.z + p.h) * hgt + e0, part: p };
-  });
-}
-
 /** Cycle an object to its next size variant (no-op for kinds without variants). First cycle sets the 2nd size. */
 export function cycleVariant(objs: PlacedObject[], id: string): PlacedObject[] {
   return objs.map((o) => {
@@ -495,18 +421,9 @@ export function slideAlongWall(wall: Wall, gx: number, gy: number): { gx: number
  * Pure data (voxel3D just extrudes each part), so it's unit-testable. Kinds without an entry fall back to one full box.
  * Convention: y=0 is the object's "front/head" edge; z=0 is the floor.
  */
-/** Rev A — a part's MATERIAL ROLE (data only; the renderers' look is a later slice): the body reads the kind's
- *  materialPreset; an ACCENT part reads purple, GLASS transparent cyan, SCREEN dark navy, WOOD = FRAME_COLOR — and WOOD
- *  only on isWoodKind (lib/architect-2525/assets/materials.ts is the ONE place asset colours live; gated). */
-export type PartAccent = "ACCENT" | "GLASS" | "SCREEN" | "WOOD";
-export interface ShapePart { x: number; y: number; z: number; w: number; d: number; h: number; accent?: PartAccent }
-/** Rev A — level of detail 1..5 ("this is level 1 of 5"): L1 = the clean wireframe parts shipped today; L2–L5 are SLOTS
- *  for later realism (bevels/materials → textures → detailed meshes → photoreal) that never re-author L1. */
-export type Lod = 1 | 2 | 3 | 4 | 5;
-export const LOD_LEVELS: readonly Lod[] = [1, 2, 3, 4, 5];
+export interface ShapePart { x: number; y: number; z: number; w: number; d: number; h: number }
 const FULL_BOX: ShapePart[] = [{ x: 0, y: 0, z: 0, w: 1, d: 1, h: 1 }];
-// LOD 1 — today's data, byte-identical (gated: snapshot equality in tests/architect-asset-registry.test.mjs).
-const SHAPE_PARTS_L1: Partial<Record<ObjectKind, ShapePart[]>> = {
+const SHAPE_PARTS: Partial<Record<ObjectKind, ShapePart[]>> = {
   // FIX-3 realistic bed: base platform (reads on all sides) + inset mattress + pillow + headboard (not a flat 2-faced slab)
   bed:    [{ x: 0, y: 0, z: 0, w: 1, d: 1, h: 0.35 }, { x: 0.06, y: 0.1, z: 0.35, w: 0.88, d: 0.85, h: 0.33 }, { x: 0.12, y: 0.12, z: 0.68, w: 0.76, d: 0.22, h: 0.26 }, { x: 0, y: 0, z: 0, w: 1, d: 0.1, h: 1.0 }],
   sofa:   [{ x: 0, y: 0.34, z: 0, w: 1, d: 0.66, h: 0.5 }, { x: 0, y: 0, z: 0, w: 1, d: 0.34, h: 1 }],        // seat + back
@@ -524,132 +441,8 @@ const SHAPE_PARTS_L1: Partial<Record<ObjectKind, ShapePart[]>> = {
   shower: [{ x: 0, y: 0, z: 0, w: 1, d: 1, h: 0.15 }, { x: 0, y: 0, z: 0, w: 0.12, d: 1, h: 1 }, { x: 0, y: 0, z: 0, w: 1, d: 0.12, h: 1 }], // pan + 2 glass walls
   window: [{ x: 0, y: 0, z: 0.32, w: 1, d: 1, h: 0.5 }],  // a mid-height sash band (not floor-to-ceiling)
 };
-/** Rev A — the LOD-keyed part sets, SHAPE_PARTS_LOD[kind][lod]. LOD 1 = today's data; higher levels are added per kind as
- *  they are authored (a slot, not work). Read through shapePartsAt / shapePartsOf — never indexed by a renderer. */
-export const SHAPE_PARTS_LOD: Partial<Record<ObjectKind, Partial<Record<Lod, ShapePart[]>>>> = {};
-for (const k of Object.keys(SHAPE_PARTS_L1) as ObjectKind[]) SHAPE_PARTS_LOD[k] = { 1: SHAPE_PARTS_L1[k] };
-/** The parts of a kind at a level of detail — the HIGHEST authored level ≤ lod (a kind with only L1 renders L1 at L5),
- *  else one full box. Pure. */
-export function shapePartsAt(kind: ObjectKind, lod: Lod): ShapePart[] {
-  const levels = SHAPE_PARTS_LOD[kind];
-  if (levels) for (let l = lod; l >= 1; l--) { const parts = levels[l as Lod]; if (parts && parts.length > 0) return parts; }
-  return FULL_BOX;
-}
-/** The low-fi 3D shape of a kind as fractional sub-boxes (S2) — LOD 1, unchanged signature + behaviour. Falls back to a
- *  single full box. */
-export function shapePartsOf(kind: ObjectKind): ShapePart[] { return shapePartsAt(kind, 1); }
-
-/**
- * Rev A — ASSET PARAMS: the DEFINITION of every kind as a reusable, PARAMETRIC, PORTABLE Architect-2525 asset (the brief
- * docs/asks/2026.11.07_architect2525_native_asset_regeneration_brief.md §3 stable ids · §4 rooms · §6 phases · §10
- * dims · §18 mounting · §19 authority; the plan's "THE BAR"). Beside SHAPE_PARTS, never a parallel engine: OBJECT_SPEC
- * keeps its shape (label/emoji/w/d/h/onWall/color — tests/room-objects.test.mjs:31–37) and stays the DEFAULT size.
- *  · id — STABLE identity (one identity, many projections: plan · 3D · voxel · walk · export); never a React name or label.
- *  · category — the brief §17 general categories (how a user finds it); packs organise implementation, not use.
- *  · rooms — the 9 canonical room keys of room-layout TINY_ROOM_LAYOUT (M/B/C/L/K/D/O/S/E) or "GENERAL" for a shared
- *    asset referenced by every room WITHOUT duplicating its definition (§4); a SUPERSET of ROOM_ASSETS (gated ⊇).
- *  · phases — the architect-phases ids this kind is visible in; ONE truth with showGroupInPhase(groupOf(kind)) (gated =).
- *  · mounting + snap — HIS taxonomy (3D Asset Starter Pack schema + intake master §12): FLOOR · WALL · CEILING · SURFACE ·
- *    BUILT_IN, with snap targets (FLOOR, WALL_BACK, WALL_OPENING, WALL_CORNER, CABINET_LINE, ROOF_LINE …). (These are VALUES —
- *    the canonical schema gate bans FIELD NAMES wall/mesh/yaw/svg; no canonical field is named here: assets never enter
- *    canonical truth, §7.)
- *  · params — the Revit-style INSTANCE parameters: w/d/h ranges in ft + the step the ✎ dim-edit snaps to (1 inch).
- *  · authority — ILLUSTRATIVE (design content) or REFERENCE (a real-world standard size); NEVER verified/engineered/
- *    qualified/certified — asset existence is not engineering validation (§19).
- *  · lod — the detail level this definition is authored at (1 of 5); materialPreset — the body material role.
- *  · id grammar + file + metaCategory + packs — the operator's 3D ASSET STARTER PACK contract (docs/architecture-2525/
- *    asset-library/3d-starter-2026-11-06: manifest.json · metadata/*.json · schemas/asset.schema.json; the intake master
- *    docs/asks/2026.11.07_architect2525_3d_asset_intake_master.md §7–§14, §19): ONE semantic id per asset, many filters.
- * Pure data. Gated by tests/architect-asset-registry.test.mjs.
- */
-export type RoomKey = "M" | "B" | "C" | "L" | "K" | "D" | "O" | "S" | "E";
-/** The 9 canonical room keys — the `k` of room-layout's TINY_ROOM_LAYOUT (gated equal); never invent a tenth. */
-export const ROOM_KEYS: readonly RoomKey[] = ["M", "B", "C", "L", "K", "D", "O", "S", "E"];
-export type AssetCategory = "FURNITURE" | "FIXTURES" | "LIGHTING" | "DOORS_WINDOWS" | "BUILDING_ELEMENTS" | "MECHANICAL" | "ELECTRICAL" | "PLUMBING" | "SECURITY" | "SITE";
-export const ASSET_CATEGORIES: readonly AssetCategory[] = ["FURNITURE", "FIXTURES", "LIGHTING", "DOORS_WINDOWS", "BUILDING_ELEMENTS", "MECHANICAL", "ELECTRICAL", "PLUMBING", "SECURITY", "SITE"];
-/** The operator's 3D Asset Starter Pack mounting enum (schemas/asset.schema.json) — ONE vocabulary, his. */
-export type Mounting = "FLOOR" | "WALL" | "CEILING" | "SURFACE" | "BUILT_IN";
-export const MOUNTINGS: readonly Mounting[] = ["FLOOR", "WALL", "CEILING", "SURFACE", "BUILT_IN"];
-/** His snap-target taxonomy (intake master §12). */
-export type SnapTarget = "FLOOR" | "WALL" | "WALL_BACK" | "WALL_CORNER" | "WALL_OPENING" | "CEILING" | "SURFACE" | "COUNTERTOP" | "CABINET_UNDERSIDE" | "CABINET_LINE" | "ROOF_LINE" | "ROOF_EDGE" | "DOOR";
-export const SNAP_TARGETS: readonly SnapTarget[] = ["FLOOR", "WALL", "WALL_BACK", "WALL_CORNER", "WALL_OPENING", "CEILING", "SURFACE", "COUNTERTOP", "CABINET_UNDERSIDE", "CABINET_LINE", "ROOF_LINE", "ROOF_EDGE", "DOOR"];
-export type AssetAuthority = "ILLUSTRATIVE" | "REFERENCE";
-export type MaterialPreset = "ARCH_TEAL" | "ARCH_ACCENT" | "GLASS" | "SCREEN" | "WOOD";
-/** His metadata `category` vocabulary (manifest.json: FURNITURE · KITCHEN · APPLIANCE · PLUMBING_FIXTURE · OPENING; extended
- *  in the same grammar for the kinds his starter does not yet model). */
-export type MetaCategory = "FURNITURE" | "KITCHEN" | "APPLIANCE" | "PLUMBING_FIXTURE" | "OPENING" | "STRUCTURE" | "LIGHTING" | "LIFESTYLE";
-export interface DimRange { min: number; max: number; step: number }
-export interface AssetParams {
-  id: string;                 // STABLE semantic id in HIS grammar: <domain>.<object>[.<variant>].v1
-  file: string;               // his starter basename — models/<file>.glb · metadata/<file>.json · plan/<file>.svg
-  starter: boolean;           // true = one of the 18 native GLBs in his 3D Asset Starter Pack (2026-11-06)
-  category: AssetCategory;    // the brief §17 general category (the Asset Library filter)
-  metaCategory: MetaCategory; // his metadata `category`
-  rooms: RoomKey[] | "GENERAL";
-  phases: string[];
-  mounting: Mounting;
-  snap: SnapTarget[];
-  packs: number[];            // the implementation packs that carry it (brief §5 / master §19 — one entry, many filters)
-  params: { w: DimRange; d: DimRange; h: DimRange };
-  authority: AssetAuthority;
-  lod: 1;
-  materialPreset: MaterialPreset;
-}
-const IN = 1 / 12;                                                         // the ✎ dim-edit step: one inch
-const R = (min: number, max: number): DimRange => ({ min, max, step: IN });
-// phase sets = the showGroupInPhase truth per palette group (one truth, two carriers, gated equal):
-const PH_FURN = ["interior"];                                              // Sleep / Living — the furniture layer only
-const PH_FIXT = ["plumbing", "sewer", "finish", "interior"];               // Bath / Kitchen — fixtures the wet phases serve
-const PH_OPEN = ["framing", "finish", "interior"];                         // Openings
-const PH_SHELL = ["framing", "roofing", "insulation", "interior"];         // Shell panels
-const FL: SnapTarget[] = ["FLOOR"], FLB: SnapTarget[] = ["FLOOR", "WALL_BACK"], WL: SnapTarget[] = ["WALL"], WO: SnapTarget[] = ["WALL_OPENING"];
-const A = (id: string, file: string, starter: boolean, category: AssetCategory, metaCategory: MetaCategory, rooms: RoomKey[] | "GENERAL",
-  phases: string[], mounting: Mounting, snap: SnapTarget[], packs: number[], w: DimRange, d: DimRange, h: DimRange,
-  materialPreset: MaterialPreset = "ARCH_TEAL", authority: AssetAuthority = "ILLUSTRATIVE"): AssetParams =>
-  ({ id, file, starter, category, metaCategory, rooms, phases, mounting, snap, packs, params: { w, d, h }, authority, lod: 1, materialPreset });
-/** kind → the operator's semantic id. ID SOURCE = his 10-Pack 3D Asset Rotator catalog (Architect2525_10Pack_Select_Asset_Spin.html,
- *  2026-11-07, sha256 6e43620e…caa5; 10 packs · 147 entries · 137 unique ids): every kind maps to the rotator entry that matches,
- *  `packs` are the catalog's. The 14 `starter: true` rows are also his 3D Asset Starter Pack's ids, paths, mounting and snap
- *  VERBATIM (gated equal to his manifest + metadata). table / chair carry the starter manifest's furniture.dining_table.v1 /
- *  furniture.dining_chair.v1 (the rotator has no dining group); closet.rod.v1 and shoe.rack.v1 are INVENTED in the rotator's
- *  flat style (the rotator has no closet-rod / shoe-rack entry) — gated as the only two. */
-export const ASSET_PARAMS: Record<ObjectKind, AssetParams> = {
-  bed:        A("furniture.bed.queen.v1",                "bed_queen",              true,  "FURNITURE",          "FURNITURE",         ["M"],                     PH_FURN,  "FLOOR",    FLB, [2],    R(3, 7),      R(5.5, 7.5),  R(1, 3.5),    "ARCH_TEAL", "REFERENCE"),
-  sofa:       A("furniture.sofa.3seat.v1",               "sofa_3seat",             true,  "FURNITURE",          "FURNITURE",         ["L"],                     PH_FURN,  "FLOOR",    FL,  [2],    R(4, 10),     R(2, 3.5),    R(2, 3.5)),
-  counter:    A("kitchen.base_run.sink.v1",              "kitchen_base_run_sink",  true,  "FIXTURES",           "KITCHEN",           ["K", "D", "S"],           PH_FIXT,  "FLOOR",    FLB, [2],    R(1, 10),     R(1.5, 3),    R(2.5, 3.5),  "ARCH_TEAL", "REFERENCE"),
-  table:      A("furniture.dining_table.v1",             "dining_table",           true,  "FURNITURE",          "FURNITURE",         ["L", "D", "E"],           PH_FURN,  "FLOOR",    FL,  [2],    R(2, 10),     R(2, 5),      R(2, 3.2)),
-  desk:       A("desk.v1",                               "desk",                   false, "FURNITURE",          "FURNITURE",         ["M", "O"],                PH_FURN,  "FLOOR",    FLB, [2],    R(2.5, 8),    R(1.5, 3.5),  R(2, 3.2)),
-  toilet:     A("bath.toilet.v1",                        "toilet",                 true,  "FIXTURES",           "PLUMBING_FIXTURE",  ["B"],                     PH_FIXT,  "FLOOR",    FLB, [2],    R(1.5, 2.5),  R(2, 2.75),   R(2, 3),      "ARCH_TEAL", "REFERENCE"),
-  tub:        A("bathtub.v1",                            "bathtub",                false, "FIXTURES",           "PLUMBING_FIXTURE",  ["B"],                     PH_FIXT,  "FLOOR",    FLB, [2],    R(4.5, 6.5),  R(2, 3.5),    R(1.5, 2.5),  "ARCH_TEAL", "REFERENCE"),
-  sink:       A("bath.vanity_sink.v1",                   "vanity_sink",            true,  "FIXTURES",           "PLUMBING_FIXTURE",  ["B", "K", "S"],           PH_FIXT,  "FLOOR",    FLB, [2],    R(1.5, 6),    R(1.5, 2.5),  R(2.5, 3.2)),
-  washer:     A("appliance.washer.frontload.v1",         "washer",                 true,  "MECHANICAL",         "APPLIANCE",         ["S"],                     PH_FIXT,  "FLOOR",    FLB, [2, 4], R(2, 2.5),    R(2, 2.75),   R(2.75, 3.5), "ARCH_TEAL", "REFERENCE"),
-  dresser:    A("furniture.dresser.v1",                  "dresser",                true,  "FURNITURE",          "FURNITURE",         ["C"],                     PH_FURN,  "FLOOR",    FLB, [2],    R(2.5, 6),    R(1.5, 2),    R(2.5, 4)),
-  nightstand: A("furniture.nightstand.v1",               "nightstand",             true,  "FURNITURE",          "FURNITURE",         ["M"],                     PH_FURN,  "FLOOR",    FLB, [2],    R(1, 2.5),    R(1, 2),      R(1.5, 2.75)),
-  tv:         A("tv.console.v1",                         "tv_console",             false, "FURNITURE",          "FURNITURE",         ["M", "L", "O"],           PH_FURN,  "WALL",     WL,  [2],    R(2, 7),      R(0.2, 1),    R(1.2, 4),    "SCREEN"),
-  fridge:     A("appliance.refrigerator.frenchdoor.v1",  "refrigerator",           true,  "MECHANICAL",         "APPLIANCE",         ["K"],                     PH_FIXT,  "FLOOR",    FLB, [2, 4], R(2.5, 4),    R(2.25, 3),   R(5.5, 7),    "ARCH_TEAL", "REFERENCE"),
-  stove:      A("range.oven.v1",                         "range_oven",             false, "MECHANICAL",         "APPLIANCE",         ["K"],                     PH_FIXT,  "FLOOR",    ["FLOOR", "WALL_BACK", "CABINET_LINE"], [2, 4], R(2, 4), R(2, 2.75), R(2.75, 3.25), "ARCH_TEAL", "REFERENCE"),
-  shower:     A("bath.shower.enclosure.v1",              "shower_enclosure",       true,  "FIXTURES",           "PLUMBING_FIXTURE",  ["B"],                     PH_FIXT,  "FLOOR",    ["FLOOR", "WALL_CORNER"], [2], R(2.5, 6), R(2.5, 4), R(6.5, 8),   "GLASS"),
-  wardrobe:   A("wardrobe.v1",                           "wardrobe",               false, "FURNITURE",          "FURNITURE",         ["C"],                     PH_FURN,  "FLOOR",    FLB, [2],    R(2.5, 8),    R(1.5, 2.5),  R(5.5, 8)),
-  bookshelf:  A("bookshelf.v1",                          "bookshelf",              false, "FURNITURE",          "FURNITURE",         ["L", "O", "E"],           PH_FURN,  "FLOOR",    FLB, [2],    R(2, 8),      R(0.75, 1.5), R(3, 8)),
-  chair:      A("furniture.dining_chair.v1",             "dining_chair",           true,  "FURNITURE",          "FURNITURE",         ["M", "L", "D", "O", "E"], PH_FURN,  "FLOOR",    FL,  [2],    R(1.25, 2.5), R(1.25, 2.5), R(2.5, 4)),
-  closetrod:  A("closet.rod.v1",                         "closet_rod",             false, "FURNITURE",          "FURNITURE",         ["C"],                     PH_FURN,  "WALL",     WL,  [2],    R(3, 10),     R(1, 2),      R(4, 7)),
-  shelving:   A("storage.shelving.v1",                   "storage_shelving",       false, "FURNITURE",          "FURNITURE",         ["B", "C", "S"],           PH_FURN,  "WALL",     WL,  [2],    R(2, 10),     R(0.75, 2),   R(2, 8)),
-  shoerack:   A("shoe.rack.v1",                          "shoe_rack",              false, "FURNITURE",          "FURNITURE",         ["C", "E"],                PH_FURN,  "FLOOR",    FLB, [2],    R(1.5, 4),    R(0.75, 1.5), R(1, 4)),
-  rug:        A("area.rug.v1",                           "area_rug",               false, "FURNITURE",          "LIFESTYLE",         ["L", "M"],                PH_FURN,  "FLOOR",    FL,  [9],    R(3, 10),     R(2, 10),     R(0.05, 0.2)),
-  mirror:     A("mirror.led.v1",                         "mirror_led",             false, "FIXTURES",           "FURNITURE",         ["M", "B", "C"],           PH_FURN,  "WALL",     WL,  [2], R(1, 6),      R(0.1, 0.4),  R(1, 6),      "GLASS"),
-  lamp:       A("floor.lamp.v1",                         "floor_lamp",             false, "LIGHTING",           "LIGHTING",          ["M", "L"],                PH_FURN,  "FLOOR",    FL,  [2], R(0.5, 2),    R(0.5, 2),    R(3, 6.5)),
-  rangehood:  A("range.hood.v1",                         "range_hood",             false, "MECHANICAL",         "APPLIANCE",         ["K"],                     PH_FIXT,  "WALL",     ["WALL", "CABINET_LINE"], [2, 4], R(2, 4), R(1.25, 2.25), R(0.75, 2.5), "ARCH_TEAL", "REFERENCE"),
-  shell:      A("wall.sheathing.v1",                     "wall_sheathing",         false, "BUILDING_ELEMENTS",  "STRUCTURE",         "GENERAL",                 PH_SHELL, "BUILT_IN", WL,  [1],    R(2, 10),     R(0.3, 1.5),  R(6, 10)),
-  roof:       A("roof.sheathing.v1",                     "roof_sheathing",         false, "BUILDING_ELEMENTS",  "STRUCTURE",         "GENERAL",                 PH_SHELL, "CEILING",  ["CEILING", "ROOF_LINE"], [1], R(2, 10), R(2, 10),   R(0.3, 1.5)),
-  door:       A("opening.door.interior.v1",              "interior_door",          true,  "DOORS_WINDOWS",      "OPENING",           "GENERAL",                 PH_OPEN,  "WALL",     WO,  [1],    R(2, 4),      R(0.1, 0.75), R(6.5, 8),    "ARCH_ACCENT", "REFERENCE"),
-  window:     A("opening.window.unit.v1",                "window_unit",            true,  "DOORS_WINDOWS",      "OPENING",           "GENERAL",                 PH_OPEN,  "WALL",     WO,  [1],    R(1.5, 8),    R(0.2, 0.75), R(1.5, 6),    "GLASS", "REFERENCE"),
-};
-/** The asset definition of a kind (Rev A). */
-export function assetParamsOf(kind: ObjectKind): AssetParams { return ASSET_PARAMS[kind]; }
-/** The kind behind a STABLE asset id (one identity, many projections), or undefined for an unknown id. */
-export function kindByAssetId(id: string): ObjectKind | undefined {
-  return (Object.keys(ASSET_PARAMS) as ObjectKind[]).find((k) => ASSET_PARAMS[k].id === id);
-}
+/** The low-fi 3D shape of a kind as fractional sub-boxes (S2). Falls back to a single full box. */
+export function shapePartsOf(kind: ObjectKind): ShapePart[] { return SHAPE_PARTS[kind] ?? FULL_BOX; }
 
 /**
  * S3 — CONTEXT-AWARE ROOM ASSETS. The SINGLE source mapping each room key (M/B/C/L/K/D/O/S/E — see room-layout) to the
@@ -802,9 +595,7 @@ export function standardLayoutAt(roomKey: string, rev: number): PlacedObject[] |
 /** The same arrangement: the same kinds at the same centres, rotations, variants and elevations (ids and order ignored). */
 export function sameArrangement(a: readonly PlacedObject[], b: readonly PlacedObject[]): boolean {
   if (a.length !== b.length) return false;
-  // Rev A: the per-instance size is part of the arrangement — a resized piece is an ARRANGED piece the guard keeps.
-  const sz = (o: PlacedObject) => (o.size ? `${o.size.w ?? ""}x${o.size.d ?? ""}x${o.size.h ?? ""}` : "");
-  const key = (o: PlacedObject) => `${o.kind}@${o.gx},${o.gy},${o.rot},${o.variant ?? ""},${o.elev ?? ""},${sz(o)}`;
+  const key = (o: PlacedObject) => `${o.kind}@${o.gx},${o.gy},${o.rot},${o.variant ?? ""},${o.elev ?? ""}`;
   const sa = a.map(key).sort(), sb = b.map(key).sort();
   return sa.every((k, i) => k === sb[i]);
 }

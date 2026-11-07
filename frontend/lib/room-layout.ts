@@ -49,26 +49,6 @@ export const HOUSE_FT = TINY_GRID * SHELL_FT;         // 36 ft — whole-house o
 export const HOUSE_H = SHELL_FT;                       // 12 ft — whole-house outer height (10 inner clear + 2 plenum), ONE storey
 export const STEP_RISE_FT = 7 / 12;                   // a 7-in riser (IRC R311.7.5.1 allows up to 7¾ in)
 
-/** ONE OPENING STANDARD (Wave 0 · P0·I, operator 2026-11-07 via MoT: "DOOR_W=3.2 would print a non-existent 3'-2″"). The walk
- * doorway (architect-walk-nav DOOR_W), the framed rough opening (architect-walk-framing), the walkthrough's door/window planes
- * and every measurement label read THESE numbers — never a local literal. Feet; `ftIn()` prints them as the trade does.
- *  · DOOR_W_FT 3.0   — a 3'-0" (36") leaf: the designer's default door (room-objects DOOR_VARIANTS "d32" = 3'-0" × 6'-8");
- *                      IRC R311.2 requires the egress door ≥ 32" clear width, which a 36" leaf gives (≈33½" clear at 90°).
- *  · DOOR_H_FT 6.67  — a 6'-8" (80") leaf; IRC R311.2 egress door ≥ 78" clear height (80" is the stock leaf height).
- *  · DOOR_RO_H_FT 6.875 — the 82½" rough-opening HEAD over an 80" leaf (leaf + ¾" head jamb + ¾" floor/threshold + shims):
- *                      the framing header's underside (architect-walk-framing HDR_DOOR) — one standard, not a second door height.
- *  · WIN_W_FT 3.6 · WIN_SILL_FT 3 · WIN_HEAD_FT 6.5 — an exterior window ≈3'-7" wide × 3'-6" tall, sill 3'-0" AFF, head 6'-6":
- *                      net clear ≈12.6 ft² ≥ IRC R310.2.1's 5.7 ft² emergency-escape minimum (≥24" high · ≥20" wide); the
- *                      36" sill is under R310.2.2's 44" AFF maximum. Gated by tests/architect-one-source.test.mjs. */
-export const OPENING_STD = {
-  DOOR_W_FT: 3.0,
-  DOOR_H_FT: 6.67,
-  DOOR_RO_H_FT: 82.5 / 12,   // 6.875 exactly
-  WIN_W_FT: 3.6,
-  WIN_SILL_FT: 3,
-  WIN_HEAD_FT: 6.5,
-} as const;
-
 /** Finalized Tiny Home (operator design) — index = row*3 + col, read top→bottom / left→right.
  * Element seeds: perimeter rooms get a window; the center Kitchen has no exterior wall (0). */
 export const TINY_ROOM_LAYOUT: RoomCell[] = [
@@ -115,17 +95,12 @@ export function moveRoomInLayout(layout: RoomCell[], id: string, dRow: number, d
     : r);
 }
 
-/** F9 STRETCH FENCE (operator 2026-11-07 via MoT P0·I): a 20×10 room was reachable here (max 2) while the walk, framing, MEP and
- * shell libs all draw a hardcoded 10×10 (RF = 10) — so no room may exceed ONE cell, fenced until the WalkSpace contract (Rev K)
- * honours w/d. A caller's own `max` is capped by this too (the fence cannot be bypassed). Gated: tests/architect-one-source.test.mjs. */
-export const STRETCH_MAX_CELLS = 1;
 /**
- * P3 stretch — resize a room's width/depth in whole 10-ft cells within a clamp. FENCED at STRETCH_MAX_CELLS (1 cell = 10 ft)
- * until the WalkSpace contract (Rev K) honours w/d — was 1..2 (10..20 ft). Pure; feeds layoutSqft so area/cost track the change.
+ * P3 stretch — resize a room's width/depth in whole 10-ft cells within a clamp (default 1..2 = 10..20 ft),
+ * the "within 10 ft" envelope the operator asked for. Pure; feeds layoutSqft so area/cost track the change.
  */
-export function resizeRoomInLayout(layout: RoomCell[], id: string, w: number, d: number, max = STRETCH_MAX_CELLS): RoomCell[] {
-  const cap = Math.min(max, STRETCH_MAX_CELLS);   // fenced until the WalkSpace contract (Rev K) honours w/d
-  const clamp = (n: number) => Math.max(1, Math.min(cap, Math.round(n)));
+export function resizeRoomInLayout(layout: RoomCell[], id: string, w: number, d: number, max = 2): RoomCell[] {
+  const clamp = (n: number) => Math.max(1, Math.min(max, Math.round(n)));
   return layout.map((r) => (r.id === id ? { ...r, w: clamp(w), d: clamp(d) } : r));
 }
 

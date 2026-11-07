@@ -14,11 +14,8 @@ import { doorSymbol, doorSymbolSvg, symbolForSpan, type DoorSymbol } from "@/lib
 import { useRCoreGestures } from "./use-rcore-gestures";
 import { Compass2525 } from "./compass-2525";
 import { useLexicon } from "@/lib/lexicon-context";
-import { FRAME_COLOR } from "@/lib/architect-phase-palette";   // ONE framing palette (brief §2 "only wood is tan"): the room walls are the wood-framed walls
 
-// wall = FRAME_COLOR — the 2D plan's partition walls read in the SAME lumber colour as the walk's studs + the 3D framing (one
-// palette, gated by tests/architect-one-source.test.mjs); the outer shell stays the reference's cyan, non-framing colours unchanged.
-const C = { bg: "#070b12", grid: "#13202f", wall: FRAME_COLOR, door: "#ffd400", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", gold: "#ffd400", border: "#1e2b3a" };
+const C = { bg: "#070b12", grid: "#13202f", wall: "#c084fc", door: "#ffd400", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", gold: "#ffd400", border: "#1e2b3a" };
 
 // SVG layout: 30-ft plan drawn at 30 units/room inside a padded viewBox (room for dimension lines).
 const U = 30;                 // svg units per 10-ft room cell

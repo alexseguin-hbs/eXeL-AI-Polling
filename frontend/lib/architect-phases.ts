@@ -15,7 +15,6 @@
  * Pure data + pure helpers, no React → replayable and gate-checked.
  */
 import { rainbow } from "./architect-rainbow";
-import type { ElementName } from "./architect-sim-options";   // type-only: no runtime edge back into sim-options
 
 export type PhaseLayer = "structure" | "wiring" | "water" | "sewer" | "duct" | null;
 
@@ -219,32 +218,4 @@ export function showGroupInPhase(group: string, id: string | null | undefined): 
   if (group === "Shell") return d.structure || d.furniture; // shell / roof panels
   if (group === "Bath" || group === "Kitchen") return d.fixtures || d.furniture; // plumbing fixtures
   return d.furniture;                                        // Sleep / Living furniture
-}
-
-/**
- * PHASE → BUILD-DIRECTIONS ELEMENT (Revision A · P0·H, 2026-11-07). The walk/design surfaces select one of the 12
- * DEV_PHASES; the build directions (lib/architect-build-instructions BUILD_ORDER) carry a take-off for SIX elements. This
- * is the ONE map between the two vocabularies — never a third list, never a guess: every phase id is an EXPLICIT key, to
- * the element whose take-off it reads, or `null` = this phase honestly has no take-off yet (internet · security ·
- * insulation · finish are not costed elements; interior design is staging, not construction). Sewer reads the Plumbing
- * take-off (its DWV rough-in step lives there). Gated by tests/architect-directions-drift.test.mjs.
- */
-export const PHASE_ELEMENT: Readonly<Record<string, ElementName | null>> = {
-  foundation: "Foundation",
-  framing: "Wall System",
-  roofing: "Roof",
-  plumbing: "Plumbing",
-  sewer: "Plumbing",
-  electrical: "Electrical",
-  hvac: "HVAC",
-  internet: null,
-  security: null,
-  insulation: null,
-  finish: null,
-  interior: null,
-};
-/** The directions element for a phase id — an ElementName, or null for "no take-off" / an unknown or empty id. Pure. */
-export function elementForPhase(phaseId: string | null | undefined): ElementName | null {
-  if (!phaseId || !Object.prototype.hasOwnProperty.call(PHASE_ELEMENT, phaseId)) return null;
-  return PHASE_ELEMENT[phaseId];
 }

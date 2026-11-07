@@ -6,7 +6,7 @@
 // Pure (no React/DOM) so the walk AND tests/architect-walk-framing.test.mjs read the SAME geometry.
 import { boxFaces, type Quad, type Vec3 } from "./solid-shade";
 import { studOffsetsFt, FRAME_COLOR, FRAME_HEADER_COLOR, type StudGauge } from "./architect-phase-palette";
-import { STOREY_FT, ROOM_FT, OPENING_STD } from "./room-layout";   // the 10-ft cube + the ONE opening standard (Wave 0 · P0·I)
+import { STOREY_FT, ROOM_FT } from "./room-layout";
 
 const RF = ROOM_FT;                 // 10 — inner clear room edge
 const CEIL = STOREY_FT;             // 10 — inner clear ceiling (one source)
@@ -14,9 +14,8 @@ const PUSH = 0.03;                  // push members into the room so they never 
 const T = 0.125;                    // 1.5" stud/plate thickness (along the wall · plate height)
 const PLATE = 0.125;                // plate height
 const TOP_B = CEIL - 0.25;          // double-top-plate underside (9.75) — common studs stop here
-const HDR_DOOR = OPENING_STD.DOOR_RO_H_FT;   // 6.875 — door header underside = the 82½" rough-opening head over the 6'-8" leaf (ONE opening source)
-const WIN_SILL = OPENING_STD.WIN_SILL_FT, WIN_HEAD = OPENING_STD.WIN_HEAD_FT;   // window rough sill 3 ft · head 6.5 ft (ONE opening source)
-const HDR_WIN_TOP = 7.27;          // window header class top (≈ a 9¼" 2×10 over the 6.5-ft head) — a framing member size, not an opening
+const HDR_DOOR = 6.875;            // door header underside (6'-8" door + rough-opening head)
+const WIN_SILL = 3.0, WIN_HEAD = 6.5, HDR_WIN_TOP = 7.27;  // window: rough sill 3 ft, head 6.5 ft, header class top 7.27
 
 export type Side = "N" | "S" | "W" | "E";
 export interface WalkOpening { side: Side; center: number; span: number; z0: number; z1: number }  // z0=0 door · z0>0 window (world along-wall centre)

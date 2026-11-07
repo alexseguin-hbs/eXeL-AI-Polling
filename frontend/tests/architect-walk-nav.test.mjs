@@ -3,7 +3,6 @@
 // the eye may only step through a wall where the door is — within half the door width of the opening's centre.
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-walk-nav.test.mjs
 import { canCrossDoor, DOOR_W, ROOM_FT } from "../lib/architect-walk-nav.ts";
-import { OPENING_STD, ROOM_FT as RL_ROOM_FT } from "../lib/room-layout.ts";   // the ONE opening standard + 10-ft source
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL", m); } };
@@ -22,8 +21,8 @@ ok(!canCrossDoor(ROOM_FT / 2), "at the room edge, far from the opening → no cr
 ok(canCrossDoor(2, 6) && !canCrossDoor(4, 6), "a wider door (6 ft) widens the crossable span");
 // non-finite is refused (never cross on a NaN)
 ok(!canCrossDoor(NaN) && !canCrossDoor(Infinity), "a non-finite offset never crosses");
-// the constant IS the one opening standard (Wave 0 · P0·I): a 3'-0" leaf — never 3.2 (a "3'-2″" door does not exist)
-ok(DOOR_W === OPENING_STD.DOOR_W_FT && DOOR_W === 3 && ROOM_FT === 10 && ROOM_FT === RL_ROOM_FT, `DOOR_W = 3'-0" (OPENING_STD.DOOR_W_FT), ROOM_FT = 10 ft re-exported from room-layout (got DOOR_W ${DOOR_W}, ROOM_FT ${ROOM_FT})`);
+// the constant is the shared door width
+ok(DOOR_W === 3.2 && ROOM_FT === 10, "DOOR_W = 3.2 ft, ROOM_FT = 10 ft (the shared walk constants)");
 
 console.log(`\nARCHITECT-WALK-NAV ${pass}/${pass + fail} passed · the door-span rule gates every wall crossing`);
 if (fail > 0) process.exit(1);

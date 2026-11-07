@@ -12,15 +12,13 @@ import {
   waterRuns, sewerRuns, ductRuns, fixtureEndpoints, WATER_FIXTURES, DRAIN_FIXTURES,
   MEP_SOURCE, MEP_COLOR, type MepPt,
 } from "./mep-runs";
-import { boxFaces, type Quad, type Vec3 } from "./solid-shade";
-export { OUTLET_AFF_FT };            // re-exported for the walk's measurements overlay (one source: lib/mep-runs)
+import type { Vec3 } from "./solid-shade";
 
 const RF = ROOM_GRID;                 // 10 = the INNER clear room / finished ceiling (ROOM_GRID, one source)
 const TOP_PLATE = RF;                 // the top plate / wiring ring runs just under the 10-ft inner ceiling (keyed to the cube)
 const CEIL = RF;                      // vents + the stack rise to the 10-ft inner ceiling (keyed to the cube)
 export const DUCT_Z = RF + 1;         // 11 ft — the trunk centreline sits in the PLENUM (10→12), ABOVE the 10-ft inner ceiling (room-layout SHELL_FT)
 const PANEL_BOT = 4, PANEL_H = 2.5, PANEL_W = 1.2;   // the service panel: 1.2×2.5 ft, bottom at 4 ft
-export const AHU_W = 2, AHU_D = 2, AHU_H = 5;         // the air-handler CABINET body (P0·J): 2×2×5 ft, flush in the NE corner of the utility room — its top meets the shipped wireframe/glyph top (z 5)
 const OUT_W = 0.45, OUT_H = 0.65, PUSH = 0.03;        // an outlet: 0.45×0.65 ft on the wall face, pushed into the room
 const COLD_Z = 0.3, HOT_Z = 0.55;     // water supply on the floor — cold then hot-over-cold (0.25 ft apart = readable)
 const HOT_DX = 0.33;                  // hot riser offset along the wall from the cold riser
@@ -30,9 +28,7 @@ export type GlyphKind = "valve" | "stop" | "mixer" | "manifold" | "trap" | "flan
 export interface MepBox { kind: "outlet" | "panel"; pts: Vec3[]; z: number }
 export interface MepSubline { pts: Vec3[]; color: string; dash?: string; w?: number }
 export interface MepGlyph { kind: GlyphKind; polys: Vec3[][]; lines?: Vec3[][]; at: Vec3; color: string; label?: string }
-/** `solids` (P0·E law) is ADDITIVE: real bodies (boxFaces quads) the walk shades + occludes through a SECOND solidFaces() pass.
- *  `lines`/`boxes`/`sublines`/`glyphs` stay byte-stable (tests/architect-walk-mep + walk-mep-rooms pin them). */
-export interface WalkMep { lines: Vec3[][]; boxes: MepBox[]; sublines: MepSubline[]; glyphs: MepGlyph[]; solids: Quad[]; color: string }
+export interface WalkMep { lines: Vec3[][]; boxes: MepBox[]; sublines: MepSubline[]; glyphs: MepGlyph[]; color: string }
 
 // plan cell (gx,gy) + height z → walk world, with the Y-FLIP (plan gy 0 = NORTH → world far), offset by the room origin.
 const W3 = (gx: number, gy: number, z: number, ox: number, oy: number): Vec3 => [ox + gx + 0.5, oy + (RF - (gy + 0.5)), z];
@@ -96,7 +92,7 @@ function dirWorld(a: MepPt, b: MepPt): [number, number] { return norm2([b.gx - a
  * valves (sublines + glyphs). Sewer: drains that FALL to the SE stack with traps, vents and a roof vent-through-roof.
  */
 export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObject[], ox = 0, oy = 0, roomKind?: string): WalkMep {
-  const lines: Vec3[][] = []; const boxes: MepBox[] = []; const sublines: MepSubline[] = []; const glyphs: MepGlyph[] = []; const solids: Quad[] = [];
+  const lines: Vec3[][] = []; const boxes: MepBox[] = []; const sublines: MepSubline[] = []; const glyphs: MepGlyph[] = [];
   if (layer === "wiring") {
     const panel = panelAt(objects);
     const outs = outletPositions(outletCount, objects);
@@ -222,12 +218,9 @@ export function walkMep(layer: MepLayer, outletCount: number, objects: PlacedObj
       // supply riser: the air handler's top (z 5) up to the plenum trunk (z 11) — so the AHU connects to the ducts, not floats apart (Krishna)
       sublines.push({ pts: [[ax + 0.5, ay - 0.5, 5], [ax + 0.5, ay - 0.5, DUCT_Z]], color: MEP_COLOR.duct, w: 1.6 });
       glyphs.push({ kind: "ahu", polys: [[[ax, ay, 5], [ax + 1, ay, 5], [ax + 1, ay - 1, 5], [ax, ay - 1, 5]]], at: [ax + 0.5, ay - 0.5, 5], color: MEP_COLOR.duct, label: "AHU" });
-      // P0·J "where's the unit" — the AHU gets a BODY: a 2×2×5 ft cabinet (boxFaces, MEP_COLOR.duct) flush in the NE corner, so it
-      // shades + occludes like furniture (walkthrough: a SECOND solidFaces pass). ADDITIVE — the wireframe/glyph/riser above are untouched.
-      solids.push(...boxFaces(ox + RF - AHU_W, oy + RF - AHU_D, 0, AHU_W, AHU_D, AHU_H, MEP_COLOR.duct));
     }
   }
-  return { lines, boxes, sublines, glyphs, solids, color: MEP_COLOR[layer] };
+  return { lines, boxes, sublines, glyphs, color: MEP_COLOR[layer] };
 }
 
 /** a rectangular duct's 4 longitudinal edge lines between centreline points a→b, cross-section w (lateral) × h (vertical). */
