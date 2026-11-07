@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.exterior.siding.v1",
+  "label": "Exterior Siding",
+  "packs": [
+    1,
+    3
+  ],
+  "sections": [
+    "Exterior & Site",
+    "Shell & Structure"
+  ],
+  "sourcePlacementIds": [
+    "P01-S01-A11",
+    "P03-S04-A03"
+  ],
+  "model": "../models/exterior-siding.glb",
+  "planSymbol": "../plan/exterior-siding.svg",
+  "dimensionsM": {
+    "width": 1.6,
+    "depth": 0.1,
+    "height": 1.18
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

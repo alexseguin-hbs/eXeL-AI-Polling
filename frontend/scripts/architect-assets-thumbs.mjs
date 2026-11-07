@@ -4,16 +4,20 @@
  * neutral/dark Architect-2525 background; three-quarter isometric view; stable camera; consistent scale padding;
  * cyan/teal Architect visual treatment; only actual wood rendered tan."
  * =================================================================================================
- * Each manifest entry's GLB is read through the SAME pure reader the runtime uses, bridged into the SAME solidFaces()
- * painter the walk uses (lib/solid-shade.ts — the three-quarter view is just another Projector), shaded with the SAME
- * FACE_SHADE, and emitted as an SVG on the #070b12 ground with cyan edges; Playwright's Chromium rasterises it to a
- * 256×256 PNG at public/architect-2525/assets/thumbs/<file>.png and the manifest entry gains `thumbnail`. The picture is
- * therefore the runtime's own rendering of the asset — never a drawing, never a concept-board crop.
+ * Each manifest row's GLB is read through the SAME pure reader the runtime uses, bridged into the SAME solidFaces()
+ * painter the walk uses (lib/solid-shade.ts — the three-quarter view is just another Projector; coplanar triangle pairs
+ * merged into quads so a box face has no diagonal), shaded with the SAME FACE_SHADE, and emitted as an SVG on the
+ * #070b12 ground with cyan edges; Playwright's Chromium rasterises it to thumbs/<file>.png (256×256) beside his models/
+ * metadata/ plan/. The picture is therefore the runtime's own rendering of his asset — never a drawing, never a
+ * concept-board crop. The manifest is HIS, otherwise untouched: every row gains `thumbnail`, and the top level gains
+ * `source` (the sha256 of his original manifest.json, recorded once) — the gate proves that stripping both gives his
+ * file back exactly.
  *
  *   node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs scripts/architect-assets-thumbs.mjs [--out <dir>] [--only <id>] [--svg]
  */
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { readGlb } from "../lib/architect-2525/assets/gltf/glb-reader.ts";
 import { meshToFaces } from "../lib/architect-2525/assets/gltf/to-quads.ts";
@@ -26,6 +30,8 @@ const arg = (k) => (argv.includes(k) ? argv[argv.indexOf(k) + 1] : null);
 const OUT = path.resolve(arg("--out") ?? path.resolve(HERE, "../public/architect-2525/assets"));
 const ONLY = arg("--only");
 const KEEP_SVG = argv.includes("--svg");
+/** Where his original manifest lives in the repo (recorded in manifest.source). */
+export const SOURCE_MANIFEST = "docs/architecture-2525/asset-library/3d-all-assets-2026-11-07/manifest.json";
 
 export const THUMB_SIZE = 256, THUMB_PAD = 22;
 export const THUMB_GROUND = "#070b12", THUMB_EDGE = "#4ff2ff", THUMB_FLOOR = "#19c8cf";
@@ -66,6 +72,19 @@ export function thumbSvg(mesh) {
   ].join("\n");
 }
 
+/** The thumbnail path for a manifest row: thumbs/<model file name>.png. */
+export const thumbPathFor = (entry) => `thumbs/${path.basename(entry.model, ".glb")}.png`;
+
+/** His manifest + our two additions: `source` (recorded once, after `date`) and `thumbnail` per row (last key). Pure. */
+export function withThumbnails(manifest, originalSha256) {
+  const { assets, source, ...head } = manifest;
+  const out = {};
+  for (const [k, v] of Object.entries(head)) { out[k] = v; if (k === "date" || (k === "version" && !("date" in head))) out.source = source ?? { path: SOURCE_MANIFEST, sha256: originalSha256, note: "the operator's original manifest.json — this copy adds only `source` and each row's `thumbnail`" }; }
+  if (!out.source) out.source = source ?? { path: SOURCE_MANIFEST, sha256: originalSha256, note: "the operator's original manifest.json — this copy adds only `source` and each row's `thumbnail`" };
+  out.assets = assets.map((e) => normalizeManifestEntry({ ...e, thumbnail: thumbPathFor(e) }));
+  return out;
+}
+
 async function launch() {
   const { chromium } = await import("playwright");
   try { return await chromium.launch(); } catch (e) {
@@ -77,7 +96,9 @@ async function launch() {
 
 export async function buildThumbs(outDir = OUT, only = ONLY) {
   const manifestPath = path.join(outDir, "manifest.json");
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  const raw = fs.readFileSync(manifestPath);
+  const manifest = JSON.parse(raw.toString("utf8"));
+  const originalSha = manifest.source?.sha256 ?? crypto.createHash("sha256").update(raw).digest("hex");
   fs.mkdirSync(path.join(outDir, "thumbs"), { recursive: true });
   const browser = await launch();
   const page = await browser.newPage({ viewport: { width: THUMB_SIZE, height: THUMB_SIZE }, deviceScaleFactor: 1 });
@@ -85,26 +106,23 @@ export async function buildThumbs(outDir = OUT, only = ONLY) {
   try {
     for (const entry of manifest.assets) {
       if (only && entry.id !== only) continue;
-      const file = path.basename(entry.model, ".glb");
       const mesh = readGlb(fs.readFileSync(path.join(outDir, entry.model)));
       const svg = thumbSvg(mesh);
-      if (KEEP_SVG) fs.writeFileSync(path.join(outDir, "thumbs", `${file}.svg`), svg + "\n");
+      const png = path.join(outDir, thumbPathFor(entry));
+      if (KEEP_SVG) fs.writeFileSync(png.replace(/\.png$/, ".svg"), svg + "\n");
       await page.setContent(`<!doctype html><html><body style="margin:0;background:${THUMB_GROUND}">${svg}</body></html>`);
-      const png = path.join(outDir, "thumbs", `${file}.png`);
       await page.screenshot({ path: png, clip: { x: 0, y: 0, width: THUMB_SIZE, height: THUMB_SIZE } });
-      entry.thumbnail = `thumbs/${file}.png`;
       done.push({ id: entry.id, png, tris: mesh.triCount });
     }
   } finally {
     await browser.close();
   }
-  manifest.assets = manifest.assets.map(normalizeManifestEntry);
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
+  fs.writeFileSync(manifestPath, JSON.stringify(withThumbnails(manifest, originalSha), null, 2));   // his style: 2-space, no trailing newline
   return done;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const done = await buildThumbs(OUT, ONLY);
-  for (const d of done) console.log(`${d.id} → ${path.relative(OUT, d.png)} (${d.tris} tris)`);
+  for (const d of done) console.log(`${d.id.padEnd(48)} → ${path.relative(OUT, d.png)} (${d.tris} tris)`);
   console.log(`rendered ${done.length} thumbnail(s) into ${path.join(OUT, "thumbs")}`);
 }

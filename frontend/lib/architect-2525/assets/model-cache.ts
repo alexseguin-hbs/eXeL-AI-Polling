@@ -15,24 +15,27 @@
  */
 import { readGlb, toFeet, transformMesh, type AssetMesh, type AssetTri } from "./gltf/glb-reader";
 
-/** A single asset may carry at most this many triangles before the gate warns (the starter pack peaks at 276). */
-export const MAX_TRIS_PER_ASSET = 600;
-/** All placed instances in one room may total at most this many before the gate warns (~15 heavy assets). */
-export const MAX_TRIS_PER_ROOM = 4000;
+/** A single asset may carry at most this many triangles before the gate warns (the 139-asset library peaks at 1,356 —
+ *  planter-bed-tree; the starter pack at 276). */
+export const MAX_TRIS_PER_ASSET = 1500;
+/** All placed instances in one room may total at most this many before the gate warns. */
+export const MAX_TRIS_PER_ROOM = 6000;
 
-export interface AssetManifestEntry { id: string; label: string; category: string; model: string; metadata: string; planSymbol: string; thumbnail?: string }
+/** One registry row — the operator's library shape (id · label · packs · model · metadata · planSymbol; the starter pack
+ *  carried `category` instead of `packs`); `thumbnail` is added by the thumbs build. */
+export interface AssetManifestEntry { id: string; label: string; model: string; metadata: string; planSymbol: string; packs?: number[]; category?: string; thumbnail?: string }
 export interface AssetManifest {
   library: string; version: string;
-  coordinateSystem?: string; units?: string; pivotConvention?: string; authorityDefault?: string;
+  date?: string; coordinateSystem?: string; units?: string; pivotConvention?: string; authorityDefault?: string;
+  source?: { path: string; sha256: string; note?: string };   // the operator's original manifest this copy was made from
   assets: AssetManifestEntry[];
 }
 export type FetchBytes = (url: string) => Promise<ArrayBuffer | Uint8Array>;
 
-/** A manifest entry in the pack's key order (id · label · category · model · metadata · planSymbol · thumbnail). Pure. */
+/** A manifest entry with its own keys in their own order and `thumbnail` last (his row untouched, ours appended). Pure. */
 export function normalizeManifestEntry(e: AssetManifestEntry): AssetManifestEntry {
-  const out: AssetManifestEntry = { id: e.id, label: e.label, category: e.category, model: e.model, metadata: e.metadata, planSymbol: e.planSymbol };
-  if (e.thumbnail) out.thumbnail = e.thumbnail;
-  return out;
+  const { thumbnail, ...rest } = e;
+  return thumbnail ? { ...rest, thumbnail } : rest;
 }
 
 /** The entry for an id (own entries only); throws on an unknown id — an unknown asset is a refusal, not a blank. */

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.smart.hub.router.v1",
+  "label": "Smart Hub + Router",
+  "packs": [
+    5
+  ],
+  "sections": [
+    "Smart Home & Automation"
+  ],
+  "sourcePlacementIds": [
+    "P05-S01-A02"
+  ],
+  "model": "../models/smart-hub-router.glb",
+  "planSymbol": "../plan/smart-hub-router.svg",
+  "dimensionsM": {
+    "width": 0.88,
+    "depth": 0.6,
+    "height": 1.1
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

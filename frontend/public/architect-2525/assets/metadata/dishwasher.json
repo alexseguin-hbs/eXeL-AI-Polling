@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.dishwasher.v1",
+  "label": "Dishwasher",
+  "packs": [
+    4
+  ],
+  "sections": [
+    "Kitchen Appliances"
+  ],
+  "sourcePlacementIds": [
+    "P04-S01-A04"
+  ],
+  "model": "../models/dishwasher.glb",
+  "planSymbol": "../plan/dishwasher.svg",
+  "dimensionsM": {
+    "width": 0.65,
+    "depth": 0.6575,
+    "height": 0.86
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

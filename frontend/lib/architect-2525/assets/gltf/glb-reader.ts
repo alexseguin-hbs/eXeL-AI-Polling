@@ -291,6 +291,28 @@ export function gltfTriangles(doc: GltfDoc, opts: TriangulateOptions = {}): Asse
   return { units: "m", triangles, bounds: meshBounds(triangles), triCount: triangles.length, meshCount, materials: colours };
 }
 
+/** The RAW bounds of every POSITION accessor any primitive references — BEFORE node matrices. A viewer never shows
+ *  these (gltfTriangles applies the node transforms); they are reported beside the world bounds so a ledger reading
+ *  accessor minima (e.g. a toilet authored at z 0.11 and lowered to the floor by its node matrix) can see both. */
+export function rawPositionBounds(doc: GltfDoc): Bounds | null {
+  const j = doc.json;
+  const min: V3 = [Infinity, Infinity, Infinity], max: V3 = [-Infinity, -Infinity, -Infinity];
+  let seen = false;
+  for (const mesh of j.meshes ?? []) for (const prim of mesh.primitives ?? []) {
+    const acc = prim.attributes?.POSITION; if (acc === undefined) continue;
+    const a = j.accessors?.[acc]; if (!a) continue;
+    let lo = a.min, hi = a.max;
+    if (!lo || !hi || lo.length < 3 || hi.length < 3) {
+      const flat = readAccessor(doc, acc); lo = [Infinity, Infinity, Infinity]; hi = [-Infinity, -Infinity, -Infinity];
+      for (let i = 0; i < flat.length; i += 3) for (let c = 0; c < 3; c++) { if (flat[i + c] < lo[c]) lo[c] = flat[i + c]; if (flat[i + c] > hi[c]) hi[c] = flat[i + c]; }
+    }
+    seen = true;
+    for (let c = 0; c < 3; c++) { if (lo[c] < min[c]) min[c] = lo[c]; if (hi[c] > max[c]) max[c] = hi[c]; }
+  }
+  if (!seen || ![...min, ...max].every(Number.isFinite)) return null;
+  return { min, max };
+}
+
 /** Parse + triangulate in one call (the model cache's one parse per id). */
 export function readGlb(buf: ArrayBuffer | Uint8Array, opts: TriangulateOptions = {}): AssetMesh {
   return gltfTriangles(parseGlb(buf), opts);

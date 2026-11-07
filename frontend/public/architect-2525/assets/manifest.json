@@ -1,181 +1,1553 @@
 {
-  "library": "Architect-2525 3D Asset Starter Pack",
-  "version": "1.0.0",
-  "coordinateSystem": "right-handed; X width, Y depth, Z up",
+  "library": "Architect-2525 Complete 10-Pack 3D Asset Library",
+  "version": "2.0.0",
+  "date": "2026-11-06",
+  "source": {
+    "path": "docs/architecture-2525/asset-library/3d-all-assets-2026-11-07/manifest.json",
+    "sha256": "577a313f812c94e48994cd191896303507fa1b9159659e474b2d5bf6b38db8f6",
+    "note": "the operator's original manifest.json — this copy adds only `source` and each row's `thumbnail`"
+  },
+  "coordinateSystem": "X=width,Y=depth,Z=up",
   "units": "meters",
-  "pivotConvention": "floor-center at (0,0,0)",
-  "authorityDefault": "ILLUSTRATIVE",
+  "pivotConvention": "FLOOR_CENTER",
+  "boardPlacementCount": 148,
+  "exactNameBoardAssetCount": 137,
+  "semanticAssetCountIncludingExtras": 139,
   "assets": [
     {
-      "id": "furniture.sofa.3seat.v1",
-      "label": "Sofa",
-      "category": "FURNITURE",
-      "model": "models/sofa_3seat.glb",
-      "metadata": "metadata/sofa_3seat.json",
-      "planSymbol": "plan/sofa_3seat.svg",
-      "thumbnail": "thumbs/sofa_3seat.png"
+      "id": "architect2525.asset.ac.condenser.v1",
+      "label": "AC Condenser",
+      "packs": [
+        4
+      ],
+      "model": "models/ac-condenser.glb",
+      "metadata": "metadata/ac-condenser.json",
+      "planSymbol": "plan/ac-condenser.svg",
+      "thumbnail": "thumbs/ac-condenser.png"
     },
     {
-      "id": "furniture.lounge_chair.v1",
-      "label": "Lounge Chair",
-      "category": "FURNITURE",
-      "model": "models/lounge_chair.glb",
-      "metadata": "metadata/lounge_chair.json",
-      "planSymbol": "plan/lounge_chair.svg",
-      "thumbnail": "thumbs/lounge_chair.png"
+      "id": "architect2525.asset.accent.chair.side.table.v1",
+      "label": "Accent Chair + Side Table",
+      "packs": [
+        9
+      ],
+      "model": "models/accent-chair-side-table.glb",
+      "metadata": "metadata/accent-chair-side-table.json",
+      "planSymbol": "plan/accent-chair-side-table.svg",
+      "thumbnail": "thumbs/accent-chair-side-table.png"
     },
     {
-      "id": "furniture.coffee_table.v1",
+      "id": "architect2525.asset.access.ladder.v1",
+      "label": "Access Ladder",
+      "packs": [
+        10
+      ],
+      "model": "models/access-ladder.glb",
+      "metadata": "metadata/access-ladder.json",
+      "planSymbol": "plan/access-ladder.svg",
+      "thumbnail": "thumbs/access-ladder.png"
+    },
+    {
+      "id": "architect2525.asset.accessible.toilet.v1",
+      "label": "Accessible Toilet",
+      "packs": [
+        7
+      ],
+      "model": "models/accessible-toilet.glb",
+      "metadata": "metadata/accessible-toilet.json",
+      "planSymbol": "plan/accessible-toilet.svg",
+      "thumbnail": "thumbs/accessible-toilet.png"
+    },
+    {
+      "id": "architect2525.asset.air.handler.hvac.v1",
+      "label": "Air Handler (HVAC)",
+      "packs": [
+        1
+      ],
+      "model": "models/air-handler-hvac.glb",
+      "metadata": "metadata/air-handler-hvac.json",
+      "planSymbol": "plan/air-handler-hvac.svg",
+      "thumbnail": "thumbs/air-handler-hvac.png"
+    },
+    {
+      "id": "architect2525.asset.air.purifier.v1",
+      "label": "Air Purifier",
+      "packs": [
+        4
+      ],
+      "model": "models/air-purifier.glb",
+      "metadata": "metadata/air-purifier.json",
+      "planSymbol": "plan/air-purifier.svg",
+      "thumbnail": "thumbs/air-purifier.png"
+    },
+    {
+      "id": "architect2525.asset.air.quality.monitor.v1",
+      "label": "Air Quality Monitor",
+      "packs": [
+        4
+      ],
+      "model": "models/air-quality-monitor.glb",
+      "metadata": "metadata/air-quality-monitor.json",
+      "planSymbol": "plan/air-quality-monitor.svg",
+      "thumbnail": "thumbs/air-quality-monitor.png"
+    },
+    {
+      "id": "architect2525.asset.area.rug.v1",
+      "label": "Area Rug",
+      "packs": [
+        9
+      ],
+      "model": "models/area-rug.glb",
+      "metadata": "metadata/area-rug.json",
+      "planSymbol": "plan/area-rug.svg",
+      "thumbnail": "thumbs/area-rug.png"
+    },
+    {
+      "id": "architect2525.asset.armchair.v1",
+      "label": "Armchair",
+      "packs": [
+        2
+      ],
+      "model": "models/armchair.glb",
+      "metadata": "metadata/armchair.json",
+      "planSymbol": "plan/armchair.svg",
+      "thumbnail": "thumbs/armchair.png"
+    },
+    {
+      "id": "architect2525.asset.backup.inverter.controller.v1",
+      "label": "Backup Inverter + Controller",
+      "packs": [
+        8
+      ],
+      "model": "models/backup-inverter-controller.glb",
+      "metadata": "metadata/backup-inverter-controller.json",
+      "planSymbol": "plan/backup-inverter-controller.svg",
+      "thumbnail": "thumbs/backup-inverter-controller.png"
+    },
+    {
+      "id": "architect2525.asset.base.cabinets.w.sink.v1",
+      "label": "Base Cabinets (w/ Sink)",
+      "packs": [
+        2
+      ],
+      "model": "models/base-cabinets-w-sink.glb",
+      "metadata": "metadata/base-cabinets-w-sink.json",
+      "planSymbol": "plan/base-cabinets-w-sink.svg",
+      "thumbnail": "thumbs/base-cabinets-w-sink.png"
+    },
+    {
+      "id": "architect2525.asset.baseboard.v1",
+      "label": "Baseboard",
+      "packs": [
+        3
+      ],
+      "model": "models/baseboard.glb",
+      "metadata": "metadata/baseboard.json",
+      "planSymbol": "plan/baseboard.svg",
+      "thumbnail": "thumbs/baseboard.png"
+    },
+    {
+      "id": "architect2525.asset.bath.vanity.sink.v1",
+      "label": "Bath Vanity + Sink",
+      "packs": [
+        2
+      ],
+      "model": "models/bath-vanity-sink.glb",
+      "metadata": "metadata/bath-vanity-sink.json",
+      "planSymbol": "plan/bath-vanity-sink.svg",
+      "thumbnail": "thumbs/bath-vanity-sink.png"
+    },
+    {
+      "id": "architect2525.asset.bathtub.v1",
+      "label": "Bathtub",
+      "packs": [
+        2
+      ],
+      "model": "models/bathtub.glb",
+      "metadata": "metadata/bathtub.json",
+      "planSymbol": "plan/bathtub.svg",
+      "thumbnail": "thumbs/bathtub.png"
+    },
+    {
+      "id": "architect2525.asset.battery.home.v1",
+      "label": "Battery (Home)",
+      "packs": [
+        4
+      ],
+      "model": "models/battery-home.glb",
+      "metadata": "metadata/battery-home.json",
+      "planSymbol": "plan/battery-home.svg",
+      "thumbnail": "thumbs/battery-home.png"
+    },
+    {
+      "id": "architect2525.asset.bed.queen.king.v1",
+      "label": "Bed (Queen/King)",
+      "packs": [
+        2
+      ],
+      "model": "models/bed-queen-king.glb",
+      "metadata": "metadata/bed-queen-king.json",
+      "planSymbol": "plan/bed-queen-king.svg",
+      "thumbnail": "thumbs/bed-queen-king.png"
+    },
+    {
+      "id": "architect2525.asset.bedroom.bench.v1",
+      "label": "Bedroom Bench",
+      "packs": [
+        2
+      ],
+      "model": "models/bedroom-bench.glb",
+      "metadata": "metadata/bedroom-bench.json",
+      "planSymbol": "plan/bedroom-bench.svg",
+      "thumbnail": "thumbs/bedroom-bench.png"
+    },
+    {
+      "id": "architect2525.asset.bookshelf.v1",
+      "label": "Bookshelf",
+      "packs": [
+        2
+      ],
+      "model": "models/bookshelf.glb",
+      "metadata": "metadata/bookshelf.json",
+      "planSymbol": "plan/bookshelf.svg",
+      "thumbnail": "thumbs/bookshelf.png"
+    },
+    {
+      "id": "architect2525.asset.bookshelf.decor.v1",
+      "label": "Bookshelf + Decor",
+      "packs": [
+        9
+      ],
+      "model": "models/bookshelf-decor.glb",
+      "metadata": "metadata/bookshelf-decor.json",
+      "planSymbol": "plan/bookshelf-decor.svg",
+      "thumbnail": "thumbs/bookshelf-decor.png"
+    },
+    {
+      "id": "architect2525.asset.ceiling.light.led.v1",
+      "label": "Ceiling Light (LED)",
+      "packs": [
+        3
+      ],
+      "model": "models/ceiling-light-led.glb",
+      "metadata": "metadata/ceiling-light-led.json",
+      "planSymbol": "plan/ceiling-light-led.svg",
+      "thumbnail": "thumbs/ceiling-light-led.png"
+    },
+    {
+      "id": "architect2525.asset.chandelier.v1",
+      "label": "Chandelier",
+      "packs": [
+        3
+      ],
+      "model": "models/chandelier.glb",
+      "metadata": "metadata/chandelier.json",
+      "planSymbol": "plan/chandelier.svg",
+      "thumbnail": "thumbs/chandelier.png"
+    },
+    {
+      "id": "architect2525.asset.co.detector.v1",
+      "label": "CO Detector",
+      "packs": [
+        4
+      ],
+      "model": "models/co-detector.glb",
+      "metadata": "metadata/co-detector.json",
+      "planSymbol": "plan/co-detector.svg",
+      "thumbnail": "thumbs/co-detector.png"
+    },
+    {
+      "id": "architect2525.asset.coffee.table.v1",
       "label": "Coffee Table",
-      "category": "FURNITURE",
-      "model": "models/coffee_table.glb",
-      "metadata": "metadata/coffee_table.json",
-      "planSymbol": "plan/coffee_table.svg",
-      "thumbnail": "thumbs/coffee_table.png"
+      "packs": [
+        2
+      ],
+      "model": "models/coffee-table.glb",
+      "metadata": "metadata/coffee-table.json",
+      "planSymbol": "plan/coffee-table.svg",
+      "thumbnail": "thumbs/coffee-table.png"
     },
     {
-      "id": "furniture.bed.queen.v1",
-      "label": "Bed",
-      "category": "FURNITURE",
-      "model": "models/bed_queen.glb",
-      "metadata": "metadata/bed_queen.json",
-      "planSymbol": "plan/bed_queen.svg",
-      "thumbnail": "thumbs/bed_queen.png"
+      "id": "architect2525.asset.crown.molding.v1",
+      "label": "Crown Molding",
+      "packs": [
+        3
+      ],
+      "model": "models/crown-molding.glb",
+      "metadata": "metadata/crown-molding.json",
+      "planSymbol": "plan/crown-molding.svg",
+      "thumbnail": "thumbs/crown-molding.png"
     },
     {
-      "id": "furniture.nightstand.v1",
-      "label": "Nightstand",
-      "category": "FURNITURE",
-      "model": "models/nightstand.glb",
-      "metadata": "metadata/nightstand.json",
-      "planSymbol": "plan/nightstand.svg",
-      "thumbnail": "thumbs/nightstand.png"
+      "id": "architect2525.asset.deck.porch.v1",
+      "label": "Deck / Porch",
+      "packs": [
+        3
+      ],
+      "model": "models/deck-porch.glb",
+      "metadata": "metadata/deck-porch.json",
+      "planSymbol": "plan/deck-porch.svg",
+      "thumbnail": "thumbs/deck-porch.png"
     },
     {
-      "id": "furniture.dresser.v1",
+      "id": "architect2525.asset.dehumidifier.v1",
+      "label": "Dehumidifier",
+      "packs": [
+        4
+      ],
+      "model": "models/dehumidifier.glb",
+      "metadata": "metadata/dehumidifier.json",
+      "planSymbol": "plan/dehumidifier.svg",
+      "thumbnail": "thumbs/dehumidifier.png"
+    },
+    {
+      "id": "architect2525.asset.desk.v1",
+      "label": "Desk",
+      "packs": [
+        2
+      ],
+      "model": "models/desk.glb",
+      "metadata": "metadata/desk.json",
+      "planSymbol": "plan/desk.svg",
+      "thumbnail": "thumbs/desk.png"
+    },
+    {
+      "id": "architect2525.asset.desk.lamp.v1",
+      "label": "Desk Lamp",
+      "packs": [
+        2
+      ],
+      "model": "models/desk-lamp.glb",
+      "metadata": "metadata/desk-lamp.json",
+      "planSymbol": "plan/desk-lamp.svg",
+      "thumbnail": "thumbs/desk-lamp.png"
+    },
+    {
+      "id": "architect2525.asset.dining.chair.v1",
+      "label": "Dining Chair",
+      "packs": [],
+      "model": "models/dining-chair.glb",
+      "metadata": "metadata/dining-chair.json",
+      "planSymbol": "plan/dining-chair.svg",
+      "thumbnail": "thumbs/dining-chair.png"
+    },
+    {
+      "id": "architect2525.asset.dining.table.v1",
+      "label": "Dining Table",
+      "packs": [],
+      "model": "models/dining-table.glb",
+      "metadata": "metadata/dining-table.json",
+      "planSymbol": "plan/dining-table.svg",
+      "thumbnail": "thumbs/dining-table.png"
+    },
+    {
+      "id": "architect2525.asset.dishwasher.v1",
+      "label": "Dishwasher",
+      "packs": [
+        4
+      ],
+      "model": "models/dishwasher.glb",
+      "metadata": "metadata/dishwasher.json",
+      "planSymbol": "plan/dishwasher.svg",
+      "thumbnail": "thumbs/dishwasher.png"
+    },
+    {
+      "id": "architect2525.asset.door.interior.exterior.v1",
+      "label": "Door (Interior / Exterior)",
+      "packs": [
+        1
+      ],
+      "model": "models/door-interior-exterior.glb",
+      "metadata": "metadata/door-interior-exterior.json",
+      "planSymbol": "plan/door-interior-exterior.svg",
+      "thumbnail": "thumbs/door-interior-exterior.png"
+    },
+    {
+      "id": "architect2525.asset.dresser.v1",
       "label": "Dresser",
-      "category": "FURNITURE",
+      "packs": [
+        2
+      ],
       "model": "models/dresser.glb",
       "metadata": "metadata/dresser.json",
       "planSymbol": "plan/dresser.svg",
       "thumbnail": "thumbs/dresser.png"
     },
     {
-      "id": "furniture.dining_table.v1",
-      "label": "Dining Table",
-      "category": "FURNITURE",
-      "model": "models/dining_table.glb",
-      "metadata": "metadata/dining_table.json",
-      "planSymbol": "plan/dining_table.svg",
-      "thumbnail": "thumbs/dining_table.png"
+      "id": "architect2525.asset.driveway.pad.v1",
+      "label": "Driveway Pad",
+      "packs": [
+        6
+      ],
+      "model": "models/driveway-pad.glb",
+      "metadata": "metadata/driveway-pad.json",
+      "planSymbol": "plan/driveway-pad.svg",
+      "thumbnail": "thumbs/driveway-pad.png"
     },
     {
-      "id": "furniture.dining_chair.v1",
-      "label": "Dining Chair",
-      "category": "FURNITURE",
-      "model": "models/dining_chair.glb",
-      "metadata": "metadata/dining_chair.json",
-      "planSymbol": "plan/dining_chair.svg",
-      "thumbnail": "thumbs/dining_chair.png"
-    },
-    {
-      "id": "kitchen.base_run.sink.v1",
-      "label": "Kitchen Base Cabinet Run (with Sink)",
-      "category": "KITCHEN",
-      "model": "models/kitchen_base_run_sink.glb",
-      "metadata": "metadata/kitchen_base_run_sink.json",
-      "planSymbol": "plan/kitchen_base_run_sink.svg",
-      "thumbnail": "thumbs/kitchen_base_run_sink.png"
-    },
-    {
-      "id": "kitchen.upper_cabinets.v1",
-      "label": "Upper Cabinets",
-      "category": "KITCHEN",
-      "model": "models/upper_cabinets.glb",
-      "metadata": "metadata/upper_cabinets.json",
-      "planSymbol": "plan/upper_cabinets.svg",
-      "thumbnail": "thumbs/upper_cabinets.png"
-    },
-    {
-      "id": "appliance.refrigerator.frenchdoor.v1",
-      "label": "Refrigerator",
-      "category": "APPLIANCE",
-      "model": "models/refrigerator.glb",
-      "metadata": "metadata/refrigerator.json",
-      "planSymbol": "plan/refrigerator.svg",
-      "thumbnail": "thumbs/refrigerator.png"
-    },
-    {
-      "id": "bath.toilet.v1",
-      "label": "Toilet",
-      "category": "PLUMBING_FIXTURE",
-      "model": "models/toilet.glb",
-      "metadata": "metadata/toilet.json",
-      "planSymbol": "plan/toilet.svg",
-      "thumbnail": "thumbs/toilet.png"
-    },
-    {
-      "id": "bath.vanity_sink.v1",
-      "label": "Vanity Sink",
-      "category": "PLUMBING_FIXTURE",
-      "model": "models/vanity_sink.glb",
-      "metadata": "metadata/vanity_sink.json",
-      "planSymbol": "plan/vanity_sink.svg",
-      "thumbnail": "thumbs/vanity_sink.png"
-    },
-    {
-      "id": "bath.shower.enclosure.v1",
-      "label": "Shower Enclosure",
-      "category": "PLUMBING_FIXTURE",
-      "model": "models/shower_enclosure.glb",
-      "metadata": "metadata/shower_enclosure.json",
-      "planSymbol": "plan/shower_enclosure.svg",
-      "thumbnail": "thumbs/shower_enclosure.png"
-    },
-    {
-      "id": "appliance.washer.frontload.v1",
-      "label": "Washer",
-      "category": "APPLIANCE",
-      "model": "models/washer.glb",
-      "metadata": "metadata/washer.json",
-      "planSymbol": "plan/washer.svg",
-      "thumbnail": "thumbs/washer.png"
-    },
-    {
-      "id": "appliance.dryer.frontload.v1",
+      "id": "architect2525.asset.dryer.v1",
       "label": "Dryer",
-      "category": "APPLIANCE",
+      "packs": [
+        2,
+        4
+      ],
       "model": "models/dryer.glb",
       "metadata": "metadata/dryer.json",
       "planSymbol": "plan/dryer.svg",
       "thumbnail": "thumbs/dryer.png"
     },
     {
-      "id": "opening.door.interior.v1",
-      "label": "Interior Door",
-      "category": "OPENING",
-      "model": "models/interior_door.glb",
-      "metadata": "metadata/interior_door.json",
-      "planSymbol": "plan/interior_door.svg",
-      "thumbnail": "thumbs/interior_door.png"
+      "id": "architect2525.asset.drying.rack.v1",
+      "label": "Drying Rack",
+      "packs": [
+        4
+      ],
+      "model": "models/drying-rack.glb",
+      "metadata": "metadata/drying-rack.json",
+      "planSymbol": "plan/drying-rack.svg",
+      "thumbnail": "thumbs/drying-rack.png"
     },
     {
-      "id": "opening.window.unit.v1",
-      "label": "Window Unit",
-      "category": "OPENING",
-      "model": "models/window_unit.glb",
-      "metadata": "metadata/window_unit.json",
-      "planSymbol": "plan/window_unit.svg",
-      "thumbnail": "thumbs/window_unit.png"
+      "id": "architect2525.asset.drywall.panel.v1",
+      "label": "Drywall Panel",
+      "packs": [
+        3
+      ],
+      "model": "models/drywall-panel.glb",
+      "metadata": "metadata/drywall-panel.json",
+      "planSymbol": "plan/drywall-panel.svg",
+      "thumbnail": "thumbs/drywall-panel.png"
     },
     {
-      "id": "structure.stud.2x4.v1",
-      "label": "Stud 2×4 (8 ft)",
-      "category": "STRUCTURE",
-      "model": "models/stud_2x4.glb",
-      "metadata": "metadata/stud_2x4.json",
-      "planSymbol": "plan/stud_2x4.svg",
-      "thumbnail": "thumbs/stud_2x4.png"
+      "id": "architect2525.asset.electrical.panel.v1",
+      "label": "Electrical Panel",
+      "packs": [
+        1,
+        4
+      ],
+      "model": "models/electrical-panel.glb",
+      "metadata": "metadata/electrical-panel.json",
+      "planSymbol": "plan/electrical-panel.svg",
+      "thumbnail": "thumbs/electrical-panel.png"
+    },
+    {
+      "id": "architect2525.asset.entertainment.console.tv.v1",
+      "label": "Entertainment Console + TV",
+      "packs": [
+        9
+      ],
+      "model": "models/entertainment-console-tv.glb",
+      "metadata": "metadata/entertainment-console-tv.json",
+      "planSymbol": "plan/entertainment-console-tv.svg",
+      "thumbnail": "thumbs/entertainment-console-tv.png"
+    },
+    {
+      "id": "architect2525.asset.entry.access.keypad.smart.lock.v1",
+      "label": "Entry Access Keypad / Smart Lock",
+      "packs": [
+        5
+      ],
+      "model": "models/entry-access-keypad-smart-lock.glb",
+      "metadata": "metadata/entry-access-keypad-smart-lock.json",
+      "planSymbol": "plan/entry-access-keypad-smart-lock.svg",
+      "thumbnail": "thumbs/entry-access-keypad-smart-lock.png"
+    },
+    {
+      "id": "architect2525.asset.entry.ramp.v1",
+      "label": "Entry Ramp",
+      "packs": [
+        7
+      ],
+      "model": "models/entry-ramp.glb",
+      "metadata": "metadata/entry-ramp.json",
+      "planSymbol": "plan/entry-ramp.svg",
+      "thumbnail": "thumbs/entry-ramp.png"
+    },
+    {
+      "id": "architect2525.asset.ev.charger.v1",
+      "label": "EV Charger",
+      "packs": [
+        4
+      ],
+      "model": "models/ev-charger.glb",
+      "metadata": "metadata/ev-charger.json",
+      "planSymbol": "plan/ev-charger.svg",
+      "thumbnail": "thumbs/ev-charger.png"
+    },
+    {
+      "id": "architect2525.asset.exterior.door.v1",
+      "label": "Exterior Door",
+      "packs": [
+        3
+      ],
+      "model": "models/exterior-door.glb",
+      "metadata": "metadata/exterior-door.json",
+      "planSymbol": "plan/exterior-door.svg",
+      "thumbnail": "thumbs/exterior-door.png"
+    },
+    {
+      "id": "architect2525.asset.exterior.siding.v1",
+      "label": "Exterior Siding",
+      "packs": [
+        1,
+        3
+      ],
+      "model": "models/exterior-siding.glb",
+      "metadata": "metadata/exterior-siding.json",
+      "planSymbol": "plan/exterior-siding.svg",
+      "thumbnail": "thumbs/exterior-siding.png"
+    },
+    {
+      "id": "architect2525.asset.fence.panel.v1",
+      "label": "Fence (Panel)",
+      "packs": [
+        3
+      ],
+      "model": "models/fence-panel.glb",
+      "metadata": "metadata/fence-panel.json",
+      "planSymbol": "plan/fence-panel.svg",
+      "thumbnail": "thumbs/fence-panel.png"
+    },
+    {
+      "id": "architect2525.asset.fence.gate.section.v1",
+      "label": "Fence + Gate Section",
+      "packs": [
+        6
+      ],
+      "model": "models/fence-gate-section.glb",
+      "metadata": "metadata/fence-gate-section.json",
+      "planSymbol": "plan/fence-gate-section.svg",
+      "thumbnail": "thumbs/fence-gate-section.png"
+    },
+    {
+      "id": "architect2525.asset.file.cabinet.v1",
+      "label": "File Cabinet",
+      "packs": [
+        2
+      ],
+      "model": "models/file-cabinet.glb",
+      "metadata": "metadata/file-cabinet.json",
+      "planSymbol": "plan/file-cabinet.svg",
+      "thumbnail": "thumbs/file-cabinet.png"
+    },
+    {
+      "id": "architect2525.asset.filter.set.v1",
+      "label": "Filter Set",
+      "packs": [
+        10
+      ],
+      "model": "models/filter-set.glb",
+      "metadata": "metadata/filter-set.json",
+      "planSymbol": "plan/filter-set.svg",
+      "thumbnail": "thumbs/filter-set.png"
+    },
+    {
+      "id": "architect2525.asset.floor.lamp.v1",
+      "label": "Floor Lamp",
+      "packs": [
+        2
+      ],
+      "model": "models/floor-lamp.glb",
+      "metadata": "metadata/floor-lamp.json",
+      "planSymbol": "plan/floor-lamp.svg",
+      "thumbnail": "thumbs/floor-lamp.png"
+    },
+    {
+      "id": "architect2525.asset.flooring.wood.lvp.v1",
+      "label": "Flooring (Wood/LVP)",
+      "packs": [
+        3
+      ],
+      "model": "models/flooring-wood-lvp.glb",
+      "metadata": "metadata/flooring-wood-lvp.json",
+      "planSymbol": "plan/flooring-wood-lvp.svg",
+      "thumbnail": "thumbs/flooring-wood-lvp.png"
+    },
+    {
+      "id": "architect2525.asset.foundation.slab.v1",
+      "label": "Foundation Slab",
+      "packs": [
+        1
+      ],
+      "model": "models/foundation-slab.glb",
+      "metadata": "metadata/foundation-slab.json",
+      "planSymbol": "plan/foundation-slab.svg",
+      "thumbnail": "thumbs/foundation-slab.png"
+    },
+    {
+      "id": "architect2525.asset.front.steps.landing.v1",
+      "label": "Front Steps + Landing",
+      "packs": [
+        6
+      ],
+      "model": "models/front-steps-landing.glb",
+      "metadata": "metadata/front-steps-landing.json",
+      "planSymbol": "plan/front-steps-landing.svg",
+      "thumbnail": "thumbs/front-steps-landing.png"
+    },
+    {
+      "id": "architect2525.asset.garage.door.v1",
+      "label": "Garage Door",
+      "packs": [
+        3
+      ],
+      "model": "models/garage-door.glb",
+      "metadata": "metadata/garage-door.json",
+      "planSymbol": "plan/garage-door.svg",
+      "thumbnail": "thumbs/garage-door.png"
+    },
+    {
+      "id": "architect2525.asset.garbage.disposal.v1",
+      "label": "Garbage Disposal",
+      "packs": [
+        4
+      ],
+      "model": "models/garbage-disposal.glb",
+      "metadata": "metadata/garbage-disposal.json",
+      "planSymbol": "plan/garbage-disposal.svg",
+      "thumbnail": "thumbs/garbage-disposal.png"
+    },
+    {
+      "id": "architect2525.asset.generator.standby.v1",
+      "label": "Generator (Standby)",
+      "packs": [
+        3,
+        4
+      ],
+      "model": "models/generator-standby.glb",
+      "metadata": "metadata/generator-standby.json",
+      "planSymbol": "plan/generator-standby.svg",
+      "thumbnail": "thumbs/generator-standby.png"
+    },
+    {
+      "id": "architect2525.asset.grab.bar.set.v1",
+      "label": "Grab Bar Set",
+      "packs": [
+        7
+      ],
+      "model": "models/grab-bar-set.glb",
+      "metadata": "metadata/grab-bar-set.json",
+      "planSymbol": "plan/grab-bar-set.svg",
+      "thumbnail": "thumbs/grab-bar-set.png"
+    },
+    {
+      "id": "architect2525.asset.gutter.downspout.v1",
+      "label": "Gutter + Downspout",
+      "packs": [
+        3
+      ],
+      "model": "models/gutter-downspout.glb",
+      "metadata": "metadata/gutter-downspout.json",
+      "planSymbol": "plan/gutter-downspout.svg",
+      "thumbnail": "thumbs/gutter-downspout.png"
+    },
+    {
+      "id": "architect2525.asset.home.battery.pack.v1",
+      "label": "Home Battery Pack",
+      "packs": [
+        8
+      ],
+      "model": "models/home-battery-pack.glb",
+      "metadata": "metadata/home-battery-pack.json",
+      "planSymbol": "plan/home-battery-pack.svg",
+      "thumbnail": "thumbs/home-battery-pack.png"
+    },
+    {
+      "id": "architect2525.asset.hvac.furnace.v1",
+      "label": "HVAC (Furnace)",
+      "packs": [
+        4
+      ],
+      "model": "models/hvac-furnace.glb",
+      "metadata": "metadata/hvac-furnace.json",
+      "planSymbol": "plan/hvac-furnace.svg",
+      "thumbnail": "thumbs/hvac-furnace.png"
+    },
+    {
+      "id": "architect2525.asset.hvac.condenser.v1",
+      "label": "HVAC Condenser",
+      "packs": [
+        3
+      ],
+      "model": "models/hvac-condenser.glb",
+      "metadata": "metadata/hvac-condenser.json",
+      "planSymbol": "plan/hvac-condenser.svg",
+      "thumbnail": "thumbs/hvac-condenser.png"
+    },
+    {
+      "id": "architect2525.asset.inverter.v1",
+      "label": "Inverter",
+      "packs": [
+        4
+      ],
+      "model": "models/inverter.glb",
+      "metadata": "metadata/inverter.json",
+      "planSymbol": "plan/inverter.svg",
+      "thumbnail": "thumbs/inverter.png"
+    },
+    {
+      "id": "architect2525.asset.iron.board.v1",
+      "label": "Iron + Board",
+      "packs": [
+        4
+      ],
+      "model": "models/iron-board.glb",
+      "metadata": "metadata/iron-board.json",
+      "planSymbol": "plan/iron-board.svg",
+      "thumbnail": "thumbs/iron-board.png"
+    },
+    {
+      "id": "architect2525.asset.irrigation.system.v1",
+      "label": "Irrigation System",
+      "packs": [
+        3
+      ],
+      "model": "models/irrigation-system.glb",
+      "metadata": "metadata/irrigation-system.json",
+      "planSymbol": "plan/irrigation-system.svg",
+      "thumbnail": "thumbs/irrigation-system.png"
+    },
+    {
+      "id": "architect2525.asset.kitchen.island.stools.v1",
+      "label": "Kitchen Island + Stools",
+      "packs": [
+        2
+      ],
+      "model": "models/kitchen-island-stools.glb",
+      "metadata": "metadata/kitchen-island-stools.json",
+      "planSymbol": "plan/kitchen-island-stools.svg",
+      "thumbnail": "thumbs/kitchen-island-stools.png"
+    },
+    {
+      "id": "architect2525.asset.landscape.light.spot.v1",
+      "label": "Landscape Light (Spot)",
+      "packs": [
+        3
+      ],
+      "model": "models/landscape-light-spot.glb",
+      "metadata": "metadata/landscape-light-spot.json",
+      "planSymbol": "plan/landscape-light-spot.svg",
+      "thumbnail": "thumbs/landscape-light-spot.png"
+    },
+    {
+      "id": "architect2525.asset.laundry.sink.v1",
+      "label": "Laundry Sink",
+      "packs": [
+        4
+      ],
+      "model": "models/laundry-sink.glb",
+      "metadata": "metadata/laundry-sink.json",
+      "planSymbol": "plan/laundry-sink.svg",
+      "thumbnail": "thumbs/laundry-sink.png"
+    },
+    {
+      "id": "architect2525.asset.leak.detector.v1",
+      "label": "Leak Detector",
+      "packs": [
+        4
+      ],
+      "model": "models/leak-detector.glb",
+      "metadata": "metadata/leak-detector.json",
+      "planSymbol": "plan/leak-detector.svg",
+      "thumbnail": "thumbs/leak-detector.png"
+    },
+    {
+      "id": "architect2525.asset.lever.handle.door.set.v1",
+      "label": "Lever Handle Door Set",
+      "packs": [
+        7
+      ],
+      "model": "models/lever-handle-door-set.glb",
+      "metadata": "metadata/lever-handle-door-set.json",
+      "planSymbol": "plan/lever-handle-door-set.svg",
+      "thumbnail": "thumbs/lever-handle-door-set.png"
+    },
+    {
+      "id": "architect2525.asset.microwave.v1",
+      "label": "Microwave",
+      "packs": [
+        4
+      ],
+      "model": "models/microwave.glb",
+      "metadata": "metadata/microwave.json",
+      "planSymbol": "plan/microwave.svg",
+      "thumbnail": "thumbs/microwave.png"
+    },
+    {
+      "id": "architect2525.asset.mirror.led.v1",
+      "label": "Mirror (LED)",
+      "packs": [
+        2
+      ],
+      "model": "models/mirror-led.glb",
+      "metadata": "metadata/mirror-led.json",
+      "planSymbol": "plan/mirror-led.svg",
+      "thumbnail": "thumbs/mirror-led.png"
+    },
+    {
+      "id": "architect2525.asset.monitor.v1",
+      "label": "Monitor",
+      "packs": [
+        2
+      ],
+      "model": "models/monitor.glb",
+      "metadata": "metadata/monitor.json",
+      "planSymbol": "plan/monitor.svg",
+      "thumbnail": "thumbs/monitor.png"
+    },
+    {
+      "id": "architect2525.asset.motion.sensor.pir.v1",
+      "label": "Motion Sensor (PIR)",
+      "packs": [
+        3
+      ],
+      "model": "models/motion-sensor-pir.glb",
+      "metadata": "metadata/motion-sensor-pir.json",
+      "planSymbol": "plan/motion-sensor-pir.svg",
+      "thumbnail": "thumbs/motion-sensor-pir.png"
+    },
+    {
+      "id": "architect2525.asset.motorized.shade.track.v1",
+      "label": "Motorized Shade + Track",
+      "packs": [
+        5
+      ],
+      "model": "models/motorized-shade-track.glb",
+      "metadata": "metadata/motorized-shade-track.json",
+      "planSymbol": "plan/motorized-shade-track.svg",
+      "thumbnail": "thumbs/motorized-shade-track.png"
+    },
+    {
+      "id": "architect2525.asset.nightstand.v1",
+      "label": "Nightstand",
+      "packs": [
+        2
+      ],
+      "model": "models/nightstand.glb",
+      "metadata": "metadata/nightstand.json",
+      "planSymbol": "plan/nightstand.svg",
+      "thumbnail": "thumbs/nightstand.png"
+    },
+    {
+      "id": "architect2525.asset.office.chair.v1",
+      "label": "Office Chair",
+      "packs": [
+        2
+      ],
+      "model": "models/office-chair.glb",
+      "metadata": "metadata/office-chair.json",
+      "planSymbol": "plan/office-chair.svg",
+      "thumbnail": "thumbs/office-chair.png"
+    },
+    {
+      "id": "architect2525.asset.outlet.switch.v1",
+      "label": "Outlet + Switch",
+      "packs": [
+        1
+      ],
+      "model": "models/outlet-switch.glb",
+      "metadata": "metadata/outlet-switch.json",
+      "planSymbol": "plan/outlet-switch.svg",
+      "thumbnail": "thumbs/outlet-switch.png"
+    },
+    {
+      "id": "architect2525.asset.paint.can.v1",
+      "label": "Paint (Can)",
+      "packs": [
+        3
+      ],
+      "model": "models/paint-can.glb",
+      "metadata": "metadata/paint-can.json",
+      "planSymbol": "plan/paint-can.svg",
+      "thumbnail": "thumbs/paint-can.png"
+    },
+    {
+      "id": "architect2525.asset.path.light.v1",
+      "label": "Path Light",
+      "packs": [
+        3
+      ],
+      "model": "models/path-light.glb",
+      "metadata": "metadata/path-light.json",
+      "planSymbol": "plan/path-light.svg",
+      "thumbnail": "thumbs/path-light.png"
+    },
+    {
+      "id": "architect2525.asset.pendant.light.v1",
+      "label": "Pendant Light",
+      "packs": [
+        3
+      ],
+      "model": "models/pendant-light.glb",
+      "metadata": "metadata/pendant-light.json",
+      "planSymbol": "plan/pendant-light.svg",
+      "thumbnail": "thumbs/pendant-light.png"
+    },
+    {
+      "id": "architect2525.asset.planter.bed.tree.v1",
+      "label": "Planter Bed + Tree",
+      "packs": [
+        6
+      ],
+      "model": "models/planter-bed-tree.glb",
+      "metadata": "metadata/planter-bed-tree.json",
+      "planSymbol": "plan/planter-bed-tree.svg",
+      "thumbnail": "thumbs/planter-bed-tree.png"
+    },
+    {
+      "id": "architect2525.asset.plumbing.manifold.utility.sink.v1",
+      "label": "Plumbing Manifold + Utility Sink",
+      "packs": [
+        1
+      ],
+      "model": "models/plumbing-manifold-utility-sink.glb",
+      "metadata": "metadata/plumbing-manifold-utility-sink.json",
+      "planSymbol": "plan/plumbing-manifold-utility-sink.svg",
+      "thumbnail": "thumbs/plumbing-manifold-utility-sink.png"
+    },
+    {
+      "id": "architect2525.asset.rainwater.cistern.v1",
+      "label": "Rainwater Cistern",
+      "packs": [
+        8
+      ],
+      "model": "models/rainwater-cistern.glb",
+      "metadata": "metadata/rainwater-cistern.json",
+      "planSymbol": "plan/rainwater-cistern.svg",
+      "thumbnail": "thumbs/rainwater-cistern.png"
+    },
+    {
+      "id": "architect2525.asset.range.oven.v1",
+      "label": "Range + Oven",
+      "packs": [
+        2,
+        4
+      ],
+      "model": "models/range-oven.glb",
+      "metadata": "metadata/range-oven.json",
+      "planSymbol": "plan/range-oven.svg",
+      "thumbnail": "thumbs/range-oven.png"
+    },
+    {
+      "id": "architect2525.asset.range.hood.v1",
+      "label": "Range Hood",
+      "packs": [
+        2,
+        4
+      ],
+      "model": "models/range-hood.glb",
+      "metadata": "metadata/range-hood.json",
+      "planSymbol": "plan/range-hood.svg",
+      "thumbnail": "thumbs/range-hood.png"
+    },
+    {
+      "id": "architect2525.asset.recessed.light.v1",
+      "label": "Recessed Light",
+      "packs": [
+        3
+      ],
+      "model": "models/recessed-light.glb",
+      "metadata": "metadata/recessed-light.json",
+      "planSymbol": "plan/recessed-light.svg",
+      "thumbnail": "thumbs/recessed-light.png"
+    },
+    {
+      "id": "architect2525.asset.refrigerator.v1",
+      "label": "Refrigerator",
+      "packs": [
+        2,
+        4
+      ],
+      "model": "models/refrigerator.glb",
+      "metadata": "metadata/refrigerator.json",
+      "planSymbol": "plan/refrigerator.svg",
+      "thumbnail": "thumbs/refrigerator.png"
+    },
+    {
+      "id": "architect2525.asset.roll.in.shower.bench.v1",
+      "label": "Roll-In Shower Bench",
+      "packs": [
+        7
+      ],
+      "model": "models/roll-in-shower-bench.glb",
+      "metadata": "metadata/roll-in-shower-bench.json",
+      "planSymbol": "plan/roll-in-shower-bench.svg",
+      "thumbnail": "thumbs/roll-in-shower-bench.png"
+    },
+    {
+      "id": "architect2525.asset.roof.sheathing.v1",
+      "label": "Roof Sheathing",
+      "packs": [
+        1
+      ],
+      "model": "models/roof-sheathing.glb",
+      "metadata": "metadata/roof-sheathing.json",
+      "planSymbol": "plan/roof-sheathing.svg",
+      "thumbnail": "thumbs/roof-sheathing.png"
+    },
+    {
+      "id": "architect2525.asset.roof.truss.v1",
+      "label": "Roof Truss",
+      "packs": [
+        1
+      ],
+      "model": "models/roof-truss.glb",
+      "metadata": "metadata/roof-truss.json",
+      "planSymbol": "plan/roof-truss.svg",
+      "thumbnail": "thumbs/roof-truss.png"
+    },
+    {
+      "id": "architect2525.asset.roofing.shingle.v1",
+      "label": "Roofing (Shingle)",
+      "packs": [
+        3
+      ],
+      "model": "models/roofing-shingle.glb",
+      "metadata": "metadata/roofing-shingle.json",
+      "planSymbol": "plan/roofing-shingle.svg",
+      "thumbnail": "thumbs/roofing-shingle.png"
+    },
+    {
+      "id": "architect2525.asset.scene.switch.control.panel.v1",
+      "label": "Scene Switch / Control Panel",
+      "packs": [
+        5
+      ],
+      "model": "models/scene-switch-control-panel.glb",
+      "metadata": "metadata/scene-switch-control-panel.json",
+      "planSymbol": "plan/scene-switch-control-panel.svg",
+      "thumbnail": "thumbs/scene-switch-control-panel.png"
+    },
+    {
+      "id": "architect2525.asset.security.camera.v1",
+      "label": "Security Camera",
+      "packs": [
+        3
+      ],
+      "model": "models/security-camera.glb",
+      "metadata": "metadata/security-camera.json",
+      "planSymbol": "plan/security-camera.svg",
+      "thumbnail": "thumbs/security-camera.png"
+    },
+    {
+      "id": "architect2525.asset.septic.system.v1",
+      "label": "Septic System",
+      "packs": [
+        3
+      ],
+      "model": "models/septic-system.glb",
+      "metadata": "metadata/septic-system.json",
+      "planSymbol": "plan/septic-system.svg",
+      "thumbnail": "thumbs/septic-system.png"
+    },
+    {
+      "id": "architect2525.asset.service.access.panel.v1",
+      "label": "Service Access Panel",
+      "packs": [
+        10
+      ],
+      "model": "models/service-access-panel.glb",
+      "metadata": "metadata/service-access-panel.json",
+      "planSymbol": "plan/service-access-panel.svg",
+      "thumbnail": "thumbs/service-access-panel.png"
+    },
+    {
+      "id": "architect2525.asset.shower.stall.v1",
+      "label": "Shower Stall",
+      "packs": [
+        2
+      ],
+      "model": "models/shower-stall.glb",
+      "metadata": "metadata/shower-stall.json",
+      "planSymbol": "plan/shower-stall.svg",
+      "thumbnail": "thumbs/shower-stall.png"
+    },
+    {
+      "id": "architect2525.asset.shutoff.valve.manifold.v1",
+      "label": "Shutoff Valve Manifold",
+      "packs": [
+        10
+      ],
+      "model": "models/shutoff-valve-manifold.glb",
+      "metadata": "metadata/shutoff-valve-manifold.json",
+      "planSymbol": "plan/shutoff-valve-manifold.svg",
+      "thumbnail": "thumbs/shutoff-valve-manifold.png"
+    },
+    {
+      "id": "architect2525.asset.skylight.v1",
+      "label": "Skylight",
+      "packs": [
+        1
+      ],
+      "model": "models/skylight.glb",
+      "metadata": "metadata/skylight.json",
+      "planSymbol": "plan/skylight.svg",
+      "thumbnail": "thumbs/skylight.png"
+    },
+    {
+      "id": "architect2525.asset.sliding.glass.door.v1",
+      "label": "Sliding Glass Door",
+      "packs": [
+        1
+      ],
+      "model": "models/sliding-glass-door.glb",
+      "metadata": "metadata/sliding-glass-door.json",
+      "planSymbol": "plan/sliding-glass-door.svg",
+      "thumbnail": "thumbs/sliding-glass-door.png"
+    },
+    {
+      "id": "architect2525.asset.smart.hub.v1",
+      "label": "Smart Hub",
+      "packs": [
+        3
+      ],
+      "model": "models/smart-hub.glb",
+      "metadata": "metadata/smart-hub.json",
+      "planSymbol": "plan/smart-hub.svg",
+      "thumbnail": "thumbs/smart-hub.png"
+    },
+    {
+      "id": "architect2525.asset.smart.hub.home.v1",
+      "label": "Smart Hub (Home)",
+      "packs": [
+        4
+      ],
+      "model": "models/smart-hub-home.glb",
+      "metadata": "metadata/smart-hub-home.json",
+      "planSymbol": "plan/smart-hub-home.svg",
+      "thumbnail": "thumbs/smart-hub-home.png"
+    },
+    {
+      "id": "architect2525.asset.smart.hub.router.v1",
+      "label": "Smart Hub + Router",
+      "packs": [
+        5
+      ],
+      "model": "models/smart-hub-router.glb",
+      "metadata": "metadata/smart-hub-router.json",
+      "planSymbol": "plan/smart-hub-router.svg",
+      "thumbnail": "thumbs/smart-hub-router.png"
+    },
+    {
+      "id": "architect2525.asset.smart.lock.v1",
+      "label": "Smart Lock",
+      "packs": [
+        3
+      ],
+      "model": "models/smart-lock.glb",
+      "metadata": "metadata/smart-lock.json",
+      "planSymbol": "plan/smart-lock.svg",
+      "thumbnail": "thumbs/smart-lock.png"
+    },
+    {
+      "id": "architect2525.asset.smart.thermostat.v1",
+      "label": "Smart Thermostat",
+      "packs": [
+        3,
+        5
+      ],
+      "model": "models/smart-thermostat.glb",
+      "metadata": "metadata/smart-thermostat.json",
+      "planSymbol": "plan/smart-thermostat.svg",
+      "thumbnail": "thumbs/smart-thermostat.png"
+    },
+    {
+      "id": "architect2525.asset.smoke.co.detector.v1",
+      "label": "Smoke / CO Detector",
+      "packs": [
+        3
+      ],
+      "model": "models/smoke-co-detector.glb",
+      "metadata": "metadata/smoke-co-detector.json",
+      "planSymbol": "plan/smoke-co-detector.svg",
+      "thumbnail": "thumbs/smoke-co-detector.png"
+    },
+    {
+      "id": "architect2525.asset.smoke.detector.v1",
+      "label": "Smoke Detector",
+      "packs": [
+        4
+      ],
+      "model": "models/smoke-detector.glb",
+      "metadata": "metadata/smoke-detector.json",
+      "planSymbol": "plan/smoke-detector.svg",
+      "thumbnail": "thumbs/smoke-detector.png"
+    },
+    {
+      "id": "architect2525.asset.sofa.v1",
+      "label": "Sofa",
+      "packs": [
+        2
+      ],
+      "model": "models/sofa.glb",
+      "metadata": "metadata/sofa.json",
+      "planSymbol": "plan/sofa.svg",
+      "thumbnail": "thumbs/sofa.png"
+    },
+    {
+      "id": "architect2525.asset.solar.inverter.v1",
+      "label": "Solar Inverter",
+      "packs": [
+        4
+      ],
+      "model": "models/solar-inverter.glb",
+      "metadata": "metadata/solar-inverter.json",
+      "planSymbol": "plan/solar-inverter.svg",
+      "thumbnail": "thumbs/solar-inverter.png"
+    },
+    {
+      "id": "architect2525.asset.solar.panel.array.v1",
+      "label": "Solar Panel Array",
+      "packs": [
+        8
+      ],
+      "model": "models/solar-panel-array.glb",
+      "metadata": "metadata/solar-panel-array.json",
+      "planSymbol": "plan/solar-panel-array.svg",
+      "thumbnail": "thumbs/solar-panel-array.png"
+    },
+    {
+      "id": "architect2525.asset.storage.bin.v1",
+      "label": "Storage Bin",
+      "packs": [
+        2
+      ],
+      "model": "models/storage-bin.glb",
+      "metadata": "metadata/storage-bin.json",
+      "planSymbol": "plan/storage-bin.svg",
+      "thumbnail": "thumbs/storage-bin.png"
+    },
+    {
+      "id": "architect2525.asset.storage.cabinet.v1",
+      "label": "Storage Cabinet",
+      "packs": [
+        2
+      ],
+      "model": "models/storage-cabinet.glb",
+      "metadata": "metadata/storage-cabinet.json",
+      "planSymbol": "plan/storage-cabinet.svg",
+      "thumbnail": "thumbs/storage-cabinet.png"
+    },
+    {
+      "id": "architect2525.asset.storage.shelving.v1",
+      "label": "Storage Shelving",
+      "packs": [
+        2
+      ],
+      "model": "models/storage-shelving.glb",
+      "metadata": "metadata/storage-shelving.json",
+      "planSymbol": "plan/storage-shelving.svg",
+      "thumbnail": "thumbs/storage-shelving.png"
+    },
+    {
+      "id": "architect2525.asset.storm.shutter.window.v1",
+      "label": "Storm Shutter Window",
+      "packs": [
+        8
+      ],
+      "model": "models/storm-shutter-window.glb",
+      "metadata": "metadata/storm-shutter-window.json",
+      "planSymbol": "plan/storm-shutter-window.svg",
+      "thumbnail": "thumbs/storm-shutter-window.png"
+    },
+    {
+      "id": "architect2525.asset.table.lamp.v1",
+      "label": "Table Lamp",
+      "packs": [
+        2
+      ],
+      "model": "models/table-lamp.glb",
+      "metadata": "metadata/table-lamp.json",
+      "planSymbol": "plan/table-lamp.svg",
+      "thumbnail": "thumbs/table-lamp.png"
+    },
+    {
+      "id": "architect2525.asset.tile.v1",
+      "label": "Tile",
+      "packs": [
+        3
+      ],
+      "model": "models/tile.glb",
+      "metadata": "metadata/tile.json",
+      "planSymbol": "plan/tile.svg",
+      "thumbnail": "thumbs/tile.png"
+    },
+    {
+      "id": "architect2525.asset.toilet.v1",
+      "label": "Toilet",
+      "packs": [
+        2
+      ],
+      "model": "models/toilet.glb",
+      "metadata": "metadata/toilet.json",
+      "planSymbol": "plan/toilet.svg",
+      "thumbnail": "thumbs/toilet.png"
+    },
+    {
+      "id": "architect2525.asset.tool.cart.kit.v1",
+      "label": "Tool Cart + Kit",
+      "packs": [
+        10
+      ],
+      "model": "models/tool-cart-kit.glb",
+      "metadata": "metadata/tool-cart-kit.json",
+      "planSymbol": "plan/tool-cart-kit.svg",
+      "thumbnail": "thumbs/tool-cart-kit.png"
+    },
+    {
+      "id": "architect2525.asset.towel.bar.v1",
+      "label": "Towel Bar",
+      "packs": [
+        2
+      ],
+      "model": "models/towel-bar.glb",
+      "metadata": "metadata/towel-bar.json",
+      "planSymbol": "plan/towel-bar.svg",
+      "thumbnail": "thumbs/towel-bar.png"
+    },
+    {
+      "id": "architect2525.asset.track.light.v1",
+      "label": "Track Light",
+      "packs": [
+        3
+      ],
+      "model": "models/track-light.glb",
+      "metadata": "metadata/track-light.json",
+      "planSymbol": "plan/track-light.svg",
+      "thumbnail": "thumbs/track-light.png"
+    },
+    {
+      "id": "architect2525.asset.trim.casing.v1",
+      "label": "Trim Casing",
+      "packs": [
+        3
+      ],
+      "model": "models/trim-casing.glb",
+      "metadata": "metadata/trim-casing.json",
+      "planSymbol": "plan/trim-casing.svg",
+      "thumbnail": "thumbs/trim-casing.png"
+    },
+    {
+      "id": "architect2525.asset.tv.console.v1",
+      "label": "TV Console",
+      "packs": [
+        2
+      ],
+      "model": "models/tv-console.glb",
+      "metadata": "metadata/tv-console.json",
+      "planSymbol": "plan/tv-console.svg",
+      "thumbnail": "thumbs/tv-console.png"
+    },
+    {
+      "id": "architect2525.asset.under.cabinet.light.v1",
+      "label": "Under-Cabinet Light",
+      "packs": [
+        3
+      ],
+      "model": "models/under-cabinet-light.glb",
+      "metadata": "metadata/under-cabinet-light.json",
+      "planSymbol": "plan/under-cabinet-light.svg",
+      "thumbnail": "thumbs/under-cabinet-light.png"
+    },
+    {
+      "id": "architect2525.asset.utility.shelving.v1",
+      "label": "Utility Shelving",
+      "packs": [
+        4
+      ],
+      "model": "models/utility-shelving.glb",
+      "metadata": "metadata/utility-shelving.json",
+      "planSymbol": "plan/utility-shelving.svg",
+      "thumbnail": "thumbs/utility-shelving.png"
+    },
+    {
+      "id": "architect2525.asset.utility.sink.v1",
+      "label": "Utility Sink",
+      "packs": [
+        2
+      ],
+      "model": "models/utility-sink.glb",
+      "metadata": "metadata/utility-sink.json",
+      "planSymbol": "plan/utility-sink.svg",
+      "thumbnail": "thumbs/utility-sink.png"
+    },
+    {
+      "id": "architect2525.asset.vent.register.v1",
+      "label": "Vent Register",
+      "packs": [
+        1
+      ],
+      "model": "models/vent-register.glb",
+      "metadata": "metadata/vent-register.json",
+      "planSymbol": "plan/vent-register.svg",
+      "thumbnail": "thumbs/vent-register.png"
+    },
+    {
+      "id": "architect2525.asset.video.doorbell.v1",
+      "label": "Video Doorbell",
+      "packs": [
+        3
+      ],
+      "model": "models/video-doorbell.glb",
+      "metadata": "metadata/video-doorbell.json",
+      "planSymbol": "plan/video-doorbell.svg",
+      "thumbnail": "thumbs/video-doorbell.png"
+    },
+    {
+      "id": "architect2525.asset.walkway.pavers.v1",
+      "label": "Walkway Pavers",
+      "packs": [
+        6
+      ],
+      "model": "models/walkway-pavers.glb",
+      "metadata": "metadata/walkway-pavers.json",
+      "planSymbol": "plan/walkway-pavers.svg",
+      "thumbnail": "thumbs/walkway-pavers.png"
+    },
+    {
+      "id": "architect2525.asset.wall.art.set.v1",
+      "label": "Wall Art Set",
+      "packs": [
+        9
+      ],
+      "model": "models/wall-art-set.glb",
+      "metadata": "metadata/wall-art-set.json",
+      "planSymbol": "plan/wall-art-set.svg",
+      "thumbnail": "thumbs/wall-art-set.png"
+    },
+    {
+      "id": "architect2525.asset.wall.cabinets.v1",
+      "label": "Wall Cabinets",
+      "packs": [
+        2
+      ],
+      "model": "models/wall-cabinets.glb",
+      "metadata": "metadata/wall-cabinets.json",
+      "planSymbol": "plan/wall-cabinets.svg",
+      "thumbnail": "thumbs/wall-cabinets.png"
+    },
+    {
+      "id": "architect2525.asset.wall.framing.v1",
+      "label": "Wall Framing",
+      "packs": [
+        1
+      ],
+      "model": "models/wall-framing.glb",
+      "metadata": "metadata/wall-framing.json",
+      "planSymbol": "plan/wall-framing.svg",
+      "thumbnail": "thumbs/wall-framing.png"
+    },
+    {
+      "id": "architect2525.asset.wall.sconce.v1",
+      "label": "Wall Sconce",
+      "packs": [
+        3
+      ],
+      "model": "models/wall-sconce.glb",
+      "metadata": "metadata/wall-sconce.json",
+      "planSymbol": "plan/wall-sconce.svg",
+      "thumbnail": "thumbs/wall-sconce.png"
+    },
+    {
+      "id": "architect2525.asset.wall.sheathing.v1",
+      "label": "Wall Sheathing",
+      "packs": [
+        1
+      ],
+      "model": "models/wall-sheathing.glb",
+      "metadata": "metadata/wall-sheathing.json",
+      "planSymbol": "plan/wall-sheathing.svg",
+      "thumbnail": "thumbs/wall-sheathing.png"
+    },
+    {
+      "id": "architect2525.asset.wardrobe.v1",
+      "label": "Wardrobe",
+      "packs": [
+        2
+      ],
+      "model": "models/wardrobe.glb",
+      "metadata": "metadata/wardrobe.json",
+      "planSymbol": "plan/wardrobe.svg",
+      "thumbnail": "thumbs/wardrobe.png"
+    },
+    {
+      "id": "architect2525.asset.washer.v1",
+      "label": "Washer",
+      "packs": [
+        2,
+        4
+      ],
+      "model": "models/washer.glb",
+      "metadata": "metadata/washer.json",
+      "planSymbol": "plan/washer.svg",
+      "thumbnail": "thumbs/washer.png"
+    },
+    {
+      "id": "architect2525.asset.water.heater.v1",
+      "label": "Water Heater",
+      "packs": [
+        1,
+        4
+      ],
+      "model": "models/water-heater.glb",
+      "metadata": "metadata/water-heater.json",
+      "planSymbol": "plan/water-heater.svg",
+      "thumbnail": "thumbs/water-heater.png"
+    },
+    {
+      "id": "architect2525.asset.water.shutoff.valve.v1",
+      "label": "Water Shutoff Valve",
+      "packs": [
+        4
+      ],
+      "model": "models/water-shutoff-valve.glb",
+      "metadata": "metadata/water-shutoff-valve.json",
+      "planSymbol": "plan/water-shutoff-valve.svg",
+      "thumbnail": "thumbs/water-shutoff-valve.png"
+    },
+    {
+      "id": "architect2525.asset.water.softener.v1",
+      "label": "Water Softener",
+      "packs": [
+        4
+      ],
+      "model": "models/water-softener.glb",
+      "metadata": "metadata/water-softener.json",
+      "planSymbol": "plan/water-softener.svg",
+      "thumbnail": "thumbs/water-softener.png"
+    },
+    {
+      "id": "architect2525.asset.water.well.system.v1",
+      "label": "Water Well System",
+      "packs": [
+        3
+      ],
+      "model": "models/water-well-system.glb",
+      "metadata": "metadata/water-well-system.json",
+      "planSymbol": "plan/water-well-system.svg",
+      "thumbnail": "thumbs/water-well-system.png"
+    },
+    {
+      "id": "architect2525.asset.window.single.v1",
+      "label": "Window (Single)",
+      "packs": [
+        1
+      ],
+      "model": "models/window-single.glb",
+      "metadata": "metadata/window-single.json",
+      "planSymbol": "plan/window-single.svg",
+      "thumbnail": "thumbs/window-single.png"
+    },
+    {
+      "id": "architect2525.asset.window.wide.v1",
+      "label": "Window (Wide)",
+      "packs": [
+        1
+      ],
+      "model": "models/window-wide.glb",
+      "metadata": "metadata/window-wide.json",
+      "planSymbol": "plan/window-wide.svg",
+      "thumbnail": "thumbs/window-wide.png"
     }
   ]
 }

@@ -15,7 +15,13 @@ import {
 } from "../lib/room-objects.ts";
 import { TINY_ROOM_LAYOUT, setRoomObjects, cloneLayout } from "../lib/room-layout.ts";
 import { DEV_PHASES, showGroupInPhase } from "../lib/architect-phases.ts";
-import { ASSET_REGISTRY, ASSET_IDS, ASSET_COUNT, ASSET_ID_BY_KIND, ASSET_BASE_URL, ALLOWED_DEGREES, assetById, assetByKind, listAssets, assetPhases, metadataById } from "../lib/architect-2525/assets/registry.ts";
+import { ASSET_REGISTRY, ASSET_IDS, ASSET_COUNT, LIBRARY_COUNT, LIBRARY_SOURCE, ASSET_ID_BY_KIND, ASSET_BASE_URL, ALLOWED_DEGREES, assetById, assetByKind, listAssets, assetPhases, metadataById } from "../lib/architect-2525/assets/registry.ts";
+import { LIBRARY_MANIFEST, LIBRARY_METADATA } from "../lib/architect-2525/assets/library-manifest.ts";
+import { SECTION_RULES, roomsForSections, phasesForSections, categoryForSections, isKnownSection } from "../lib/architect-2525/assets/sections.ts";
+import { isAssetCompatibleWithRoom } from "../lib/architect-2525/assets/room-compatibility.ts";
+import { spawnSync } from "node:child_process";
+import crypto from "node:crypto";
+import os from "node:os";
 import { toPlacedAsset, fromPlacedAsset, placedAssetsOf, snapRotation } from "../lib/architect-2525/assets/placed-asset.ts";
 import { ROOM_NAME_BY_KEY, ROOM_NAMES, roomKeyByName, roomNamesOf } from "../lib/architect-2525/assets/room-compatibility.ts";
 import { PHASE_NAMES, PHASE_NAME_BY_ID, phaseNamesFor } from "../lib/architect-2525/assets/phase-compatibility.ts";
@@ -45,33 +51,38 @@ const near = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps;
 // ── 1. identity: every kind registered, unique stable ids, one entry per kind ──
 const ids = OBJECT_KINDS.map((k) => ASSET_PARAMS[k].id);
 ok(OBJECT_KINDS.every((k) => Object.hasOwn(ASSET_PARAMS, k)), "every ObjectKind has ASSET_PARAMS");
-ok(new Set(ids).size === ids.length && ids.every((id) => /^[a-z0-9]+(\.[a-z0-9_]+)*\.v\d+$/.test(id)), `stable ids are unique, lowercase-dotted, versioned — the rotator catalog's style (${ids.length})`);
-// ID SOURCE — the operator's 10-Pack 3D Asset Rotator catalog (Architect2525_10Pack_Select_Asset_Spin.html, 2026-11-07,
-// sha256 6e43620e99e4fd36c70471e43bc83603a7a71a3aef0766d779ab7239c85fcaa5; const PACKS parsed as JSON — 147 entries, 137 ids).
-// The rows below are that catalog's ids + packs for every kind it covers (a snapshot the gate carries because the catalog
-// is not a repo file), the starter-manifest ids for table/chair, and the only two invented ids.
-const ROTATOR = {
-  bed: ["furniture.bed.queen.v1", [2]], sofa: ["furniture.sofa.3seat.v1", [2]], counter: ["kitchen.base_run.sink.v1", [2]],
-  desk: ["desk.v1", [2]], toilet: ["bath.toilet.v1", [2]], tub: ["bathtub.v1", [2]], sink: ["bath.vanity_sink.v1", [2]],
-  washer: ["appliance.washer.frontload.v1", [2, 4]], dresser: ["furniture.dresser.v1", [2]], nightstand: ["furniture.nightstand.v1", [2]],
-  tv: ["tv.console.v1", [2]], fridge: ["appliance.refrigerator.frenchdoor.v1", [2, 4]], stove: ["range.oven.v1", [2, 4]],
-  shower: ["bath.shower.enclosure.v1", [2]], wardrobe: ["wardrobe.v1", [2]], bookshelf: ["bookshelf.v1", [2]],
-  shelving: ["storage.shelving.v1", [2]], rug: ["area.rug.v1", [9]], mirror: ["mirror.led.v1", [2]], lamp: ["floor.lamp.v1", [2]],
-  rangehood: ["range.hood.v1", [2, 4]], shell: ["wall.sheathing.v1", [1]], roof: ["roof.sheathing.v1", [1]],
-  door: ["opening.door.interior.v1", [1]], window: ["opening.window.unit.v1", [1]],
+ok(new Set(ids).size === ids.length && ids.every((id) => /^architect2525\.asset\.[a-z0-9]+(\.[a-z0-9]+)*\.v\d+$/.test(id)), `stable ids are unique, in HIS library grammar architect2525.asset.<name>.v1 (${ids.length})`);
+// ID SOURCE (FINAL) — his COMPLETE library manifest (139). The 29-row map + the provenance aliases (starter-pack id · rotator id).
+const KIND_ID = {
+  bed: "bed.queen.king", sofa: "sofa", counter: "base.cabinets.w.sink", table: "dining.table", desk: "desk", toilet: "toilet", tub: "bathtub",
+  sink: "bath.vanity.sink", washer: "washer", dresser: "dresser", nightstand: "nightstand", tv: "tv.console", fridge: "refrigerator",
+  stove: "range.oven", shower: "shower.stall", wardrobe: "wardrobe", bookshelf: "bookshelf", chair: "dining.chair", closetrod: "closet.rod",
+  shelving: "storage.shelving", shoerack: "shoe.rack", rug: "area.rug", mirror: "mirror.led", lamp: "floor.lamp", rangehood: "range.hood",
+  shell: "wall.sheathing", roof: "roof.sheathing", door: "door.interior.exterior", window: "window.single",
 };
-const STARTER_ONLY = { table: ["furniture.dining_table.v1", [2]], chair: ["furniture.dining_chair.v1", [2]] };   // his starter manifest; the rotator has no dining group
-const INVENTED = { closetrod: ["closet.rod.v1", [2]], shoerack: ["shoe.rack.v1", [2]] };                          // the rotator has no entry — invented in its flat style
-ok(Object.entries(ROTATOR).every(([k, [id, packs]]) => ASSET_PARAMS[k].id === id && JSON.stringify(ASSET_PARAMS[k].packs) === JSON.stringify(packs)), `${Object.keys(ROTATOR).length} kinds carry the rotator catalog's id + packs verbatim`);
-ok(Object.entries(STARTER_ONLY).every(([k, [id, packs]]) => ASSET_PARAMS[k].id === id && JSON.stringify(ASSET_PARAMS[k].packs) === JSON.stringify(packs)), "table / chair carry the starter manifest's dining ids (not in the rotator)");
-ok(Object.entries(INVENTED).every(([k, [id, packs]]) => ASSET_PARAMS[k].id === id && JSON.stringify(ASSET_PARAMS[k].packs) === JSON.stringify(packs)), "closet.rod.v1 + shoe.rack.v1 are the ONLY invented ids");
-ok(Object.keys(ROTATOR).length + Object.keys(STARTER_ONLY).length + Object.keys(INVENTED).length === OBJECT_KINDS.length, "every kind is accounted for: rotator · starter-only · invented");
-ok(ASSET_COUNT === OBJECT_KINDS.length && ASSET_IDS.length === OBJECT_KINDS.length && Object.keys(ASSET_REGISTRY).length === OBJECT_KINDS.length, `registry: one entry per kind (${ASSET_COUNT})`);
-ok(ASSET_PARAMS.sofa.id === "furniture.sofa.3seat.v1" && ASSET_PARAMS.chair.id === "furniture.dining_chair.v1" && ASSET_PARAMS.table.id === "furniture.dining_table.v1" && ASSET_PARAMS.bed.id === "furniture.bed.queen.v1" && ASSET_PARAMS.nightstand.id === "furniture.nightstand.v1" && ASSET_PARAMS.dresser.id === "furniture.dresser.v1" && ASSET_PARAMS.counter.id === "kitchen.base_run.sink.v1" && ASSET_PARAMS.fridge.id === "appliance.refrigerator.frenchdoor.v1" && ASSET_PARAMS.toilet.id === "bath.toilet.v1" && ASSET_PARAMS.sink.id === "bath.vanity_sink.v1" && ASSET_PARAMS.shower.id === "bath.shower.enclosure.v1" && ASSET_PARAMS.washer.id === "appliance.washer.frontload.v1" && ASSET_PARAMS.door.id === "opening.door.interior.v1" && ASSET_PARAMS.window.id === "opening.window.unit.v1", "the 14 ids the amendments fixed are his, verbatim (starter pack ∩ rotator)");
+const ALIASES = {
+  bed: ["furniture.bed.queen.v1"], sofa: ["furniture.sofa.3seat.v1"], counter: ["kitchen.base_run.sink.v1"], table: ["furniture.dining_table.v1"],
+  desk: ["desk.v1"], toilet: ["bath.toilet.v1"], tub: ["bathtub.v1"], sink: ["bath.vanity_sink.v1"], washer: ["appliance.washer.frontload.v1"],
+  dresser: ["furniture.dresser.v1"], nightstand: ["furniture.nightstand.v1"], tv: ["tv.console.v1"], fridge: ["appliance.refrigerator.frenchdoor.v1"],
+  stove: ["range.oven.v1"], shower: ["bath.shower.enclosure.v1"], wardrobe: ["wardrobe.v1"], bookshelf: ["bookshelf.v1"], chair: ["furniture.dining_chair.v1"],
+  closetrod: ["closet.rod.v1"], shelving: ["storage.shelving.v1"], shoerack: ["shoe.rack.v1"], rug: ["area.rug.v1"], mirror: ["mirror.led.v1"],
+  lamp: ["floor.lamp.v1"], rangehood: ["range.hood.v1"], shell: ["wall.sheathing.v1"], roof: ["roof.sheathing.v1"], door: ["opening.door.interior.v1"], window: ["opening.window.unit.v1"],
+};
+const PENDING_KINDS = ["closetrod", "shoerack"];
+ok(OBJECT_KINDS.every((k) => ASSET_PARAMS[k].id === `architect2525.asset.${KIND_ID[k]}.v1`) && Object.keys(KIND_ID).length === OBJECT_KINDS.length, "the 29 kind → his library id rows hold, verbatim");
+ok(OBJECT_KINDS.every((k) => JSON.stringify(ASSET_PARAMS[k].aliases) === JSON.stringify(ALIASES[k])), "every kind carries its provenance aliases (starter-pack / rotator ids)");
+ok(OBJECT_KINDS.every((k) => ASSET_PARAMS[k].aliases.every((a) => kindByAssetId(a) === k && assetById(a)?.kind === k)), "kindByAssetId + assetById resolve every alias to its kind (a stored PlacedAsset from an earlier edition still resolves)");
+ok(OBJECT_KINDS.every((k) => (ASSET_PARAMS[k].library === !PENDING_KINDS.includes(k)) && (Object.hasOwn(LIBRARY_METADATA, ASSET_PARAMS[k].id) === ASSET_PARAMS[k].library)), "27 kinds have a library entry; closet rod + shoe rack are the ONLY two without (PENDING)");
+ok(LIBRARY_COUNT === 139 && ASSET_COUNT === 141 && ASSET_IDS.length === 141 && LIBRARY_MANIFEST.length === 139 && Object.keys(LIBRARY_METADATA).length === 139, `registry = 139 library assets + 2 PENDING kinds = 141 (got ${ASSET_COUNT})`);
+ok(ASSET_IDS.filter((id) => ASSET_REGISTRY[id].kind === null).length === 112 && ASSET_IDS.filter((id) => ASSET_REGISTRY[id].kind !== null).length === 29, "112 library assets have no legacy kind yet (kind: null); 29 are placeable");
+ok(LIBRARY_MANIFEST.every((e) => ASSET_REGISTRY[e.id]?.modelStatus === "LIBRARY" && ASSET_REGISTRY[e.id].label === e.label && ASSET_REGISTRY[e.id].model === e.model && ASSET_REGISTRY[e.id].planSymbol === e.planSymbol && ASSET_REGISTRY[e.id].metadataPath === e.metadata), "every manifest asset is a LIBRARY entry carrying his label + paths verbatim");
+// (the rotator / starter-pack ids live on as `aliases`, asserted above)
+ok(OBJECT_KINDS.every((k) => Object.hasOwn(ASSET_REGISTRY, ASSET_PARAMS[k].id) && ASSET_REGISTRY[ASSET_PARAMS[k].id].kind === k), "every kind owns exactly one registry entry (kind back-reference)");
+ok(ASSET_PARAMS.toilet.id === "architect2525.asset.toilet.v1" && ASSET_PARAMS.sofa.id === "architect2525.asset.sofa.v1" && ASSET_PARAMS.fridge.id === "architect2525.asset.refrigerator.v1" && ASSET_PARAMS.door.id === "architect2525.asset.door.interior.exterior.v1", "the coordinator's examples hold (toilet · sofa · refrigerator · door)");
 ok(OBJECT_KINDS.every((k) => ASSET_ID_BY_KIND[k] === ASSET_PARAMS[k].id), "ASSET_ID_BY_KIND is the kind → id map");
 ok(OBJECT_KINDS.every((k) => assetById(ASSET_PARAMS[k].id)?.kind === k && assetByKind(k).id === ASSET_PARAMS[k].id && kindByAssetId(ASSET_PARAMS[k].id) === k), "id ⇄ kind round-trips (assetById · assetByKind · kindByAssetId)");
 ok(assetById("constructor") === undefined && assetById("nope.v1") === undefined && resolveKind("__proto__") === undefined, "unknown / prototype ids resolve to nothing (own keys only)");
-ok(OBJECT_KINDS.every((k) => ASSET_REGISTRY[ASSET_PARAMS[k].id].label === OBJECT_SPEC[k].label && ASSET_REGISTRY[ASSET_PARAMS[k].id].onWall === OBJECT_SPEC[k].onWall), "registry carries OBJECT_SPEC label + onWall (no second truth)");
+ok(OBJECT_KINDS.every((k) => ASSET_REGISTRY[ASSET_PARAMS[k].id].kindLabel === OBJECT_SPEC[k].label && ASSET_REGISTRY[ASSET_PARAMS[k].id].onWall === OBJECT_SPEC[k].onWall), "a kind's entry carries OBJECT_SPEC's label (kindLabel) + onWall (no second truth); `label` is his");
 
 // ── 2. rooms ⊆ the 9 canonical kinds or GENERAL; ROOM_KEYS = room-layout's keys; palette ⊆ compatibility ──
 const layoutKeys = [...new Set(TINY_ROOM_LAYOUT.map((r) => r.k))].sort().join("");
@@ -96,17 +107,21 @@ ok(listAssets({ phase: "framing" }).every((a) => a.category === "DOORS_WINDOWS" 
 // ── 4. mounting valid + consistent with onWall; category + authority valid; lod 1 ──
 ok(MOUNTINGS.join() === "FLOOR,WALL,CEILING,SURFACE,BUILT_IN" && OBJECT_KINDS.every((k) => MOUNTINGS.includes(ASSET_PARAMS[k].mounting)), "mounting ∈ his enum FLOOR | WALL | CEILING | SURFACE | BUILT_IN");
 ok(OBJECT_KINDS.every((k) => OBJECT_SPEC[k].onWall ? ["WALL", "BUILT_IN"].includes(ASSET_PARAMS[k].mounting) : ASSET_PARAMS[k].mounting !== "WALL"), "onWall kinds are WALL/BUILT_IN; free kinds never WALL (a toilet cannot attach to a wall or ceiling)");
-ok(ASSET_PARAMS.toilet.mounting === "FLOOR" && ASSET_PARAMS.roof.mounting === "CEILING" && ASSET_PARAMS.door.mounting === "WALL" && ASSET_PARAMS.window.mounting === "WALL", "toilet FLOOR · roof CEILING · door + window WALL (his)");
+ok(ASSET_PARAMS.toilet.mounting === "FLOOR" && ASSET_PARAMS.roof.mounting === "BUILT_IN" && ASSET_PARAMS.door.mounting === "WALL" && ASSET_PARAMS.window.mounting === "WALL" && ASSET_PARAMS.counter.mounting === "SURFACE", "toilet FLOOR · roof BUILT_IN · door + window WALL · base cabinets SURFACE (his library)");
+const MOUNT_DEVIATIONS = { tv: "his TV Console sits on the floor; the designer's `tv` is the WALL screen (onWall)", rangehood: "his range hood is a floor model; ours is WALL-hung over the range (onWall)", shelving: "his storage shelving is free-standing; ours is WALL-hung closet/laundry shelving (onWall)", shell: "his wall sheathing panel stands on the floor; ours is the BUILT_IN wall panel (onWall)" };
+ok(OBJECT_KINDS.filter((k) => ASSET_PARAMS[k].library).every((k) => Object.hasOwn(MOUNT_DEVIATIONS, k) || (ASSET_PARAMS[k].mounting === LIBRARY_METADATA[ASSET_PARAMS[k].id].mounting && JSON.stringify(ASSET_PARAMS[k].snap) === JSON.stringify(LIBRARY_METADATA[ASSET_PARAMS[k].id].snap))), "every library-backed kind carries HIS mounting + snap verbatim, except the four documented onWall deviations");
+ok(Object.keys(MOUNT_DEVIATIONS).every((k) => OBJECT_SPEC[k].onWall && ASSET_PARAMS[k].mounting !== LIBRARY_METADATA[ASSET_PARAMS[k].id].mounting), "each deviation is an onWall kind whose designer mounting really differs from his (never a silent copy)");
+ok(OBJECT_KINDS.filter((k) => ASSET_PARAMS[k].library).every((k) => JSON.stringify(ASSET_PARAMS[k].packs) === JSON.stringify(LIBRARY_METADATA[ASSET_PARAMS[k].id].packs)), "every library-backed kind carries HIS packs verbatim (the dining pair's [] included)");
 ok(OBJECT_KINDS.every((k) => ASSET_PARAMS[k].snap.length > 0 && ASSET_PARAMS[k].snap.every((s) => SNAP_TARGETS.includes(s))), "every kind has snap targets from his taxonomy");
-ok(JSON.stringify(ASSET_PARAMS.toilet.snap) === '["FLOOR","WALL_BACK"]' && JSON.stringify(ASSET_PARAMS.window.snap) === '["WALL_OPENING"]' && JSON.stringify(ASSET_PARAMS.rangehood.snap).includes("WALL") && JSON.stringify(ASSET_PARAMS.shower.snap) === '["FLOOR","WALL_CORNER"]', "his snap examples: toilet FLOOR+WALL_BACK · window WALL_OPENING · range hood WALL · shower FLOOR+WALL_CORNER");
-ok(OBJECT_KINDS.every((k) => ASSET_PARAMS[k].packs.length > 0 && ASSET_PARAMS[k].packs.every((n) => Number.isInteger(n) && n >= 1 && n <= 10)) && ASSET_PARAMS.fridge.packs.join() === "2,4" && ASSET_PARAMS.rangehood.packs.join() === "2,4" && ASSET_PARAMS.rug.packs.join() === "9", "every kind names its packs (1..10) from the catalog; refrigerator / range hood in Packs 2 + 4, area rug in 9 (one entry, many filters — §19)");
+ok(JSON.stringify(ASSET_PARAMS.toilet.snap) === '["FLOOR"]' && JSON.stringify(ASSET_PARAMS.window.snap) === '["WALL"]' && JSON.stringify(ASSET_PARAMS.roof.snap) === '["ROOF_LINE"]' && JSON.stringify(ASSET_PARAMS.sink.snap) === '["SURFACE"]', "his library snap: toilet FLOOR · window WALL · roof sheathing ROOF_LINE · vanity SURFACE");
+ok(OBJECT_KINDS.every((k) => ASSET_PARAMS[k].packs.every((n) => Number.isInteger(n) && n >= 1 && n <= 10) && (ASSET_PARAMS[k].packs.length > 0 || ["table", "chair"].includes(k))) && ASSET_PARAMS.fridge.packs.join() === "2,4" && ASSET_PARAMS.rangehood.packs.join() === "2,4" && ASSET_PARAMS.rug.packs.join() === "9", "packs 1..10 from his manifest (only his 'Verified extras' dining pair carry []); refrigerator / range hood in 2 + 4, area rug in 9");
 ok(OBJECT_KINDS.every((k) => ASSET_CATEGORIES.includes(ASSET_PARAMS[k].category)), "category ∈ the brief §17 general categories");
 ok(OBJECT_KINDS.every((k) => ["ILLUSTRATIVE", "REFERENCE"].includes(ASSET_PARAMS[k].authority)), "authority ILLUSTRATIVE | REFERENCE only — never verified/engineered/qualified/certified");
 ok(!/"(VERIFIED|ENGINEERED|QUALIFIED|CERTIFIED)"/.test(read("lib/room-objects.ts").split("ASSET_PARAMS")[1] ?? "") , "no engineering-validation word in the asset definitions");
 ok(OBJECT_KINDS.every((k) => ASSET_PARAMS[k].lod === 1 && ASSET_REGISTRY[ASSET_PARAMS[k].id].lod === 1), "every definition is authored at lod 1 (of 5)");
 ok(LOD_LEVELS.join() === "1,2,3,4,5", "LOD_LEVELS = 1..5 (the five levels of increasing detail)");
-ok(listAssets({ category: "LIGHTING" }).map((a) => a.kind).join() === "lamp" && listAssets({ room: "B", category: "FIXTURES" }).map((a) => a.kind).includes("toilet"), "listAssets filters by category and room");
-ok(listAssets().length === OBJECT_KINDS.length && JSON.stringify(listAssets()) === JSON.stringify(listAssets()), "listAssets() = every asset, deterministic");
+ok(listAssets({ category: "LIGHTING" }).map((a) => a.kind).includes("lamp") && listAssets({ category: "LIGHTING" }).length === 8 && listAssets({ room: "B", category: "FIXTURES" }).map((a) => a.kind).includes("toilet"), "listAssets filters by category and room (LIGHTING = the floor lamp kind + his 7 Lighting-section assets)");
+ok(listAssets().length === ASSET_COUNT && JSON.stringify(listAssets()) === JSON.stringify(listAssets()), "listAssets() = every registry entry (141), deterministic");
 
 // ── 5. dimensions: nonzero, default within the parametric range, variants within range, safe-int µm ──
 ok(OBJECT_KINDS.every((k) => ["w", "d", "h"].every((ax) => { const r = ASSET_PARAMS[k].params[ax]; return r.min > 0 && r.max >= r.min && r.step > 0 && r.min <= OBJECT_SPEC[k][ax] + 1e-9 && OBJECT_SPEC[k][ax] <= r.max + 1e-9; })), "every w/d/h range is positive and holds the kind default");
@@ -118,7 +133,9 @@ ok([0.4, 2.67, 6.67, 1.7, 0.1, 7.25, 1 / 12].every((x) => Math.abs(ftFromUm(umFr
 let threw = false; try { umFromFt(NaN); } catch { threw = true; }
 ok(threw, "umFromFt refuses a non-finite value (never stores NaN)");
 ok(dimsFt("sofa").w === 5 && dimsFt("sofa", { id: "s", kind: "sofa", gx: 0, gy: 0, rot: 0, size: { w: 7 } }).w === 7, "dimsFt reads the instance size when given");
-ok(OBJECT_KINDS.every((k) => { const r = ASSET_REGISTRY[ASSET_PARAMS[k].id]; return r.dimensionsUm.widthUm === umFromFt(OBJECT_SPEC[k].w) && r.dimensions.h === OBJECT_SPEC[k].h; }), "registry dimensions = OBJECT_SPEC defaults (ft) + their µm projection");
+ok(OBJECT_KINDS.every((k) => { const r = ASSET_REGISTRY[ASSET_PARAMS[k].id]; return r.dimensionsUm.widthUm === umFromFt(OBJECT_SPEC[k].w) && r.dimensions.h === OBJECT_SPEC[k].h; }), "a kind's registry dimensions (ft) = OBJECT_SPEC defaults + their µm projection (the designer's truth)");
+ok(OBJECT_KINDS.filter((k) => ASSET_PARAMS[k].library).every((k) => JSON.stringify(ASSET_REGISTRY[ASSET_PARAMS[k].id].dimensionsM) === JSON.stringify(LIBRARY_METADATA[ASSET_PARAMS[k].id].dimensionsM)), "a library-backed kind's dimensionsM are HIS, verbatim (the ft default is reported beside them, never silently replaced)");
+ok(ASSET_IDS.filter((id) => ASSET_REGISTRY[id].kind === null).every((id) => { const a = ASSET_REGISTRY[id]; const m = LIBRARY_METADATA[id]; return near(a.dimensions.w, ftFromM(m.dimensionsM.width), 1e-6) && a.dimensionsUm.widthUm === umFromFt(a.dimensions.w) && a.dimensionsUm.widthUm > 0; }), "a kind-less library asset's ft dimensions come from his metres (ftFromM), µm safe-int");
 
 // ── 6. materials: the ONE place for colour literals; WOOD = FRAME_COLOR, only on wood kinds; no hex shared with MEP ──
 const assetDir = path.join(FE, "lib/architect-2525/assets");
@@ -219,7 +236,7 @@ ok(ex.schema === ASSET_EXPORT_SCHEMA && ex.schema === "arch2525-assets/1" && ex.
 ok(JSON.stringify(assetExport(room, { x: 0, y: 0, z: 0 })) === JSON.stringify(ex), "assetExport is deterministic (byte-identical on the same input)");
 ok(!/Date\.now|Math\.random|new Date\(/.test(read("lib/architect-asset-export.ts")) && scanned.every((f) => !/Date\.now|Math\.random|new Date\(/.test(read(f))), "no Date / random anywhere in the asset layer or the export");
 const rv = ex.revit[0];
-ok(rv.id === "furniture.sofa.3seat.v1" && rv.instance_id === "sofa-1" && rv.revitCategory === "Furniture" && rv.ifcClass === "IfcFurniture" && rv.category === "FURNITURE" && rv.mounting === "FLOOR" && rv.authority === "ILLUSTRATIVE" && rv.lod === 1, "revit record: id · instance · Revit category · IFC class · mounting · authority · lod");
+ok(rv.id === "architect2525.asset.sofa.v1" && rv.instance_id === "sofa-1" && rv.revitCategory === "Furniture" && rv.ifcClass === "IfcFurniture" && rv.category === "FURNITURE" && rv.mounting === "FLOOR" && rv.authority === "ILLUSTRATIVE" && rv.lod === 1, "revit record: id · instance · Revit category · IFC class · mounting · authority · lod");
 ok(rv.params_um.w === umFromFt(5) && rv.params_um.d === umFromFt(2) && rv.params_um.h === umFromFt(2.8) && Number.isSafeInteger(rv.origin_um.x) && rv.rotation_deg === 0, "revit params_um = the instance w/d/h in µm; origin safe-int; rotation 0");
 ok(near(ftFromUm(rv.origin_um.x), 2.5) && near(ftFromUm(rv.origin_um.y), ROOM_GRID - 2.5) && rv.origin_um.z === 0, "revit origin = the plan centre, +X east, +Y north (y flipped: gy 2 → 7.5 ft north)");
 ok(ex.revit[2].revitCategory === "Windows" && ex.revit[2].ifcClass === "IfcWindow" && ex.revit[2].origin_um.z === umFromFt(3) && revitClassOf("fridge").ifcClass === "IfcElectricAppliance" && revitClassOf("toilet").ifcClass === "IfcSanitaryTerminal", "window → Windows/IfcWindow at its 3-ft sill; fridge IfcElectricAppliance; toilet IfcSanitaryTerminal");
@@ -253,68 +270,76 @@ assetExport(cells2.find((c) => c.id === "B1").objects, { x: 0, y: 0, z: 0 });
 ok(projectHash(project) === hash0 && serializeCanonicalProject(project) === ser0, "project_hash + canonical serialization UNCHANGED after place / setSize / rotate / remove / export on a RoomCell");
 ok(cells2.find((c) => c.id === "B1").objects.length === 1 && cells2.find((c) => c.id === "B1").objects[0].size?.w === 7 && cells2.find((c) => c.id === "B1").objects[0].rot === 90, "…while the illustrative RoomCell layer did change (one sized, rotated sofa)");
 ok(toRoomCells(project).every((c) => c.objects === undefined) && JSON.stringify(toRoomCells(project)) === JSON.stringify(cells), "re-projecting canonical still yields zeroed objects — nothing flowed back");
-ok(!/"objects"|"size"|sofa|furniture\./.test(ser0), "the canonical serialization carries no objects / size / asset id (assets never enter canonical)");
+ok(!/"objects"|"size"|architect2525\.asset/.test(ser0), "the canonical serialization carries no objects / size / asset id (assets never enter canonical)");
 ok(!/\b(wall|mesh|yaw|svg)"\s*:/.test(JSON.stringify(ex)) || true, "(export field names are the asset layer's own — the canonical schema gate governs canonical fields only)");
 
-// ── 13. HIS METADATA CONTRACT — every registry entry validates against schemas/asset.schema.json (read from his pack when it
-//        is on disk; the embedded rules below ARE that schema's required list + enums + consts, asserted equal when read) ──
-// his pack: the persisted master under docs/ (commit 2b0b80ca1), else the loader slice's runtime copy under public/
-const PACK_CANDIDATES = [path.resolve(FE, "../docs/architecture-2525/asset-library/3d-starter-2026-11-06"), path.resolve(FE, "public/architect-2525/assets")];
-const PACK = PACK_CANDIDATES.find((p) => fs.existsSync(path.join(p, "manifest.json")) && fs.existsSync(path.join(p, "schemas/asset.schema.json"))) ?? PACK_CANDIDATES[0];
-const havePack = fs.existsSync(path.join(PACK, "manifest.json")) && fs.existsSync(path.join(PACK, "schemas/asset.schema.json"));
-const readPack = (rel) => fs.readFileSync(path.join(PACK, rel), "utf8");
-const SCHEMA_REQUIRED = ["id", "label", "category", "model", "dimensionsM", "pivot", "rotation", "mounting", "snap", "authority", "rooms"];
+// ── 13. HIS LIBRARY — every one of the 139 (+ the 2 PENDING) validates against his metadata shape (schemas/asset.schema.json's
+//        enums/consts on the shared fields + the keys his complete library carries; it has no `category` / `placement`) ──
+const SHAPE_REQUIRED = ["schemaVersion", "id", "label", "packs", "sections", "sourcePlacementIds", "model", "planSymbol", "dimensionsM", "pivot", "rotation", "mounting", "snap", "authority"];
 const SCHEMA_MOUNTING = ["FLOOR", "WALL", "CEILING", "SURFACE", "BUILT_IN"], SCHEMA_AUTHORITY = ["ILLUSTRATIVE", "REFERENCE", "CANONICAL"];
-if (havePack) {
-  const schema = JSON.parse(readPack("schemas/asset.schema.json"));
-  ok(JSON.stringify(schema.required) === JSON.stringify(SCHEMA_REQUIRED) && JSON.stringify(schema.properties.mounting.enum) === JSON.stringify(SCHEMA_MOUNTING) && JSON.stringify(schema.properties.authority.enum) === JSON.stringify(SCHEMA_AUTHORITY) && schema.properties.pivot.properties.origin.const === "FLOOR_CENTER" && schema.properties.pivot.properties.axes.const === "X=width,Y=depth,Z=up" && schema.properties.rotation.properties.axis.const === "Z", "the embedded schema rules equal his asset.schema.json (required · mounting · authority · pivot · rotation consts)");
-} else console.log("SKIP  his starter pack is not in this tree — schema rules validated from the embedded copy");
-const HIS_ROOMS = ["MASTER_BEDROOM", "MASTER_BATH", "MASTER_CLOSET", "LIVING", "KITCHEN", "DINING", "OFFICE", "STORAGE_LAUNDRY", "ENTRY_PORCH", "GENERAL"];
-const validMeta = (m) => SCHEMA_REQUIRED.every((k) => k in m)
-  && typeof m.id === "string" && typeof m.label === "string" && typeof m.category === "string" && typeof m.model === "string" && typeof m.planSymbol === "string"
-  && ["width", "depth", "height"].every((k) => typeof m.dimensionsM[k] === "number" && m.dimensionsM[k] > 0)
+const validMeta = (m) => SHAPE_REQUIRED.every((k) => k in m)
+  && m.schemaVersion === "1.0" && typeof m.id === "string" && typeof m.label === "string" && typeof m.model === "string" && typeof m.planSymbol === "string"
+  && Array.isArray(m.packs) && m.packs.every((n) => Number.isInteger(n)) && Array.isArray(m.sections) && m.sections.every((s) => typeof s === "string") && Array.isArray(m.sourcePlacementIds)
+  && ["width", "depth", "height"].every((k) => typeof m.dimensionsM[k] === "number" && Number.isFinite(m.dimensionsM[k]) && m.dimensionsM[k] > 0)
   && m.pivot.origin === "FLOOR_CENTER" && m.pivot.axes === "X=width,Y=depth,Z=up"
-  && m.rotation.axis === "Z" && Array.isArray(m.rotation.allowedDegrees) && m.rotation.allowedDegrees.every((n) => typeof n === "number") && m.rotation.freeRotation === false
-  && SCHEMA_MOUNTING.includes(m.mounting) && Array.isArray(m.snap) && m.snap.every((s) => typeof s === "string")
-  && SCHEMA_AUTHORITY.includes(m.authority) && Array.isArray(m.rooms) && m.rooms.every((r) => typeof r === "string")
-  && Array.isArray(m.phaseCompatibility) && m.phaseCompatibility.every((p) => typeof p === "string");
-const metas = OBJECT_KINDS.map((k) => ASSET_REGISTRY[ASSET_PARAMS[k].id].metadata);
-ok(metas.every(validMeta), "every registry entry's metadata validates against his asset.schema.json shape");
-ok(metas.every((m) => m.schemaVersion === "1.0" && m.kind && ASSET_PARAMS[m.kind].id === m.id && m.placement.allowScale === false && m.placement.collisionFootprint === "BOUNDING_BOX_XY" && m.placement.allowTranslate === true && m.placement.allowRotate === true), "schemaVersion 1.0 · kind back-reference · placement {translate, rotate, allowScale:false, BOUNDING_BOX_XY}");
-ok(metas.every((m) => m.rooms.length > 0 && m.rooms.every((r) => HIS_ROOMS.includes(r)) && (m.rooms[0] === "GENERAL" ? m.rooms.length === 1 : true)), "metadata rooms use his names (MASTER_BEDROOM … ENTRY_PORCH) or [GENERAL]");
-ok(ROOM_NAMES.length === 9 && ROOM_KEYS.every((k) => roomKeyByName(ROOM_NAME_BY_KEY[k]) === k) && roomNamesOf("bed").join() === "MASTER_BEDROOM" && roomNamesOf("door").join() === "GENERAL", "ROOM_NAME_BY_KEY ⇄ roomKeyByName round-trips; bed → MASTER_BEDROOM; door → GENERAL");
-ok(metas.every((m) => m.phaseCompatibility.length > 0 && m.phaseCompatibility.every((p) => PHASE_NAMES.includes(p)) && new Set(m.phaseCompatibility).size === m.phaseCompatibility.length), "phaseCompatibility uses his phase taxonomy, de-duplicated");
-ok(phaseIds.every((id) => PHASE_NAMES.includes(PHASE_NAME_BY_ID[id])) && phaseNamesFor("sofa").join() === "INTERIOR_DESIGN" && phaseNamesFor("door").join() === "FRAMING,INTERIOR_FINISH,INTERIOR_DESIGN" && phaseNamesFor("toilet").join() === "PLUMBING,INTERIOR_FINISH,INTERIOR_DESIGN" && phaseNamesFor("shell").join() === "FRAMING,ROOF,INTERIOR_DESIGN", "every DEV_PHASE maps into his taxonomy; sofa INTERIOR_DESIGN · door FRAMING+FINISH+DESIGN · toilet PLUMBING(+sewer folded)+… · shell FRAMING(+insulation folded)+ROOF+…");
-ok(metas.every((m) => /^models\/[a-z0-9_]+\.glb$/.test(m.model) && /^plan\/[a-z0-9_]+\.svg$/.test(m.planSymbol) && /^metadata\/[a-z0-9_]+\.json$/.test(m.metadata) && m.model.slice(7, -4) === m.planSymbol.slice(5, -4)) && ASSET_BASE_URL === "/architect-2525/assets/", "paths are relative to /architect-2525/assets/ in his layout (models/<file>.glb · plan/<file>.svg · metadata/<file>.json), one file stem");
-ok(metas.every((m) => ["width", "depth", "height"].every((k) => m.dimensionsM[k] === mFromFt(OBJECT_SPEC[m.kind][k === "width" ? "w" : k === "depth" ? "d" : "h"]))) && mFromFt(5) === 1.524 && ftFromM(1.524) === 5 && dimsM("sofa").width === 1.524, "dimensionsM = the ft defaults converted once (sofa 5 ft → 1.524 m), ftFromM round-trips");
-ok(metas.every((m) => JSON.stringify(m.rotation.allowedDegrees) === JSON.stringify([...ALLOWED_DEGREES]) && ALLOWED_DEGREES.join() === "0,90,180,270"), "rotation about Z, allowedDegrees = the Rot the model supports (0/90/180/270), no free rotation");
-ok(metas.filter((m) => m.modelStatus === "STARTER").length === 14 && metas.every((m) => (m.modelStatus === "STARTER") === ASSET_PARAMS[m.kind].starter), "14 entries carry his native starter GLBs (STARTER); the other 15 are PENDING in the same grammar (his lounge chair · coffee table · upper cabinets · dryer await their kinds in Rev B/C/G)");
-ok(metadataById("furniture.sofa.3seat.v1")?.model === "models/sofa_3seat.glb" && metadataById("nope") === undefined, "metadataById resolves his sofa; unknown → undefined");
-ok(listAssets({ pack: 4 }).every((a) => a.metadata.packs.includes(4)) && listAssets({ pack: 4 }).map((a) => a.kind).includes("fridge") && listAssets({ starterOnly: true }).length === 14 && listAssets({ category: "APPLIANCE" }).map((a) => a.kind).includes("washer"), "listAssets filters by pack, starter-only and his metadata category too");
+  && m.rotation.axis === "Z" && Array.isArray(m.rotation.allowedDegrees) && m.rotation.allowedDegrees.every((n) => typeof n === "number") && typeof m.rotation.freeRotation === "boolean"
+  && SCHEMA_MOUNTING.includes(m.mounting) && Array.isArray(m.snap) && m.snap.every((s) => SNAP_TARGETS.includes(s)) && m.snap.length > 0
+  && SCHEMA_AUTHORITY.includes(m.authority);
+const metas = ASSET_IDS.map((id) => ASSET_REGISTRY[id].metadata);
+ok(metas.length === 141 && metas.every(validMeta), "all 141 metadata records validate against his shape (required keys · dimensionsM > 0 · pivot consts · rotation Z · mounting enum · snap taxonomy · authority enum)");
+ok(LIBRARY_MANIFEST.every((e) => { const m = LIBRARY_METADATA[e.id]; return m.id === e.id && m.label === e.label && JSON.stringify(m.packs) === JSON.stringify(e.packs) && path.basename(m.model) === path.basename(e.model) && path.basename(m.planSymbol) === path.basename(e.planSymbol); }), "manifest ⇄ metadata agree on id · label · packs · model/plan file for all 139");
+ok(LIBRARY_MANIFEST.every((e) => { const stem = e.model.slice(7, -4); return /^models\/[a-z0-9-]+\.glb$/.test(e.model) && e.metadata === `metadata/${stem}.json` && e.planSymbol === `plan/${stem}.svg`; }) && ASSET_BASE_URL === "/architect-2525/assets/", "every manifest id resolves ONE file stem: models/<stem>.glb · metadata/<stem>.json · plan/<stem>.svg, relative to /architect-2525/assets/");
+ok(LIBRARY_MANIFEST.every((e) => { const m = LIBRARY_METADATA[e.id]; return m.rotation.freeRotation === true && ALLOWED_DEGREES.every((d) => m.rotation.allowedDegrees.includes(d)) && m.authority === "ILLUSTRATIVE"; }), "his library: freeRotation true with 15° steps, our 0/90/180/270 ⊆ his; authority ILLUSTRATIVE everywhere");
+ok(LIBRARY_MANIFEST.every((e) => { const a = ASSET_REGISTRY[e.id], m = LIBRARY_METADATA[e.id]; return a.metadata === m && a.mounting === m.mounting && JSON.stringify(a.snap) === JSON.stringify(m.snap) && JSON.stringify(a.rotation.allowedDegrees) === JSON.stringify(m.rotation.allowedDegrees) && a.rotation.freeRotation === m.rotation.freeRotation && JSON.stringify(a.sections) === JSON.stringify(m.sections); }), "a library entry's mounting · snap · rotation · sections ARE his metadata (the same object, verbatim)");
+ok(ASSET_IDS.filter((id) => ASSET_REGISTRY[id].modelStatus === "PENDING").every((id) => { const a = ASSET_REGISTRY[id]; return PENDING_KINDS.includes(a.kind) && a.metadata.modelQuality.startsWith("PENDING") && a.metadata.sourcePlacementIds.length === 0 && /^models\/[a-z0-9-]+\.glb$/.test(a.model); }) && listAssets({ status: "PENDING" }).length === 2, "the 2 PENDING entries are flagged in their synthesized metadata and carry planned paths");
+// provenance — the committed copy equals the docs master (when on disk) and the generator is deterministic
+const DOCS_LIB = path.resolve(FE, "../docs/architecture-2525/asset-library/3d-all-assets-2026-11-07");
+const haveLib = fs.existsSync(path.join(DOCS_LIB, "manifest.json"));
+ok(/^[0-9a-f]{64}$/.test(LIBRARY_SOURCE.manifestSha256) && LIBRARY_SOURCE.assetCount === 139 && LIBRARY_SOURCE.units === "meters" && LIBRARY_SOURCE.pivotConvention === "FLOOR_CENTER", "LIBRARY_SOURCE records the manifest sha256 · 139 assets · metres · FLOOR_CENTER");
+if (haveLib) {
+  const onDisk = crypto.createHash("sha256").update(fs.readFileSync(path.join(DOCS_LIB, "manifest.json"))).digest("hex");
+  ok(onDisk === LIBRARY_SOURCE.manifestSha256, "the committed library-manifest.ts was generated from the docs master on disk (sha256 equal — no drift)");
+  const tmp = path.join(os.tmpdir(), `arch-lib-manifest-${process.pid}.ts`);
+  const r = spawnSync(process.execPath, [path.join(FE, "scripts/architect-asset-library-manifest.mjs"), DOCS_LIB, tmp], { encoding: "utf8" });
+  ok(r.status === 0 && fs.existsSync(tmp) && fs.readFileSync(tmp, "utf8") === read("lib/architect-2525/assets/library-manifest.ts"), "the generator is deterministic: regenerating from his library reproduces the committed file byte-for-byte");
+  try { fs.unlinkSync(tmp); } catch {}
+  ok(LIBRARY_MANIFEST.every((e) => ["model", "metadata", "planSymbol"].every((k) => fs.existsSync(path.join(DOCS_LIB, e[k])))), "every manifest path exists in his library on disk (139 × glb + json + svg)");
+} else console.log("SKIP  his complete library is not under docs/ in this tree — sha / determinism / file-existence run on main");
+// the served copy — the loader slice copies his library verbatim to public/architect-2525/assets; checked when it is his (v2 / 139)
+const PUB = path.resolve(FE, "public/architect-2525/assets");
+let pubManifest = null; try { pubManifest = JSON.parse(fs.readFileSync(path.join(PUB, "manifest.json"), "utf8")); } catch {}
+if (pubManifest && Array.isArray(pubManifest.assets) && pubManifest.assets.length >= 139) {
+  ok(LIBRARY_MANIFEST.every((e) => ["model", "metadata", "planSymbol"].every((k) => fs.existsSync(path.join(PUB, e[k])))), "every manifest path resolves a file under public/architect-2525/assets (the served library)");
+} else console.log(`SKIP  public/architect-2525/assets holds ${pubManifest?.assets?.length ?? 0} assets (not yet his 139-asset library) — the served-file check runs once the loader slice copies it`);
+// sections → rooms / phases / category — the documented map covers every section his library uses
+const usedSections = [...new Set(LIBRARY_MANIFEST.flatMap((e) => LIBRARY_METADATA[e.id].sections))];
+ok(usedSections.length >= 20 && usedSections.every(isKnownSection) && Object.keys(SECTION_RULES).every((s) => usedSections.includes(s)), `SECTION_RULES covers exactly the ${usedSections.length} sections his library uses (no unmapped, no stale)`);
+ok(Object.values(SECTION_RULES).every((r) => (r.rooms === "GENERAL" || (r.rooms.length > 0 && r.rooms.every((k) => ROOM_KEYS.includes(k)))) && r.phases.every((p) => phaseIds.includes(p)) && ASSET_CATEGORIES.includes(r.category)), "every section rule maps to canonical room keys / DEV_PHASES ids / a §17 category");
+ok(roomsForSections(["Bathroom"]).join() === "B" && roomsForSections(["Kitchen", "Kitchen Appliances"]).join() === "K" && roomsForSections(["Shell & Structure"]) === "GENERAL" && roomsForSections(["Living / Common", "Office"]).join() === "L,E,O", "roomsForSections: Bathroom → B · Kitchen(+Appliances) → K · Shell → GENERAL · Living/Common+Office → L,E,O");
+ok(phasesForSections(["Shell & Structure"]).join() === "foundation,framing,roofing" && phasesForSections(["Lighting"]).join() === "electrical,interior" && phasesForSections(["Site & Landscape"]).length === 0 && categoryForSections(["Lighting"]) === "LIGHTING", "phasesForSections in build order; Site & Landscape = design view only; Lighting → LIGHTING");
+ok(metas.every((m) => { const a = ASSET_REGISTRY[m.id]; return (a.rooms === "GENERAL" ? a.roomNames.join() === "GENERAL" : a.roomNames.length === a.rooms.length) && a.phases.every((p) => phaseIds.includes(p)) && a.phaseNames.every((p) => PHASE_NAMES.includes(p)); }), "every entry's derived rooms / roomNames / phases / phaseNames are well-formed");
+const slab = "architect2525.asset.foundation.slab.v1", cam = "architect2525.asset.security.camera.v1", dw = "architect2525.asset.dishwasher.v1", panel = "architect2525.asset.electrical.panel.v1";
+ok(visibleInPhase(slab, "foundation") && !visibleInPhase(slab, "interior") && visibleInPhase(cam, "security") && !visibleInPhase("architect2525.asset.sofa.v1", "framing") && visibleInPhase(dw, "plumbing") && visibleInPhase(dw, null), "PhaseProjection over library assets: slab in Foundation only · camera in Security · sofa hidden in Framing · dishwasher in Plumbing + the design view");
+ok(isAssetCompatibleWithRoom("architect2525.asset.toilet.v1", "B") && !isAssetCompatibleWithRoom("architect2525.asset.toilet.v1", "K") && isAssetCompatibleWithRoom(panel, "K") && isAssetCompatibleWithRoom(dw, "K") && !isAssetCompatibleWithRoom(dw, "M") && !isAssetCompatibleWithRoom("nope", "K"), "room compatibility over library assets: toilet B only · panel GENERAL · dishwasher K (sections) · unknown false");
+ok(listAssets({ room: "K" }).map((a) => a.id).includes(dw) && listAssets({ room: "K" }).map((a) => a.kind).includes("fridge") && listAssets({ room: "K" }).map((a) => a.kind).includes("door") && !listAssets({ room: "K" }).map((a) => a.kind).includes("bed"), "listAssets({room:'K'}) lists the dishwasher (no kind), the fridge, the GENERAL door — never the bed");
+ok(listAssets({ placeable: true }).length === 29 && listAssets({ status: "LIBRARY" }).length === 139 && listAssets({ pack: 4 }).length === LIBRARY_MANIFEST.filter((e) => e.packs.includes(4)).length && listAssets({ section: "Lighting" }).length === 7 && listAssets().length === 141, "listAssets: placeable 29 · LIBRARY 139 · pack 4 = the manifest's pack-4 count · Lighting section 7 · all 141");
+ok(listAssets({ phase: "framing" }).every((a) => !["bed", "sofa", "chair", "table"].includes(a.kind)) && listAssets({ phase: "framing" }).map((a) => a.id).includes("architect2525.asset.wall.framing.v1"), "listAssets({phase:'framing'}) never lists furniture and does list wall framing");
+ok(metadataById("architect2525.asset.sofa.v1")?.model === "../models/sofa.glb" && metadataById("furniture.sofa.3seat.v1")?.id === "architect2525.asset.sofa.v1" && metadataById("nope") === undefined, "metadataById: his sofa (verbatim ../models path) · the starter alias resolves · unknown → undefined");
 
-// ── 14. HIS PACK, VERBATIM — for every id his manifest carries: id · paths · category · mounting · snap · rooms (one
-//        documented HI deviation) · allowedDegrees ⊆ his. Runs when the pack is on disk (it is, on main). ──
-if (havePack) {
-  const manifest = JSON.parse(readPack("manifest.json"));
-  const his = Object.fromEntries(manifest.assets.map((a) => [a.id, { ...a, meta: JSON.parse(readPack(a.metadata)) }]));
-  const overlap = metas.filter((m) => Object.hasOwn(his, m.id));
-  const hisOnly = manifest.assets.map((a) => a.id).filter((id) => !metas.some((m) => m.id === id)).sort();
-  ok(manifest.assets.length === 18 && overlap.length === 14, `his manifest lists 18 assets; ${overlap.length} of them are registry entries (the 14 STARTER rows)`);
-  ok(hisOnly.join() === "appliance.dryer.frontload.v1,furniture.coffee_table.v1,furniture.lounge_chair.v1,kitchen.upper_cabinets.v1", `the 4 his-only assets are exactly dryer · coffee table · lounge chair · upper cabinets (no ObjectKind yet — Rev B/C/G add them; got ${hisOnly.join(", ")})`);
-  ok(overlap.every((m) => m.modelStatus === "STARTER") && metas.filter((m) => m.modelStatus === "STARTER").every((m) => Object.hasOwn(his, m.id)), "STARTER ⇔ in his manifest");
-  ok(overlap.every((m) => his[m.id].model === m.model && his[m.id].planSymbol === m.planSymbol && his[m.id].metadata === m.metadata), "model / planSymbol / metadata paths equal his manifest, verbatim");
-  ok(overlap.every((m) => his[m.id].category === m.category && his[m.id].meta.category === m.category), "metadata category equals his, verbatim");
-  ok(overlap.every((m) => his[m.id].meta.mounting === m.mounting && JSON.stringify(his[m.id].meta.snap) === JSON.stringify(m.snap)), "mounting + snap equal his metadata, verbatim");
-  const ROOM_DEVIATIONS = { "furniture.dresser.v1": "HI 2026-10-31 (Room Designer decision card): no dresser in the Master Bedroom — it lives in the Master Closet" };
-  ok(overlap.every((m) => Object.hasOwn(ROOM_DEVIATIONS, m.id) || his[m.id].meta.rooms.every((r) => m.rooms.includes(r))), "his rooms ⊆ ours for every starter asset, except the one documented HI deviation (dresser → MASTER_CLOSET)");
-  ok(overlap.every((m) => his[m.id].meta.pivot.origin === m.pivot.origin && his[m.id].meta.pivot.axes === m.pivot.axes && his[m.id].meta.rotation.axis === "Z" && m.rotation.allowedDegrees.every((d) => his[m.id].meta.rotation.allowedDegrees.includes(d))), "pivot + rotation axis equal his; our allowedDegrees ⊆ his");
-  ok(overlap.every((m) => his[m.id].meta.phaseCompatibility.every((p) => m.phaseCompatibility.includes(p)) && his[m.id].meta.authority === "ILLUSTRATIVE"), "his phaseCompatibility ⊆ ours (he lists INTERIOR_DESIGN; a fixture also shows in its wet phase); his authority is ILLUSTRATIVE");
-  ok(overlap.every((m) => ["width", "depth", "height"].every((k) => his[m.id].meta.dimensionsM[k] > 0 && m.dimensionsM[k] > 0)), "both dimension sets are positive (his GLB sizes vs our shipped ft defaults — the deltas are reported, not silently adopted: Release Process #6)");
-} else console.log("SKIP  his pack is not in this tree (neither docs/ master nor public/ runtime copy) — the pack-equality assertions run on main");
+// ── 14. the earlier starter pack (19 assets, v1.0.0) — now PROVENANCE: when on disk, every starter id is an alias of a kind or
+//        one of the 4 starter assets that have no kind yet; the library's labels cover it ──
+const STARTER = [path.resolve(FE, "../docs/architecture-2525/asset-library/3d-starter-2026-11-06"), path.resolve(FE, "public/architect-2525/assets")]
+  .find((p) => { try { const m = JSON.parse(fs.readFileSync(path.join(p, "manifest.json"), "utf8")); return m.version === "1.0.0" && Array.isArray(m.assets); } catch { return false; } });
+if (STARTER) {
+  const sm = JSON.parse(fs.readFileSync(path.join(STARTER, "manifest.json"), "utf8"));
+  const KINDLESS_STARTER = ["appliance.dryer.frontload.v1", "furniture.coffee_table.v1", "furniture.lounge_chair.v1", "kitchen.upper_cabinets.v1"];
+  ok(sm.assets.every((a) => kindByAssetId(a.id) !== undefined || KINDLESS_STARTER.includes(a.id) || a.id.startsWith("architect2525.asset.")), `every starter-pack id (${sm.assets.length}) is a kind's alias or one of the 4 known kind-less starter assets`);
+} else console.log("SKIP  the 18/19-asset starter pack is not on disk — alias coverage runs on main");
 
 // ── 15. PlacedAsset — his instance record ⇄ PlacedObject, pure, round-trips, never mesh data ──
 const pa = toPlacedAsset(room[0], "living");
-ok(pa.instanceId === "sofa-1" && pa.assetId === "furniture.sofa.3seat.v1" && pa.roomId === "living" && pa.authority === "ILLUSTRATIVE" && pa.rotationDeg === 0, "toPlacedAsset: instanceId · assetId · roomId · ILLUSTRATIVE · rotationDeg");
+ok(pa.instanceId === "sofa-1" && pa.assetId === "architect2525.asset.sofa.v1" && pa.roomId === "living" && pa.authority === "ILLUSTRATIVE" && pa.rotationDeg === 0, "toPlacedAsset: instanceId · assetId (his library id) · roomId · ILLUSTRATIVE · rotationDeg");
+ok(fromPlacedAsset({ ...pa, assetId: "furniture.sofa.3seat.v1" })?.kind === "sofa" && fromPlacedAsset({ ...pa, assetId: "bath.toilet.v1" })?.kind === "toilet" && fromPlacedAsset({ ...pa, assetId: "tv.console.v1" })?.kind === "tv", "fromPlacedAsset resolves starter-pack / rotator alias ids to their kinds (earlier editions still load)");
 ok(pa.positionM.x === mFromFt(2.5) && pa.positionM.y === mFromFt(ROOM_GRID - 2.5) && pa.positionM.z === 0, "positionM = the floor-centre pivot in metres (+X east, +Y north: gy 2 → 7.5 ft north)");
 ok(JSON.stringify(Object.keys(pa).sort()) === JSON.stringify(["assetId", "authority", "instanceId", "positionM", "roomId", "rotationDeg"]), "a PlacedAsset is semantic id + transform only (no mesh, no parts, no size)");
 const rt = (o) => fromPlacedAsset(toPlacedAsset(o, "r"), o);
@@ -328,6 +353,6 @@ ok(JSON.stringify(placedAssetsOf(room, "B1")) === JSON.stringify(placedAssetsOf(
 // the record never reaches canonical truth
 ok(projectHash(project) === hash0 && !/instanceId|assetId|positionM/.test(serializeCanonicalProject(project)), "project_hash unchanged by PlacedAsset work; no PlacedAsset field is in the canonical serialization");
 
-console.log("\nkind → id:"); for (const k of OBJECT_KINDS) console.log(`  ${k.padEnd(11)} ${ASSET_PARAMS[k].id}${ASSET_PARAMS[k].starter ? "  (starter GLB)" : ""}`);
-console.log(`\nARCHITECT-ASSET-REGISTRY ${pass}/${pass + fail} passed · ${ASSET_COUNT} assets registered${havePack ? ` · his pack verified (${path.relative(FE, PACK)})` : " · his pack not in this tree (skipped)"}`);
+console.log("\nkind → id (aliases):"); for (const k of OBJECT_KINDS) console.log(`  ${k.padEnd(11)} ${ASSET_PARAMS[k].id.padEnd(50)} ${ASSET_PARAMS[k].library ? "LIBRARY" : "PENDING"}  ← ${ASSET_PARAMS[k].aliases.join(", ")}`);
+console.log(`\nARCHITECT-ASSET-REGISTRY ${pass}/${pass + fail} passed · ${ASSET_COUNT} registry entries (${LIBRARY_COUNT} library + ${ASSET_COUNT - LIBRARY_COUNT} pending) · 29 kinds · 112 kind-less · library sha ${LIBRARY_SOURCE.manifestSha256.slice(0, 12)}…${haveLib ? " (docs master verified)" : ""}`);
 if (fail) process.exit(1);

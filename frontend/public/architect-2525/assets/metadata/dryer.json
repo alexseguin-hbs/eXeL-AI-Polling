@@ -1,14 +1,25 @@
 {
   "schemaVersion": "1.0",
-  "id": "appliance.dryer.frontload.v1",
+  "id": "architect2525.asset.dryer.v1",
   "label": "Dryer",
-  "category": "APPLIANCE",
+  "packs": [
+    2,
+    4
+  ],
+  "sections": [
+    "Laundry",
+    "Laundry / Storage"
+  ],
+  "sourcePlacementIds": [
+    "P02-S06-A02",
+    "P04-S02-A02"
+  ],
   "model": "../models/dryer.glb",
   "planSymbol": "../plan/dryer.svg",
   "dimensionsM": {
     "width": 0.7,
-    "depth": 0.72,
-    "height": 0.95
+    "depth": 0.815,
+    "height": 0.96
   },
   "pivot": {
     "origin": "FLOOR_CENTER",
@@ -16,36 +27,29 @@
   },
   "rotation": {
     "axis": "Z",
+    "freeRotation": true,
     "allowedDegrees": [
       0,
+      15,
+      30,
+      45,
+      60,
+      75,
       90,
       180,
       270
-    ],
-    "freeRotation": false
+    ]
   },
   "mounting": "FLOOR",
   "snap": [
-    "FLOOR",
-    "WALL_BACK"
+    "FLOOR"
   ],
   "authority": "ILLUSTRATIVE",
-  "rooms": [
-    "STORAGE_LAUNDRY"
-  ],
-  "phaseCompatibility": [
-    "INTERIOR_DESIGN"
-  ],
-  "placement": {
-    "collisionFootprint": "BOUNDING_BOX_XY",
-    "allowTranslate": true,
-    "allowRotate": true,
-    "allowScale": false
-  },
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
   "rebuildSpec": {
-    "generator": "source/build_assets.py::dryer",
-    "targetLOD": "browser-lightweight",
-    "sourceReference": "ARCHITECT-2525 3D ASSET STARTER PACK concept board",
-    "notes": "Simplified native geometry intended for browser placement. Rebuild or replace model while preserving id, dimensions contract, pivot, mounting and metadata."
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
   }
 }

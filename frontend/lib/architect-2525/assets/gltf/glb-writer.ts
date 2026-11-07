@@ -7,9 +7,17 @@
  * origin floor-centre. No three.js, no npm dependency, no DOM — DataView + TextEncoder only. DETERMINISTIC: no clock, no
  * random, fixed key order, so the same composition → byte-identical bytes (gated by tests/architect-asset-glb-build).
  * Round trip is the contract: writeGlb → glb-reader.parseGlb → gltfTriangles reproduces the parts' bounds/tris/colours.
+ *
+ * PRIMITIVES (the operator's 126 rotator families compile through these): box · cyl · sphere · torus, each generated
+ * CENTRED at the origin with `size` = full extents [w along X, d along Y, h along Z] in metres, low segment counts
+ * (8–12 — picker-weight, silhouette-readable), outward CCW winding, then rotated about its own centre (rotX, then rotY,
+ * then rotZ, degrees — cardinal angles exact) and translated to `center` (Z-up, floor-centre origin). `partMesh()` is
+ * that one pure path; a composition's parts feed it.
  */
 import type { V3 } from "./glb-reader";
 import { CHUNK_BIN, CHUNK_JSON, GLB_MAGIC, GLB_VERSION } from "./glb-reader";
+
+export type V3Like = [number, number, number];
 
 export const GLB_GENERATOR = "architect-2525/assets-build";
 
@@ -125,4 +133,110 @@ export function writeGlb(input: WriteGlbInput): Uint8Array {
   for (const c of chunks) { out.set(c, off); off += c.byteLength; }
   if (off !== total) fail(`internal: wrote ${off} of ${total} bytes`);
   return out;
+}
+
+// ── PRIMITIVES ──
+export type PartKind = "box" | "cyl" | "sphere" | "torus";
+/** One part of a composition: a primitive of full extents `size` [w,d,h] m centred at `center` [x,y,z] m (Z-up, floor-
+ *  centre origin), rotated about its own centre by rotX → rotY → rotZ degrees. `segments` (default 12 around; sphere rings
+ *  and torus tube default 8) is clamped to 3..64. */
+export interface PartSpec { kind: PartKind; size: [number, number, number]; center: [number, number, number]; rotX?: number; rotY?: number; rotZ?: number; segments?: number }
+
+const TAU = Math.PI * 2;
+/** Exact cos/sin at the cardinal angles (no 6e-17 drift on a 90° part), Math otherwise. */
+export function cosSinDeg(deg: number): [number, number] {
+  const r = ((deg % 360) + 360) % 360;
+  if (r === 0) return [1, 0]; if (r === 90) return [0, 1]; if (r === 180) return [-1, 0]; if (r === 270) return [0, -1];
+  const t = (deg * Math.PI) / 180; return [Math.cos(t), Math.sin(t)];
+}
+const ring = (n: number, rx: number, ry: number, z: number): V3[] => Array.from({ length: n }, (_, i) => { const t = (TAU * i) / n; return [rx * Math.cos(t), ry * Math.sin(t), z]; });
+const seg = (n: number | undefined, d: number) => Math.max(3, Math.min(64, Math.floor(n ?? d)));
+
+/** An (elliptic) cylinder: diameters w (X) and d (Y), height h (Z), centred at the origin. n side quads + two fan caps. */
+export function cylMesh(size: [number, number, number], segments?: number): RawMesh {
+  const [w, d, h] = size, n = seg(segments, 12);
+  const bot = ring(n, w / 2, d / 2, -h / 2), top = ring(n, w / 2, d / 2, h / 2);
+  const positions: V3[] = [...bot, ...top, [0, 0, -h / 2], [0, 0, h / 2]];
+  const cb = 2 * n, ct = 2 * n + 1, indices: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    indices.push(i, j, n + j, i, n + j, n + i);     // side (outward)
+    indices.push(ct, n + i, n + j);                 // top cap (up)
+    indices.push(cb, j, i);                         // bottom cap (down)
+  }
+  return { positions, indices };
+}
+
+/** An ellipsoid of extents w × d × h centred at the origin: `segments` around (default 12), `rings` latitude bands
+ *  (default 8), built bottom → top so every quad winds outward. */
+export function sphereMesh(size: [number, number, number], segments?: number, rings?: number): RawMesh {
+  const [w, d, h] = size, n = seg(segments, 12), m = seg(rings, 8);
+  const positions: V3[] = [[0, 0, -h / 2]];
+  for (let j = 1; j < m; j++) {
+    const phi = Math.PI - (Math.PI * j) / m;       // π (bottom) → 0 (top)
+    const sp = Math.sin(phi), cp = Math.cos(phi);
+    for (let i = 0; i < n; i++) { const t = (TAU * i) / n; positions.push([(w / 2) * sp * Math.cos(t), (d / 2) * sp * Math.sin(t), (h / 2) * cp]); }
+  }
+  positions.push([0, 0, h / 2]);
+  const bottom = 0, topIdx = positions.length - 1, at = (j: number, i: number) => 1 + (j - 1) * n + (i % n);
+  const indices: number[] = [];
+  for (let i = 0; i < n; i++) indices.push(bottom, at(1, i + 1), at(1, i));                          // bottom cap (down)
+  for (let j = 1; j < m - 1; j++) for (let i = 0; i < n; i++) {
+    const a = at(j, i), b = at(j, i + 1), c = at(j + 1, i + 1), e = at(j + 1, i);
+    indices.push(a, b, c, a, c, e);                                                                   // band quad (outward)
+  }
+  for (let i = 0; i < n; i++) indices.push(topIdx, at(m - 1, i), at(m - 1, i + 1));                  // top cap (up)
+  return { positions, indices };
+}
+
+/** A torus lying flat: outer extents w × d, tube diameter h (so the major radii are w/2 − h/2 and d/2 − h/2), centred at
+ *  the origin; `segments` around the ring (default 12), `tube` around the tube (default 8). */
+export function torusMesh(size: [number, number, number], segments?: number, tube?: number): RawMesh {
+  const [w, d, h] = size, n = seg(segments, 12), k = seg(tube, 8), r = h / 2, Rx = w / 2 - r, Ry = d / 2 - r;
+  if (!(Rx > 0 && Ry > 0)) fail(`torus tube ${h} must be smaller than its extents ${w} × ${d}`);
+  const positions: V3[] = [];
+  for (let i = 0; i < n; i++) {
+    const t = (TAU * i) / n, ct = Math.cos(t), st = Math.sin(t);
+    for (let j = 0; j < k; j++) { const u = (TAU * j) / k; positions.push([(Rx + r * Math.cos(u)) * ct, (Ry + r * Math.cos(u)) * st, r * Math.sin(u)]); }
+  }
+  const at = (i: number, j: number) => (i % n) * k + (j % k), indices: number[] = [];
+  for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) {
+    const a = at(i, j), b = at(i + 1, j), c = at(i + 1, j + 1), e = at(i, j + 1);
+    indices.push(a, b, c, a, c, e);
+  }
+  return { positions, indices };
+}
+
+/** Rotate a mesh about the origin by rotX → rotY → rotZ (degrees), then translate. Pure; rotations keep the winding. */
+export function transformRawMesh(mesh: RawMesh, rot: { rotX?: number; rotY?: number; rotZ?: number }, center: [number, number, number]): RawMesh {
+  const [cx, sx] = cosSinDeg(rot.rotX ?? 0), [cy, sy] = cosSinDeg(rot.rotY ?? 0), [cz, sz] = cosSinDeg(rot.rotZ ?? 0);
+  const positions = mesh.positions.map((p): V3 => {
+    let [x, y, z] = p;
+    [y, z] = [y * cx - z * sx, y * sx + z * cx];     // about X
+    [x, z] = [x * cy + z * sy, -x * sy + z * cy];    // about Y
+    [x, y] = [x * cz - y * sz, x * sz + y * cz];     // about Z
+    return [x + center[0], y + center[1], z + center[2]];
+  });
+  return { positions, indices: mesh.indices.slice() };
+}
+
+/** The mesh of one part spec — primitive centred at the origin → rotated about its centre → placed at `center`. */
+export function partMesh(p: PartSpec): RawMesh {
+  const [w, d, h] = p.size;
+  if (![w, d, h].every((v) => Number.isFinite(v) && v > 0)) fail(`part size must be three positive finite numbers (got ${p.size})`);
+  if (!p.center.every(Number.isFinite)) fail(`part center must be finite (got ${p.center})`);
+  for (const k of ["rotX", "rotY", "rotZ"] as const) if (p[k] !== undefined && !Number.isFinite(p[k])) fail(`part ${k} must be finite`);
+  const base = p.kind === "box" ? boxMesh({ x: -w / 2, y: -d / 2, z: -h / 2, w, d, h })
+    : p.kind === "cyl" ? cylMesh(p.size, p.segments)
+    : p.kind === "sphere" ? sphereMesh(p.size, p.segments, p.segments !== undefined ? Math.max(3, Math.round(p.segments * 2 / 3)) : undefined)
+    : p.kind === "torus" ? torusMesh(p.size, p.segments, p.segments !== undefined ? Math.max(3, Math.round(p.segments * 2 / 3)) : undefined)
+    : fail(`unknown part kind ${String((p as { kind: string }).kind)}`);
+  return transformRawMesh(base, p, p.center);
+}
+
+/** The axis-aligned bounds of a raw mesh's vertices. */
+export function rawMeshBounds(m: RawMesh): { min: V3; max: V3 } {
+  const min: V3 = [Infinity, Infinity, Infinity], max: V3 = [-Infinity, -Infinity, -Infinity];
+  for (const p of m.positions) for (let i = 0; i < 3; i++) { if (p[i] < min[i]) min[i] = p[i]; if (p[i] > max[i]) max[i] = p[i]; }
+  return { min, max };
 }

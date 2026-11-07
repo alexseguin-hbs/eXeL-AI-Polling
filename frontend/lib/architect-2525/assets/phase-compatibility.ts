@@ -13,6 +13,8 @@
  */
 import { DEV_PHASES, showGroupInPhase } from "@/lib/architect-phases";
 import { ASSET_PARAMS, OBJECT_KINDS, groupOf, kindByAssetId, type ObjectKind } from "@/lib/room-objects";
+import { LIBRARY_METADATA } from "./library-manifest";
+import { phasesForSections } from "./sections";
 
 /** A kind by its own name or by its STABLE asset id; undefined for anything else (own keys only — WireGuard). */
 export function resolveKind(assetIdOrKind: string): ObjectKind | undefined {
@@ -20,12 +22,16 @@ export function resolveKind(assetIdOrKind: string): ObjectKind | undefined {
   return kindByAssetId(assetIdOrKind);
 }
 
-/** THE PhaseProjection: is this asset drawn in this phase? No phase (null) = the full design view = everything.
- *  An unknown asset is never visible. */
+/** THE PhaseProjection: is this asset drawn in this phase? A kind answers through showGroupInPhase(groupOf) — the designer's
+ *  and the walk's one filter; a library asset WITHOUT a kind answers through his board sections (sections.ts). No phase
+ *  (null) = the full design view = everything. An unknown asset is never visible. */
 export function visibleInPhase(assetIdOrKind: string, phaseId: string | null | undefined): boolean {
   const kind = resolveKind(assetIdOrKind);
-  if (!kind) return false;
-  return showGroupInPhase(groupOf(kind), phaseId);
+  if (kind) return showGroupInPhase(groupOf(kind), phaseId);
+  const m = Object.hasOwn(LIBRARY_METADATA, assetIdOrKind) ? LIBRARY_METADATA[assetIdOrKind] : undefined;
+  if (!m) return false;
+  if (phaseId === null || phaseId === undefined) return true;
+  return phasesForSections(m.sections).includes(phaseId);
 }
 
 /** The phase ids (build order) in which a kind is visible — derived from the projection, so it can never drift from it. */

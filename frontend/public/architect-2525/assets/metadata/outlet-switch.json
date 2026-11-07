@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.outlet.switch.v1",
+  "label": "Outlet + Switch",
+  "packs": [
+    1
+  ],
+  "sections": [
+    "MEP strip on source board"
+  ],
+  "sourcePlacementIds": [
+    "P01-S02-A02"
+  ],
+  "model": "../models/outlet-switch.glb",
+  "planSymbol": "../plan/outlet-switch.svg",
+  "dimensionsM": {
+    "width": 1.04,
+    "depth": 0.11000000000000001,
+    "height": 0.8
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

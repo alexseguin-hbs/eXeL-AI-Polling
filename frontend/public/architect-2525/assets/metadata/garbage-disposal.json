@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.garbage.disposal.v1",
+  "label": "Garbage Disposal",
+  "packs": [
+    4
+  ],
+  "sections": [
+    "Kitchen Appliances"
+  ],
+  "sourcePlacementIds": [
+    "P04-S01-A06"
+  ],
+  "model": "../models/garbage-disposal.glb",
+  "planSymbol": "../plan/garbage-disposal.svg",
+  "dimensionsM": {
+    "width": 0.32,
+    "depth": 0.32,
+    "height": 0.66
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "SURFACE",
+  "snap": [
+    "SURFACE"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

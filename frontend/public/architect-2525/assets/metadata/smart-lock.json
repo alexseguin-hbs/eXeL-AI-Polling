@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.smart.lock.v1",
+  "label": "Smart Lock",
+  "packs": [
+    3
+  ],
+  "sections": [
+    "Security & Smart"
+  ],
+  "sourcePlacementIds": [
+    "P03-S03-A06"
+  ],
+  "model": "../models/smart-lock.glb",
+  "planSymbol": "../plan/smart-lock.svg",
+  "dimensionsM": {
+    "width": 0.28,
+    "depth": 0.175,
+    "height": 0.6399999999999999
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "WALL",
+  "snap": [
+    "WALL"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

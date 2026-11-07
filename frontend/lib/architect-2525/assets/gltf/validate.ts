@@ -14,15 +14,17 @@ import { boundsExtents } from "./glb-reader";
 import { MAX_TRIS_PER_ASSET } from "../model-cache";
 
 export interface AssetDimsM { width: number; depth: number; height: number }
-export interface MeshCheckOptions { tolerance?: number; floatEpsM?: number; sunkEpsM?: number; mounting?: string; maxTris?: number }
+export interface MeshCheckOptions { tolerance?: number; floatEpsM?: number; sunkEpsM?: number; mounting?: string; maxTris?: number; rawMinZ?: number | null }
 export interface MeshCheck {
   id: string;
   triCount: number; meshCount: number;
   extentsM: { w: number; d: number; h: number };
   dimsM: AssetDimsM;
   deviation: { w: number; d: number; h: number };   // (extent − dim) / dim, signed
-  minZ: number; maxZ: number;
-  floating: boolean; sunk: boolean; withinTolerance: boolean; overBudget: boolean;
+  minZ: number; maxZ: number;             // WORLD (node matrices applied — what a viewer renders)
+  rawMinZ: number | null;                 // the lowest POSITION accessor minimum BEFORE node matrices (ledger reference)
+  mounting: string;
+  floating: boolean; sunk: boolean; elevatedRaw: boolean; withinTolerance: boolean; overBudget: boolean;
   errors: string[]; warnings: string[];
 }
 
@@ -50,17 +52,20 @@ export function checkAssetMesh(id: string, mesh: AssetMesh, dims: AssetDimsM, op
   const dev = { w: (ext.w - dims.width) / dims.width, d: (ext.d - dims.depth) / dims.depth, h: (ext.h - dims.height) / dims.height };
   const within = Math.abs(dev.w) <= tol && Math.abs(dev.d) <= tol && Math.abs(dev.h) <= tol;
   if (!within) warnings.push(`bounds off dimensionsM by more than ±${Math.round(tol * 100)}%: extents ${r3(ext.w)}×${r3(ext.d)}×${r3(ext.h)} m vs ${dims.width}×${dims.depth}×${dims.height} m (Δ w ${Math.round(dev.w * 100)}% · d ${Math.round(dev.d * 100)}% · h ${Math.round(dev.h * 100)}%)`);
-  const floorMounted = (opts.mounting ?? "FLOOR") === "FLOOR";
+  const mounting = opts.mounting ?? "FLOOR", floorMounted = mounting === "FLOOR";
   const floating = floorMounted && minZ > floatEps;
   const sunk = minZ < -sunkEps;
   if (floating) warnings.push(`floats: lowest point z = ${r3(minZ)} m above the floor (FLOOR-mounted, pivot contract says ≈ 0) — fix the model, never a UI offset`);
   if (sunk) warnings.push(`sunk: lowest point z = ${r3(minZ)} m below the floor`);
+  const rawMinZ = typeof opts.rawMinZ === "number" && Number.isFinite(opts.rawMinZ) ? r3(opts.rawMinZ) : null;
+  const elevatedRaw = rawMinZ !== null && rawMinZ > floatEps;
+  if (elevatedRaw) warnings.push(`raw geometry min z = ${rawMinZ} m before node matrices (world min z = ${r3(minZ)} m) · mounting ${mounting}${floorMounted ? " — VISUAL QA" : ` (expected for ${mounting})`}`);
   const overBudget = mesh.triCount > maxTris;
   if (overBudget) warnings.push(`triangle budget: ${mesh.triCount} > ${maxTris} per asset`);
   return {
     id, triCount: mesh.triCount, meshCount: mesh.meshCount,
     extentsM: { w: r3(ext.w), d: r3(ext.d), h: r3(ext.h) }, dimsM: dims,
     deviation: { w: r3(dev.w), d: r3(dev.d), h: r3(dev.h) },
-    minZ: r3(minZ), maxZ: r3(maxZ), floating, sunk, withinTolerance: within, overBudget, errors, warnings,
+    minZ: r3(minZ), maxZ: r3(maxZ), rawMinZ, mounting, floating, sunk, elevatedRaw, withinTolerance: within, overBudget, errors, warnings,
   };
 }

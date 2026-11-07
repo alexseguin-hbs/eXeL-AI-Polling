@@ -1,0 +1,1257 @@
+{
+  "passed": true,
+  "assetCount": 139,
+  "assets": [
+    {
+      "id": "architect2525.asset.ac.condenser.v1",
+      "label": "AC Condenser",
+      "file": "models/ac-condenser.glb",
+      "bytes": 8264,
+      "sha256": "32d569ac4d709825320dfd1bc125a295e0e575136fc7f3e611edc48773503442",
+      "geometryCount": 8,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.accent.chair.side.table.v1",
+      "label": "Accent Chair + Side Table",
+      "file": "models/accent-chair-side-table.glb",
+      "bytes": 11048,
+      "sha256": "966934bf46102578ec94eb8484e179e779d1b485d59e91874246b0f46757e635",
+      "geometryCount": 11,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.access.ladder.v1",
+      "label": "Access Ladder",
+      "file": "models/access-ladder.glb",
+      "bytes": 5360,
+      "sha256": "0c39a706eb3ca920c057ebf1aac4277a316db5f4ae22fa7a135d96a642239f68",
+      "geometryCount": 7,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.accessible.toilet.v1",
+      "label": "Accessible Toilet",
+      "file": "models/accessible-toilet.glb",
+      "bytes": 23292,
+      "sha256": "3b5083c2146acc4f937244511e375c5c543391e795777eda37f891d4144f1347",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.air.handler.hvac.v1",
+      "label": "Air Handler (HVAC)",
+      "file": "models/air-handler-hvac.glb",
+      "bytes": 3088,
+      "sha256": "68812eb9991ff79fe820b6f26c4d8a899b8884fda18cd0db1dffcef11e89e402",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.air.purifier.v1",
+      "label": "Air Purifier",
+      "file": "models/air-purifier.glb",
+      "bytes": 2200,
+      "sha256": "13292a030d60e7704bdd392d2b03b6bac5f2977d7e8fa379564c27bd37887f8b",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.air.quality.monitor.v1",
+      "label": "Air Quality Monitor",
+      "file": "models/air-quality-monitor.glb",
+      "bytes": 5680,
+      "sha256": "998421ece6a947901621492ae2f4e9ced2fed168af34b40858691b853df2a0ba",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.area.rug.v1",
+      "label": "Area Rug",
+      "file": "models/area-rug.glb",
+      "bytes": 3076,
+      "sha256": "b8c40fc17e27f4cb3860335e85d4de5852177ed1e9d6379c63225ef43c928d70",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.armchair.v1",
+      "label": "Armchair",
+      "file": "models/armchair.glb",
+      "bytes": 7024,
+      "sha256": "46bbca3293758e16ed2398c7d9da232a8f26ecb58d76e11c4a474f32aee0fa0f",
+      "geometryCount": 9,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.backup.inverter.controller.v1",
+      "label": "Backup Inverter + Controller",
+      "file": "models/backup-inverter-controller.glb",
+      "bytes": 2200,
+      "sha256": "c620850b09b763ba40573e3994852c8b0cd8de1b71f4b76d8fe0d45ac43f28ef",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.base.cabinets.w.sink.v1",
+      "label": "Base Cabinets (w/ Sink)",
+      "file": "models/base-cabinets-w-sink.glb",
+      "bytes": 5164,
+      "sha256": "9d564ffaa04033b0eb6a2e4d54dca6d59a0a64a67b951879107bf7d280a05772",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.baseboard.v1",
+      "label": "Baseboard",
+      "file": "models/baseboard.glb",
+      "bytes": 1272,
+      "sha256": "ca5096bd4cd11abbb2024e8f65564aa7920369efe28d9dc4e50ae27f558ac5f7",
+      "geometryCount": 1,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.bath.vanity.sink.v1",
+      "label": "Bath Vanity + Sink",
+      "file": "models/bath-vanity-sink.glb",
+      "bytes": 5164,
+      "sha256": "9d564ffaa04033b0eb6a2e4d54dca6d59a0a64a67b951879107bf7d280a05772",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.bathtub.v1",
+      "label": "Bathtub",
+      "file": "models/bathtub.glb",
+      "bytes": 2020,
+      "sha256": "b1f3711dd083ea68d50ee7d97fa32c1592407e4821f997417b61bcb13dac1a25",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.battery.home.v1",
+      "label": "Battery (Home)",
+      "file": "models/battery-home.glb",
+      "bytes": 2188,
+      "sha256": "0ac2769e4a5c5be0517a6c26143bf35d3a6dc782b9dbb333e58e21e32674a16d",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.bed.queen.king.v1",
+      "label": "Bed (Queen/King)",
+      "file": "models/bed-queen-king.glb",
+      "bytes": 4880,
+      "sha256": "14c9d8fddd161cce7a38f098ee8e54b9ad3211748120547100dcaeaa8380ee7a",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.bedroom.bench.v1",
+      "label": "Bedroom Bench",
+      "file": "models/bedroom-bench.glb",
+      "bytes": 3600,
+      "sha256": "8ab60f9a01284d36de0b9f710555623c3b76afc63f91c521f7c2b5ecc26ac988",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.bookshelf.v1",
+      "label": "Bookshelf",
+      "file": "models/bookshelf.glb",
+      "bytes": 3700,
+      "sha256": "a9be8c769237a62babdaed22c732d7661d9e306af6883d9a0cf75637d65a8478",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.bookshelf.decor.v1",
+      "label": "Bookshelf + Decor",
+      "file": "models/bookshelf-decor.glb",
+      "bytes": 3700,
+      "sha256": "a9be8c769237a62babdaed22c732d7661d9e306af6883d9a0cf75637d65a8478",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.ceiling.light.led.v1",
+      "label": "Ceiling Light (LED)",
+      "file": "models/ceiling-light-led.glb",
+      "bytes": 5028,
+      "sha256": "29ac4a0f237047439a05a52be345dffb698eec9c83807c5601a782b4f95c6754",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.chandelier.v1",
+      "label": "Chandelier",
+      "file": "models/chandelier.glb",
+      "bytes": 12992,
+      "sha256": "12dd4e9192548b4563cd3548a2ee8eef2e4f414d0c1cc59d3a138a9f02596215",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.co.detector.v1",
+      "label": "CO Detector",
+      "file": "models/co-detector.glb",
+      "bytes": 5548,
+      "sha256": "c262a57fd07164e3c04ead6dd446782aae8f8ac549d52ae116816380dd527238",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.coffee.table.v1",
+      "label": "Coffee Table",
+      "file": "models/coffee-table.glb",
+      "bytes": 4168,
+      "sha256": "f3ad36ca02cf94aa7977ac04d8f45686ae46d7022f0cd740c30acae91d5d2829",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.crown.molding.v1",
+      "label": "Crown Molding",
+      "file": "models/crown-molding.glb",
+      "bytes": 1272,
+      "sha256": "ca5096bd4cd11abbb2024e8f65564aa7920369efe28d9dc4e50ae27f558ac5f7",
+      "geometryCount": 1,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.deck.porch.v1",
+      "label": "Deck / Porch",
+      "file": "models/deck-porch.glb",
+      "bytes": 3508,
+      "sha256": "a062bf6c7a090d2ef2a2c833a829d12efe844b4ef1513a0ec5908e83fa08a5b4",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.dehumidifier.v1",
+      "label": "Dehumidifier",
+      "file": "models/dehumidifier.glb",
+      "bytes": 2200,
+      "sha256": "13292a030d60e7704bdd392d2b03b6bac5f2977d7e8fa379564c27bd37887f8b",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.desk.v1",
+      "label": "Desk",
+      "file": "models/desk.glb",
+      "bytes": 4100,
+      "sha256": "d4a27c4ab908f159eb233aa4454d656001158bfec5f3731df6be50137f81f1d8",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.desk.lamp.v1",
+      "label": "Desk Lamp",
+      "file": "models/desk-lamp.glb",
+      "bytes": 6804,
+      "sha256": "fd6abafc5abc03cc8f62fd4aefbb853b446530f61924e75a5253f7c8777ea1e3",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.dining.chair.v1",
+      "label": "Dining Chair",
+      "file": "models/dining-chair.glb",
+      "bytes": 7024,
+      "sha256": "46bbca3293758e16ed2398c7d9da232a8f26ecb58d76e11c4a474f32aee0fa0f",
+      "geometryCount": 9,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.dining.table.v1",
+      "label": "Dining Table",
+      "file": "models/dining-table.glb",
+      "bytes": 3376,
+      "sha256": "41896482d6fc7522b19dd69f6904ac43494381f5a9ae460842735ba72bf289b0",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.dishwasher.v1",
+      "label": "Dishwasher",
+      "file": "models/dishwasher.glb",
+      "bytes": 2204,
+      "sha256": "cd54b7668955e291b94ce8de619efb16efad2ae099c39f488b54a19333633165",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.door.interior.exterior.v1",
+      "label": "Door (Interior / Exterior)",
+      "file": "models/door-interior-exterior.glb",
+      "bytes": 3008,
+      "sha256": "dfd1f2550447b0a3780692d91447905caa29ecfba7c28fdff17442da51c20ae0",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.dresser.v1",
+      "label": "Dresser",
+      "file": "models/dresser.glb",
+      "bytes": 7288,
+      "sha256": "3012e1fe521f0ea9a275d1fc29051c23f1f2b14cbdcd6073a5f29fe1aa56e6e9",
+      "geometryCount": 10,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.driveway.pad.v1",
+      "label": "Driveway Pad",
+      "file": "models/driveway-pad.glb",
+      "bytes": 1272,
+      "sha256": "0c89e9cef5404dace1498ee69d3c2b2afdaaefa863bbe1fee36f1f95f3e98521",
+      "geometryCount": 1,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.dryer.v1",
+      "label": "Dryer",
+      "file": "models/dryer.glb",
+      "bytes": 10064,
+      "sha256": "c52eadba32090d13fe69d0517cccfa4b5da2bcf5c336f82536a3443493f13355",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.drying.rack.v1",
+      "label": "Drying Rack",
+      "file": "models/drying-rack.glb",
+      "bytes": 5240,
+      "sha256": "3272246026d384c63222fc6cd19f98c039448fe5e18def55d6f1730696465f35",
+      "geometryCount": 7,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.drywall.panel.v1",
+      "label": "Drywall Panel",
+      "file": "models/drywall-panel.glb",
+      "bytes": 1272,
+      "sha256": "e0734bbb050087ff01072f8e37602c0e0e515e78c813a7fef5ae5085360d211e",
+      "geometryCount": 1,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.electrical.panel.v1",
+      "label": "Electrical Panel",
+      "file": "models/electrical-panel.glb",
+      "bytes": 3016,
+      "sha256": "3017c3029f3650374a05be213fff816a82210ab6ef49cb654b85d52e256066d6",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.entertainment.console.tv.v1",
+      "label": "Entertainment Console + TV",
+      "file": "models/entertainment-console-tv.glb",
+      "bytes": 2772,
+      "sha256": "9c0cefc065a7531d209498a4b4b2aa5bdf749dfbc58721c5988f968ac33500a3",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.entry.access.keypad.smart.lock.v1",
+      "label": "Entry Access Keypad / Smart Lock",
+      "file": "models/entry-access-keypad-smart-lock.glb",
+      "bytes": 4008,
+      "sha256": "27bc535af8a72eeb10007a891b5fd37376d486384f91919c060af90a26387bde",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.entry.ramp.v1",
+      "label": "Entry Ramp",
+      "file": "models/entry-ramp.glb",
+      "bytes": 7884,
+      "sha256": "5e9f95e4f1ea80b7bfffcd9f06313bb0d6dafd8e0bc80f9cf621e2898ee4d0cf",
+      "geometryCount": 11,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.ev.charger.v1",
+      "label": "EV Charger",
+      "file": "models/ev-charger.glb",
+      "bytes": 3188,
+      "sha256": "381f5b5e8db8efc1e97480ceaf83a8c4021fdf2884b024368d68eed41f03e8a8",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.exterior.door.v1",
+      "label": "Exterior Door",
+      "file": "models/exterior-door.glb",
+      "bytes": 3000,
+      "sha256": "19843a2f78067f83774b699787189db06f46f28d3d87075110e77e79bd61a6a7",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.exterior.siding.v1",
+      "label": "Exterior Siding",
+      "file": "models/exterior-siding.glb",
+      "bytes": 4424,
+      "sha256": "855b5e463b252eac68a18e50e9cdbb42bea61047af1ae294a6861f07326a4ba3",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.fence.panel.v1",
+      "label": "Fence (Panel)",
+      "file": "models/fence-panel.glb",
+      "bytes": 5188,
+      "sha256": "e09bd9b831e597479d6e5d195569b88a8b4a33c114b61736f1f4e38bc1ed9314",
+      "geometryCount": 8,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.fence.gate.section.v1",
+      "label": "Fence + Gate Section",
+      "file": "models/fence-gate-section.glb",
+      "bytes": 5188,
+      "sha256": "e09bd9b831e597479d6e5d195569b88a8b4a33c114b61736f1f4e38bc1ed9314",
+      "geometryCount": 8,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.file.cabinet.v1",
+      "label": "File Cabinet",
+      "file": "models/file-cabinet.glb",
+      "bytes": 2808,
+      "sha256": "8bf37e9bc966acfe1d9400b6f2671df5208563996fbd5a1630cea55c523749d8",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.filter.set.v1",
+      "label": "Filter Set",
+      "file": "models/filter-set.glb",
+      "bytes": 14604,
+      "sha256": "6bc8c3e5614179ce1bc498a58709665ba071238002296895b4332835fb779ef6",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.floor.lamp.v1",
+      "label": "Floor Lamp",
+      "file": "models/floor-lamp.glb",
+      "bytes": 5784,
+      "sha256": "b3f8478010ec1a1066c7ad82d9daf065bf3ff6450e4bcbf453f66d9213b81851",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.flooring.wood.lvp.v1",
+      "label": "Flooring (Wood/LVP)",
+      "file": "models/flooring-wood-lvp.glb",
+      "bytes": 3220,
+      "sha256": "9c6f48f2ff32b9b741efce1e84fc70c5458afea15d97cc16a816f7f155141dc3",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.foundation.slab.v1",
+      "label": "Foundation Slab",
+      "file": "models/foundation-slab.glb",
+      "bytes": 5252,
+      "sha256": "03f749fcd5dffd6d8c321b9da56e2cfdacfdb809a1c4032104f6e03ec7e15696",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.front.steps.landing.v1",
+      "label": "Front Steps + Landing",
+      "file": "models/front-steps-landing.glb",
+      "bytes": 4108,
+      "sha256": "41df3ed2a67cb7ff5627268c084d3c56d8e81b3313132985df99d1c725f13cb0",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.garage.door.v1",
+      "label": "Garage Door",
+      "file": "models/garage-door.glb",
+      "bytes": 4192,
+      "sha256": "a16b584935217f2febc6a92db5a235040a9ca7dbb0b2949f1c65e873dc18f2ed",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.garbage.disposal.v1",
+      "label": "Garbage Disposal",
+      "file": "models/garbage-disposal.glb",
+      "bytes": 4984,
+      "sha256": "15b6df71f1c03fb8c6d3c8455c4c2fdaf0d499712e88dea9063ec5e765934bdf",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.generator.standby.v1",
+      "label": "Generator (Standby)",
+      "file": "models/generator-standby.glb",
+      "bytes": 2216,
+      "sha256": "ab54e7eed09d248e5c95a1380c0459cf93f489edc7c4b4b562aca51f1d72ede3",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.grab.bar.set.v1",
+      "label": "Grab Bar Set",
+      "file": "models/grab-bar-set.glb",
+      "bytes": 3780,
+      "sha256": "6a5c39940287fc9ee75335756e7af6a448015a2aee5f0b1ba67a33dfa6029d86",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.gutter.downspout.v1",
+      "label": "Gutter + Downspout",
+      "file": "models/gutter-downspout.glb",
+      "bytes": 2944,
+      "sha256": "88ca5bda5dd8e25eeecd7a91b5c1623f80314ff00802ccc55a1a2f285b4cd27b",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.home.battery.pack.v1",
+      "label": "Home Battery Pack",
+      "file": "models/home-battery-pack.glb",
+      "bytes": 2188,
+      "sha256": "0ac2769e4a5c5be0517a6c26143bf35d3a6dc782b9dbb333e58e21e32674a16d",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.hvac.furnace.v1",
+      "label": "HVAC (Furnace)",
+      "file": "models/hvac-furnace.glb",
+      "bytes": 3088,
+      "sha256": "68812eb9991ff79fe820b6f26c4d8a899b8884fda18cd0db1dffcef11e89e402",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.hvac.condenser.v1",
+      "label": "HVAC Condenser",
+      "file": "models/hvac-condenser.glb",
+      "bytes": 8264,
+      "sha256": "32d569ac4d709825320dfd1bc125a295e0e575136fc7f3e611edc48773503442",
+      "geometryCount": 8,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.inverter.v1",
+      "label": "Inverter",
+      "file": "models/inverter.glb",
+      "bytes": 2200,
+      "sha256": "c620850b09b763ba40573e3994852c8b0cd8de1b71f4b76d8fe0d45ac43f28ef",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.iron.board.v1",
+      "label": "Iron + Board",
+      "file": "models/iron-board.glb",
+      "bytes": 2860,
+      "sha256": "ed5ceff443b98b0b9bccee4a378b0ac0bd4d75da0f4299b296954d5bdf696486",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.irrigation.system.v1",
+      "label": "Irrigation System",
+      "file": "models/irrigation-system.glb",
+      "bytes": 8472,
+      "sha256": "422f1b8d75a78f82377b06827492993cf40d03ed4f21f3d2d1f2404871a15ac0",
+      "geometryCount": 9,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.kitchen.island.stools.v1",
+      "label": "Kitchen Island + Stools",
+      "file": "models/kitchen-island-stools.glb",
+      "bytes": 9904,
+      "sha256": "ccf52a2955e71734279fc3b1828e83e501226ac625456171897b75c940d8c7ee",
+      "geometryCount": 8,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.landscape.light.spot.v1",
+      "label": "Landscape Light (Spot)",
+      "file": "models/landscape-light-spot.glb",
+      "bytes": 8808,
+      "sha256": "34cd8f15f96049e77b24d4d6dbc0b46fc3df2b8928ed2d9fa44cab4846b4d554",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.laundry.sink.v1",
+      "label": "Laundry Sink",
+      "file": "models/laundry-sink.glb",
+      "bytes": 5152,
+      "sha256": "2fc66f1b2383f6164f2726155c4a498679f8dd42fa0f71ce15b167d1607791f6",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.leak.detector.v1",
+      "label": "Leak Detector",
+      "file": "models/leak-detector.glb",
+      "bytes": 12324,
+      "sha256": "18e154b12bb1d9b3c2f8865cbe8be554915cba91bd9d97ceb06463720083a4de",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.lever.handle.door.set.v1",
+      "label": "Lever Handle Door Set",
+      "file": "models/lever-handle-door-set.glb",
+      "bytes": 3008,
+      "sha256": "2dd476238a3b2040f5604f56523726962a94612c3a6fc26983ee3dacd4f8a272",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.microwave.v1",
+      "label": "Microwave",
+      "file": "models/microwave.glb",
+      "bytes": 3048,
+      "sha256": "a7c19ca5be0218a8da051276e10a214318319d6e8491a00c991873f60f9d15a0",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.mirror.led.v1",
+      "label": "Mirror (LED)",
+      "file": "models/mirror-led.glb",
+      "bytes": 2240,
+      "sha256": "94dfeceae28d8bfed57108fe063bfa18ad87d9d4b4d5a24b1c45f08e0e652498",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.monitor.v1",
+      "label": "Monitor",
+      "file": "models/monitor.glb",
+      "bytes": 5680,
+      "sha256": "998421ece6a947901621492ae2f4e9ced2fed168af34b40858691b853df2a0ba",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.motion.sensor.pir.v1",
+      "label": "Motion Sensor (PIR)",
+      "file": "models/motion-sensor-pir.glb",
+      "bytes": 9588,
+      "sha256": "d1ba1c6c0f3a745671255d75c879117a382f138991bd37272024808496a8a9bc",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.motorized.shade.track.v1",
+      "label": "Motorized Shade + Track",
+      "file": "models/motorized-shade-track.glb",
+      "bytes": 2976,
+      "sha256": "b9d3793edccd46106d6658d5a3aefed210c9a13df4654055a11b6e49dca8abf4",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.nightstand.v1",
+      "label": "Nightstand",
+      "file": "models/nightstand.glb",
+      "bytes": 5604,
+      "sha256": "0a6dc79134c25778fd0cd46e0cd0c095a04bbd71c811593054d3c7d6671d7a60",
+      "geometryCount": 7,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.office.chair.v1",
+      "label": "Office Chair",
+      "file": "models/office-chair.glb",
+      "bytes": 12720,
+      "sha256": "9b6bb162e9ec6ba9d1ab21b6c98f9c7ac135de1003219da5458222be606e9c5f",
+      "geometryCount": 15,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.outlet.switch.v1",
+      "label": "Outlet + Switch",
+      "file": "models/outlet-switch.glb",
+      "bytes": 3728,
+      "sha256": "a809be26d805d4b073fd48049a4e0d50619be98e96baac4542f040b3332ee591",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.paint.can.v1",
+      "label": "Paint (Can)",
+      "file": "models/paint-can.glb",
+      "bytes": 4488,
+      "sha256": "9299ced0a62d6d364133445511b05ddedf74e5fa26687ff0a716d9303392600d",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.path.light.v1",
+      "label": "Path Light",
+      "file": "models/path-light.glb",
+      "bytes": 4520,
+      "sha256": "d7030d88ef0d7e82c9b4f56525eb09f708e2d378b6ff76d3d7a282add3edd70f",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.pendant.light.v1",
+      "label": "Pendant Light",
+      "file": "models/pendant-light.glb",
+      "bytes": 4684,
+      "sha256": "1600708f0f80ecdadd9af38e7b12f33f6576ee02b4a6104458e0e969e647c583",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.planter.bed.tree.v1",
+      "label": "Planter Bed + Tree",
+      "file": "models/planter-bed-tree.glb",
+      "bytes": 17504,
+      "sha256": "8729b619e5cc1d4ad2737591afae65fe8580cf8969bca92e5bb0789e79a34001",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.plumbing.manifold.utility.sink.v1",
+      "label": "Plumbing Manifold + Utility Sink",
+      "file": "models/plumbing-manifold-utility-sink.glb",
+      "bytes": 5152,
+      "sha256": "2fc66f1b2383f6164f2726155c4a498679f8dd42fa0f71ce15b167d1607791f6",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.rainwater.cistern.v1",
+      "label": "Rainwater Cistern",
+      "file": "models/rainwater-cistern.glb",
+      "bytes": 5260,
+      "sha256": "24ed2785f659c201d5296602a3bd40e2545bc159bb1c5c96724b25b9f0ca5baa",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.range.oven.v1",
+      "label": "Range + Oven",
+      "file": "models/range-oven.glb",
+      "bytes": 13196,
+      "sha256": "0d2a4ded4bfacc8daa1d5fb596152db51d0709e131ebe22b7d84e99591f29df1",
+      "geometryCount": 10,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.range.hood.v1",
+      "label": "Range Hood",
+      "file": "models/range-hood.glb",
+      "bytes": 3024,
+      "sha256": "4578830300bee5fc752a88f837855c764cbf2f2d7311ddb47761a68e6923a796",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.recessed.light.v1",
+      "label": "Recessed Light",
+      "file": "models/recessed-light.glb",
+      "bytes": 5028,
+      "sha256": "d1914f78b04c975eae00f47521319294fc4e823921d2f64c34f6fe76543cc3b9",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.refrigerator.v1",
+      "label": "Refrigerator",
+      "file": "models/refrigerator.glb",
+      "bytes": 4876,
+      "sha256": "8600de26d04c505053a2fb88dd70f50cc1425e29b522beae7c01e9ae6efeb2ca",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.roll.in.shower.bench.v1",
+      "label": "Roll-In Shower Bench",
+      "file": "models/roll-in-shower-bench.glb",
+      "bytes": 6628,
+      "sha256": "41c53f47aefd2cdef213a1d84f357de50c3a2c3a110d564857d5f694cad72a65",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.roof.sheathing.v1",
+      "label": "Roof Sheathing",
+      "file": "models/roof-sheathing.glb",
+      "bytes": 4652,
+      "sha256": "acc5b0677f87ae69bf98290554e29f735d6f945ca006679f8d52a2e0066a5f0c",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.roof.truss.v1",
+      "label": "Roof Truss",
+      "file": "models/roof-truss.glb",
+      "bytes": 4556,
+      "sha256": "b33dbcb3735e4d7be6a9a9593e636f5c0e8f93702066fbe76f0227d4149df39c",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.roofing.shingle.v1",
+      "label": "Roofing (Shingle)",
+      "file": "models/roofing-shingle.glb",
+      "bytes": 4652,
+      "sha256": "acc5b0677f87ae69bf98290554e29f735d6f945ca006679f8d52a2e0066a5f0c",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.scene.switch.control.panel.v1",
+      "label": "Scene Switch / Control Panel",
+      "file": "models/scene-switch-control-panel.glb",
+      "bytes": 1388,
+      "sha256": "ff5c5d9cd6a213113417815effa38018253433d69338bd5851fcf1ee339d0299",
+      "geometryCount": 1,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.security.camera.v1",
+      "label": "Security Camera",
+      "file": "models/security-camera.glb",
+      "bytes": 4848,
+      "sha256": "60f7777ea18185100fb31f55e93c75cb34a07951da04a48368b5214b3579bc2d",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.septic.system.v1",
+      "label": "Septic System",
+      "file": "models/septic-system.glb",
+      "bytes": 3128,
+      "sha256": "7400907778702fd26610b0a431b4f749cdf84c7f39f7e6cde4d9f513a5f53330",
+      "geometryCount": 1,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.service.access.panel.v1",
+      "label": "Service Access Panel",
+      "file": "models/service-access-panel.glb",
+      "bytes": 3056,
+      "sha256": "e117278c0c36f7a88c5ac7c5f3075f79ceeb138e88933969d29aaad7a7f2e8dc",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.shower.stall.v1",
+      "label": "Shower Stall",
+      "file": "models/shower-stall.glb",
+      "bytes": 6008,
+      "sha256": "218c86104c0153565a59764950e6eeba198ba852e82e436df91ac7976ceaf1ea",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.shutoff.valve.manifold.v1",
+      "label": "Shutoff Valve Manifold",
+      "file": "models/shutoff-valve-manifold.glb",
+      "bytes": 7820,
+      "sha256": "5bd8616de571c77331a4e066328d3b3e1f450e0228a495fb53817b2a07b30705",
+      "geometryCount": 8,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.skylight.v1",
+      "label": "Skylight",
+      "file": "models/skylight.glb",
+      "bytes": 3700,
+      "sha256": "e9ae4a91266caf83e731db8382bc571c70ef4f8cd31bf6922deeb31013cacde8",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.sliding.glass.door.v1",
+      "label": "Sliding Glass Door",
+      "file": "models/sliding-glass-door.glb",
+      "bytes": 2856,
+      "sha256": "bb5c5125dd22199080c1932d5ec30b8a8b1a8b66161034b6428658d5d0d62508",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.smart.hub.v1",
+      "label": "Smart Hub",
+      "file": "models/smart-hub.glb",
+      "bytes": 3788,
+      "sha256": "6740e71e1366c7c9693dccd64ca14fa02e952b975fbcb7f7ad24c2b5120a8396",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.smart.hub.home.v1",
+      "label": "Smart Hub (Home)",
+      "file": "models/smart-hub-home.glb",
+      "bytes": 3788,
+      "sha256": "6740e71e1366c7c9693dccd64ca14fa02e952b975fbcb7f7ad24c2b5120a8396",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.smart.hub.router.v1",
+      "label": "Smart Hub + Router",
+      "file": "models/smart-hub-router.glb",
+      "bytes": 2856,
+      "sha256": "4e6ee9394abd96cdd88a8c215d5254208c0bae1ed4225225b9c26fe30e976f4e",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.smart.lock.v1",
+      "label": "Smart Lock",
+      "file": "models/smart-lock.glb",
+      "bytes": 4008,
+      "sha256": "27bc535af8a72eeb10007a891b5fd37376d486384f91919c060af90a26387bde",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.smart.thermostat.v1",
+      "label": "Smart Thermostat",
+      "file": "models/smart-thermostat.glb",
+      "bytes": 12284,
+      "sha256": "b9bb9bc8c70e78ec27ce4cde067ac31aa4c444491cf2649c38b0be8b80b8c694",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.smoke.co.detector.v1",
+      "label": "Smoke / CO Detector",
+      "file": "models/smoke-co-detector.glb",
+      "bytes": 5548,
+      "sha256": "c262a57fd07164e3c04ead6dd446782aae8f8ac549d52ae116816380dd527238",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.smoke.detector.v1",
+      "label": "Smoke Detector",
+      "file": "models/smoke-detector.glb",
+      "bytes": 5548,
+      "sha256": "c262a57fd07164e3c04ead6dd446782aae8f8ac549d52ae116816380dd527238",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.sofa.v1",
+      "label": "Sofa",
+      "file": "models/sofa.glb",
+      "bytes": 9436,
+      "sha256": "6d4ea0d244d5a62d2ca79ad2d44fd24d8580bad4ede40e0d11ad29912904279b",
+      "geometryCount": 15,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.solar.inverter.v1",
+      "label": "Solar Inverter",
+      "file": "models/solar-inverter.glb",
+      "bytes": 2200,
+      "sha256": "c620850b09b763ba40573e3994852c8b0cd8de1b71f4b76d8fe0d45ac43f28ef",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.solar.panel.array.v1",
+      "label": "Solar Panel Array",
+      "file": "models/solar-panel-array.glb",
+      "bytes": 8688,
+      "sha256": "5823ddb73e080e366381f3352106e2e52e21dbbc8f406441027ca0de6843274f",
+      "geometryCount": 14,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.storage.bin.v1",
+      "label": "Storage Bin",
+      "file": "models/storage-bin.glb",
+      "bytes": 2032,
+      "sha256": "9e0db126e83873eaf6a49ed635bd2bb1429abfa850d1f426551f1713ef1d38ec",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.storage.cabinet.v1",
+      "label": "Storage Cabinet",
+      "file": "models/storage-cabinet.glb",
+      "bytes": 2800,
+      "sha256": "5c003196920e687b7970a304339f99b2c7d0d306ab8dfeb05cb6391e626e3a0f",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.storage.shelving.v1",
+      "label": "Storage Shelving",
+      "file": "models/storage-shelving.glb",
+      "bytes": 3700,
+      "sha256": "a9be8c769237a62babdaed22c732d7661d9e306af6883d9a0cf75637d65a8478",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.storm.shutter.window.v1",
+      "label": "Storm Shutter Window",
+      "file": "models/storm-shutter-window.glb",
+      "bytes": 7548,
+      "sha256": "4cf138d638f2a08760db2bff05cc5133decbf9370cd7e4d733726f93010f6d29",
+      "geometryCount": 10,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.table.lamp.v1",
+      "label": "Table Lamp",
+      "file": "models/table-lamp.glb",
+      "bytes": 6804,
+      "sha256": "fd6abafc5abc03cc8f62fd4aefbb853b446530f61924e75a5253f7c8777ea1e3",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.tile.v1",
+      "label": "Tile",
+      "file": "models/tile.glb",
+      "bytes": 2848,
+      "sha256": "6f8231275a408c12306ce30dc30e8f18ca7dac2d61d864a1a8cdc22c039858e2",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.toilet.v1",
+      "label": "Toilet",
+      "file": "models/toilet.glb",
+      "bytes": 19432,
+      "sha256": "8cdb2023843f6f21b2e84209bb8497a3af33952b2f2e4dcfb6174f542779e3f2",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.tool.cart.kit.v1",
+      "label": "Tool Cart + Kit",
+      "file": "models/tool-cart-kit.glb",
+      "bytes": 8912,
+      "sha256": "4b7b19257cdf4f7335952e11bc696f9e964b39dce22072d16d21b393f63b7a89",
+      "geometryCount": 8,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.towel.bar.v1",
+      "label": "Towel Bar",
+      "file": "models/towel-bar.glb",
+      "bytes": 3740,
+      "sha256": "679feaf9e6dd93d39f8afd8f135946998d695e0727bc9bb9029fc2c5f85198d3",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.track.light.v1",
+      "label": "Track Light",
+      "file": "models/track-light.glb",
+      "bytes": 5792,
+      "sha256": "d0afd35d0e999f33a61e14db5ee4105c9f0af6056a07176d4ce094e5bc57a695",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.trim.casing.v1",
+      "label": "Trim Casing",
+      "file": "models/trim-casing.glb",
+      "bytes": 1272,
+      "sha256": "ca5096bd4cd11abbb2024e8f65564aa7920369efe28d9dc4e50ae27f558ac5f7",
+      "geometryCount": 1,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.tv.console.v1",
+      "label": "TV Console",
+      "file": "models/tv-console.glb",
+      "bytes": 2772,
+      "sha256": "9c0cefc065a7531d209498a4b4b2aa5bdf749dfbc58721c5988f968ac33500a3",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.under.cabinet.light.v1",
+      "label": "Under-Cabinet Light",
+      "file": "models/under-cabinet-light.glb",
+      "bytes": 2160,
+      "sha256": "38dee89092862ff506afc67d941d73e71f54e59e0aea87de2a44d7d7ac86d574",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.utility.shelving.v1",
+      "label": "Utility Shelving",
+      "file": "models/utility-shelving.glb",
+      "bytes": 3700,
+      "sha256": "a9be8c769237a62babdaed22c732d7661d9e306af6883d9a0cf75637d65a8478",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.utility.sink.v1",
+      "label": "Utility Sink",
+      "file": "models/utility-sink.glb",
+      "bytes": 5152,
+      "sha256": "2fc66f1b2383f6164f2726155c4a498679f8dd42fa0f71ce15b167d1607791f6",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.vent.register.v1",
+      "label": "Vent Register",
+      "file": "models/vent-register.glb",
+      "bytes": 3584,
+      "sha256": "1fc0eaedcdbc8283c644fe138b56a5a4d01f8f6278b371b32f5b5cb2d2613e02",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.video.doorbell.v1",
+      "label": "Video Doorbell",
+      "file": "models/video-doorbell.glb",
+      "bytes": 3752,
+      "sha256": "ae3478c134bc263d553e0fd8f96272381b6ac64706873255cf92b78efdee68b2",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.walkway.pavers.v1",
+      "label": "Walkway Pavers",
+      "file": "models/walkway-pavers.glb",
+      "bytes": 3588,
+      "sha256": "962e7720f5470e5ca8eab6c869722dfd6ac4245dfe182fff72f3e0ec107a2173",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.wall.art.set.v1",
+      "label": "Wall Art Set",
+      "file": "models/wall-art-set.glb",
+      "bytes": 4912,
+      "sha256": "6b80eec2e11567d091886b76efa4c7679464432625db24fd7a5db5c97efd554a",
+      "geometryCount": 6,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.wall.cabinets.v1",
+      "label": "Wall Cabinets",
+      "file": "models/wall-cabinets.glb",
+      "bytes": 3688,
+      "sha256": "eec067c1f2ebba014f03ff5b4f2ae1ae60774f0a0495812049f682edcd477dc5",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.wall.framing.v1",
+      "label": "Wall Framing",
+      "file": "models/wall-framing.glb",
+      "bytes": 4884,
+      "sha256": "6f556f9f966a97569a468d6f7e786e1db794cc3336bdf0678b2188f5504fa773",
+      "geometryCount": 8,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.wall.sconce.v1",
+      "label": "Wall Sconce",
+      "file": "models/wall-sconce.glb",
+      "bytes": 8020,
+      "sha256": "3cabd4c6cd8a2ff7d539d360d085c86a15049d85884c26b6ed3026a0e2b0aabe",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.wall.sheathing.v1",
+      "label": "Wall Sheathing",
+      "file": "models/wall-sheathing.glb",
+      "bytes": 1272,
+      "sha256": "4f22c1a10f1ea270f1e626ae0d0ef49fcd89f56e9d8fe86604babc3a04fc4f48",
+      "geometryCount": 1,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.wardrobe.v1",
+      "label": "Wardrobe",
+      "file": "models/wardrobe.glb",
+      "bytes": 2816,
+      "sha256": "0c2cd7e73c471c72a5303f121eb9eb0795df5b1f8df98395ccfc719c8921cd33",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.washer.v1",
+      "label": "Washer",
+      "file": "models/washer.glb",
+      "bytes": 9224,
+      "sha256": "cc2dd82264750c83b3bd038682b4ea68b32707279fd3a6afb65da989f253fd78",
+      "geometryCount": 5,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.water.heater.v1",
+      "label": "Water Heater",
+      "file": "models/water-heater.glb",
+      "bytes": 6088,
+      "sha256": "355b5a1a299a01f42c433b350865ff8948121d9782df02cd7d9a8e5e456881e2",
+      "geometryCount": 3,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.water.shutoff.valve.v1",
+      "label": "Water Shutoff Valve",
+      "file": "models/water-shutoff-valve.glb",
+      "bytes": 13276,
+      "sha256": "9795c637c8ecb07fb077dcd845fcf1bdb0b5c97c985645ab1ca98aaeb29f8bdd",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.water.softener.v1",
+      "label": "Water Softener",
+      "file": "models/water-softener.glb",
+      "bytes": 3996,
+      "sha256": "433896203e7ebdcc13e7d4fc8a998ff73ca3dd184f7a5d7415cdf06469a7cf63",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.water.well.system.v1",
+      "label": "Water Well System",
+      "file": "models/water-well-system.glb",
+      "bytes": 3556,
+      "sha256": "e590c4b65eb0f41c3691b92fe60285015cb9bdf35e3835b2bcc011c54536faa9",
+      "geometryCount": 2,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.window.single.v1",
+      "label": "Window (Single)",
+      "file": "models/window-single.glb",
+      "bytes": 3668,
+      "sha256": "a968adce5654213cd23f905caf6ad1f47a7e8294c3acdac165deed00a095491d",
+      "geometryCount": 4,
+      "valid": true
+    },
+    {
+      "id": "architect2525.asset.window.wide.v1",
+      "label": "Window (Wide)",
+      "file": "models/window-wide.glb",
+      "bytes": 3696,
+      "sha256": "f5d310aa07cb7b1c18ae8b3a73736a57a091412ae4f36731b8836b7f431a0ed5",
+      "geometryCount": 4,
+      "valid": true
+    }
+  ]
+}

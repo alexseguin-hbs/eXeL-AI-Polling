@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "id": "architect2525.asset.shower.stall.v1",
+  "label": "Shower Stall",
+  "packs": [
+    2
+  ],
+  "sections": [
+    "Bathroom"
+  ],
+  "sourcePlacementIds": [
+    "P02-S03-A03"
+  ],
+  "model": "../models/shower-stall.glb",
+  "planSymbol": "../plan/shower-stall.svg",
+  "dimensionsM": {
+    "width": 1.0025,
+    "depth": 1.005,
+    "height": 1.94
+  },
+  "pivot": {
+    "origin": "FLOOR_CENTER",
+    "axes": "X=width,Y=depth,Z=up"
+  },
+  "rotation": {
+    "axis": "Z",
+    "freeRotation": true,
+    "allowedDegrees": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      180,
+      270
+    ]
+  },
+  "mounting": "FLOOR",
+  "snap": [
+    "FLOOR"
+  ],
+  "authority": "ILLUSTRATIVE",
+  "modelQuality": "browser-lightweight procedural starter",
+  "materialRule": "Only actual wood uses tan; general geometry cyan/teal with violet accents.",
+  "rebuildSpec": {
+    "preserveSemanticId": true,
+    "preservePivotContract": true,
+    "preservePlacementContract": true
+  }
+}

@@ -8,7 +8,9 @@
  * compatibility (gated ⊆) — this is the wider "what may go here" truth the Asset Library filters on.
  * Pure, no React.
  */
-import { ASSET_PARAMS, OBJECT_KINDS, ROOM_KEYS, type ObjectKind, type RoomKey } from "@/lib/room-objects";
+import { ASSET_PARAMS, OBJECT_KINDS, ROOM_KEYS, kindByAssetId, type ObjectKind, type RoomKey } from "@/lib/room-objects";
+import { LIBRARY_METADATA } from "./library-manifest";
+import { roomsForSections } from "./sections";
 
 /** The rooms a kind is compatible with, or "GENERAL" for a shared asset. */
 export function roomsOf(kind: ObjectKind): RoomKey[] | "GENERAL" { return ASSET_PARAMS[kind].rooms; }
@@ -16,6 +18,17 @@ export function roomsOf(kind: ObjectKind): RoomKey[] | "GENERAL" { return ASSET_
 /** Is a kind compatible with a room? A GENERAL asset is compatible with every room. */
 export function isCompatibleWithRoom(kind: ObjectKind, room: RoomKey): boolean {
   const r = ASSET_PARAMS[kind].rooms;
+  return r === "GENERAL" || r.includes(room);
+}
+
+/** Is a LIBRARY asset (by id or alias) compatible with a room? A kind answers through ASSET_PARAMS; a library asset without a
+ *  kind through his board sections (sections.ts). Unknown → false. */
+export function isAssetCompatibleWithRoom(assetId: string, room: RoomKey): boolean {
+  const kind = kindByAssetId(assetId);
+  if (kind) return isCompatibleWithRoom(kind, room);
+  const m = Object.hasOwn(LIBRARY_METADATA, assetId) ? LIBRARY_METADATA[assetId] : undefined;
+  if (!m) return false;
+  const r = roomsForSections(m.sections);
   return r === "GENERAL" || r.includes(room);
 }
 

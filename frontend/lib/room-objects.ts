@@ -580,9 +580,10 @@ export type MaterialPreset = "ARCH_TEAL" | "ARCH_ACCENT" | "GLASS" | "SCREEN" | 
 export type MetaCategory = "FURNITURE" | "KITCHEN" | "APPLIANCE" | "PLUMBING_FIXTURE" | "OPENING" | "STRUCTURE" | "LIGHTING" | "LIFESTYLE";
 export interface DimRange { min: number; max: number; step: number }
 export interface AssetParams {
-  id: string;                 // STABLE semantic id in HIS grammar: <domain>.<object>[.<variant>].v1
-  file: string;               // his starter basename — models/<file>.glb · metadata/<file>.json · plan/<file>.svg
-  starter: boolean;           // true = one of the 18 native GLBs in his 3D Asset Starter Pack (2026-11-06)
+  id: string;                 // STABLE semantic id = the operator's COMPLETE library id: architect2525.asset.<name>.v1
+  aliases: string[];          // provenance — the earlier starter-pack id and/or rotator-catalog id for the same asset (resolved by kindByAssetId)
+  file: string;               // his library file stem — models/<file>.glb · metadata/<file>.json · plan/<file>.svg
+  library: boolean;           // true = a native GLB + metadata + PLAN svg exists in his complete library (139); false = PENDING (no entry)
   category: AssetCategory;    // the brief §17 general category (the Asset Library filter)
   metaCategory: MetaCategory; // his metadata `category`
   rooms: RoomKey[] | "GENERAL";
@@ -602,53 +603,57 @@ const PH_FURN = ["interior"];                                              // Sl
 const PH_FIXT = ["plumbing", "sewer", "finish", "interior"];               // Bath / Kitchen — fixtures the wet phases serve
 const PH_OPEN = ["framing", "finish", "interior"];                         // Openings
 const PH_SHELL = ["framing", "roofing", "insulation", "interior"];         // Shell panels
-const FL: SnapTarget[] = ["FLOOR"], FLB: SnapTarget[] = ["FLOOR", "WALL_BACK"], WL: SnapTarget[] = ["WALL"], WO: SnapTarget[] = ["WALL_OPENING"];
-const A = (id: string, file: string, starter: boolean, category: AssetCategory, metaCategory: MetaCategory, rooms: RoomKey[] | "GENERAL",
+const FL: SnapTarget[] = ["FLOOR"], WL: SnapTarget[] = ["WALL"];
+const L = "architect2525.asset.";                                          // his library id prefix (manifest.json, 139 assets)
+const A = (name: string, aliases: string[], file: string, library: boolean, category: AssetCategory, metaCategory: MetaCategory, rooms: RoomKey[] | "GENERAL",
   phases: string[], mounting: Mounting, snap: SnapTarget[], packs: number[], w: DimRange, d: DimRange, h: DimRange,
   materialPreset: MaterialPreset = "ARCH_TEAL", authority: AssetAuthority = "ILLUSTRATIVE"): AssetParams =>
-  ({ id, file, starter, category, metaCategory, rooms, phases, mounting, snap, packs, params: { w, d, h }, authority, lod: 1, materialPreset });
-/** kind → the operator's semantic id. ID SOURCE = his 10-Pack 3D Asset Rotator catalog (Architect2525_10Pack_Select_Asset_Spin.html,
- *  2026-11-07, sha256 6e43620e…caa5; 10 packs · 147 entries · 137 unique ids): every kind maps to the rotator entry that matches,
- *  `packs` are the catalog's. The 14 `starter: true` rows are also his 3D Asset Starter Pack's ids, paths, mounting and snap
- *  VERBATIM (gated equal to his manifest + metadata). table / chair carry the starter manifest's furniture.dining_table.v1 /
- *  furniture.dining_chair.v1 (the rotator has no dining group); closet.rod.v1 and shoe.rack.v1 are INVENTED in the rotator's
- *  flat style (the rotator has no closet-rod / shoe-rack entry) — gated as the only two. */
+  ({ id: L + name + ".v1", aliases, file, library, category, metaCategory, rooms, phases, mounting, snap, packs, params: { w, d, h }, authority, lod: 1, materialPreset });
+/** kind → the operator's semantic id. ID SOURCE (FINAL) = his COMPLETE 3D asset library (docs/architecture-2525/asset-library/
+ *  3d-all-assets-2026-11-07/manifest.json — 139 real GLBs + metadata + PLAN SVGs; ids architect2525.asset.<name>.v1, matched by
+ *  label). `aliases` keep the earlier starter-pack id (14 kinds) / rotator-catalog id (25 kinds) for provenance — kindByAssetId
+ *  resolves them too, so a stored PlacedAsset from either edition still finds its kind. `mounting`/`snap`/`packs` are HIS
+ *  (metadata verbatim) wherever they do not contradict OBJECT_SPEC.onWall — the designer snaps tv · rangehood · shelving ·
+ *  shell to walls, so those four keep WALL/BUILT_IN (gated as the only deviations; his library places them on the floor).
+ *  closet.rod / shoe.rack have NO library entry: ids in his grammar, `library: false` (PENDING), the only two (gated).
+ *  table / chair are his "Verified extras" with packs [] — kept verbatim. */
 export const ASSET_PARAMS: Record<ObjectKind, AssetParams> = {
-  bed:        A("furniture.bed.queen.v1",                "bed_queen",              true,  "FURNITURE",          "FURNITURE",         ["M"],                     PH_FURN,  "FLOOR",    FLB, [2],    R(3, 7),      R(5.5, 7.5),  R(1, 3.5),    "ARCH_TEAL", "REFERENCE"),
-  sofa:       A("furniture.sofa.3seat.v1",               "sofa_3seat",             true,  "FURNITURE",          "FURNITURE",         ["L"],                     PH_FURN,  "FLOOR",    FL,  [2],    R(4, 10),     R(2, 3.5),    R(2, 3.5)),
-  counter:    A("kitchen.base_run.sink.v1",              "kitchen_base_run_sink",  true,  "FIXTURES",           "KITCHEN",           ["K", "D", "S"],           PH_FIXT,  "FLOOR",    FLB, [2],    R(1, 10),     R(1.5, 3),    R(2.5, 3.5),  "ARCH_TEAL", "REFERENCE"),
-  table:      A("furniture.dining_table.v1",             "dining_table",           true,  "FURNITURE",          "FURNITURE",         ["L", "D", "E"],           PH_FURN,  "FLOOR",    FL,  [2],    R(2, 10),     R(2, 5),      R(2, 3.2)),
-  desk:       A("desk.v1",                               "desk",                   false, "FURNITURE",          "FURNITURE",         ["M", "O"],                PH_FURN,  "FLOOR",    FLB, [2],    R(2.5, 8),    R(1.5, 3.5),  R(2, 3.2)),
-  toilet:     A("bath.toilet.v1",                        "toilet",                 true,  "FIXTURES",           "PLUMBING_FIXTURE",  ["B"],                     PH_FIXT,  "FLOOR",    FLB, [2],    R(1.5, 2.5),  R(2, 2.75),   R(2, 3),      "ARCH_TEAL", "REFERENCE"),
-  tub:        A("bathtub.v1",                            "bathtub",                false, "FIXTURES",           "PLUMBING_FIXTURE",  ["B"],                     PH_FIXT,  "FLOOR",    FLB, [2],    R(4.5, 6.5),  R(2, 3.5),    R(1.5, 2.5),  "ARCH_TEAL", "REFERENCE"),
-  sink:       A("bath.vanity_sink.v1",                   "vanity_sink",            true,  "FIXTURES",           "PLUMBING_FIXTURE",  ["B", "K", "S"],           PH_FIXT,  "FLOOR",    FLB, [2],    R(1.5, 6),    R(1.5, 2.5),  R(2.5, 3.2)),
-  washer:     A("appliance.washer.frontload.v1",         "washer",                 true,  "MECHANICAL",         "APPLIANCE",         ["S"],                     PH_FIXT,  "FLOOR",    FLB, [2, 4], R(2, 2.5),    R(2, 2.75),   R(2.75, 3.5), "ARCH_TEAL", "REFERENCE"),
-  dresser:    A("furniture.dresser.v1",                  "dresser",                true,  "FURNITURE",          "FURNITURE",         ["C"],                     PH_FURN,  "FLOOR",    FLB, [2],    R(2.5, 6),    R(1.5, 2),    R(2.5, 4)),
-  nightstand: A("furniture.nightstand.v1",               "nightstand",             true,  "FURNITURE",          "FURNITURE",         ["M"],                     PH_FURN,  "FLOOR",    FLB, [2],    R(1, 2.5),    R(1, 2),      R(1.5, 2.75)),
-  tv:         A("tv.console.v1",                         "tv_console",             false, "FURNITURE",          "FURNITURE",         ["M", "L", "O"],           PH_FURN,  "WALL",     WL,  [2],    R(2, 7),      R(0.2, 1),    R(1.2, 4),    "SCREEN"),
-  fridge:     A("appliance.refrigerator.frenchdoor.v1",  "refrigerator",           true,  "MECHANICAL",         "APPLIANCE",         ["K"],                     PH_FIXT,  "FLOOR",    FLB, [2, 4], R(2.5, 4),    R(2.25, 3),   R(5.5, 7),    "ARCH_TEAL", "REFERENCE"),
-  stove:      A("range.oven.v1",                         "range_oven",             false, "MECHANICAL",         "APPLIANCE",         ["K"],                     PH_FIXT,  "FLOOR",    ["FLOOR", "WALL_BACK", "CABINET_LINE"], [2, 4], R(2, 4), R(2, 2.75), R(2.75, 3.25), "ARCH_TEAL", "REFERENCE"),
-  shower:     A("bath.shower.enclosure.v1",              "shower_enclosure",       true,  "FIXTURES",           "PLUMBING_FIXTURE",  ["B"],                     PH_FIXT,  "FLOOR",    ["FLOOR", "WALL_CORNER"], [2], R(2.5, 6), R(2.5, 4), R(6.5, 8),   "GLASS"),
-  wardrobe:   A("wardrobe.v1",                           "wardrobe",               false, "FURNITURE",          "FURNITURE",         ["C"],                     PH_FURN,  "FLOOR",    FLB, [2],    R(2.5, 8),    R(1.5, 2.5),  R(5.5, 8)),
-  bookshelf:  A("bookshelf.v1",                          "bookshelf",              false, "FURNITURE",          "FURNITURE",         ["L", "O", "E"],           PH_FURN,  "FLOOR",    FLB, [2],    R(2, 8),      R(0.75, 1.5), R(3, 8)),
-  chair:      A("furniture.dining_chair.v1",             "dining_chair",           true,  "FURNITURE",          "FURNITURE",         ["M", "L", "D", "O", "E"], PH_FURN,  "FLOOR",    FL,  [2],    R(1.25, 2.5), R(1.25, 2.5), R(2.5, 4)),
-  closetrod:  A("closet.rod.v1",                         "closet_rod",             false, "FURNITURE",          "FURNITURE",         ["C"],                     PH_FURN,  "WALL",     WL,  [2],    R(3, 10),     R(1, 2),      R(4, 7)),
-  shelving:   A("storage.shelving.v1",                   "storage_shelving",       false, "FURNITURE",          "FURNITURE",         ["B", "C", "S"],           PH_FURN,  "WALL",     WL,  [2],    R(2, 10),     R(0.75, 2),   R(2, 8)),
-  shoerack:   A("shoe.rack.v1",                          "shoe_rack",              false, "FURNITURE",          "FURNITURE",         ["C", "E"],                PH_FURN,  "FLOOR",    FLB, [2],    R(1.5, 4),    R(0.75, 1.5), R(1, 4)),
-  rug:        A("area.rug.v1",                           "area_rug",               false, "FURNITURE",          "LIFESTYLE",         ["L", "M"],                PH_FURN,  "FLOOR",    FL,  [9],    R(3, 10),     R(2, 10),     R(0.05, 0.2)),
-  mirror:     A("mirror.led.v1",                         "mirror_led",             false, "FIXTURES",           "FURNITURE",         ["M", "B", "C"],           PH_FURN,  "WALL",     WL,  [2], R(1, 6),      R(0.1, 0.4),  R(1, 6),      "GLASS"),
-  lamp:       A("floor.lamp.v1",                         "floor_lamp",             false, "LIGHTING",           "LIGHTING",          ["M", "L"],                PH_FURN,  "FLOOR",    FL,  [2], R(0.5, 2),    R(0.5, 2),    R(3, 6.5)),
-  rangehood:  A("range.hood.v1",                         "range_hood",             false, "MECHANICAL",         "APPLIANCE",         ["K"],                     PH_FIXT,  "WALL",     ["WALL", "CABINET_LINE"], [2, 4], R(2, 4), R(1.25, 2.25), R(0.75, 2.5), "ARCH_TEAL", "REFERENCE"),
-  shell:      A("wall.sheathing.v1",                     "wall_sheathing",         false, "BUILDING_ELEMENTS",  "STRUCTURE",         "GENERAL",                 PH_SHELL, "BUILT_IN", WL,  [1],    R(2, 10),     R(0.3, 1.5),  R(6, 10)),
-  roof:       A("roof.sheathing.v1",                     "roof_sheathing",         false, "BUILDING_ELEMENTS",  "STRUCTURE",         "GENERAL",                 PH_SHELL, "CEILING",  ["CEILING", "ROOF_LINE"], [1], R(2, 10), R(2, 10),   R(0.3, 1.5)),
-  door:       A("opening.door.interior.v1",              "interior_door",          true,  "DOORS_WINDOWS",      "OPENING",           "GENERAL",                 PH_OPEN,  "WALL",     WO,  [1],    R(2, 4),      R(0.1, 0.75), R(6.5, 8),    "ARCH_ACCENT", "REFERENCE"),
-  window:     A("opening.window.unit.v1",                "window_unit",            true,  "DOORS_WINDOWS",      "OPENING",           "GENERAL",                 PH_OPEN,  "WALL",     WO,  [1],    R(1.5, 8),    R(0.2, 0.75), R(1.5, 6),    "GLASS", "REFERENCE"),
+  bed:        A("bed.queen.king",          ["furniture.bed.queen.v1"],                  "bed-queen-king",           true,  "FURNITURE",          "FURNITURE",         ["M"],                     PH_FURN,  "FLOOR",    FL,            [2],    R(3, 7),      R(5.5, 7.5),  R(1, 3.5),    "ARCH_TEAL", "REFERENCE"),
+  sofa:       A("sofa",                    ["furniture.sofa.3seat.v1"],                 "sofa",                     true,  "FURNITURE",          "FURNITURE",         ["L"],                     PH_FURN,  "FLOOR",    FL,            [2],    R(4, 10),     R(2, 3.5),    R(2, 3.5)),
+  counter:    A("base.cabinets.w.sink",    ["kitchen.base_run.sink.v1"],                "base-cabinets-w-sink",     true,  "FIXTURES",           "KITCHEN",           ["K", "D", "S"],           PH_FIXT,  "SURFACE",  ["SURFACE"],   [2],    R(1, 10),     R(1.5, 3),    R(2.5, 3.5),  "ARCH_TEAL", "REFERENCE"),
+  table:      A("dining.table",            ["furniture.dining_table.v1"],               "dining-table",             true,  "FURNITURE",          "FURNITURE",         ["L", "D", "E"],           PH_FURN,  "FLOOR",    FL,            [],     R(2, 10),     R(2, 5),      R(2, 3.2)),
+  desk:       A("desk",                    ["desk.v1"],                                 "desk",                     true,  "FURNITURE",          "FURNITURE",         ["M", "O"],                PH_FURN,  "FLOOR",    FL,            [2],    R(2.5, 8),    R(1.5, 3.5),  R(2, 3.2)),
+  toilet:     A("toilet",                  ["bath.toilet.v1"],                          "toilet",                   true,  "FIXTURES",           "PLUMBING_FIXTURE",  ["B"],                     PH_FIXT,  "FLOOR",    FL,            [2],    R(1.5, 2.5),  R(2, 2.75),   R(2, 3),      "ARCH_TEAL", "REFERENCE"),
+  tub:        A("bathtub",                 ["bathtub.v1"],                              "bathtub",                  true,  "FIXTURES",           "PLUMBING_FIXTURE",  ["B"],                     PH_FIXT,  "FLOOR",    FL,            [2],    R(4.5, 6.5),  R(2, 3.5),    R(1.5, 2.5),  "ARCH_TEAL", "REFERENCE"),
+  sink:       A("bath.vanity.sink",        ["bath.vanity_sink.v1"],                     "bath-vanity-sink",         true,  "FIXTURES",           "PLUMBING_FIXTURE",  ["B", "K", "S"],           PH_FIXT,  "SURFACE",  ["SURFACE"],   [2],    R(1.5, 6),    R(1.5, 2.5),  R(2.5, 3.2)),
+  washer:     A("washer",                  ["appliance.washer.frontload.v1"],           "washer",                   true,  "MECHANICAL",         "APPLIANCE",         ["S"],                     PH_FIXT,  "FLOOR",    FL,            [2, 4], R(2, 2.5),    R(2, 2.75),   R(2.75, 3.5), "ARCH_TEAL", "REFERENCE"),
+  dresser:    A("dresser",                 ["furniture.dresser.v1"],                    "dresser",                  true,  "FURNITURE",          "FURNITURE",         ["C"],                     PH_FURN,  "FLOOR",    FL,            [2],    R(2.5, 6),    R(1.5, 2),    R(2.5, 4)),
+  nightstand: A("nightstand",              ["furniture.nightstand.v1"],                 "nightstand",               true,  "FURNITURE",          "FURNITURE",         ["M"],                     PH_FURN,  "FLOOR",    FL,            [2],    R(1, 2.5),    R(1, 2),      R(1.5, 2.75)),
+  tv:         A("tv.console",              ["tv.console.v1"],                           "tv-console",               true,  "FURNITURE",          "FURNITURE",         ["M", "L", "O"],           PH_FURN,  "WALL",     WL,            [2],    R(2, 7),      R(0.2, 1),    R(1.2, 4),    "SCREEN"),
+  fridge:     A("refrigerator",            ["appliance.refrigerator.frenchdoor.v1"],    "refrigerator",             true,  "MECHANICAL",         "APPLIANCE",         ["K"],                     PH_FIXT,  "FLOOR",    FL,            [2, 4], R(2.5, 4),    R(2.25, 3),   R(5.5, 7),    "ARCH_TEAL", "REFERENCE"),
+  stove:      A("range.oven",              ["range.oven.v1"],                           "range-oven",               true,  "MECHANICAL",         "APPLIANCE",         ["K"],                     PH_FIXT,  "FLOOR",    FL,            [2, 4], R(2, 4), R(2, 2.75), R(2.75, 3.25), "ARCH_TEAL", "REFERENCE"),
+  shower:     A("shower.stall",            ["bath.shower.enclosure.v1"],                "shower-stall",             true,  "FIXTURES",           "PLUMBING_FIXTURE",  ["B"],                     PH_FIXT,  "FLOOR",    FL,            [2],    R(2.5, 6), R(2.5, 4), R(6.5, 8),   "GLASS"),
+  wardrobe:   A("wardrobe",                ["wardrobe.v1"],                             "wardrobe",                 true,  "FURNITURE",          "FURNITURE",         ["C"],                     PH_FURN,  "FLOOR",    FL,            [2],    R(2.5, 8),    R(1.5, 2.5),  R(5.5, 8)),
+  bookshelf:  A("bookshelf",               ["bookshelf.v1"],                            "bookshelf",                true,  "FURNITURE",          "FURNITURE",         ["L", "O", "E"],           PH_FURN,  "FLOOR",    FL,            [2],    R(2, 8),      R(0.75, 1.5), R(3, 8)),
+  chair:      A("dining.chair",            ["furniture.dining_chair.v1"],               "dining-chair",             true,  "FURNITURE",          "FURNITURE",         ["M", "L", "D", "O", "E"], PH_FURN,  "FLOOR",    FL,            [],     R(1.25, 2.5), R(1.25, 2.5), R(2.5, 4)),
+  closetrod:  A("closet.rod",              ["closet.rod.v1"],                           "closet-rod",               false, "FURNITURE",          "FURNITURE",         ["C"],                     PH_FURN,  "WALL",     WL,            [2],    R(3, 10),     R(1, 2),      R(4, 7)),
+  shelving:   A("storage.shelving",        ["storage.shelving.v1"],                     "storage-shelving",         true,  "FURNITURE",          "FURNITURE",         ["B", "C", "S"],           PH_FURN,  "WALL",     WL,            [2],    R(2, 10),     R(0.75, 2),   R(2, 8)),
+  shoerack:   A("shoe.rack",               ["shoe.rack.v1"],                            "shoe-rack",                false, "FURNITURE",          "FURNITURE",         ["C", "E"],                PH_FURN,  "FLOOR",    FL,            [2],    R(1.5, 4),    R(0.75, 1.5), R(1, 4)),
+  rug:        A("area.rug",                ["area.rug.v1"],                             "area-rug",                 true,  "FURNITURE",          "LIFESTYLE",         ["L", "M"],                PH_FURN,  "FLOOR",    FL,            [9],    R(3, 10),     R(2, 10),     R(0.05, 0.2)),
+  mirror:     A("mirror.led",              ["mirror.led.v1"],                           "mirror-led",               true,  "FIXTURES",           "FURNITURE",         ["M", "B", "C"],           PH_FURN,  "WALL",     WL,            [2],    R(1, 6),      R(0.1, 0.4),  R(1, 6),      "GLASS"),
+  lamp:       A("floor.lamp",              ["floor.lamp.v1"],                           "floor-lamp",               true,  "LIGHTING",           "LIGHTING",          ["M", "L"],                PH_FURN,  "FLOOR",    FL,            [2],    R(0.5, 2),    R(0.5, 2),    R(3, 6.5)),
+  rangehood:  A("range.hood",              ["range.hood.v1"],                           "range-hood",               true,  "MECHANICAL",         "APPLIANCE",         ["K"],                     PH_FIXT,  "WALL",     WL,            [2, 4], R(2, 4), R(1.25, 2.25), R(0.75, 2.5), "ARCH_TEAL", "REFERENCE"),
+  shell:      A("wall.sheathing",          ["wall.sheathing.v1"],                       "wall-sheathing",           true,  "BUILDING_ELEMENTS",  "STRUCTURE",         "GENERAL",                 PH_SHELL, "BUILT_IN", WL,            [1],    R(2, 10),     R(0.3, 1.5),  R(6, 10)),
+  roof:       A("roof.sheathing",          ["roof.sheathing.v1"],                       "roof-sheathing",           true,  "BUILDING_ELEMENTS",  "STRUCTURE",         "GENERAL",                 PH_SHELL, "BUILT_IN", ["ROOF_LINE"], [1],    R(2, 10), R(2, 10),   R(0.3, 1.5)),
+  door:       A("door.interior.exterior",  ["opening.door.interior.v1"],                "door-interior-exterior",   true,  "DOORS_WINDOWS",      "OPENING",           "GENERAL",                 PH_OPEN,  "WALL",     WL,            [1],    R(2, 4),      R(0.1, 0.75), R(6.5, 8),    "ARCH_ACCENT", "REFERENCE"),
+  window:     A("window.single",           ["opening.window.unit.v1"],                  "window-single",            true,  "DOORS_WINDOWS",      "OPENING",           "GENERAL",                 PH_OPEN,  "WALL",     WL,            [1],    R(1.5, 8),    R(0.2, 0.75), R(1.5, 6),    "GLASS", "REFERENCE"),
 };
 /** The asset definition of a kind (Rev A). */
 export function assetParamsOf(kind: ObjectKind): AssetParams { return ASSET_PARAMS[kind]; }
-/** The kind behind a STABLE asset id (one identity, many projections), or undefined for an unknown id. */
+/** The kind behind a STABLE asset id — or one of its provenance aliases (starter-pack / rotator ids) — or undefined. */
 export function kindByAssetId(id: string): ObjectKind | undefined {
-  return (Object.keys(ASSET_PARAMS) as ObjectKind[]).find((k) => ASSET_PARAMS[k].id === id);
+  const kinds = Object.keys(ASSET_PARAMS) as ObjectKind[];
+  return kinds.find((k) => ASSET_PARAMS[k].id === id) ?? kinds.find((k) => ASSET_PARAMS[k].aliases.includes(id));
 }
 
 /**
