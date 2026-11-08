@@ -72,7 +72,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const [view3d, setView3d] = useState(false);
   const [voxel, setVoxel] = useState(false);   // V5 — 3×3×3 land-base voxel (house at center); 2D default = first floor
   const [roomSel, setRoomSel] = useState<string | null>(null); // selected Tiny Home room (2D plan ↔ 3D mini)
-  const [roomLayout, setRoomLayout] = useState<RoomCell[]>(() => cloneLayout()); // P3 — movable room model
+  const [roomLayout, setRoomLayout] = useState<RoomCell[]>(() => seedHouseFromLibrary(cloneLayout())); // P3 — movable room model; Phase 0 — a FRESH house (no saved data) holds all 139 library assets (localStorage/cloud loads below seed too; user edits always win)
   const [tinyMode, setTinyMode] = useState<"edit" | "walk">("edit"); // edit the plan ⇄ walk the wireframe
   const [walkRoomId, setWalkRoomId] = useState<string>("entry");     // low-fi walkthrough position
   const [focusRoomId, setFocusRoomId] = useState<string | null>(null); // ⏎ Enter a room → optimize it only
