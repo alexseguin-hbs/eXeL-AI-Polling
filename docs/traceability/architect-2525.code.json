@@ -1817,6 +1817,36 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 37,
+   "commit": "4a9c1acf5",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-phases.ts",
+       "blob": "c2d090c9370f96c5587fde685b1f03c7224271f2"
+      }
+     ],
+     "add": 2,
+     "del": 2,
+     "bytes": 1471,
+     "lines": 22,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
