@@ -6,9 +6,9 @@
 
 
 The forty Future requirements (FCRS-01 … FCRS-40) are the binding contract and are listed in full in the plan of
-record, §26 ("FUTURE GREENFIELD CRS (binding)"). Each is traced to a human need, the past failure it prevents,
-repository evidence, an owner, binary acceptance, an automated test and (where required) a human decision in the
-Design Traceability Matrix — [`DESIGN_TRACEABILITY_MATRIX.md`](./DESIGN_TRACEABILITY_MATRIX.md).
+record, §26 ("FUTURE GREENFIELD CRS (binding)"). Each FCRS's row contract (human need · past failure prevented · repository evidence · owner · binary acceptance ·
+automated test · human decision where required) is defined by the
+Design Traceability Matrix; the per-FCRS rows are filled as each phase builds its lane — [`DESIGN_TRACEABILITY_MATRIX.md`](./DESIGN_TRACEABILITY_MATRIX.md).
 
 Load-bearing summary (authority is the plan of record §26):
 - FCRS-01 human authority final; AI cannot approve/qualify/build-ready. FCRS-02 every consequential value carries evidence.

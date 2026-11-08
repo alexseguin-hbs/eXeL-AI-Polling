@@ -2,7 +2,8 @@
 // Changing it changes the project and emits a canonical event; the material take-off branches by method
 // (FRAME shows studs/plates; PRINT must NOT keep showing "2×6 studs @16 o.c.").
 
-export const CONSTRUCTION_METHODS = ["UNDECIDED", "FRAME", "PRINT", "OTHER"] as const;
+// Locked to three members (plan §14/§18). "OTHER" belongs only to WallMethod (domain/walls.ts), not here.
+export const CONSTRUCTION_METHODS = ["UNDECIDED", "FRAME", "PRINT"] as const;
 export type ConstructionMethod = (typeof CONSTRUCTION_METHODS)[number];
 
 export interface ConstructionScenario {

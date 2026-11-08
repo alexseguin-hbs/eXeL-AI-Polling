@@ -42,7 +42,8 @@ function walkDir(dir) {
   return out;
 }
 
-const CAND = (base) => [base, base + ".ts", base + ".tsx", resolve(base, "index.ts"), resolve(base, "index.tsx")];
+const EXTS = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"];
+const CAND = (base) => [base, ...EXTS.map((e) => base + e), ...EXTS.map((e) => resolve(base, "index" + e))];
 function resolveSpec(spec, fromFile) {
   let base = null;
   if (spec.startsWith("@/")) base = resolve(FRONTEND, spec.slice(2));
@@ -52,13 +53,13 @@ function resolveSpec(spec, fromFile) {
   return null;
 }
 
-// static + dynamic + type-only import specifiers
-const IMPORT_RE = /(?:import|export)\s+(?:type\s+)?[^"';]*?from\s*["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)|import\s+["']([^"']+)["']/g;
+// static + dynamic + type-only + require() import specifiers
+const IMPORT_RE = /(?:import|export)\s+(?:type\s+)?[^"';]*?from\s*["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)|import\s+["']([^"']+)["']|require\s*\(\s*["']([^"']+)["']\s*\)/g;
 function specifiersOf(file) {
   const src = readFileSync(file, "utf8");
   const specs = [];
   let m;
-  while ((m = IMPORT_RE.exec(src))) specs.push(m[1] || m[2] || m[3]);
+  while ((m = IMPORT_RE.exec(src))) specs.push(m[1] || m[2] || m[3] || m[4]);
   return specs;
 }
 

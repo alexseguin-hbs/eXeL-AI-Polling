@@ -4,4 +4,4 @@
 
 **Plan of record section(s): §30, §32.**
 
-The 14 contract tests (T-SCHEMA, T-IMPORT-BAN green; T-TRANSFORM, T-HASH, T-REPLAY, T-PLACEMENT, T-PROJECTION, T-MATERIAL, T-COST, T-FIREWALL, T-RATINGS, T-ACTOR-AUTH, T-HEALTH red-first; T-SEAM is the P5 Playwright seam). Red-first tests stay out of prebuild/test:ci; T-SCHEMA + T-IMPORT-BAN are green and join test:ci. The seven-step seam is binary at 375/428/768/1200.
+The 15 contract tests (T-SCHEMA, T-IMPORT-BAN green; T-TRANSFORM, T-HASH, T-SERIALIZE, T-REPLAY, T-PLACEMENT, T-PROJECTION, T-MATERIAL, T-COST, T-FIREWALL, T-RATINGS, T-ACTOR-AUTH, T-HEALTH red-first; T-SEAM is the P5 Playwright seam). Red-first tests stay out of prebuild/test:ci; T-SCHEMA + T-IMPORT-BAN are green and join test:ci. The seven-step seam is binary at 375/428/768/1200.

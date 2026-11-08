@@ -22,6 +22,9 @@ export interface SystemActor {
 
 export type ActorRef = AuthenticatedHumanActor | UnauthenticatedHumanActor | SystemActor;
 
+/** A human actor (authenticated or not) — never SYSTEM/AI. Used where only a human may author (e.g. a design target). */
+export type HumanActor = AuthenticatedHumanActor | UnauthenticatedHumanActor;
+
 export const DRAFT_ACTOR: UnauthenticatedHumanActor = {
   kind: "UNAUTHENTICATED_HUMAN",
   id: "unauthenticated-human",

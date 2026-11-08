@@ -22,14 +22,18 @@ export interface BaselineBuildEstimate {
   sections: BaselineSection[];
   total_usd: Usd<"baseline">;     // DERIVED = Σ sections
   total_evidence: "DERIVED";
-  per_net_ft2_usd: number;        // DERIVED from an ASSUMED baseline — not a market benchmark
+  per_net_ft2_usd: number;        // $240,000 ÷ 900 ≈ $267
+  per_net_ft2_evidence: "DERIVED"; // DERIVED from an ASSUMED baseline — not a market benchmark (every number carries evidence)
 }
 
 /** Distinct domain: labour cost in USD. Only a labour value is a Usd<"labor">. */
 export interface ProjectLaborCost {
   kind: "ProjectLaborCost";
   labor_usd: Usd<"labor"> | null;
-  evidence: EvidenceState;        // QUOTED | PREVAILING… | NOT_CALCULATED (narrowed by the labour adapter)
+  // The labour adapter (adapters/labor.ts) narrows to its own LaborEvidenceState (QUOTED | STORED | US_RESEARCH |
+  // HI_NORMALIZED | NOT_CALCULATED); surfaced here as the general EvidenceState only where the two overlap
+  // (QUOTED / NOT_CALCULATED). Never carries a fabricated state.
+  evidence: EvidenceState;
 }
 
 /** Distinct domain: global recognition (웃), jurisdiction-independent (plan §19, FCRS-24). */

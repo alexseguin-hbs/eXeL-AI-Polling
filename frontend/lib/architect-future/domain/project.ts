@@ -11,10 +11,10 @@ import type { ReferenceClaim, DesignTarget, ProjectQualification } from "./ratin
 import type { ActorRef } from "./actors";
 import type { EvidenceState } from "./evidence";
 
-export const PLAN_AUTHORITY = ["DRAFT", "SUBMITTED", "REVIEWED", "APPROVED"] as const;
+export const PLAN_AUTHORITY = ["DRAFT", "SUBMITTED", "REVIEWED", "APPROVED", "BUILD_READY"] as const;
 export type PlanAuthority = (typeof PLAN_AUTHORITY)[number];
 
-/** Submit ≠ Review ≠ Approve (plan §13, FCRS-33). Approval requires an authenticated human. */
+/** Submit ≠ Review ≠ Approve ≠ build-ready (plan §13, FCRS-33). Approve/build-ready require an authenticated human. */
 export interface AuthorityState {
   plan: PlanAuthority;
   /** who last advanced authority; APPROVED requires an AuthenticatedHumanActor (enforced in the authority machine). */

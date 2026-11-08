@@ -3,7 +3,7 @@
 // authenticated human). Never one mutable status that drifts from reference to qualified. A heuristic score can
 // never produce PASS/QUALIFIED (the invalid state below fails TypeScript).
 
-import type { AuthenticatedHumanActor, ActorRef } from "./actors";
+import type { AuthenticatedHumanActor, HumanActor } from "./actors";
 
 export interface ReferenceClaim {
   claim_id: string;
@@ -19,8 +19,8 @@ export interface DesignTarget {
   target_id: string;
   label: string;
   target_value: string;
-  /** a design target is a human choice; it never mutates the ReferenceClaim it came from. */
-  actor: ActorRef;
+  /** a design target is a human choice (never SYSTEM/AI); it never mutates the ReferenceClaim it came from. */
+  actor: HumanActor;
   created_at: string;
   from_reference_id?: string;
 }

@@ -32,10 +32,10 @@ for (const c of CONTRACTS) {
     green++; // implemented (did not throw) — a later phase has turned this contract green
     console.log(`  ✓ ${c.id}: implemented (Phase ${c.phase})`);
   } catch (e) {
-    if (String(e.message).includes("not implemented")) {
-      red++; // red-first, for the intended reason
+    if (e && e.notImplemented === true) {
+      red++; // red-first, for the intended reason (typed marker, not a message substring)
     } else {
-      broken++; console.log(`  ✗ ${c.id}: threw for the WRONG reason — ${e.message}`);
+      broken++; console.log(`  ✗ ${c.id}: threw for the WRONG reason — ${e && e.message}`);
     }
   }
 }
