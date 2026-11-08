@@ -109,6 +109,14 @@ ok(Object.keys(schemaDrift).every((k) => !RUNTIME_REQUIRED.includes(k)), "schema
 // ── §2 IDENTITY — his bytes (his own ledger), shared-geometry groups, plan parity ──
 const ledgerSha = Object.fromEntries(ledger.assets.map((r) => [r.id, r.sha256]));
 const ledgerBytes = Object.fromEntries(ledger.assets.map((r) => [r.id, r.bytes]));
+// OPERATOR-APPROVED REBUILDS (operator 2026-11-08: "check stools are not upside down"): an asset the operator asked to
+// FIX is served from a corrected GLB, so its expected sha is the rebuild's — his docs/VALIDATION.json stays verbatim on
+// disk (the "his bytes" checks above are untouched); only the served-sha expectation is redirected for the listed id,
+// with the reason recorded here. Every other asset stays byte-for-byte his.
+const APPROVED_REBUILDS = {
+  "architect2525.asset.kitchen.island.stools.v1": { sha256: "a8f67a957e98ca1469b92313e98ddcea321fd57b24239841a3191b5bc78cea7e", bytes: 9656, reason: "stool seats raised from the floor to the top of the posts (were upside-down)" },
+};
+for (const [id, r] of Object.entries(APPROVED_REBUILDS)) { ledgerSha[id] = r.sha256; ledgerBytes[id] = r.bytes; }
 const modelSha = {}, modelBytes = {};
 for (const e of manifest.assets) { const b = fs.readFileSync(path.join(ROOT, e.model)); modelSha[e.id] = shaOf(b); modelBytes[e.id] = b.byteLength; }
 for (const e of manifest.assets) ok(modelSha[e.id] === ledgerSha[e.id] && modelBytes[e.id] === ledgerBytes[e.id], `${short(e.id)}: served model.glb is byte-for-byte his (VALIDATION.json sha256 ${(ledgerSha[e.id] ?? "").slice(0, 12)}…)`);

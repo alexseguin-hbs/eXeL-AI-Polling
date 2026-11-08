@@ -3815,8 +3815,8 @@
       "id": "architect2525.asset.kitchen.island.stools.v1",
       "label": "Kitchen Island + Stools",
       "file": "models/kitchen-island-stools.glb",
-      "sha256": "ccf52a2955e71734279fc3b1828e83e501226ac625456171897b75c940d8c7ee",
-      "bytes": 9904,
+      "sha256": "a8f67a957e98ca1469b92313e98ddcea321fd57b24239841a3191b5bc78cea7e",
+      "bytes": 9656,
       "triCount": 336,
       "meshCount": 8,
       "bounds": {

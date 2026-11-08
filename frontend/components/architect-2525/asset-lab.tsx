@@ -41,7 +41,7 @@ export default function AssetLab() {
   // 1) fetch the catalog
   useEffect(() => {
     let alive = true;
-    fetch("/architect-2525/assets/catalog.json")
+    fetch("/architect-2525/catalog.json")
       .then((r) => r.json())
       .then((c: Catalog) => { if (!alive) return; setCat(c); const firstReal = c.packs.find((p) => p.n > 0) ?? c.packs[0]; setPackN(firstReal?.n ?? null); })
       .catch(() => alive && setErr("Could not load the asset catalog."));

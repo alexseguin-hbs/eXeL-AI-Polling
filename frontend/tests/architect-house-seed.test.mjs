@@ -59,7 +59,7 @@ ok(layout[0].objects === undefined, "seedHouseFromLibrary does not mutate its in
 
 // 6 — coverage of all 139 lives in the 3D Asset Lab catalog (browse/rotate every asset there).
 try {
-  const cat = JSON.parse(readFileSync(new URL("../public/architect-2525/assets/catalog.json", import.meta.url), "utf8"));
+  const cat = JSON.parse(readFileSync(new URL("../public/architect-2525/catalog.json", import.meta.url), "utf8"));
   const n = cat.packs.reduce((s, p) => s + p.sections.reduce((t, sec) => t + sec.assets.length, 0), 0);
   ok(n === 139, `the Asset Lab catalog lists all 139 assets (got ${n})`);
 } catch (e) { ok(false, "catalog.json is readable for the 139-coverage check: " + e.message); }

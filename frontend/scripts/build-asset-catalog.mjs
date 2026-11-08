@@ -57,7 +57,8 @@ const out = {
   })),
 };
 
-const dest = path.join(ASSETS, "catalog.json");
+// Write OUTSIDE his verbatim assets/ root (the integrity gate asserts that root is his delivered layout only).
+const dest = path.join(ASSETS, "..", "catalog.json"); // → public/architect-2525/catalog.json
 writeFileSync(dest, JSON.stringify(out));
 const totalInCatalog = out.packs.reduce((s, p) => s + p.sections.reduce((t, sec) => t + sec.assets.length, 0), 0);
 console.log(`catalog.json: ${out.packs.length} packs · ${totalInCatalog}/${manifest.assets.length} assets · ${(JSON.stringify(out).length/1024).toFixed(1)} KB`);
