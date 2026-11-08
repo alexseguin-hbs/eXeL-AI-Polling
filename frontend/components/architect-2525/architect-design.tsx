@@ -403,6 +403,9 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             {/* edit ⇄ walk toggle — OWN ROW ABOVE the canvas (operator 2026-11-06, E3): not an absolute overlay inside the
                 render container, so the walk HUD / sticks / hint can never collide with it at 390px. */}
             <div data-arch-tiny-modebar className="mb-1.5 flex items-center justify-end gap-1">
+              {/* 3D ASSET LAB (operator 2026-11-08): pick an asset → rotate it, lit cyan/violet, all 139 — like his rotator files. */}
+              <a data-arch-library href="/Architect-2525/library" className="mr-auto inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold no-underline"
+                style={{ borderColor: "#b65cff", color: "#b65cff", background: "transparent" }}>↻ 3D Library · 139</a>
               {(["edit", "walk"] as const).map((m) => (
                 <button key={m} data-arch-tiny-mode={m} onClick={() => setTinyMode(m)} className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold"
                   style={{ borderColor: tinyMode === m ? C.cyan : C.border, color: tinyMode === m ? C.cyan : C.dim, background: tinyMode === m ? "#0e2233" : "transparent" }}>
