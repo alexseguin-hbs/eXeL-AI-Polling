@@ -727,6 +727,12 @@ export function defaultObjectsForRoom(roomKey: string): PlacedObject[] {
   // the bed. Deterministic (stable sort: largest area, ties by ROOM_ASSETS order) — no Math.random (replay law).
   const N = ROOM_GRID;
   const occ: boolean[][] = Array.from({ length: N }, () => new Array(N).fill(false));
+  // ENTRY LANE (operator 2026-11-08 "ensure one can get into each room"): reserve a DOOR-width clear lane at the S-wall
+  // centre (the entry, matching the Master Bedroom's S-wall door convention) BEFORE packing, so the typical items never
+  // sit in the doorway / block the walk-in. Grid row 0 = N wall · row N-1 = S wall; the lane is the 3 rows nearest S,
+  // 4 cells wide, centred. (The walk's collide-and-slide also carves a door lane — this keeps the layout visibly clear.)
+  const LANE_W = 4, LANE_D = 3, laneX0 = Math.floor((N - LANE_W) / 2);
+  for (let j = Math.max(0, N - LANE_D); j < N; j++) for (let i = laneX0; i < Math.min(N, laneX0 + LANE_W); i++) occ[j][i] = true;
   const freeAt = (x: number, y: number, w: number, dd: number): boolean => {
     if (x + w > N || y + dd > N) return false;
     for (let j = y; j < y + dd; j++) for (let i = x; i < x + w; i++) if (occ[j][i]) return false;
