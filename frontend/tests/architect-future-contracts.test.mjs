@@ -8,8 +8,7 @@
 // Phase 1 contracts (T-TRANSFORM, T-HASH, T-SERIALIZE, T-REPLAY) are now GREEN — see
 // tests/architect-future-canonical.test.mjs (in test:ci). The remaining behavioural contracts stay red-first here.
 const CONTRACTS = [
-  { id: "T-PLACEMENT", phase: 2, mod: "../lib/architect-future/state/placement-machine.ts", fn: "placeArmed", args: [null, { armed_asset_id: "sofa" }, "b1", { x: 0, y: 0, z: 0 }, 0, { kind: "SYSTEM", id: "s" }] },
-  { id: "T-PROJECTION", phase: 2, mod: "../lib/architect-future/selectors/geometry.ts", fn: "planProjection", args: [null] },
+  // Phase 2 contracts (T-PLACEMENT, T-PROJECTION) are now GREEN — see tests/architect-future-planning.test.mjs.
   { id: "T-MATERIAL",  phase: 3, mod: "../lib/architect-future/simulation/materials.ts", fn: "materialTakeoff", args: [null] },
   { id: "T-COST",      phase: 3, mod: "../lib/architect-future/simulation/costs.ts", fn: "baselineEstimate", args: [] },
   { id: "T-FIREWALL",  phase: 3, mod: "../lib/architect-future/simulation/costs.ts", fn: "applyJurisdiction", args: [null, "us-tx-austin"] },
