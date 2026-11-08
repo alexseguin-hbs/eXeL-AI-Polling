@@ -10,9 +10,9 @@
 | Executor | Claude Code |
 | Future route | `/Architect-2525/future` |
 | Legacy reference route | `/Architect-2525/` |
-| Execution state | **PHASE 0 / HOLD FOR IMPLEMENTATION** |
+| Execution state | **PHASES 0–5 SHIPPED · AWAITING 3× AI (Grok · eXeL AI · DeepSeek) + H.I. REVIEW · CUTOVER HELD** |
 | Architecture mode | **GREENFIELD REBUILD** |
-| Plan revision | **R1** (R0 = the operator's MoT final plan, kept verbatim in `source/`) |
+| Plan revision | **R2** (R0 = the operator's MoT final plan, kept verbatim in `source/`; R1 = the structured plan; R2 = this status) |
 | This file | `docs/architect-future/ARCHITECT-2525_FUTURE_PLAN.md` — the one plan of record |
 
 > Humanity decides. Technology assists. R-CORE remembers. SPIRAL verifies. SSSES qualifies. Trust must be proven.
@@ -854,5 +854,6 @@ Checked against `main` at `bed1d4a52`. Each item cites the repository.
 |---|---|---|---|
 | R0 | 2026-11-08 | H.I. Thought Master / MoT | Final greenfield plan (verbatim in `source/`). |
 | R1 | 2026-11-08 | Claude Code (MoT rewrite) | Structured into §0–§41 with tables; added §0 feedback path; §5 import-ban scope includes the route; §30 red tests kept out of `prebuild`/`test:ci`; §38 step 12 adds the pre-vote + captures; §40 repository verification. No doctrine changed. |
+| R2 | 2026-11-08 | Claude Code (MoT) | Status only — Phases 1–5 built and shipped to `main` under the operator's "complete all phases": P1 canonical engine · P2 human planning UX · P3 systems + economics (firewall) · P4 simulation + reference + review · P5 the seven-step seam (§32) green end-to-end. Every behavioural contract (T-TRANSFORM/HASH/SERIALIZE/REPLAY · T-PLACEMENT/PROJECTION · T-MATERIAL/COST/FIREWALL · T-RATINGS/ACTOR-AUTH/HEALTH · T-SEAM) is GREEN and in `test:ci`; T-SCHEMA/T-IMPORT-BAN green from the start. **Cutover (§35) is HELD** — `/Architect-2525/future` stands beside the untouched legacy route, awaiting the 3× AI UX review and H.I. approval before any route swap. No doctrine changed. |
 
 > Humanity decides. Technology assists. R-CORE remembers. SPIRAL verifies. SSSES qualifies. Trust must be proven.
