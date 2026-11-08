@@ -115,6 +115,10 @@ const ledgerBytes = Object.fromEntries(ledger.assets.map((r) => [r.id, r.bytes])
 // with the reason recorded here. Every other asset stays byte-for-byte his.
 const APPROVED_REBUILDS = {
   "architect2525.asset.kitchen.island.stools.v1": { sha256: "a8f67a957e98ca1469b92313e98ddcea321fd57b24239841a3191b5bc78cea7e", bytes: 9656, reason: "stool seats raised from the floor to the top of the posts (were upside-down)" },
+  // more dimensionality (operator 2026-11-08 "really make 3D as close as you can to 2D drawings"): shelving carcasses
+  // re-authored as OPEN frames (back + sides + top/bottom, front open) so the interior shelves read — were solid boxes.
+  "architect2525.asset.storage.shelving.v1": { sha256: "b38d47e98d091d0ee757940c97a4a281fa36c125fa6f76859599dcd2adfc28e9", bytes: 6852, reason: "open-frame rebuild — the solid carcass hid its 4 shelves" },
+  "architect2525.asset.utility.shelving.v1": { sha256: "010b5bb8c53ccf22fb86ec26a462b76c5eb24cc22a902f4308583670960bf28c", bytes: 6744, reason: "open-frame rebuild — the solid carcass hid its shelves" },
 };
 for (const [id, r] of Object.entries(APPROVED_REBUILDS)) { ledgerSha[id] = r.sha256; ledgerBytes[id] = r.bytes; }
 const modelSha = {}, modelBytes = {};

@@ -11,7 +11,7 @@
   "note": "minZ is WORLD space (node matrices applied — what a glTF viewer renders); rawMinZ is the lowest POSITION accessor minimum BEFORE node matrices. Shared geometry, raw elevation and dimension drift are WARN (listed), never FAIL.",
   "counts": {
     "assets": 139,
-    "triangles": 21244,
+    "triangles": 21340,
     "sharedGeometryGroups": 18,
     "elevatedRaw": 40,
     "floatingWorld": 0,
@@ -112,12 +112,10 @@
     {
       "ids": [
         "architect2525.asset.bookshelf.decor.v1",
-        "architect2525.asset.bookshelf.v1",
-        "architect2525.asset.storage.shelving.v1",
-        "architect2525.asset.utility.shelving.v1"
+        "architect2525.asset.bookshelf.v1"
       ],
       "sha256": "a9be8c769237a62babdaed22c732d7661d9e306af6883d9a0cf75637d65a8478",
-      "warning": "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1 ≡ storage.shelving.v1 ≡ utility.shelving.v1"
+      "warning": "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1"
     },
     {
       "ids": [
@@ -1432,13 +1430,11 @@
       "elevatedRaw": false,
       "translucent": false,
       "sharedGeometryWith": [
-        "architect2525.asset.bookshelf.decor.v1",
-        "architect2525.asset.storage.shelving.v1",
-        "architect2525.asset.utility.shelving.v1"
+        "architect2525.asset.bookshelf.decor.v1"
       ],
       "status": "SHARED_GEOMETRY",
       "warnings": [
-        "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1 ≡ storage.shelving.v1 ≡ utility.shelving.v1"
+        "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1"
       ]
     },
     {
@@ -1489,13 +1485,11 @@
       "elevatedRaw": false,
       "translucent": false,
       "sharedGeometryWith": [
-        "architect2525.asset.bookshelf.v1",
-        "architect2525.asset.storage.shelving.v1",
-        "architect2525.asset.utility.shelving.v1"
+        "architect2525.asset.bookshelf.v1"
       ],
       "status": "SHARED_GEOMETRY",
       "warnings": [
-        "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1 ≡ storage.shelving.v1 ≡ utility.shelving.v1"
+        "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1"
       ]
     },
     {
@@ -6299,10 +6293,10 @@
       "id": "architect2525.asset.storage.shelving.v1",
       "label": "Storage Shelving",
       "file": "models/storage-shelving.glb",
-      "sha256": "a9be8c769237a62babdaed22c732d7661d9e306af6883d9a0cf75637d65a8478",
-      "bytes": 3700,
-      "triCount": 60,
-      "meshCount": 5,
+      "sha256": "b38d47e98d091d0ee757940c97a4a281fa36c125fa6f76859599dcd2adfc28e9",
+      "bytes": 6852,
+      "triCount": 108,
+      "meshCount": 9,
       "bounds": {
         "min": [
           -0.575,
@@ -6342,15 +6336,9 @@
       "sunk": false,
       "elevatedRaw": false,
       "translucent": false,
-      "sharedGeometryWith": [
-        "architect2525.asset.bookshelf.decor.v1",
-        "architect2525.asset.bookshelf.v1",
-        "architect2525.asset.utility.shelving.v1"
-      ],
-      "status": "SHARED_GEOMETRY",
-      "warnings": [
-        "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1 ≡ storage.shelving.v1 ≡ utility.shelving.v1"
-      ]
+      "sharedGeometryWith": [],
+      "status": "READY",
+      "warnings": []
     },
     {
       "id": "architect2525.asset.storm.shutter.window.v1",
@@ -6887,33 +6875,33 @@
       "id": "architect2525.asset.utility.shelving.v1",
       "label": "Utility Shelving",
       "file": "models/utility-shelving.glb",
-      "sha256": "a9be8c769237a62babdaed22c732d7661d9e306af6883d9a0cf75637d65a8478",
-      "bytes": 3700,
-      "triCount": 60,
-      "meshCount": 5,
+      "sha256": "010b5bb8c53ccf22fb86ec26a462b76c5eb24cc22a902f4308583670960bf28c",
+      "bytes": 6744,
+      "triCount": 108,
+      "meshCount": 9,
       "bounds": {
         "min": [
-          -0.575,
-          -0.2,
+          -0.5,
+          -0.225,
           0
         ],
         "max": [
-          0.575,
-          0.2,
-          1.55
+          0.5,
+          0.225,
+          1.8
         ]
       },
       "minZ": 0,
-      "maxZ": 1.55,
+      "maxZ": 1.8,
       "rawMinZ": 0,
       "mounting": "FLOOR",
       "packs": [
         4
       ],
       "extentsM": {
-        "w": 1.15,
-        "d": 0.4,
-        "h": 1.55
+        "w": 1,
+        "d": 0.45,
+        "h": 1.8
       },
       "dimsM": {
         "width": 1.15,
@@ -6921,24 +6909,18 @@
         "height": 1.55
       },
       "deviation": {
-        "w": 0,
-        "d": 0,
-        "h": 0
+        "w": -0.13,
+        "d": 0.125,
+        "h": 0.161
       },
       "withinTolerance": true,
       "floating": false,
       "sunk": false,
       "elevatedRaw": false,
       "translucent": false,
-      "sharedGeometryWith": [
-        "architect2525.asset.bookshelf.decor.v1",
-        "architect2525.asset.bookshelf.v1",
-        "architect2525.asset.storage.shelving.v1"
-      ],
-      "status": "SHARED_GEOMETRY",
-      "warnings": [
-        "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1 ≡ storage.shelving.v1 ≡ utility.shelving.v1"
-      ]
+      "sharedGeometryWith": [],
+      "status": "READY",
+      "warnings": []
     },
     {
       "id": "architect2525.asset.utility.sink.v1",
@@ -7966,7 +7948,7 @@
       "mounting": "FLOOR",
       "sha256": "a9be8c769237a62babdaed22c732d7661d9e306af6883d9a0cf75637d65a8478",
       "warnings": [
-        "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1 ≡ storage.shelving.v1 ≡ utility.shelving.v1"
+        "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1"
       ]
     },
     {
@@ -7977,7 +7959,7 @@
       "mounting": "FLOOR",
       "sha256": "a9be8c769237a62babdaed22c732d7661d9e306af6883d9a0cf75637d65a8478",
       "warnings": [
-        "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1 ≡ storage.shelving.v1 ≡ utility.shelving.v1"
+        "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1"
       ]
     },
     {
@@ -8464,17 +8446,6 @@
       ]
     },
     {
-      "id": "architect2525.asset.storage.shelving.v1",
-      "status": "SHARED_GEOMETRY",
-      "minZ": 0,
-      "rawMinZ": 0,
-      "mounting": "FLOOR",
-      "sha256": "a9be8c769237a62babdaed22c732d7661d9e306af6883d9a0cf75637d65a8478",
-      "warnings": [
-        "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1 ≡ storage.shelving.v1 ≡ utility.shelving.v1"
-      ]
-    },
-    {
       "id": "architect2525.asset.table.lamp.v1",
       "status": "SHARED_GEOMETRY",
       "minZ": 0,
@@ -8549,17 +8520,6 @@
       "sha256": "38dee89092862ff506afc67d941d73e71f54e59e0aea87de2a44d7d7ac86d574",
       "warnings": [
         "raw geometry min z = 0.6 m before node matrices (world min z = 0 m) · mounting SURFACE (expected for SURFACE)"
-      ]
-    },
-    {
-      "id": "architect2525.asset.utility.shelving.v1",
-      "status": "SHARED_GEOMETRY",
-      "minZ": 0,
-      "rawMinZ": 0,
-      "mounting": "FLOOR",
-      "sha256": "a9be8c769237a62babdaed22c732d7661d9e306af6883d9a0cf75637d65a8478",
-      "warnings": [
-        "shared geometry: bookshelf.decor.v1 ≡ bookshelf.v1 ≡ storage.shelving.v1 ≡ utility.shelving.v1"
       ]
     },
     {
