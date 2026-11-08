@@ -823,8 +823,30 @@ Checked against `main` at `bed1d4a52`. Each item cites the repository.
    - **Every canonical change must emit an event** — Grok changed references/design-targets without one
      (`engine.ts:459-469`), so replay diverged from live state; T-REPLAY must cover ReferenceClaim/DesignTarget/
      ProjectQualification. Persist a validated event log, not a derived snapshot.
-8. *(pending — Phase-0-tooling verification still running; will append as R1.1: test runner + `@/` alias, the
-   import-boundary test method, feedback tooling, deploy facts.)*
+8. **Phase-0 tooling (origin/main) — facts Phase 0 / Revision B must use:**
+   - Tests run via `node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/<name>.test.mjs`;
+     `@/*` → `frontend/*` (`tsconfig.json:17`). Node v22 strip-types allows erasable syntax only (no enum / namespace /
+     parameter-properties / JSX) and needs `import type`; keep pure logic in `.ts` (not `.tsx`) so contract tests can load it.
+   - **Red-first contract tests must NOT be wired raw into `test:ci` or `prebuild`** — a red `prebuild` freezes production
+     and a red `test:ci` leaves the gate permanently red (`deploy.yml:104-107`). Add an "expected-red" runner that spawns
+     each behavioural `T-*` and asserts it fails for the right reason; only **T-SCHEMA and T-IMPORT-BAN (which must pass)**
+     join `test:ci`.
+   - **T-IMPORT-BAN must be static** (parse imports; do not execute) with its own resolver: `ts-alias-loader` has no
+     `/index` barrel resolution (`ts-alias-loader.mjs:11-15`), directory barrels exist (e.g. `lexicon-context.tsx:25-26`),
+     and it must follow `@/*`→`frontend/*` transitively, including `import type` and dynamic `import()`.
+   - **Type-level negatives** use `@ts-expect-error` in `.ts` contract files under `frontend/lib/architect-future/`
+     (covered by `tsconfig.json:19`); an unused `@ts-expect-error` becomes `TS2578` and fails `tsc`, which is the assertion.
+   - **Cloudflare runs the full `npm run build` (prebuild + next build + postbuild) on every branch and promotes only
+     `main`** (`package.json:9,19,20`; `deploy.yml`). The feature branch gets its own preview address, so Phase-0 review can
+     happen off a branch without shipping to production. The postbuild `stamp-count.mjs` enforces ≤1 `HH:MM CST` token.
+   - **Feedback tooling** (`fx-template.mjs`/`buildFx`) is not in the repo yet (only in scratch); it or a Future adapter
+     over it must be committed before the Phase-0 artifact is generated. `architect-screens.mjs` lacks the 768/1200
+     viewports and clicks legacy selectors (`architect-screens.mjs:21,39-44`), and its CI job runs only after Verify Live
+     on `main` — Phase 0 adds Future selectors + the two viewports.
+   - **Gate/registry housekeeping:** `asks-persist.test.mjs` checks only `docs/asks` (so `docs/architect-future/**.sha256`
+     is ungated — add a check); the projects registry (`docs/traceability/projects.r*`) Architect paths should learn the
+     `/future` route; the Phase-0 page copy must avoid the architect-voice banned words (R-CORE / SSSES / SPIRAL /
+     canonical / project_hash — `architect-voice.test.mjs:15-19`).
 
 ## 41 · Revision log
 

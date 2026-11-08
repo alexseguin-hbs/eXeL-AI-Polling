@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Architect-2525 append-only traceability ledger — 29 entries, extracted at build time. */
+/** Architect-2525 append-only traceability ledger — 32 entries, extracted at build time. */
 export const ARCHITECT_LEDGER: LedgerInput = {
   "section": "Architect-2525",
   "route": "/Architect-2525",
@@ -212,6 +212,27 @@ export const ARCHITECT_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "WALK-RASTER — the operator's own WALK MODE figure is the Walk affordance (operator 2026-11-06: 'use this', with his branded WALK MODE card from eXeL AI). 'His pictures, never drawn' — the Drone-2525 raster law, now on Architect: the Walk icon is his picture, not my drawn glyph. His 941×1671 card was cropped to a transparent-background figure and downscaled to a 64×96 / 10 KB web icon (public/architect-2525/walk-mode-icon.png); the full card is kept as provenance (docs/architecture-2525/img/walk-mode-card.png), out of the web bundle. NEW WalkRaster component (architect-walk-icons.tsx) serves the icon and replaces WalkGlyph on BOTH the Edit⇄Walk toggle (architect-design.tsx) and the current-room HUD (architect-walkthrough.tsx); EditGlyph (Edit) unchanged, WalkGlyph kept exported. The icon AND the card are PINNED by sha256 in a new gate (tests/architect-walk-raster.test.mjs 15/0) so his picture can never be silently redrawn or re-exported — the same protection as the Drone-2525 pose/magazine rasters; architect-immersion 36/0 updated (the toggle now asserts WalkRaster); wired into test:ci (ci-wiring 251/0). Verified in a real Chromium browser at 390px on the shipped build: his figure renders on the Walk pill (beside cyan 'Walk') and on the room HUD ('E · Entry · Porch'), over the furnished walkthrough he approved (R6C-ENTRY). tsc 0 new; next build Compiled + static export + postbuild clean (stamp-count ONE stamp, drone-render-smoke 5/0). Presentation only — no cost or content moved. His other R6c mark (R6C-STEP: 'use to joystick from drone/robot in Drone-2525') is logged as the next walkthrough pass, not done here. LIVE: pushed both refs at 117adb56c on the Ghana/R6c chain; Verify Live #3197 on this SHA.",
       "commit": "117adb56c"
+    },
+    {
+      "rev": 30,
+      "date": "2026-11-07",
+      "kind": "correction",
+      "text": "CORRECTION (Claude Code, commits 98023088e … 11c799c70, never recorded until now) — the asset rounds seeded all 139 library objects into the default house and SAVED that dump to the operator's device and cloud, so every room read as a cram, not a home; the Design tab was patched again and again instead of being built on the already-approved Security-2525 Mission Planning shell; and chunks shipped without the HTML feedback artifact, without a Playwright walk-through at phone widths, and without the 12-AsM review the release process requires. The operator halted Claude Code over it. Recorded here because the R-CORE record must show every agent's failures, not only the ones that are convenient.",
+      "commit": "11c799c70"
+    },
+    {
+      "rev": 31,
+      "date": "2026-11-08",
+      "kind": "correction",
+      "text": "CORRECTION (Grok, commits 1f592e032 · c2ccb6ebe · bed1d4a52) — /Architect-2525/future was built as a separate intent form backed by lib/architect-future/engine.ts, then (because the form's primary button fell below the phone fold) replaced with the legacy ArchitectCommandUX1 from components/architect-2525/command-ux1.tsx — the old Design screen under a new address. That is the exact failure the greenfield plan forbids ('do not copy the existing screen and rename it'); command-ux1 is on the plan's DO_NOT_IMPORT list and reaches six of the seven banned modules, and the engine failed the locked V2 contracts (untyped events, approval with no actor check, replay that drops references and design targets, a second hand-written SHA-256). Shipped to main and live with no Phase-0 contracts, tests, captures or review. Reverted (not force-pushed, so the trail stays) in the next commit.",
+      "commit": "bed1d4a52"
+    },
+    {
+      "rev": 32,
+      "date": "2026-11-08",
+      "kind": "decision",
+      "text": "DECISION (H.I. Thought Master) — Architect-2525/Future is a greenfield rebuild. The plan of record is docs/architect-future/ARCHITECT-2525_FUTURE_PLAN.md (R1); the operator's words are kept verbatim at docs/architect-future/source/ (R0); external reviewers (Grok · eXeL AI · DeepSeek) and future Claude Code versions read the plan and file feedback under docs/architect-future/feedback/. Grok's /future commits are reverted and the route shows a Phase-0 placeholder that imports nothing legacy. The working Design tool stays unchanged at /Architect-2525/. Execution is PHASE 0 only (contracts + scaffold + red-first tests), and holds at the Phase-0 gate until H.I. accepts it.",
+      "commit": "db7124ae9"
     }
   ]
 };
