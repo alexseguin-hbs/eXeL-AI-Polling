@@ -1304,6 +1304,38 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 34,
+   "commit": "37fc03f0b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/voxel-house.tsx",
+       "blob": "a9c69bbfa6706453e907aa5c6d2fc474bbe21bee"
+      }
+     ],
+     "add": 39,
+     "del": 34,
+     "bytes": 16254,
+     "lines": 170,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }

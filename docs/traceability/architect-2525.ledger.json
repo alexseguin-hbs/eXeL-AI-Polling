@@ -251,6 +251,14 @@
       "text": "R1a — ONE GEOMETRY SOURCE, 36×36-true (H.I. ruling 2026-11-08). /Architect-2525/ is the LIVE product of record, improved in place; /Architect-2525/future is deleted ENTIRELY as a product route (its route, lib, components, eight contract tests and the greenfield docs/architect-future/), its failure history preserved in revs 30/31/32, git and screenshots — never rewritten. The canonical reference house is ONE physical model: 12-ft outer module · 10-ft clear room · 1-ft reserved wall/service zone per side · 3×3 grid · 36×36 ft shell · 900 ft² clear · 1,296 ft² gross · 396 ft² difference. Every DISPLAYED surface now reads that one source (lib/room-layout: HOUSE_FT=36 the shell outline · CLEAR_SQFT=900 · GROSS_SQFT=1296 · WALL_ZONE_SQFT=396): the 2D plan reads 36'-0\" with the 10-ft clear rooms inset by the 1-ft zone; the Build slab reads 36×36 / 1,296; the Overview Gross tile reads 1,296 (was NOT CALCULATED); the metric strip's Sq Ft is the 900 clear. The 30×30-as-shell is removed and gated (tests/architect-geometry-source). Cost unchanged ($240k still derived off the 900 clear) and stays BOM-driven going forward. Staged: the 3D voxel footprint → R1b; the take-off basis → R3. Also adopted this round: cost is bottom-up BOM-driven, the economic domains stay separate, and the ICON figures are wall-system references only.",
       "commit": "1db68c39b",
       "title": "R1a — one 36×36 geometry source; /future deleted entirely (evidence preserved)"
+    },
+    {
+      "rev": 34,
+      "date": "2026-11-08",
+      "kind": "geometry",
+      "text": "R1b — the 3D VOXEL is the one-storey 36×36×12 shell (H.I. ruling 2026-11-08), completing the one geometry source in the 3D view. The voxel's house footprint is now the 36-ft shell (VOXEL_PX_PER_FT re-seated to 66/HOUSE_FT; cell = HOUSE_FT × scale), the nine 10-ft clear rooms sit at the 12-ft outer-module pitch so the 1-ft reserved wall/service zone shows as the gap, and the old 30×30×30 THREE-storey cube metaphor is retired for the operator's own ONE-storey 36×36×12 nested cube (2026-11-06: \"36x36x12 ft is outer shell … the whole house is ONE storey\"): cube3 is a floor plane + a ceiling plane one storey up, gridded at the module pitch, with corner posts of the storey height; porch/ducts/sockets/walk re-based on the module pitch; the full-home cube is 36×36×12. No surface, 2D or 3D, carries the 30 any more. architect-voxel-proportion rewritten to the 36×36×12 truth; architect-geometry-source now asserts the voxel (voxel off the staged allow-list). Only the build-instructions take-off BASIS stays clear-area-derived until R3's BOM unification.",
+      "commit": "37fc03f0b",
+      "title": "R1b — the 3D voxel is the one-storey 36×36×12 shell"
     }
   ]
 }
