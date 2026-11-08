@@ -815,6 +815,13 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
 /** The standard layouts' edition. A stored room whose `layoutRev` is older is re-seated to the decided layout on load
  * (the WireGuard, lib/architect-guard.ts) — "stop reverting" reaches the devices that saved the earlier edition too. */
 export const STANDARD_LAYOUT_REV = 2;
+/** The DECLUTTER edition (operator 2026-11-08 "closet declutter requested 6+ times"). Bumping this re-seats EVERY room's
+ * working layout to its curated default (standardLayoutFor ?? defaultObjectsForRoom) ONCE on load, for every device —
+ * the missing piece behind the reverting clutter: earlier fixes only changed the DEFAULT, never migrated a device whose
+ * working layout was auto-seeded with clutter by an old build. The WireGuard (lib/architect-guard.ts) stamps a cell's
+ * declutterRev when it re-seats; later user edits carry the stamp, so the one-time declutter never wipes a real arrangement
+ * twice. Bump this (not the default alone) whenever a declutter must reach devices that already saved the old clutter. */
+export const DECLUTTER_REV = 1;
 /** The decided layout for a room key (a fresh copy), or null when the room has none (→ the packer). */
 export function standardLayoutFor(roomKey: string): PlacedObject[] | null {
   // R5b (Thor): OWN keys only — STANDARD_LAYOUTS["constructor"] is Object, and `.map` on it threw through the guard.

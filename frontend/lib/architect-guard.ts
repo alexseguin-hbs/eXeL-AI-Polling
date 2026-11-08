@@ -14,7 +14,7 @@
 import { DEFAULT_PARAMS, type FinishTier, type GlobalParams, type HouseStyle } from "./architect-project";
 import { DEFAULT_PROGRAM, type RoomProgram } from "./room-program";
 import { cloneLayout, ELEMENT_MAX, TINY_GRID, type RoomCell } from "./room-layout";
-import { OBJECT_SPEC, ROOM_GRID, VARIANTS, ASSET_PARAMS, STANDARD_LAYOUT_REV, standardLayoutFor, standardLayoutAt, sameArrangement, wallOfObject, alignedRot, footprintOf, clampFootprint, type PlacedObject, type ObjectKind, type ObjectSize, type Rot } from "./room-objects";
+import { OBJECT_SPEC, ROOM_GRID, VARIANTS, ASSET_PARAMS, STANDARD_LAYOUT_REV, DECLUTTER_REV, standardLayoutFor, standardLayoutAt, defaultObjectsForRoom, sameArrangement, wallOfObject, alignedRot, footprintOf, clampFootprint, type PlacedObject, type ObjectKind, type ObjectSize, type Rot } from "./room-objects";
 
 /** The most placements one 10×10 room may hold (a stored array of 50,000 was kept whole — AsM-caught, Thor). */
 export const MAX_OBJECTS_PER_ROOM = 99;
@@ -170,14 +170,26 @@ export function sanitizeRoomLayout(raw: unknown): RoomCell[] {
       ...(() => {
         const std = standardLayoutFor(k);
         const objects = sanitizeObjects(c.objects);
-        if (!std) return objects !== undefined ? { objects } : {};
+        // R2b DECLUTTER MIGRATION (operator "closet declutter requested 6+ times"): the missing piece behind the reverting
+        // clutter — the re-seat below only ever covered the ONE decided room (M), so a device whose working layout was
+        // auto-seeded with clutter by an old build kept it in every OTHER room forever. A cell that predates the current
+        // DECLUTTER_REV is re-seated ONCE, for EVERY room, to its curated default (the decided layout, else the feng-shui
+        // DECOR_DEFAULTS packer) and stamped; later user edits carry the stamp (setRoomObjects spreads the cell), so the
+        // one-time declutter reaches every device and never wipes a real arrangement twice.
+        const declRev = Math.min(boundInt(c.declutterRev ?? 0, 0, 9999), DECLUTTER_REV);
+        if (declRev < DECLUTTER_REV) {
+          const curated = sanitizeObjects(std ?? defaultObjectsForRoom(k)) ?? [];
+          return { objects: curated, layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV };
+        }
+        // already decluttered — the R5b per-room standard-layout edition logic (re-seat an untouched prior edition only)
+        if (!std) return { ...(objects !== undefined ? { objects } : {}), declutterRev: DECLUTTER_REV };
         const rev = Math.min(boundInt(c.layoutRev ?? 0, 0, 9999), STANDARD_LAYOUT_REV);
         if (rev < STANDARD_LAYOUT_REV) {
           const prior = rev > 0 ? sanitizeObjects(standardLayoutAt(k, rev)) : undefined;
           const untouched = objects === undefined || rev === 0 || (prior !== undefined && sameArrangement(objects, prior));
-          if (untouched) return { objects: std, layoutRev: STANDARD_LAYOUT_REV };
+          if (untouched) return { objects: std, layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV };
         }
-        return { ...(objects !== undefined ? { objects } : {}), layoutRev: STANDARD_LAYOUT_REV };
+        return { ...(objects !== undefined ? { objects } : {}), layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV };
       })(),
     });
   }

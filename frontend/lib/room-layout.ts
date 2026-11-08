@@ -22,6 +22,10 @@ export interface RoomCell {
   // R5b — the standard-layout edition this cell's objects were last written at (see STANDARD_LAYOUT_REV in room-objects);
   // absent = before R5b. Optional + additive: the firewall forbids deleting this file, not extending it.
   layoutRev?: number;
+  // R2b (operator 2026-11-08 "closet declutter requested 6+ times") — the DECLUTTER edition this cell was last re-seated at
+  // (see DECLUTTER_REV in room-objects). A device whose cell predates the current edition is re-seated ONCE to the curated
+  // default for EVERY room (not just the decided one), so the declutter reaches every device; later edits carry the stamp.
+  declutterRev?: number;
 }
 /** Kinds a room element editor can step. */
 export type ElementKind = "windows" | "doors" | "outlets";

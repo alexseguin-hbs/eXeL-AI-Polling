@@ -12,7 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  STANDARD_LAYOUTS, STANDARD_LAYOUT_REV, standardLayoutFor, defaultObjectsForRoom, ROOM_ASSETS, paletteForRoom, worldSpan, elevOf,
+  STANDARD_LAYOUTS, STANDARD_LAYOUT_REV, DECLUTTER_REV, standardLayoutFor, defaultObjectsForRoom, ROOM_ASSETS, paletteForRoom, worldSpan, elevOf,
   heightOf, OBJECT_SPEC, ROOM_GRID, STD_SILL_FT, wallOf, wallOfObject, wallRot, alignedRot, placeObject, moveObject, rotateObject,
   mirrorObjects, clampFootprint, STANDARD_LAYOUT_EDITIONS,
 } from "../lib/room-objects.ts";
@@ -92,21 +92,21 @@ const san = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r
 ok(JSON.stringify(san.find((r) => r.k === "M").objects) === JSON.stringify(M), "Layout A′ round-trips through sanitizeRoomLayout unchanged (gx 4.5 stays 4.5)");
 const legacyCell = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [{ id: "dresser-1", kind: "dresser", gx: 2, gy: 7, rot: 0 }, { id: "bed-1", kind: "bed", gx: 0, gy: 0, rot: 0 }] } : r))).find((r) => r.k === "M");
 ok(JSON.stringify(legacyCell.objects) === JSON.stringify(STANDARD_LAYOUTS.M) && legacyCell.layoutRev === STANDARD_LAYOUT_REV, "a bedroom saved at an OLDER edition (no layoutRev — e.g. with its dresser) is re-seated to Layout A′ on load ('stop reverting' reaches every device)");
-const currentCell = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [{ id: "lamp-1", kind: "lamp", gx: 2, gy: 2, rot: 0 }], layoutRev: STANDARD_LAYOUT_REV } : r))).find((r) => r.k === "M");
+const currentCell = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [{ id: "lamp-1", kind: "lamp", gx: 2, gy: 2, rot: 0 }], layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV } : r))).find((r) => r.k === "M");
 ok(currentCell.objects.length === 1 && currentCell.objects[0].kind === "lamp" && currentCell.layoutRev === STANDARD_LAYOUT_REV, "a bedroom written at the CURRENT edition keeps the operator's own arrangement");
 // R5b (Krishna): a seed MERGES into a saved copy, it never replaces the user's own arrangement — only an UNTOUCHED prior edition re-seats.
 const LAYOUT_A_R5 = STANDARD_LAYOUT_EDITIONS[1].M;
 const untouchedA = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: LAYOUT_A_R5.map((o) => ({ ...o })), layoutRev: 1 } : r))).find((r) => r.k === "M");
 ok(JSON.stringify(untouchedA.objects) === JSON.stringify(STANDARD_LAYOUTS.M) && untouchedA.layoutRev === STANDARD_LAYOUT_REV, "an UNTOUCHED Layout A (edition 1, exactly as R5 seeded it) is re-seated to A′");
-const customA = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [...LAYOUT_A_R5.map((o) => (o.id === "bed-1" ? { ...o, gx: 7 } : { ...o })), { id: "lamp-9", kind: "lamp", gx: 2, gy: 2, rot: 0 }], layoutRev: 1 } : r))).find((r) => r.k === "M");
+const customA = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [...LAYOUT_A_R5.map((o) => (o.id === "bed-1" ? { ...o, gx: 7 } : { ...o })), { id: "lamp-9", kind: "lamp", gx: 2, gy: 2, rot: 0 }], declutterRev: DECLUTTER_REV, layoutRev: 1 } : r))).find((r) => r.k === "M");
 ok(customA.objects.some((o) => o.kind === "lamp") && customA.objects.find((o) => o.kind === "bed").gx === 7 && customA.layoutRev === STANDARD_LAYOUT_REV, "a bedroom the user ARRANGED at edition 1 (bed moved, a lamp added) is KEPT and stamped with the current edition");
-const forged = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [{ id: "lamp-1", kind: "lamp", gx: 2, gy: 2, rot: 0 }], layoutRev: 9999 } : r))).find((r) => r.k === "M");
+const forged = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [{ id: "lamp-1", kind: "lamp", gx: 2, gy: 2, rot: 0 }], declutterRev: DECLUTTER_REV, layoutRev: 9999 } : r))).find((r) => r.k === "M");
 ok(forged.layoutRev === STANDARD_LAYOUT_REV && forged.objects.length === 1 && forged.objects[0].kind === "lamp", "a stamp above the current edition is clamped to it — a forged 9999 can never opt out of a future edition");
 let threwK = false; try { sanitizeRoomLayout([{ id: "c", k: "constructor", label: "x", row: 0, col: 0, objects: [] }, { id: "p", k: "__proto__", label: "x", row: 0, col: 0 }]); } catch { threwK = true; }
 ok(!threwK && standardLayoutFor("constructor") === null && Array.isArray(paletteForRoom("constructor")) && defaultObjectsForRoom("__proto__").length === 0, "a room key that is an inherited Object key never throws through the guard, the palette or the defaults (Thor)");
-const emptied = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [], layoutRev: STANDARD_LAYOUT_REV } : r))).find((r) => r.k === "M");
+const emptied = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [], layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV } : r))).find((r) => r.k === "M");
 ok(Array.isArray(emptied.objects) && emptied.objects.length === 0, "an emptied room ([]) stays empty on reload (it used to come back as the default)");
-const packedCell = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "K" ? { ...r, objects: [{ id: "stove-1", kind: "stove", gx: 3, gy: 3, rot: 0 }] } : r))).find((r) => r.k === "K");
+const packedCell = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "K" ? { ...r, objects: [{ id: "stove-1", kind: "stove", gx: 3, gy: 3, rot: 0 }], declutterRev: DECLUTTER_REV } : r))).find((r) => r.k === "K");
 ok(packedCell.objects.length === 1 && packedCell.layoutRev === undefined, "a room without a decided layout keeps its stored objects and gets no edition stamp");
 
 // ── 6. SIMPLE is the designer's default; ⚙ Advanced is opt-in; the CAD chrome is gated on it ──
@@ -149,7 +149,7 @@ const mvLocked = moveObject([pw], pw.id, 0, 0, "W")[0];
 ok(mvLocked.rot === 90 && wallOfObject(mvLocked) === "W", "a drag that LOCKED the W wall keeps W at the corner cell (wallOf alone would say N)");
 ok(wallOfObject({ gx: 0, gy: 0, rot: 90 }) === "W" && wallOfObject({ gx: 0, gy: 0, rot: 0 }) === "N", "wallOfObject breaks a corner tie by the piece's own axis");
 ok(alignedRot(180, "N") === 180 && alignedRot(90, "N") === 0 && alignedRot(270, "E") === 270 && alignedRot(0, "W") === 90, "alignedRot keeps a 180° flip and snaps a perpendicular rotation to the wall");
-const legacy = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, layoutRev: STANDARD_LAYOUT_REV, objects: [{ id: "window-9", kind: "window", gx: 0, gy: 5, rot: 0 }] } : r))).find((r) => r.k === "M").objects[0];
+const legacy = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV, objects: [{ id: "window-9", kind: "window", gx: 0, gy: 5, rot: 0 }] } : r))).find((r) => r.k === "M").objects[0];
 ok(legacy.rot === 90, `the WireGuard normalises a legacy misaligned W-wall window to rot 90 (got ${legacy.rot})`);
 // the R5 half-foot behaviour, finally gated: mirror h/v and rotate keep the half-foot centres (a Math.round revert fails here)
 const mh = mirrorObjects(M, "h"), mvv = mirrorObjects(M, "v");
@@ -161,7 +161,7 @@ ok(rb.rot === 90 && near(rb.gx, 4.5) && near(rb.gy, 2.5), "Rotate keeps the bed'
 ok(near(clampFootprint(0, 0, 5, 6, 0).gx, 2) && near(clampFootprint(0, 0, 5, 6, 0).gy, 2.5) && near(moveObject([bed], "bed-1", 4, 0)[0].gy, 2.5), "an integer drag lands FLUSH to the wall (the rounded cell is clamped to the fractional bounds — J1)");
 
 // ── 8. R5b — the WireGuard admits only OWN kinds, caps the volume, clamps a stored footprint inside, keeps a flush thin piece ──
-const hostile = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, layoutRev: STANDARD_LAYOUT_REV, objects: [
+const hostile = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV, objects: [
   { id: "x1", kind: "constructor", gx: 1, gy: 1, rot: 0 }, { id: "x2", kind: "__proto__", gx: 1, gy: 1, rot: 0 }, { id: "x3", kind: "toString", gx: 1, gy: 1, rot: 0 }, { id: "x4", kind: "hasOwnProperty", gx: 1, gy: 1, rot: 0 },
   { id: "bed-9", kind: "bed", gx: 9, gy: 9, rot: 0 }, { id: "ok-1", kind: "lamp", gx: 2, gy: 2, rot: 0 }, { id: "mirror-flush", kind: "mirror", gx: -0.4, gy: 5, rot: 90 } ] } : r))).find((r) => r.k === "M").objects;
 ok(hostile.length === 3 && hostile.every((o) => Object.hasOwn(OBJECT_SPEC, o.kind)), "inherited-property kinds (constructor / __proto__ / toString / hasOwnProperty) are dropped by the WireGuard (kept: " + hostile.map((o) => o.kind).join(",") + ")");
@@ -169,10 +169,30 @@ const bed9 = hostile.find((o) => o.kind === "bed"); const b9 = worldSpan(bed9);
 ok(b9.x2 <= ROOM_GRID + 1e-9 && b9.y2 <= ROOM_GRID + 1e-9 && b9.x1 >= -1e-9, "a stored bed at gx 9 is clamped fully inside the room on load (x " + b9.x1 + "–" + b9.x2 + " · y " + b9.y1 + "–" + b9.y2 + ")");
 const flush = hostile.find((o) => o.kind === "mirror");
 ok(near(flush.gx, -0.4) && near(worldSpan(flush).x1, 0), "a thin wall piece flush to the W wall (gx −0.4, a legal half-foot centre) survives the round-trip unmoved");
-const flood = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, layoutRev: STANDARD_LAYOUT_REV, objects: Array.from({ length: 50000 }, (_, i) => ({ id: "l" + i, kind: "lamp", gx: 1, gy: 1, rot: 0 })) } : r))).find((r) => r.k === "M").objects;
+const flood = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV, objects: Array.from({ length: 50000 }, (_, i) => ({ id: "l" + i, kind: "lamp", gx: 1, gy: 1, rot: 0 })) } : r))).find((r) => r.k === "M").objects;
 ok(flood.length === MAX_OBJECTS_PER_ROOM, `a stored array of 50,000 objects is capped at ${MAX_OBJECTS_PER_ROOM} (got ${flood.length})`);
-const longId = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, layoutRev: STANDARD_LAYOUT_REV, objects: [{ id: "x".repeat(5000), kind: "lamp", gx: 1, gy: 1, rot: 0 }, { id: "dup", kind: "lamp", gx: 1, gy: 1, rot: 0 }, { id: "dup", kind: "lamp", gx: 2, gy: 2, rot: 0 }] } : r))).find((r) => r.k === "M").objects;
+const longId = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV, objects: [{ id: "x".repeat(5000), kind: "lamp", gx: 1, gy: 1, rot: 0 }, { id: "dup", kind: "lamp", gx: 1, gy: 1, rot: 0 }, { id: "dup", kind: "lamp", gx: 2, gy: 2, rot: 0 }] } : r))).find((r) => r.k === "M").objects;
 ok(longId.length === 2 && longId[0].id.length === 64, "ids are capped at 64 chars and duplicate ids are dropped");
+
+// ── 9. R2b — THE DECLUTTER MIGRATION reaches every device (operator 2026-11-08 "closet declutter requested 6+ times") ──
+// A device whose working layout was auto-seeded with clutter by an old build (no declutterRev) is re-seated ONCE to the
+// curated default for EVERY room — the missing piece behind the reverting clutter (the old re-seat covered only room M).
+const clutteredCloset = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "C"
+  ? { ...r, objects: [
+      ...Array.from({ length: 12 }, (_, i) => ({ id: "asset-" + i, kind: "asset", assetId: "sofa.v1", gx: (i % 9), gy: ((i / 9) | 0), rot: 0 })),
+      { id: "wardrobe-x", kind: "wardrobe", gx: 1, gy: 1, rot: 0 }, { id: "dresser-x", kind: "dresser", gx: 3, gy: 3, rot: 0 },
+    ] /* NO declutterRev — a pre-migration device */ }
+  : r))).find((r) => r.k === "C");
+const curatedC = defaultObjectsForRoom("C");
+ok(clutteredCloset.objects.length === curatedC.length && !clutteredCloset.objects.some((o) => o.kind === "asset")
+   && clutteredCloset.objects.every((o, i) => o.kind === curatedC[i].kind) && clutteredCloset.declutterRev === DECLUTTER_REV,
+  `a pre-migration cluttered closet (14 objects incl. auto-seeded library assets) is decluttered to its curated default (${curatedC.length} items: ${curatedC.map((o) => o.kind).join("/")}) and stamped — the declutter reaches the device`);
+// …and once stamped, a genuine arrangement the user makes AFTER the migration is KEPT (never wiped twice).
+const arrangedAfter = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "C"
+  ? { ...r, declutterRev: DECLUTTER_REV, objects: [{ id: "wardrobe-1", kind: "wardrobe", gx: 5, gy: 2, rot: 0 }, { id: "lamp-1", kind: "lamp", gx: 1, gy: 1, rot: 0 }] }
+  : r))).find((r) => r.k === "C");
+ok(arrangedAfter.objects.length === 2 && arrangedAfter.objects.some((o) => o.kind === "lamp") && arrangedAfter.declutterRev === DECLUTTER_REV,
+  "a stamped room (declutterRev set) keeps the user's own post-migration arrangement — the one-time declutter never wipes twice");
 
 console.log(`\nROOM-STANDARD-LAYOUT ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);
