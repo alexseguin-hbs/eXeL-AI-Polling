@@ -37,7 +37,8 @@ import { Stick } from "@/components/drone-2525/stick";           // REUSE the ac
 import { semanticHex } from "@/lib/wire-core/palette";           // Drone-2525's own stick colours (mount = body, frustum = head)
 import { useLexicon } from "@/lib/lexicon-context";
 import { loadAssetMeshFt, instanceTriangles, meshToFaces, type AssetMesh } from "@/lib/architect-2525/assets/index-runtime"; // Rev A' — the 139-GLB library, consumed by the SVG projector (E3 core)
-import { ASSET_ID_BY_KIND } from "@/lib/architect-2525/assets/registry";                                                    // a kind → its library id (so the 29 kinds render their real mesh too)
+import { ASSET_ID_BY_KIND } from "@/lib/architect-2525/assets/registry";
+import { visibleInPhase } from "@/lib/architect-2525/assets/phase-compatibility"; // Phase 0 — a seeded library asset ("asset" carrier) shows in ITS real phase, not the generic furniture layer                                                    // a kind → its library id (so the 29 kinds render their real mesh too)
 
 const C = { bg: "#0a0f16", ink: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", gold: "#ffd400", wall: "#2a3a4f", floor: "#121b26", ceil: "#0c131c", edge: "#1e2b3a", ground: "#0b1410" };
 const CEIL_FT = STOREY_FT, EYE_FT = 5.5;             // one 10-ft storey = the cube (ONE source: room-layout STOREY_FT); eye ~5.5 ft
@@ -290,7 +291,7 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   };
   const doorOpen = { span: DOOR_W, z0: 0, z1: DOOR_H };
   const winOpen = { span: WIN_W, z0: WIN_SILL, z1: WIN_HEAD };
-  const inPhase = (o: PlacedObject) => showGroupInPhase(groupOf(o.kind), phase);
+  const inPhase = (o: PlacedObject) => (o.kind === "asset" && o.assetId) ? visibleInPhase(o.assetId, phase) : showGroupInPhase(groupOf(o.kind), phase);
   // FURNITURE box with the Y-FLIP (plan gy 0 = NORTH → world far): worldCY = oy + (ROOM_FT − (gy + 0.5)).
   const furnBox = (o: PlacedObject, ox: number, oy: number, lod1 = false): Quad[] => {
     const fp = footprintOf(o); const swap = o.rot === 90 || o.rot === 270;

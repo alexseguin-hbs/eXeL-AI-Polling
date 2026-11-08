@@ -17,6 +17,7 @@ import type { RoomProgram } from "@/lib/room-program";
 import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, setRoomObjects, toggleRoomFurniture, ROOM_FT, type RoomCell, type ElementKind } from "@/lib/room-layout";
 import { RoomDesigner } from "./room-designer";
 import { ArchitectWalkthrough } from "./architect-walkthrough";
+import { seedHouseFromLibrary } from "@/lib/architect-2525/assets/house-seed"; // Phase 0 — the default house holds all 139 library assets (rooms with no saved objects get seeded; user edits win)
 import { WalkRaster, EditGlyph } from "./architect-walk-icons";
 import { STANDARD_LAYOUT_REV, type PlacedObject } from "@/lib/room-objects";
 import { PhaseBar } from "./phase-bar";
@@ -93,7 +94,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   // (never a value-effect) — the repo's usePersistentSet pattern — so the mount load can't be clobbered.
   const RL_KEY = "arch2525.roomLayout";
   // WireGuard: a stored layout is untrusted — sanitize (clamp grid/size/element counts, drop malformed) at the boundary.
-  useEffect(() => { try { const v = localStorage.getItem(RL_KEY); if (v) setRoomLayout(sanitizeRoomLayout(JSON.parse(v))); } catch {} }, []);
+  useEffect(() => { try { const v = localStorage.getItem(RL_KEY); if (v) setRoomLayout(seedHouseFromLibrary(sanitizeRoomLayout(JSON.parse(v)))); } catch {} }, []);
   const persistLayout = (next: RoomCell[]) => { try { localStorage.setItem(RL_KEY, JSON.stringify(next)); } catch {} return next; };
   // SUPABASE durability — the room-furniture layouts lived only in localStorage, so a cache-clear / new device lost
   // every interior. Best-effort cloud rung (mirrors architect-saved-files): load cloud on mount (durable, cross-device),
@@ -102,7 +103,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (cloudEnabled()) { const cloud = await loadRoomLayout(); if (!cancelled && cloud && cloud.length) { setRoomLayout(cloud); persistLayout(cloud); } }
+      if (cloudEnabled()) { const cloud = await loadRoomLayout(); if (!cancelled && cloud && cloud.length) { const seeded = seedHouseFromLibrary(cloud); setRoomLayout(seeded); persistLayout(seeded); } }
       skipCloudSave.current = false;
     })();
     return () => { cancelled = true; };
