@@ -20,7 +20,7 @@ ok(STOREY_FT === 10 && ROOM_FT === 10 && TINY_HOME.ceilingFt === 10, `the storey
 const rd = read("../components/architect-2525/room-designer.tsx");
 ok(/const N = ROOM_GRID; \/\/ 10/.test(rd), "the room designer's 10-ft room cube reads ROOM_GRID (one source)");
 const vox = read("../components/architect-2525/voxel-house.tsx");
-ok(/STOREY_FT \* VOXEL_PX_PER_FT/.test(vox) && VOXEL_PX_PER_FT === 66 / 30, "the voxel derives its storey height from STOREY_FT × VOXEL_PX_PER_FT (one source)");
+ok(/STOREY_FT \* VOXEL_PX_PER_FT/.test(vox) && VOXEL_PX_PER_FT === 66 / HOUSE_FT, "the voxel derives its storey height from STOREY_FT × VOXEL_PX_PER_FT (one source; the 36-ft shell is 66 px)");
 // DEFAULT_PROGRAM.ceilingFt (9) is a DIFFERENT scope — the generic multi-style home program default, not the Tiny/canonical storey. Declared, not a drift.
 ok(DEFAULT_PROGRAM.ceilingFt === 9, "DEFAULT_PROGRAM ceiling 9 ft is the generic-home default (a DECLARED different scope, not the Tiny storey)");
 // NEGATIVE pin (AsM 2026-10-31, Aset V4): no THIRD ceiling/storey value may reappear in the geometry/voxel sources — only the

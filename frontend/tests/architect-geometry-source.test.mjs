@@ -60,13 +60,17 @@ ok(!/Gross Building Area"\s+value="NOT CALCULATED"/.test(cmd), "the Overview 'Gr
 const ms = strip(read("../components/architect-2525/metric-strip.tsx"));
 ok(/label: "Sq Ft", value: m\.usableSqft/.test(ms), "the metric strip's 'Sq Ft' reads the living (usable/clear) area");
 
-// ── 5. STAGED ALLOW-LIST (honest scope) — these still carry a 30-derived number, by design, until their revision ──
-// R1b: the 3D voxel footprint (voxel-house.tsx) still scales on TINY_SIDE_FT and draws the 30×30×30 cube3 metaphor; it
-//      shows NO shell-dimension string to the user, so it does not contradict the displayed 36 here. Reconciled in R1b.
-// R3 : the build-instructions take-off BASIS (formGeometry side = √clear-area) still yields 30 for quantities, not a
-//      displayed dimension; the BOM/take-off unification re-seats it on the 36 shell in R3.
-// This comment IS the allow-list of record; the gate deliberately does not scan voxel-house.tsx or formGeometry's side.
-ok(true, "staged allow-list recorded: voxel footprint → R1b · take-off basis → R3 (neither shows a 30 shell dimension)");
+// ── 5. THE 3D VOXEL now reads the 36-ft shell too (R1b — done) ──
+const vx = strip(read("../components/architect-2525/voxel-house.tsx"));
+ok(/const cell = Math\.round\(HOUSE_FT \* VOXEL_PX_PER_FT\)/.test(vx), "the 3D voxel's house footprint is the 36-ft shell (HOUSE_FT), not the old 30-ft envelope");
+ok(!/TINY_SIDE_FT/.test(vx), "the 3D voxel no longer references TINY_SIDE_FT (the 30-ft envelope) at all");
+ok(/36×36×12 one-storey shell/.test(vx), "the 3D voxel names the 36×36×12 one-storey shell");
+
+// ── 6. STAGED ALLOW-LIST (honest scope) — the one number still clear-area-derived, by design, until R3 ──
+// R3: the build-instructions take-off BASIS (formGeometry side = √clear-area) still yields 30 for quantities, not a
+//     displayed dimension; the BOM/take-off unification re-seats it on the 36 shell in R3. This comment IS the allow-list
+//     of record; the gate deliberately does not scan formGeometry's `side`.
+ok(true, "staged allow-list recorded: take-off basis → R3 (not a displayed shell dimension)");
 
 console.log(`\narchitect-geometry-source: ${pass} passed, ${fail} failed · one 36×36 geometry source on every displayed surface`);
 process.exit(fail ? 1 : 0);

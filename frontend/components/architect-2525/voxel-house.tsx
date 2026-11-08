@@ -10,12 +10,12 @@
  *    (Mission-Planning `voxelSel`). House sits in the middle.
  *  • ROTATE / ZOOM / TILT — drag to orbit the bearing (horizontal) + tilt the pitch (vertical);
  *    wheel to zoom. NORTH is the default heading; a compass rose rides the corner.
- *  • TINY HOME default (operator finalized design) — a 3×3×1 labeled-room layout: 30'×30'×10',
- *    each room a 10' cube (~900 ft²) — level 1 of a 30-ft HOUSE cube (3×3×3 of 10-ft voxels, R5c). Rows: Master-Bedroom·Master-Bath·Master-Closet /
+ *  • TINY HOME default (operator finalized design, H.I. 2026-11-08) — a 3×3 labeled-room layout in a 36'×36'×12' outer
+ *    shell: nine 10' CLEAR rooms (~900 ft²) nested in 12' modules with a 1-ft reserved zone each side, ONE storey. Rows: Master-Bedroom·Master-Bath·Master-Closet /
  *    Living·Kitchen·Dining / Office·Storage-Laundry·Entry-Porch. Cyan exterior land base +
  *    violet interior room voxels + labels + a front porch stair. (Layout is adjacency only — cost
  *    is unchanged; the cost/schedule engine is untouched.)
- *  • FULL HOME — the generic 3×3×3 land base with a single house cube at the centre (2,2) cell.
+ *  • FULL HOME — the generic 3×3 land base with a single 36×36×12 house cube at the centre (2,2) cell.
  * Elevation surfaces are LIVE: the 8 land cells around the pad rise/fall to their procedural altitude
  * (grass-shaded slabs + skirts), the four outer corners carry visible altitude labels, and a
  * North-default compass rides the corner (F1 · #136; terrain math + determinism lock in lib/terrain.ts).
@@ -26,7 +26,7 @@ import { Compass2525 } from "./compass-2525";
 import type { HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 import { elevAt, cornerAltitudes, mToFt } from "@/lib/terrain";
-import { TINY_ROOM_LAYOUT, TINY_SIDE_FT, VOXEL_PX_PER_FT, STOREY_FT, STEP_RISE_FT, type RoomCell } from "@/lib/room-layout";
+import { TINY_ROOM_LAYOUT, HOUSE_FT, SHELL_FT, ROOM_FT, HOUSE_H, VOXEL_PX_PER_FT, STOREY_FT, STEP_RISE_FT, type RoomCell } from "@/lib/room-layout";
 import { OBJECT_SPEC, worldSpan, defaultObjectsForRoom, heightOf, elevOf, ROOM_GRID, type PlacedObject } from "@/lib/room-objects";
 import { OUTLET_AFF_FT, outletMarkers } from "@/lib/mep-runs";
 import { doorSymbol, arcPoints } from "@/lib/door-symbol";
@@ -55,13 +55,17 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   const selId = onSelectRoom ? (selectedRoomId ?? null) : selLocal;
   const selectRoom = (id: string) => { if (onSelectRoom) onSelectRoom(id); else setSelLocal((s) => (s === id ? null : id)); };
   // Room-based render applies to the unlocked markets — Tiny Home AND Home (MF/Commercial locked). Both show the
-  // 9-room ground floor as LEVEL 1 of a 3×3×3 cube (operator: "voxel = first level of a 3×3×3 cube").
+  // the 9-room floor of the ONE-storey 36×36×12 shell (H.I. 2026-11-08; supersedes the earlier 3×3×3 three-storey reading).
   const tiny = homeType === "tiny" || homeType === "full";
 
-  // THE VOXEL PROPORTION LAW (lib/room-layout.ts): the land cell is the 30-ft house at VOXEL_PX_PER_FT (66 px); a storey is
-  // STOREY_FT (10 ft) at the same scale (22 px) — so every vertical below is a real height, never a free pixel number.
-  const cell = Math.round(TINY_SIDE_FT * VOXEL_PX_PER_FT), n = 3, box = n * cell; // land-base cell (px); the house = the centre cell at 1× voxel size
-  const storeyPx = STOREY_FT * VOXEL_PX_PER_FT;                                   // 22 px — one 10-ft storey (= one room edge)
+  // THE VOXEL PROPORTION LAW (lib/room-layout.ts), re-seated on the SHELL (H.I. 2026-11-08): the house land cell is the
+  // 36-ft shell at VOXEL_PX_PER_FT (66 px); a storey is STOREY_FT (10 ft) at the same scale — so every vertical below is a
+  // real height, never a free pixel number. The 12-ft outer module and the 10-ft clear room derive from the one source too,
+  // so the rooms tile the shell at the 12-ft module pitch with the 1-ft reserved zone showing as the gap.
+  const cell = Math.round(HOUSE_FT * VOXEL_PX_PER_FT), n = 3, box = n * cell; // land-base cell (px); the house = the centre cell (36 ft) at 1× voxel size
+  const modulePx = SHELL_FT * VOXEL_PX_PER_FT;                                    // the 12-ft outer-module pitch (3 modules = one house cell)
+  const storeyPx = STOREY_FT * VOXEL_PX_PER_FT;                                   // one 10-ft storey (= one clear-room edge)
+  const houseHpx = HOUSE_H * VOXEL_PX_PER_FT;                                     // the 12-ft one-storey shell height
   const at = (t: string): CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
   const face = (t: string, w: number, h: number, color: string, solid: boolean, bw = 1): CSSProperties =>
     ({ ...at(t), width: w, height: h, border: `${bw}px ${solid ? "solid" : "dashed"} ${color}`, background: solid ? `${color}22` : "transparent" });
@@ -176,9 +180,12 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   // A room/house cube at grid index, of edge `size`, laid out on a `size`-pitch 3×3 (so 3 rooms span 3·size).
   // 4 violet walls + a clickable top face carrying the label. `cx/cy` shift the whole 3×3 into a parent cell.
   // Its height = its edge: a room is a 10 × 10 × 10 ft voxel (size = storeyPx); the single locked-market house cube is
-  // the whole 30-ft cell — three storeys tall (the proportion law: height is a real height).
-  const roomCube = (id: string, label: string, key: string, size: number, row: number, col: number, cx = 0, cy = 0, opts: { color?: string; font?: number; furn?: boolean; objects?: PlacedObject[] } = {}) => {
-    const x = cx + (col - 1) * size, y = cy + (row - 1) * size, h = size;
+  // the whole 36-ft cell at the one-storey shell height (the proportion law: height is a real height).
+  const roomCube = (id: string, label: string, key: string, size: number, row: number, col: number, cx = 0, cy = 0, opts: { color?: string; font?: number; furn?: boolean; objects?: PlacedObject[]; pitch?: number; hpx?: number } = {}) => {
+    // position stride = the 12-ft outer-module pitch (opts.pitch); the cube itself is drawn at `size` (the 10-ft clear room),
+    // so the 1-ft reserved wall/service zone shows as the gap between modules. Height = opts.hpx (shell) or the cube edge.
+    const pitch = opts.pitch ?? size;
+    const x = cx + (col - 1) * pitch, y = cy + (row - 1) * pitch, h = opts.hpx ?? size;
     const selected = selId === id;
     const color = selected ? C.gold : (opts.color ?? C.violet);
     return (
@@ -208,7 +215,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   // The tiny HOUSE occupies the MIDDLE cube of the 3×3 land base at 1× voxel size (Mission-Planning tier):
   // its 9 rooms are a 3×3 sub-grid nested inside the centre cell (a room's edge = one storey = cell/3), so the
   // surrounding 8 cells stay as LAND (elevation surfaces land next). Zoom in (scroll) to read the room labels.
-  const roomSize = storeyPx;   // 22 px — the 10-ft room edge IS the 10-ft storey (cell / 3)
+  const roomSize = storeyPx;   // the 10-ft CLEAR-room edge (= one storey); the 12-ft outer-module pitch is modulePx (cell / 3)
   // SINGLE-FINGER SMOOTHNESS (operator 2026-10-25) — the 9 room cubes are the heaviest subtree (~60 CSS-3D faces +
   // furniture). Memoize them on the data that actually shapes them (layout · selection · wall width) so a camera
   // orbit re-renders ONLY the transform wrappers, not the rooms — the one-finger orbit is then as smooth as the
@@ -216,18 +223,18 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   // showFurniture=false (a construction phase is selected on the Design plan — operator 2026-11-01 "interior elements go
   // away") → draw the room shells WITHOUT the furniture layer; the one Interior Design phase (showFurniture=true) keeps it.
-  const roomCubes = useMemo(() => layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture && showFurniture, objects: showFurniture ? (r.objects ?? defaultObjectsForRoom(r.k)) : [] })), [layout, selId, wallW, roomSize, showFurniture]);
+  const roomCubes = useMemo(() => layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, pitch: modulePx, furn: r.furniture && showFurniture, objects: showFurniture ? (r.objects ?? defaultObjectsForRoom(r.k)) : [] })), [layout, selId, wallW, roomSize, modulePx, showFurniture]);
   // WALK MODE (operator: "wireframe low-fidelity walkthrough must be possible") — drop to near eye-level,
   // zoom in, and centre the scene on the current room so you step through the wireframe room by room.
   const walkRoom = walk && tiny ? layout.find((r) => r.id === walkRoomId) : undefined;
-  const wx = walkRoom ? (walkRoom.col - 1) * roomSize : 0;
-  const wy = walkRoom ? (walkRoom.row - 1) * roomSize : 0;
+  const wx = walkRoom ? (walkRoom.col - 1) * modulePx : 0;   // centre on the walk room at the 12-ft module pitch (matches roomCubes)
+  const wy = walkRoom ? (walkRoom.row - 1) * modulePx : 0;
   const effPitch = pitch;               // walk enters at eye level (effect above), then FREE look up/down to see walls & corners; orbit = dollhouse tilt
   const effZoom = walk ? 3.2 : zoom;    // stand inside the room
   // Front porch stair — off the Entry room (E, sub-idx 8) at the front edge of the centre cell.
   const rise = STEP_RISE_FT * VOXEL_PX_PER_FT;   // a 7-in riser at scale (three steps ≈ 21 in up to the porch)
   const porch = tiny ? (
-    <div data-arch-voxel-porch style={{ ...at(`translate3d(${roomSize}px,${cell / 2 + 3}px,0px)`), transformStyle: "preserve-3d" }}>
+    <div data-arch-voxel-porch style={{ ...at(`translate3d(${modulePx}px,${cell / 2 + 3}px,0px)`), transformStyle: "preserve-3d" }}>
       {[0, 1, 2].map((s) => (
         <div key={s} style={face(`translate3d(0px,${s * 4}px,${(3 - s) * rise}px)`, roomSize * 0.8, 4, C.cyan, true)} />
       ))}
@@ -238,9 +245,9 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   // ceiling height across the tiny home, so ductwork reads in 3D. Low-fi cyan slabs; toggled from the header.
   const ducts = hvac && tiny ? (
     <div data-arch-voxel-hvac style={{ transformStyle: "preserve-3d" }}>
-      <div style={face(`translate3d(0px,0px,${storeyPx + 3}px)`, roomSize * 2.7, 6, "#38bdf8", true)} />{/* E-W trunk, just above the ceiling */}
-      {[-1, 0, 1].map((r) => <div key={r} style={face(`translate3d(0px,${r * roomSize}px,${storeyPx + 3}px)`, 5, roomSize * 0.9, "#38bdf8", true)} />)}{/* N-S branches per row */}
-      {[-1, 0, 1].map((c) => <div key={`v${c}`} style={{ ...at(`translate3d(${c * roomSize}px,${roomSize}px,${storeyPx}px)`), width: 5, height: 3, background: "#38bdf8" }} />)}{/* register drops */}
+      <div style={face(`translate3d(0px,0px,${storeyPx + 3}px)`, cell * 0.92, 6, "#38bdf8", true)} />{/* E-W trunk across the 36-ft shell, just above the ceiling */}
+      {[-1, 0, 1].map((r) => <div key={r} style={face(`translate3d(0px,${r * modulePx}px,${storeyPx + 3}px)`, 5, roomSize * 0.9, "#38bdf8", true)} />)}{/* N-S branches per room row (12-ft module pitch) */}
+      {[-1, 0, 1].map((c) => <div key={`v${c}`} style={{ ...at(`translate3d(${c * modulePx}px,${modulePx}px,${storeyPx}px)`), width: 5, height: 3, background: "#38bdf8" }} />)}{/* register drops */}
     </div>
   ) : null;
 
@@ -262,29 +269,27 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
     </div>
   ) : null;
 
-  // 3×3×3 CUBE — THE HOUSE CUBE, A TRUE CUBE AT REAL PROPORTION (operator 2026-10-25: "voxel needs to be cube where
-  // 3x3x3 shape is same pixels tall, wide, and long" · 2026-10-31: "remember voxel pixel height and width for 3x3x3 is
-  // to be realistically proportional"). Both hold under one reading: the cube is 3 rooms × 3 rooms × 3 STOREYS of 10-ft
-  // voxels = 30 × 30 × 30 ft = cell × cell × cell px, standing on the centre land cell; the nine rooms are its level 1
-  // (the caption's own sentence), the two ruled levels above are the storeys to grow up into, and the eight land cells
-  // around it stay the elevation parcel. (R5c replaced the parcel-wide cube whose levels stacked 30 ft apart — a 90-ft
-  // wireframe over a 10-ft house.) Applies to BOTH unlocked markets (Tiny + Home).
+  // THE HOUSE SHELL — ONE STOREY, 36×36×12 (H.I. 2026-11-08: "36x36x12 ft is outer shell to allow for inner of 10×10×10";
+  // "the whole house is ONE storey — 9 rooms on one floor = 900 ft²"). A floor plane + a ceiling plane ONE storey up, both
+  // gridded at the 12-ft outer-module pitch (3 modules = the 36-ft shell), joined by four corner posts of the storey height.
+  // This SUPERSEDES the old 30×30×30 three-storey cube metaphor (operator's earlier reading) per his own nested-cube ruling:
+  // the house is one floor of nine 10-ft clear rooms, each in a 12-ft module with a 1-ft reserved zone. Both unlocked markets.
   const cube3 = (
     <div data-arch-voxel-cube style={{ transformStyle: "preserve-3d" }}>
-      {[1, 2, 3].map((k) => (
-        <div key={`cg${k}`} style={{ ...at(`translateZ(${k * storeyPx}px)`), width: cell, height: cell,
-          border: `${k === 3 ? 2 : 1}px solid ${C.cyan}${k === 3 ? "aa" : "33"}`,
-          backgroundImage: `repeating-linear-gradient(to right, ${C.cyan}22 0 1px, transparent 1px ${roomSize}px), repeating-linear-gradient(to bottom, ${C.cyan}22 0 1px, transparent 1px ${roomSize}px)` }} />
+      {[0, houseHpx].map((z, k) => (
+        <div key={`cg${k}`} style={{ ...at(`translateZ(${z}px)`), width: cell, height: cell,
+          border: `${k === 1 ? 2 : 1}px solid ${C.cyan}${k === 1 ? "aa" : "33"}`,
+          backgroundImage: `repeating-linear-gradient(to right, ${C.cyan}22 0 1px, transparent 1px ${modulePx}px), repeating-linear-gradient(to bottom, ${C.cyan}22 0 1px, transparent 1px ${modulePx}px)` }} />
       ))}
       {([[-1, -1], [1, -1], [-1, 1], [1, 1]] as const).map(([sx, sy], i) => (
-        <div key={`cp${i}`} style={{ ...at(`translate3d(${sx * cell / 2}px,${sy * cell / 2}px,${cell / 2}px) rotateX(90deg)`), width: 1.6, height: cell, background: `${C.cyan}66` }} />
+        <div key={`cp${i}`} style={{ ...at(`translate3d(${sx * cell / 2}px,${sy * cell / 2}px,${houseHpx / 2}px) rotateX(90deg)`), width: 1.6, height: houseHpx, background: `${C.cyan}66` }} />
       ))}
     </div>
   );
 
   const beds = program?.bedrooms;
   const caption = tiny
-    ? "Tiny Home · house = level 1 of the 3×3×3 cube · surrounding land shows elevation · drag (one finger) rotate/tilt · pinch/scroll zoom"
+    ? "Tiny Home · 36×36×12 one-storey shell · nine 10' clear rooms · surrounding land shows elevation · drag (one finger) rotate/tilt · pinch/scroll zoom"
     : `3×3 land base · house at centre · surrounding land shows elevation${beds ? ` · ${beds} bed` : ""} · drag (one finger) rotate/tilt · pinch/scroll zoom`;
 
   return (
@@ -299,7 +304,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
           {cube3}
           {tiny
             ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCubes}{porch}{ducts}{sockets}</div>
-            : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube("house", "House", "H", cell, 1, 1)}</div>}
+            : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube("house", "House", "H", cell, 1, 1, 0, 0, { hpx: houseHpx })}</div>}
         </div>
       </div>
 
