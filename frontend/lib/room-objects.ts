@@ -697,6 +697,27 @@ export const ROOM_ASSETS: Record<string, ObjectKind[]> = {
 };
 /** Openings + structural shell offered in EVERY room (walls, roof, doors, windows exist everywhere). */
 export const COMMON_ASSETS: ObjectKind[] = ["door", "window", "shell", "roof"];
+
+/**
+ * FENG-SHUI DEFAULT SET (operator 2026-11-08: "apply some feng shui practices; its way too cluttered"). The default house
+ * furnishes each room with only its ESSENTIAL pieces, not every ROOM_ASSETS kind — fewer items, open centre, clear flow
+ * (the Master Bedroom's curated Layout A′ is the model). This decides the DEFAULT layout only; `paletteForRoom` still
+ * offers the full ROOM_ASSETS so the user can add anything. A room not listed here falls back to its ROOM_ASSETS.
+ * Pure/deterministic; every kind is a member of that room's ROOM_ASSETS (gated). The packer keeps the door lane + reads
+ * these fewest-items sets, so a room breathes instead of piling up.
+ */
+export const DECOR_DEFAULTS: Record<string, ObjectKind[]> = {
+  // M (Master Bedroom) is intentionally omitted — it has the decided STANDARD_LAYOUTS.M (Layout A′), already decluttered.
+  B: ["toilet", "sink", "shower"],              // bath essentials
+  C: ["wardrobe", "dresser", "shelving"],       // closet storage
+  L: ["sofa", "table", "tv"],                   // seating · surface · focal
+  K: ["counter", "fridge", "stove", "sink"],    // the kitchen work triangle
+  D: ["table", "chair"],                         // a dining table + seat (the room's centre)
+  O: ["desk", "chair", "bookshelf"],            // a work desk in the commanding position
+  S: ["washer", "sink"],                         // laundry essentials
+  E: ["chair"],                                  // entry stays open & welcoming (one seat)
+};
+
 /** General fallback palette for an unknown room key — a broad furniture set. */
 const GENERAL_ASSETS: ObjectKind[] = ["bed", "sofa", "counter", "table", "desk", "chair", "toilet", "sink"];
 /** The palette for a room: its context assets (or a general set) + the common openings/shell, de-duplicated (S3). */
@@ -720,7 +741,10 @@ export function paletteForRoom(roomKey: string): ObjectKind[] {
 export function defaultObjectsForRoom(roomKey: string): PlacedObject[] {
   const std = standardLayoutFor(roomKey);
   if (std) return std;
-  const kinds = Object.hasOwn(ROOM_ASSETS, roomKey) ? ROOM_ASSETS[roomKey] : [];
+  // feng shui (operator 2026-11-08): the DEFAULT uses the decluttered essentials set when the room has one, else its
+  // full ROOM_ASSETS. Fewer pieces → open centre, clear flow. The palette (paletteForRoom) is unchanged.
+  const kinds = Object.hasOwn(DECOR_DEFAULTS, roomKey) ? DECOR_DEFAULTS[roomKey]
+    : Object.hasOwn(ROOM_ASSETS, roomKey) ? ROOM_ASSETS[roomKey] : [];
   // AsM-caught (Thoth BLOCKER): a row packer dropped the Master Bedroom's small items after the 6'-deep bed, which
   // re-triggered the "defaults vanish" HOLD. Use a greedy OCCUPANCY-GRID packer instead: place the biggest footprints
   // first, first-fit (top-left) on a 1-ft cell grid, so the small pieces (mirror, lamp, tv…) GAP-FILL the space around

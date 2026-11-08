@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap, projectPlaced, setVariantByHeight, elevOf, setElev, STD_SILL_FT, defaultObjectsForRoom, STANDARD_LAYOUTS, worldSpan } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap, projectPlaced, setVariantByHeight, elevOf, setElev, STD_SILL_FT, defaultObjectsForRoom, STANDARD_LAYOUTS, DECOR_DEFAULTS, worldSpan } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -245,10 +245,14 @@ const dM = defaultObjectsForRoom("M");
 ok(dM.length > 0, "defaultObjectsForRoom('M') seeds furniture — a room never opens empty");
 // AsM-caught (Thoth BLOCKER): the packer MUST place EVERY one of a room's ROOM_ASSETS — a dropped item re-triggers
 // the operator's exact HOLD ("default items vanish on enter"). (The old `|| dM.length > 0` made this tautological.)
-// R5: a room with a DECIDED standard layout (STANDARD_LAYOUTS — the Master Bedroom's Layout A) returns exactly that
-// layout; every OTHER room is still packed and places ALL its ROOM_ASSETS.
+// R5: a room with a DECIDED standard layout (STANDARD_LAYOUTS — the Master Bedroom's Layout A) returns exactly that layout.
+// Feng shui (operator 2026-11-08 "its way too cluttered"): every OTHER room is packed from its INTENDED default set — the
+// decluttered DECOR_DEFAULTS where one is set, else its full ROOM_ASSETS — and places ALL of that set (nothing dropped —
+// the 'defaults vanish' HOLD still holds, just against the feng-shui set, not a cluttered one).
 const PACKED = Object.keys(ROOM_ASSETS).filter((rk) => !STANDARD_LAYOUTS[rk]);
-ok(PACKED.length === 8 && PACKED.every((rk) => defaultObjectsForRoom(rk).length === ROOM_ASSETS[rk].length), "EVERY packed room places ALL its ROOM_ASSETS — nothing is dropped (the 'defaults vanish' HOLD)");
+const intendedDefault = (rk) => (Object.hasOwn(DECOR_DEFAULTS, rk) ? DECOR_DEFAULTS[rk] : ROOM_ASSETS[rk]);
+ok(PACKED.length === 8 && PACKED.every((rk) => defaultObjectsForRoom(rk).length === intendedDefault(rk).length), "EVERY packed room places ALL its intended default set (feng-shui DECOR_DEFAULTS where set, else ROOM_ASSETS) — nothing dropped");
+ok(PACKED.every((rk) => intendedDefault(rk).length <= (ROOM_ASSETS[rk]?.length ?? 0)), "the feng-shui default set is a declutter — never more items than the full ROOM_ASSETS palette");
 ok(JSON.stringify(dM) === JSON.stringify(STANDARD_LAYOUTS.M) && dM !== STANDARD_LAYOUTS.M, "the Master Bedroom's default IS the decided Layout A (a fresh copy — never the shared array)");
 ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(dM), "defaultObjectsForRoom is deterministic — identical key → identical objects (replay law)");
 const insideRoom = (o) => { const sp = worldSpan(o); return sp.x1 >= -1e-9 && sp.y1 >= -1e-9 && sp.x2 <= ROOM_GRID + 1e-9 && sp.y2 <= ROOM_GRID + 1e-9; };
