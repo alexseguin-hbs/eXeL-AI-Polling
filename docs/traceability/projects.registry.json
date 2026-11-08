@@ -13,9 +13,14 @@
       "ledger": "architect-2525.ledger.json",
       "panel": "components/architect-2525/command-ux1.tsx",
       "codeRecord": "git-scoped",
+      "note": "DD-101 / R2b (2026-11-08): the fourth area 'model' was added so the Room Designer DATA MODEL — the architect-* and room-* primitives in frontend/lib/, which live outside components/architect-2525/ but ARE Architect-2525 — is on the code record. Without it, a revision that lands only in those lib files (R2b did) recorded as 'no-code-change' on the newest row, which fails his minimum bar (2026.10.17). Git-pathspec globs are used for the lib-file class so a future architect lib file is covered too, not just the ones that existed when this was written. No other project claims architect-*/room-*/mep-runs (verified 2026-11-08).",
       "paths": [
         "frontend/components/architect-2525/",
         "frontend/app/Architect-2525/",
+        "frontend/lib/architect-2525/",
+        ":(glob)frontend/lib/architect-*.ts",
+        ":(glob)frontend/lib/room-*.ts",
+        "frontend/lib/mep-runs.ts",
         "docs/architecture-2525/"
       ],
       "areas": [
@@ -31,6 +36,16 @@
           "name": "Routes",
           "paths": [
             "frontend/app/Architect-2525/"
+          ]
+        },
+        {
+          "key": "model",
+          "name": "The Model",
+          "paths": [
+            "frontend/lib/architect-2525/",
+            "frontend/lib/architect-",
+            "frontend/lib/room-",
+            "frontend/lib/mep-runs.ts"
           ]
         },
         {

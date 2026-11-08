@@ -14,11 +14,9 @@
     0,
     1,
     2,
-    9,
-    10,
-    11,
-    18,
-    20
+    4,
+    5,
+    8
    ]
   },
   {
@@ -29,23 +27,31 @@
     6,
     7,
     12,
-    15,
-    16,
-    17,
     21,
     24,
     25
    ]
   },
   {
+   "key": "model",
+   "name": "The Model",
+   "cells": [
+    9,
+    10,
+    11,
+    13,
+    18,
+    20
+   ]
+  },
+  {
    "key": "docs",
    "name": "Record",
    "cells": [
-    4,
-    5,
-    8,
-    13,
     14,
+    15,
+    16,
+    17,
     19,
     22,
     23,
@@ -72,11 +78,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -104,11 +108,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -181,11 +183,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -213,11 +213,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -231,8 +229,39 @@
      ],
      "add": 87,
      "del": 14,
-     "bytes": 14701,
-     "lines": 178,
+     "bytes": 14700,
+     "lines": 177,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-build-instructions.ts",
+       "blob": "48cf59ef024c989439d5d4ff9c549188ac5a06b0"
+      },
+      {
+       "path": "frontend/lib/architect-sim-environment.ts",
+       "blob": "f90a11997facfa824cd6b75b1dd9b366f79ac2ef"
+      },
+      {
+       "path": "frontend/lib/architect-sim-options.ts",
+       "blob": "5f2113b90d11ab5f9a7e9ea166ea107e323d5d22"
+      }
+     ],
+     "add": 113,
+     "del": 57,
+     "bytes": 28662,
+     "lines": 284,
      "status": "recorded"
     }
    ]
@@ -249,11 +278,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -267,8 +294,31 @@
      ],
      "add": 76,
      "del": 2,
-     "bytes": 7899,
-     "lines": 114,
+     "bytes": 7898,
+     "lines": 113,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-pipeline.ts",
+       "blob": "2a7cc9ddc873eade4e77a492723674d3f2c89c4d"
+      }
+     ],
+     "add": 76,
+     "del": 0,
+     "bytes": 7004,
+     "lines": 80,
      "status": "recorded"
     }
    ]
@@ -276,8 +326,32 @@
   {
    "rev": 7,
    "commit": "ce5006612",
-   "status": "no-code-change",
-   "areas": []
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-sim-options.ts",
+       "blob": "e3bc405f77fc91174d7bad41e660ddabe3eb09ce"
+      }
+     ],
+     "add": 9,
+     "del": 7,
+     "bytes": 2104,
+     "lines": 29,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 8,
@@ -291,11 +365,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -305,8 +377,31 @@
      ],
      "add": 33,
      "del": 14,
-     "bytes": 7669,
-     "lines": 84,
+     "bytes": 7668,
+     "lines": 83,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-sim-options.ts",
+       "blob": "dcd5670d34b9cff00aaf563275d6aab53c337392"
+      }
+     ],
+     "add": 27,
+     "del": 2,
+     "bytes": 4792,
+     "lines": 58,
      "status": "recorded"
     }
    ]
@@ -323,11 +418,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -341,8 +434,31 @@
      ],
      "add": 39,
      "del": 12,
-     "bytes": 11524,
-     "lines": 117,
+     "bytes": 11523,
+     "lines": 116,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-pipeline.ts",
+       "blob": "3bd237b33478e53bd206edcfb2c14114176f99f9"
+      }
+     ],
+     "add": 27,
+     "del": 8,
+     "bytes": 7637,
+     "lines": 66,
      "status": "recorded"
     }
    ]
@@ -365,11 +481,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -379,8 +493,35 @@
      ],
      "add": 26,
      "del": 7,
-     "bytes": 7959,
-     "lines": 82,
+     "bytes": 7958,
+     "lines": 81,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-estimate.ts",
+       "blob": "16d0760b2738c9b19be6f306008f32b3bb63d37b"
+      },
+      {
+       "path": "frontend/lib/architect-sim-options.ts",
+       "blob": "709ccd8ef64f8c4b983b60ef39e28b2ef4b23306"
+      }
+     ],
+     "add": 68,
+     "del": 23,
+     "bytes": 12903,
+     "lines": 159,
      "status": "recorded"
     }
    ]
@@ -397,11 +538,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -411,8 +550,35 @@
      ],
      "add": 26,
      "del": 7,
-     "bytes": 7959,
-     "lines": 82,
+     "bytes": 7958,
+     "lines": 81,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-estimate.ts",
+       "blob": "16d0760b2738c9b19be6f306008f32b3bb63d37b"
+      },
+      {
+       "path": "frontend/lib/architect-sim-options.ts",
+       "blob": "709ccd8ef64f8c4b983b60ef39e28b2ef4b23306"
+      }
+     ],
+     "add": 68,
+     "del": 23,
+     "bytes": 12903,
+     "lines": 159,
      "status": "recorded"
     }
    ]
@@ -429,11 +595,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -483,8 +647,8 @@
      ],
      "add": 227,
      "del": 83,
-     "bytes": 54254,
-     "lines": 613,
+     "bytes": 54253,
+     "lines": 612,
      "status": "recorded"
     },
     {
@@ -495,9 +659,6 @@
       6,
       7,
       12,
-      15,
-      16,
-      17,
       21,
       24,
       25
@@ -516,6 +677,33 @@
      "del": 0,
      "bytes": 1365,
      "lines": 23,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-guard.ts",
+       "blob": "822351157e57150e4f08b7626361abd1cc93354b"
+      },
+      {
+       "path": "frontend/lib/room-objects.ts",
+       "blob": "dd754a9a42d87b96d109e10b3da6eba3523bd281"
+      }
+     ],
+     "add": 84,
+     "del": 16,
+     "bytes": 12102,
+     "lines": 166,
      "status": "recorded"
     }
    ]
@@ -532,11 +720,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -586,8 +772,8 @@
      ],
      "add": 227,
      "del": 83,
-     "bytes": 54254,
-     "lines": 613,
+     "bytes": 54253,
+     "lines": 612,
      "status": "recorded"
     },
     {
@@ -598,9 +784,6 @@
       6,
       7,
       12,
-      15,
-      16,
-      17,
       21,
       24,
       25
@@ -620,6 +803,33 @@
      "bytes": 1365,
      "lines": 23,
      "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-guard.ts",
+       "blob": "822351157e57150e4f08b7626361abd1cc93354b"
+      },
+      {
+       "path": "frontend/lib/room-objects.ts",
+       "blob": "dd754a9a42d87b96d109e10b3da6eba3523bd281"
+      }
+     ],
+     "add": 84,
+     "del": 16,
+     "bytes": 12102,
+     "lines": 166,
+     "status": "recorded"
     }
    ]
   },
@@ -635,11 +845,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -669,8 +877,39 @@
      ],
      "add": 46,
      "del": 21,
-     "bytes": 19213,
-     "lines": 223,
+     "bytes": 19212,
+     "lines": 222,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-guard.ts",
+       "blob": "e36029c2397e7d0b129e5af7540dc97d36338b4a"
+      },
+      {
+       "path": "frontend/lib/room-layout.ts",
+       "blob": "6981c2856cd73fefdf5d1993e0ec26b3e716144c"
+      },
+      {
+       "path": "frontend/lib/room-objects.ts",
+       "blob": "464e4f3a6b9c65bff70b865e9df22b0b98b3f811"
+      }
+     ],
+     "add": 183,
+     "del": 43,
+     "bytes": 26190,
+     "lines": 369,
      "status": "recorded"
     }
    ]
@@ -687,11 +926,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -721,8 +958,39 @@
      ],
      "add": 46,
      "del": 21,
-     "bytes": 19213,
-     "lines": 223,
+     "bytes": 19212,
+     "lines": 222,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-guard.ts",
+       "blob": "e36029c2397e7d0b129e5af7540dc97d36338b4a"
+      },
+      {
+       "path": "frontend/lib/room-layout.ts",
+       "blob": "6981c2856cd73fefdf5d1993e0ec26b3e716144c"
+      },
+      {
+       "path": "frontend/lib/room-objects.ts",
+       "blob": "464e4f3a6b9c65bff70b865e9df22b0b98b3f811"
+      }
+     ],
+     "add": 183,
+     "del": 43,
+     "bytes": 26190,
+     "lines": 369,
      "status": "recorded"
     }
    ]
@@ -739,11 +1007,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -753,8 +1019,31 @@
      ],
      "add": 2,
      "del": 1,
-     "bytes": 1806,
-     "lines": 21,
+     "bytes": 1805,
+     "lines": 20,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-sim-options.ts",
+       "blob": "accf09d2a8a3b42fe5f452dad8abc48f9739e3b6"
+      }
+     ],
+     "add": 15,
+     "del": 8,
+     "bytes": 4875,
+     "lines": 43,
      "status": "recorded"
     }
    ]
@@ -771,11 +1060,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -785,8 +1072,31 @@
      ],
      "add": 50,
      "del": 43,
-     "bytes": 13205,
-     "lines": 142,
+     "bytes": 13204,
+     "lines": 141,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-sim-options.ts",
+       "blob": "d351d5e5aa63a70e9e952fdeb4eb0a0e6b7d4449"
+      }
+     ],
+     "add": 3,
+     "del": 1,
+     "bytes": 834,
+     "lines": 14,
      "status": "recorded"
     }
    ]
@@ -803,11 +1113,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -835,11 +1143,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -871,11 +1177,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -907,11 +1211,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -921,8 +1223,31 @@
      ],
      "add": 17,
      "del": 0,
-     "bytes": 2714,
-     "lines": 35,
+     "bytes": 2713,
+     "lines": 34,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-eco-geometry.ts",
+       "blob": "fca9a0ee69c1b43fc8268d5f48a9204da8b3c844"
+      }
+     ],
+     "add": 101,
+     "del": 0,
+     "bytes": 5956,
+     "lines": 105,
      "status": "recorded"
     }
    ]
@@ -939,11 +1264,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -971,11 +1294,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -985,8 +1306,31 @@
      ],
      "add": 19,
      "del": 6,
-     "bytes": 4973,
-     "lines": 63,
+     "bytes": 4972,
+     "lines": 62,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-eco-geometry.ts",
+       "blob": "5d94106b4bac1f029126ec59ee1be831e3790de6"
+      }
+     ],
+     "add": 1,
+     "del": 1,
+     "bytes": 766,
+     "lines": 10,
      "status": "recorded"
     }
    ]
@@ -1003,11 +1347,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -1035,11 +1377,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -1079,11 +1419,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -1119,11 +1457,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -1155,11 +1491,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -1202,9 +1536,6 @@
       6,
       7,
       12,
-      15,
-      16,
-      17,
       21,
       24,
       25
@@ -1236,9 +1567,6 @@
       6,
       7,
       12,
-      15,
-      16,
-      17,
       21,
       24,
       25
@@ -1269,11 +1597,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -1299,8 +1625,43 @@
      ],
      "add": 40,
      "del": 22,
-     "bytes": 14937,
-     "lines": 179,
+     "bytes": 14936,
+     "lines": 178,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-build-instructions.ts",
+       "blob": "27d40b16f4cbb12ee8eab7371f4528ba36aefa31"
+      },
+      {
+       "path": "frontend/lib/architect-house-truth.ts",
+       "blob": "d5ef5ebd83aaea2fc4d044e25c18d83565b45142"
+      },
+      {
+       "path": "frontend/lib/room-layout.ts",
+       "blob": "eb381d545d9b36ae29e6cab37c59b20a4c60db33"
+      },
+      {
+       "path": "frontend/lib/room-program.ts",
+       "blob": "3ccb9d725bb6a384a8aea9febbb8f5c3ea4380f8"
+      }
+     ],
+     "add": 34,
+     "del": 12,
+     "bytes": 11095,
+     "lines": 119,
      "status": "recorded"
     }
    ]
@@ -1317,11 +1678,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -1331,8 +1690,31 @@
      ],
      "add": 39,
      "del": 34,
-     "bytes": 16254,
-     "lines": 170,
+     "bytes": 16253,
+     "lines": 169,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/room-layout.ts",
+       "blob": "82d11683283492567adb3dc5ec643569d8bdc895"
+      }
+     ],
+     "add": 9,
+     "del": 11,
+     "bytes": 3982,
+     "lines": 40,
      "status": "recorded"
     }
    ]
@@ -1349,11 +1731,9 @@
       0,
       1,
       2,
-      9,
-      10,
-      11,
-      18,
-      20
+      4,
+      5,
+      8
      ],
      "files": [
       {
@@ -1367,8 +1747,73 @@
      ],
      "add": 21,
      "del": 3,
-     "bytes": 3615,
-     "lines": 42,
+     "bytes": 3614,
+     "lines": 41,
+     "status": "recorded"
+    },
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-layers.ts",
+       "blob": "8f342c2a03542702fe266ada41bf525f83a51277"
+      },
+      {
+       "path": "frontend/lib/room-objects.ts",
+       "blob": "3e29f0ca07b1c6926108fcde409f0973cdc1713a"
+      }
+     ],
+     "add": 6,
+     "del": 2,
+     "bytes": 2090,
+     "lines": 26,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 36,
+   "commit": "477adbdf8",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-guard.ts",
+       "blob": "0d123af7ab4dc6bc134e49f973c10641dca5601a"
+      },
+      {
+       "path": "frontend/lib/room-layout.ts",
+       "blob": "88319b149065dab28dfdaf781f6d73d7563778b2"
+      },
+      {
+       "path": "frontend/lib/room-objects.ts",
+       "blob": "f3e8a79f17baf45b019ef9157c477a5c0ab7df43"
+      }
+     ],
+     "add": 27,
+     "del": 4,
+     "bytes": 5742,
+     "lines": 70,
      "status": "recorded"
     }
    ]

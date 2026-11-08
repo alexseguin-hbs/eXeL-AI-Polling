@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Architect-2525 append-only traceability ledger — 35 entries, extracted at build time. */
+/** Architect-2525 append-only traceability ledger — 36 entries, extracted at build time. */
 export const ARCHITECT_LEDGER: LedgerInput = {
   "section": "Architect-2525",
   "route": "/Architect-2525",
@@ -237,23 +237,30 @@ export const ARCHITECT_LEDGER: LedgerInput = {
     {
       "rev": 33,
       "date": "2026-11-08",
-      "kind": "geometry",
+      "kind": "release",
       "text": "R1a — ONE GEOMETRY SOURCE, 36×36-true (H.I. ruling 2026-11-08). /Architect-2525/ is the LIVE product of record, improved in place; /Architect-2525/future is deleted ENTIRELY as a product route (its route, lib, components, eight contract tests and the greenfield docs/architect-future/), its failure history preserved in revs 30/31/32, git and screenshots — never rewritten. The canonical reference house is ONE physical model: 12-ft outer module · 10-ft clear room · 1-ft reserved wall/service zone per side · 3×3 grid · 36×36 ft shell · 900 ft² clear · 1,296 ft² gross · 396 ft² difference. Every DISPLAYED surface now reads that one source (lib/room-layout: HOUSE_FT=36 the shell outline · CLEAR_SQFT=900 · GROSS_SQFT=1296 · WALL_ZONE_SQFT=396): the 2D plan reads 36'-0\" with the 10-ft clear rooms inset by the 1-ft zone; the Build slab reads 36×36 / 1,296; the Overview Gross tile reads 1,296 (was NOT CALCULATED); the metric strip's Sq Ft is the 900 clear. The 30×30-as-shell is removed and gated (tests/architect-geometry-source). Cost unchanged ($240k still derived off the 900 clear) and stays BOM-driven going forward. Staged: the 3D voxel footprint → R1b; the take-off basis → R3. Also adopted this round: cost is bottom-up BOM-driven, the economic domains stay separate, and the ICON figures are wall-system references only.",
       "commit": "1db68c39b"
     },
     {
       "rev": 34,
       "date": "2026-11-08",
-      "kind": "geometry",
+      "kind": "release",
       "text": "R1b — the 3D VOXEL is the one-storey 36×36×12 shell (H.I. ruling 2026-11-08), completing the one geometry source in the 3D view. The voxel's house footprint is now the 36-ft shell (VOXEL_PX_PER_FT re-seated to 66/HOUSE_FT; cell = HOUSE_FT × scale), the nine 10-ft clear rooms sit at the 12-ft outer-module pitch so the 1-ft reserved wall/service zone shows as the gap, and the old 30×30×30 THREE-storey cube metaphor is retired for the operator's own ONE-storey 36×36×12 nested cube (2026-11-06: \"36x36x12 ft is outer shell … the whole house is ONE storey\"): cube3 is a floor plane + a ceiling plane one storey up, gridded at the module pitch, with corner posts of the storey height; porch/ducts/sockets/walk re-based on the module pitch; the full-home cube is 36×36×12. No surface, 2D or 3D, carries the 30 any more. architect-voxel-proportion rewritten to the 36×36×12 truth; architect-geometry-source now asserts the voxel (voxel off the staged allow-list). Only the build-instructions take-off BASIS stays clear-area-derived until R3's BOM unification.",
       "commit": "37fc03f0b"
     },
     {
       "rev": 35,
       "date": "2026-11-08",
-      "kind": "geometry",
+      "kind": "release",
       "text": "R2a — COMMON-SENSE OPENINGS (operator LIVE feedback 2026-11-08 \"2D and 3D review for common sense; window and door overlap\"). In the walk, a window on every exterior wall and a doorway on every interior wall were all centred, so a corner room (the Master Bath) crowded its shared corners. Fixed at the root: a wall's default opening centre is OFFSET away from any perpendicular EXTERIOR wall (one rule, all nine rooms), so a solid corner pier always separates a window from a door (and two windows on a corner room too); connectivity unchanged, a placed door still wins. The common-sense pass also repaired three gates the R0 feng-shui declutter had silently broken: the master bath's TUB was restored (toilet·sink·shower·tub, the four core fixtures — fixes architect-walk-mep's tub+shower = 2 mixers); a counter now confers the plumbing tree-scope (operator-accepted, no double pipe run — fixes room-scope); and the mep-runs snapshot was regenerated for the corrected model. Also the R1b review's one P3 (stale ELEV_SCALE comment). The R1b 3D-voxel adversarial review (6 AsM lenses + verify) returned zero confirmed defects.",
       "commit": "8234722e1"
+    },
+    {
+      "rev": 36,
+      "date": "2026-11-08",
+      "kind": "release",
+      "text": "R2b — THE DECLUTTER REACHES EVERY DEVICE (operator LIVE feedback 2026-11-08 \"closet declutter has been requested 6+ times\"). The declutter kept reverting because every prior fix changed only the room DEFAULT (DECOR_DEFAULTS) or re-seated the ONE room with a decided layout (Master Bedroom); the Closet and the other seven rooms had no migration path, so a device whose working layout was auto-seeded with clutter by an old build kept it forever (bounded at MAX_OBJECTS_PER_ROOM=99, never decluttered). That is the DD-101 revert class — a fix that never reaches the devices that already saved the state. The root fix is a gated ONE-TIME declutter migration: lib/room-objects.ts adds DECLUTTER_REV (=1); lib/architect-guard.ts sanitizeRoomLayout re-seats EVERY room whose cell.declutterRev < DECLUTTER_REV to its curated default (standardLayoutFor ?? the feng-shui DECOR_DEFAULTS packer) once, on load, then stamps the cell; later user edits carry the stamp (setRoomObjects spreads the cell), so the declutter reaches every device and never wipes a real arrangement twice; saved Designs (.arch2525) are untouched. lib/room-layout.ts adds the additive RoomCell.declutterRev?. Gate (DD-101 revert class): tests/room-standard-layout — a pre-migration cluttered closet (14 objects incl. auto-seeded library \"asset\" items, no stamp) declutters to its 3-item curated default and is stamped; a stamped room keeps the user's post-migration arrangement. 82/82. Proven: tsc 0 · build Compiled successfully · room-objects 134/134 · room-scope 26/26 · architect-walk-mep 43/43 · mep-runs-stable 5/5 · architect-consistency 39/0 · architect-product-truth 86/0. The fix lives in the shared room primitives (lib/). To put the Room Designer data model on the code record, the architect-2525 scope gained a fourth area 'The Model' for the architect-* / room-* lib files (DD-101), so this revision records there — and so will every future lib-based revision, not just the ones that existed when this was written. The same pass corrected a malformed-kind class the gates had not been running on (rev-33/34/35 carried kind 'geometry', which is not in the R-CORE vocabulary ask|decision|release|correction; they shipped, so they are 'release' like this one). Carried by commit 477adbdf8.",
+      "commit": "477adbdf8"
     }
   ]
 };
