@@ -259,6 +259,14 @@
       "text": "R1b — the 3D VOXEL is the one-storey 36×36×12 shell (H.I. ruling 2026-11-08), completing the one geometry source in the 3D view. The voxel's house footprint is now the 36-ft shell (VOXEL_PX_PER_FT re-seated to 66/HOUSE_FT; cell = HOUSE_FT × scale), the nine 10-ft clear rooms sit at the 12-ft outer-module pitch so the 1-ft reserved wall/service zone shows as the gap, and the old 30×30×30 THREE-storey cube metaphor is retired for the operator's own ONE-storey 36×36×12 nested cube (2026-11-06: \"36x36x12 ft is outer shell … the whole house is ONE storey\"): cube3 is a floor plane + a ceiling plane one storey up, gridded at the module pitch, with corner posts of the storey height; porch/ducts/sockets/walk re-based on the module pitch; the full-home cube is 36×36×12. No surface, 2D or 3D, carries the 30 any more. architect-voxel-proportion rewritten to the 36×36×12 truth; architect-geometry-source now asserts the voxel (voxel off the staged allow-list). Only the build-instructions take-off BASIS stays clear-area-derived until R3's BOM unification.",
       "commit": "37fc03f0b",
       "title": "R1b — the 3D voxel is the one-storey 36×36×12 shell"
+    },
+    {
+      "rev": 35,
+      "date": "2026-11-08",
+      "kind": "geometry",
+      "text": "R2a — COMMON-SENSE OPENINGS (operator LIVE feedback 2026-11-08 \"2D and 3D review for common sense; window and door overlap\"). In the walk, a window on every exterior wall and a doorway on every interior wall were all centred, so a corner room (the Master Bath) crowded its shared corners. Fixed at the root: a wall's default opening centre is OFFSET away from any perpendicular EXTERIOR wall (one rule, all nine rooms), so a solid corner pier always separates a window from a door (and two windows on a corner room too); connectivity unchanged, a placed door still wins. The common-sense pass also repaired three gates the R0 feng-shui declutter had silently broken: the master bath's TUB was restored (toilet·sink·shower·tub, the four core fixtures — fixes architect-walk-mep's tub+shower = 2 mixers); a counter now confers the plumbing tree-scope (operator-accepted, no double pipe run — fixes room-scope); and the mep-runs snapshot was regenerated for the corrected model. Also the R1b review's one P3 (stale ELEV_SCALE comment). The R1b 3D-voxel adversarial review (6 AsM lenses + verify) returned zero confirmed defects.",
+      "commit": "8234722e1",
+      "title": "R2a — common-sense openings (no window/door overlap) + the master-bath tub"
     }
   ]
 }
