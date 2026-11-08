@@ -6,6 +6,7 @@
 // the operator's blurb, what each phase DRAWS (only its own layer; furniture ONLY on Interior Design), and the one
 // ordered list every surface reads (so the order is consistent throughout).
 import { DEV_PHASES, phaseById, PHASE_ORDER, BUILD_PHASES, phaseDraw } from "../lib/architect-phases.ts";
+import { LAYER_TREE } from "../lib/architect-layers.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -67,13 +68,30 @@ ok(/furniture/i.test(phaseById("interior").specs.join(" ")), "Interior Design = 
 ok(phaseById("nope") === null, "an unknown phase id resolves to null");
 
 // ALIGN TO THE EXISTING MENU (operator 2026-10-25) — each phase maps to a real Vision-Tree discipline group id.
+// The group ids are the FINISH phase's and HVAC phase's natural tree homes: Air Flow is Mechanical (ductwork lives
+// under physical/mechanical), and the Finish surfaces (drywall · flooring · trim · paint) are children of
+// physical/interior — so Finish and Interior Design both scope to physical/interior, exactly as Plumbing+Sewer
+// share physical/plumbing and Roofing+Insulation share physical/building-envelope.
 const GROUPS = {
   foundation: "physical/foundation", framing: "physical/structure", roofing: "physical/building-envelope",
   plumbing: "physical/plumbing", sewer: "physical/plumbing", electrical: "physical/electrical",
-  hvac: "physical/hvac", internet: "physical/communications-low-voltage", security: "physical/communications-low-voltage",
-  insulation: "physical/building-envelope", finish: "physical/interior-finish", interior: "physical/interior",
+  hvac: "physical/mechanical", internet: "physical/communications-low-voltage", security: "physical/communications-low-voltage",
+  insulation: "physical/building-envelope", finish: "physical/interior", interior: "physical/interior",
 };
 for (const [id, g] of Object.entries(GROUPS)) ok(phaseById(id).treeGroup === g, `${id} aligns to the Vision-Tree group ${g}`);
+
+// CLASS GATE (R2, DD-101 lineage) — the mapping is not just locked to a string, it is validated against the REAL
+// tree. phaseGroup scopes the left-rail Vision Tree by matching a physical node id EXACTLY (layer-tree phaseOK:
+// `id === phaseGroup || id.startsWith(phaseGroup + "/")`), so a treeGroup that is not a real physical node id
+// (the old physical/hvac · physical/interior-finish) silently hides the whole physical branch for that phase.
+// Deriving the valid set from LAYER_TREE means a future bad value fails HERE, not on the operator's phone.
+const physicalScope = LAYER_TREE.find((s) => s.id === "physical");
+const PHYSICAL_NODE_IDS = new Set((physicalScope?.children ?? []).map((n) => n.id));
+ok(PHYSICAL_NODE_IDS.size >= 9, `the Vision Tree exposes its physical discipline nodes (${PHYSICAL_NODE_IDS.size})`);
+ok(PHYSICAL_NODE_IDS.has("physical/mechanical") && PHYSICAL_NODE_IDS.has("physical/interior") && !PHYSICAL_NODE_IDS.has("physical/hvac"),
+  "the tree's HVAC home is physical/mechanical and its finish home is physical/interior (no physical/hvac node)");
+for (const p of DEV_PHASES) ok(PHYSICAL_NODE_IDS.has(p.treeGroup),
+  `${p.id} treeGroup ${p.treeGroup} is a REAL physical Vision-Tree node (it must scope the tree, not hide it)`);
 
 console.log(`\narchitect-phases: ${pass} passed, ${fail} failed · 12 build-ordered phase modes (roofing after framing; HVAC after electrical; insulation; interior design)`);
 process.exit(fail ? 1 : 0);

@@ -122,7 +122,7 @@ const DEV_PHASES_SRC: DevPhase[] = [
   {
     id: "hvac", label: "Air Flow", order: 7, icon: "wind", color: "#38bdf8",
     blurb: "Heating and cooling — the ducts in the plenum, registers to every room (the MEP rough-in).",
-    treeGroup: "physical/hvac", shows: "duct", buildPhase: true, draw: L({ mep: "duct", note: "trunk + branch + registers" }),
+    treeGroup: "physical/mechanical", shows: "duct", buildPhase: true, draw: L({ mep: "duct", note: "trunk + branch + registers" }),
     specs: [
       "Trunk + branch supply ducts in the 2-ft plenum above the 10-ft ceiling",
       "A ceiling supply register + a volume-control damper in every conditioned room",
@@ -166,7 +166,7 @@ const DEV_PHASES_SRC: DevPhase[] = [
   {
     id: "finish", label: "Finish", order: 11, icon: "paintbrush", color: "#a3e635",
     blurb: "Interior finish — drywall, flooring, trim and paint, the surfaces you touch.",
-    treeGroup: "physical/interior-finish", shows: null, buildPhase: true, draw: L({ openings: true, fixtures: true, note: "drywall + flooring + fixtures set" }),
+    treeGroup: "physical/interior", shows: null, buildPhase: true, draw: L({ openings: true, fixtures: true, note: "drywall + flooring + fixtures set" }),
     specs: [
       "Drywall hung + taped + finished; primed and painted",
       "Flooring by room (tile wet areas, LVP/wood living, carpet sleep)",
