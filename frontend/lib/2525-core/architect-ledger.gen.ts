@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Architect-2525 append-only traceability ledger — 32 entries, extracted at build time. */
+/** Architect-2525 append-only traceability ledger — 33 entries, extracted at build time. */
 export const ARCHITECT_LEDGER: LedgerInput = {
   "section": "Architect-2525",
   "route": "/Architect-2525",
@@ -233,6 +233,13 @@ export const ARCHITECT_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "DECISION (H.I. Thought Master) — Architect-2525/Future is a greenfield rebuild. The plan of record is docs/architect-future/ARCHITECT-2525_FUTURE_PLAN.md (R1); the operator's words are kept verbatim at docs/architect-future/source/ (R0); external reviewers (Grok · eXeL AI · DeepSeek) and future Claude Code versions read the plan and file feedback under docs/architect-future/feedback/. Grok's /future commits are reverted and the route shows a Phase-0 placeholder that imports nothing legacy. The working Design tool stays unchanged at /Architect-2525/. Execution is PHASE 0 only (contracts + scaffold + red-first tests), and holds at the Phase-0 gate until H.I. accepts it.",
       "commit": "db7124ae9"
+    },
+    {
+      "rev": 33,
+      "date": "2026-11-08",
+      "kind": "geometry",
+      "text": "R1a — ONE GEOMETRY SOURCE, 36×36-true (H.I. ruling 2026-11-08). /Architect-2525/ is the LIVE product of record, improved in place; /Architect-2525/future is deleted ENTIRELY as a product route (its route, lib, components, eight contract tests and the greenfield docs/architect-future/), its failure history preserved in revs 30/31/32, git and screenshots — never rewritten. The canonical reference house is ONE physical model: 12-ft outer module · 10-ft clear room · 1-ft reserved wall/service zone per side · 3×3 grid · 36×36 ft shell · 900 ft² clear · 1,296 ft² gross · 396 ft² difference. Every DISPLAYED surface now reads that one source (lib/room-layout: HOUSE_FT=36 the shell outline · CLEAR_SQFT=900 · GROSS_SQFT=1296 · WALL_ZONE_SQFT=396): the 2D plan reads 36'-0\" with the 10-ft clear rooms inset by the 1-ft zone; the Build slab reads 36×36 / 1,296; the Overview Gross tile reads 1,296 (was NOT CALCULATED); the metric strip's Sq Ft is the 900 clear. The 30×30-as-shell is removed and gated (tests/architect-geometry-source). Cost unchanged ($240k still derived off the 900 clear) and stays BOM-driven going forward. Staged: the 3D voxel footprint → R1b; the take-off basis → R3. Also adopted this round: cost is bottom-up BOM-driven, the economic domains stay separate, and the ICON figures are wall-system references only.",
+      "commit": "1db68c39b"
     }
   ]
 };

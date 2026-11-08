@@ -1256,6 +1256,54 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 33,
+   "commit": "1db68c39b",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      9,
+      10,
+      11,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/architect-build.tsx",
+       "blob": "a3bf71096255c1520d589edcfd981c0eb05d7952"
+      },
+      {
+       "path": "frontend/components/architect-2525/command-ux1.tsx",
+       "blob": "ed08a51d0c7daa0a9361d1dd699e1b070767ae82"
+      },
+      {
+       "path": "frontend/components/architect-2525/house-spec.tsx",
+       "blob": "a71ca5725d0d97478ec861a0d2cbfec8e5a4ab45"
+      },
+      {
+       "path": "frontend/components/architect-2525/metric-strip.tsx",
+       "blob": "5f608508d1646b73c48d244c70f8d46f57b44817"
+      },
+      {
+       "path": "frontend/components/architect-2525/tiny-floorplan.tsx",
+       "blob": "d0282338559a2072570979cc805d48ca9da9b793"
+      }
+     ],
+     "add": 40,
+     "del": 22,
+     "bytes": 14937,
+     "lines": 179,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
