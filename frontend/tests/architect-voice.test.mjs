@@ -24,11 +24,6 @@ const CLEANED = [
   "../components/architect-2525/build-instructions.tsx", // D1c (2026-11-01): Build steps / timeline — human copy
   "../components/architect-2525/simulate-print.tsx",     // 2026-11-03: the Download-as-PDF deck — human copy on paper
   "../lib/architect-eco-geometry.ts",                    // 2026-11-03 (R4c): its ecoFloorLabel/ecoRoofLabel ARE human copy — gate the strings, not just a comment
-  "../components/architect-future/future-app.tsx",       // 2026-11-08 (Future Phase 2/3, DOC-3): the greenfield /future product speaks human on every path
-  "../lib/architect-future/selectors/economics.ts",      // 2026-11-08 (Future Phase 3): the economics labels a person reads
-  "../lib/architect-future/selectors/health.ts",         // 2026-11-08 (Future Phase 4): the Project Health copy a person reads
-  "../lib/architect-future/simulation/materials.ts",     // 2026-11-08 (Future Phase 3): the take-off item names a person reads
-  "../lib/architect-future/simulation/compare.ts",       // 2026-11-08 (Future Phase 4): the benchmark copy a person reads
 ];
 for (const f of CLEANED) {
   const src = strip(read(f));
