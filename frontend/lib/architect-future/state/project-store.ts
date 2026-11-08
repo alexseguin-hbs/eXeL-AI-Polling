@@ -1,8 +1,9 @@
-// ARCHITECT-2525 / FUTURE · state/project-store — load/save the project as a validated event log, not a snapshot
-// (plan §10/§12). Loading replays and verifies the hash. STUB (Phase 0); Phase 1/2 implement.
+// ARCHITECT-2525 / FUTURE · state/project-store — persist a VALIDATED event log, not a derived snapshot (plan §10/§12).
+// Loading replays the log and verifies the head hash, so a tampered or stale store is rejected rather than trusted.
 import type { ArchitectProjectV2 } from "../domain/project";
 import type { FutureEvent } from "../rcore/events";
-import { notImplemented } from "../_notimpl";
+import { replay } from "../rcore/replay";
+import { hashV2 } from "../serialization/hash-v2";
 
 export const STORE_KEY = "architect-future-v2";
 
@@ -11,9 +12,19 @@ export interface StoredProject {
   head_hash: string;
 }
 
-export function loadProject(_raw: string | null): ArchitectProjectV2 | null {
-  return notImplemented("loadProject", 2);
+export function serializeStore(events: FutureEvent[], headHash: string): string {
+  const store: StoredProject = { events, head_hash: headHash };
+  return JSON.stringify(store);
 }
-export function serializeStore(_events: FutureEvent[], _headHash: string): string {
-  return notImplemented("serializeStore", 2);
+
+/** Returns the replayed project when the stored head hash matches; null on empty/invalid/tampered input. */
+export function loadProject(raw: string | null): ArchitectProjectV2 | null {
+  if (!raw) return null;
+  let store: StoredProject;
+  try { store = JSON.parse(raw) as StoredProject; } catch { return null; }
+  if (!store || !Array.isArray(store.events) || store.events.length === 0) return null;
+  let project: ArchitectProjectV2;
+  try { project = replay(store.events); } catch { return null; }
+  if (hashV2(project) !== store.head_hash) return null; // tampered or stale
+  return project;
 }

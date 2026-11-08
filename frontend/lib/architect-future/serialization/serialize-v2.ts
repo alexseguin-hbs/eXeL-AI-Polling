@@ -1,10 +1,9 @@
 // ARCHITECT-2525 / FUTURE · serialization/serialize-v2 — the canonical V2 serializer (plan §10).
-// Includes canonical state, EXCLUDES view state. STUB (Phase 0); Phase 1 implements via an adapter over the donor
-// canonical serializer. Behavioural tests load this and fail here until then.
+// Deterministic canonical string of the whole canonical project (sorted keys). View state is excluded because
+// ArchitectProjectV2 holds none (camera/selection live in React state, never here).
 import type { ArchitectProjectV2 } from "../domain/project";
-import { notImplemented } from "../_notimpl";
+import { canonicalStringify } from "./canonical-json";
 
-/** Deterministic canonical string of the project's canonical fields only (no camera/selection/etc.). */
-export function serializeV2(_project: ArchitectProjectV2): string {
-  return notImplemented("serializeV2", 1);
+export function serializeV2(project: ArchitectProjectV2): string {
+  return canonicalStringify(project);
 }

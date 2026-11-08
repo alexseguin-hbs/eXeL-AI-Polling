@@ -5,11 +5,9 @@
 // stub, its entry here is rewritten into a real behavioural assertion.
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-future-contracts.test.mjs
 
+// Phase 1 contracts (T-TRANSFORM, T-HASH, T-SERIALIZE, T-REPLAY) are now GREEN — see
+// tests/architect-future-canonical.test.mjs (in test:ci). The remaining behavioural contracts stay red-first here.
 const CONTRACTS = [
-  { id: "T-TRANSFORM", phase: 1, mod: "../lib/architect-future/transformation/reference-v1-to-v2.ts", fn: "transformV1toV2", args: [null, "REFERENCE_3X3_12_10_1", { kind: "SYSTEM", id: "s" }, "2026-01-01"] },
-  { id: "T-HASH",      phase: 1, mod: "../lib/architect-future/serialization/hash-v2.ts", fn: "hashV2", args: [null] },
-  { id: "T-SERIALIZE", phase: 1, mod: "../lib/architect-future/serialization/serialize-v2.ts", fn: "serializeV2", args: [null] },
-  { id: "T-REPLAY",    phase: 1, mod: "../lib/architect-future/rcore/replay.ts", fn: "replay", args: [[]] },
   { id: "T-PLACEMENT", phase: 2, mod: "../lib/architect-future/state/placement-machine.ts", fn: "placeArmed", args: [null, { armed_asset_id: "sofa" }, "b1", { x: 0, y: 0, z: 0 }, 0, { kind: "SYSTEM", id: "s" }] },
   { id: "T-PROJECTION", phase: 2, mod: "../lib/architect-future/selectors/geometry.ts", fn: "planProjection", args: [null] },
   { id: "T-MATERIAL",  phase: 3, mod: "../lib/architect-future/simulation/materials.ts", fn: "materialTakeoff", args: [null] },
