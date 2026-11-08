@@ -11,7 +11,12 @@ import { loadProject, serializeStore, STORE_KEY } from "@/lib/architect-future/s
 import { placeArmed, rotateInstance, removeInstance, moveInstance } from "@/lib/architect-future/state/placement-machine";
 import { planProjection } from "@/lib/architect-future/selectors/geometry";
 import { assetsForRoom, VISION_GROUPS } from "@/lib/architect-future/domain/asset-catalog";
+import { materialTakeoff } from "@/lib/architect-future/simulation/materials";
+import { applyJurisdiction } from "@/lib/architect-future/simulation/costs";
+import { economicsView } from "@/lib/architect-future/selectors/economics";
+import { JURISDICTIONS } from "@/lib/architect-future/adapters/labor";
 import type { ArchitectProjectV2 } from "@/lib/architect-future/domain/project";
+import type { ConstructionMethod } from "@/lib/architect-future/domain/construction";
 import type { FutureEvent, EventType } from "@/lib/architect-future/rcore/events";
 import type { Vec3Um } from "@/lib/architect-future/domain/assets";
 
@@ -21,11 +26,14 @@ const EVENTS_KEY = STORE_KEY + ".events";
 function nowIso() { return new Date().toISOString(); }
 
 type View = "PLAN" | "3D" | "WALK";
+type Mode = "DESIGN" | "SYSTEMS";
 
 export function FutureApp() {
   const [project, setProject] = useState<ArchitectProjectV2 | null>(null);
   const [events, setEvents] = useState<FutureEvent[]>([]);
   const [view, setView] = useState<View>("PLAN");
+  const [mode, setMode] = useState<Mode>("DESIGN");
+  const [jurisdiction, setJurisdiction] = useState<string>("us-tx-austin");
   const [armed, setArmed] = useState<string | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null);
@@ -106,6 +114,13 @@ export function FutureApp() {
     else flash(res.rejected_reason ?? "cannot move there");
   };
 
+  // construction method is CANONICAL (it changes the take-off and the project identity) → one event
+  const setMethod = (method: ConstructionMethod) => {
+    if (!project || project.construction.method === method) return;
+    pushEvent({ ...project, construction: { method } }, "CONSTRUCTION_METHOD_CHANGED", { method });
+    flash(method === "FRAME" ? "Framed — the take-off now lists lumber" : method === "PRINT" ? "3D-printed — the take-off now lists printed walls" : "Method set aside");
+  };
+
   // ───────────────────────────────────────── INTENT (first) ─────────────────────────────────────────
   if (!project) return <Intent onCreate={create} />;
 
@@ -116,12 +131,19 @@ export function FutureApp() {
       {/* header */}
       <header style={{ borderBottom: `1px solid ${C.edge}`, padding: "0.6rem 0.9rem", display: "flex", alignItems: "center", gap: ".6rem", flexWrap: "wrap" }}>
         <span style={{ letterSpacing: ".25em", fontSize: ".62rem", color: C.cyan }}>ARCHITECT-2525 · FUTURE</span>
-        <div style={{ display: "flex", gap: ".3rem", marginLeft: "auto" }}>
-          {(["PLAN", "3D", "WALK"] as View[]).map((v) => (
-            <button key={v} data-arch-view={v} onClick={() => setView(v)} style={tab(v === view)}>{v === "3D" ? "3D · drone" : v === "WALK" ? "Walk" : "Plan"}</button>
+        <div style={{ display: "flex", gap: ".3rem" }}>
+          {(["DESIGN", "SYSTEMS"] as Mode[]).map((m) => (
+            <button key={m} data-arch-mode={m} onClick={() => setMode(m)} style={tab(m === mode)}>{m === "DESIGN" ? "Design" : "Systems & cost"}</button>
           ))}
         </div>
-        <button data-arch-save onClick={save} style={{ ...tab(false), borderColor: dirty ? C.violet : C.edge, color: dirty ? C.violet : C.dim }}>{dirty ? "Save" : "Saved"}</button>
+        {mode === "DESIGN" && (
+          <div style={{ display: "flex", gap: ".3rem", marginLeft: "auto" }}>
+            {(["PLAN", "3D", "WALK"] as View[]).map((v) => (
+              <button key={v} data-arch-view={v} onClick={() => setView(v)} style={tab(v === view)}>{v === "3D" ? "3D · drone" : v === "WALK" ? "Walk" : "Plan"}</button>
+            ))}
+          </div>
+        )}
+        <button data-arch-save onClick={save} style={{ ...tab(false), marginLeft: mode === "DESIGN" ? undefined : "auto", borderColor: dirty ? C.violet : C.edge, color: dirty ? C.violet : C.dim }}>{dirty ? "Save" : "Saved"}</button>
       </header>
 
       {/* metrics line — all DERIVED from the canonical project */}
@@ -133,25 +155,33 @@ export function FutureApp() {
         <span style={{ marginLeft: "auto", color: C.faint, fontFamily: "ui-monospace,monospace" }}>id {liveHash.slice(0, 8)}</span>
       </div>
 
-      {/* mobile drawer toggles */}
-      <div style={{ display: "flex", gap: ".4rem", padding: ".4rem .9rem" }} data-arch-drawer-bar>
-        <button onClick={() => setTreeOpen((o) => !o)} style={tab(treeOpen)}>☰ Vision Tree</button>
-        <button onClick={() => setActiveOpen((o) => !o)} style={tab(activeOpen)}>Active Elements ({project.assets.length})</button>
-      </div>
+      {/* mobile drawer toggles (Design mode only) */}
+      {mode === "DESIGN" && (
+        <div style={{ display: "flex", gap: ".4rem", padding: ".4rem .9rem" }} data-arch-drawer-bar>
+          <button onClick={() => setTreeOpen((o) => !o)} style={tab(treeOpen)}>☰ Vision Tree</button>
+          <button onClick={() => setActiveOpen((o) => !o)} style={tab(activeOpen)}>Active Elements ({project.assets.length})</button>
+        </div>
+      )}
 
-      <main style={{ flex: 1, display: "flex", gap: ".6rem", padding: ".6rem .9rem 1.2rem", alignItems: "stretch", flexWrap: "wrap" }}>
-        {(treeOpen || wide()) && (
-          <VisionTree groups={VISION_GROUPS} assets={roomAssets} armed={armed} onArm={(id) => setArmed((a) => (a === id ? null : id))} roomFn={project.spaces.find((s) => s.entity_id === selectedRoom)?.function} />
-        )}
-        <section style={{ flex: "1 1 320px", minWidth: 0, display: "flex", flexDirection: "column", gap: ".4rem" }}>
-          {armed && <div style={{ fontSize: ".66rem", color: C.violet }}>Armed: tap a room to place · tap again to re-aim · <button onClick={() => setArmed(null)} style={{ ...link }}>disarm</button></div>}
-          <Canvas proj={proj!} view={view} tilt={tilt} selectedRoom={selectedRoom} selectedInstance={selectedInstance} onTap={onCanvasTap} onSelectInstance={setSelectedInstance} />
-          {view === "3D" && <label style={{ fontSize: ".66rem", color: C.dim }}>Tilt <input type="range" min={10} max={85} value={tilt} onChange={(e) => setTilt(+e.target.value)} /></label>}
-        </section>
-        {(activeOpen || wide()) && (
-          <ActiveElements project={project} selected={selectedInstance} onSelect={setSelectedInstance} onRotate={doRotate} onRemove={doRemove} onNudge={doNudge} />
-        )}
-      </main>
+      {mode === "SYSTEMS" ? (
+        <main style={{ flex: 1, padding: ".6rem .9rem 1.2rem" }}>
+          <Systems project={project} jurisdiction={jurisdiction} onJurisdiction={setJurisdiction} onMethod={setMethod} />
+        </main>
+      ) : (
+        <main style={{ flex: 1, display: "flex", gap: ".6rem", padding: ".6rem .9rem 1.2rem", alignItems: "stretch", flexWrap: "wrap" }}>
+          {(treeOpen || wide()) && (
+            <VisionTree groups={VISION_GROUPS} assets={roomAssets} armed={armed} onArm={(id) => setArmed((a) => (a === id ? null : id))} roomFn={project.spaces.find((s) => s.entity_id === selectedRoom)?.function} />
+          )}
+          <section style={{ flex: "1 1 320px", minWidth: 0, display: "flex", flexDirection: "column", gap: ".4rem" }}>
+            {armed && <div style={{ fontSize: ".66rem", color: C.violet }}>Armed: tap a room to place · tap again to re-aim · <button onClick={() => setArmed(null)} style={{ ...link }}>disarm</button></div>}
+            <Canvas proj={proj!} view={view} tilt={tilt} selectedRoom={selectedRoom} selectedInstance={selectedInstance} onTap={onCanvasTap} onSelectInstance={setSelectedInstance} />
+            {view === "3D" && <label style={{ fontSize: ".66rem", color: C.dim }}>Tilt <input type="range" min={10} max={85} value={tilt} onChange={(e) => setTilt(+e.target.value)} /></label>}
+          </section>
+          {(activeOpen || wide()) && (
+            <ActiveElements project={project} selected={selectedInstance} onSelect={setSelectedInstance} onRotate={doRotate} onRemove={doRemove} onNudge={doNudge} />
+          )}
+        </main>
+      )}
 
       {toast && <div style={{ position: "fixed", left: "50%", bottom: "calc(1rem + env(safe-area-inset-bottom,0px))", transform: "translateX(-50%)", background: C.panel, border: `1px solid ${C.cyan}`, color: C.cyan, padding: ".4rem .8rem", borderRadius: ".5rem", fontSize: ".72rem" }}>{toast}</div>}
     </div>
@@ -238,6 +268,100 @@ function Canvas({ proj, view, tilt, selectedRoom, selectedInstance, onTap, onSel
   );
   return svg;
 }
+
+function EconCard({ label, value, evidence, note }: { label: string; value: string; evidence: string; note?: string }) {
+  const muted = value === "Not calculated";
+  return (
+    <div style={{ background: C.panel, border: `1px solid ${C.edge}`, borderRadius: ".5rem", padding: ".55rem .65rem", minWidth: 0 }}>
+      <div style={{ fontSize: ".62rem", color: C.dim, letterSpacing: ".04em" }}>{label}</div>
+      <div style={{ fontSize: "1.02rem", color: muted ? C.faint : C.text, fontVariantNumeric: "tabular-nums", marginTop: ".15rem" }}>{value}</div>
+      <div style={{ fontSize: ".58rem", color: C.faint, marginTop: ".15rem" }}>{evidence}{note ? ` · ${note}` : ""}</div>
+    </div>
+  );
+}
+
+function Systems({ project, jurisdiction, onJurisdiction, onMethod }: { project: ArchitectProjectV2; jurisdiction: string; onJurisdiction: (id: string) => void; onMethod: (m: ConstructionMethod) => void }) {
+  const method = project.construction.method;
+  const takeoff = materialTakeoff(project);
+  const ev = economicsView(project.economics);
+  // informational what-if: the settlement for the chosen jurisdiction. applyJurisdiction moves ONLY settlement — the
+  // baseline/labour/recognition cards above read the UNCHANGED canonical economics, so the firewall is visible on screen.
+  const settlementView = economicsView(applyJurisdiction(project.economics, jurisdiction)).settlement;
+  return (
+    <div data-arch-systems style={{ display: "flex", flexDirection: "column", gap: ".9rem", maxWidth: "48rem" }}>
+      {/* construction method — canonical */}
+      <section>
+        <div style={{ color: C.cyan, fontSize: ".64rem", letterSpacing: ".08em", marginBottom: ".4rem" }}>HOW IS IT BUILT?</div>
+        <div style={{ display: "flex", gap: ".4rem", flexWrap: "wrap" }}>
+          {(["UNDECIDED", "FRAME", "PRINT"] as ConstructionMethod[]).map((m) => (
+            <button key={m} data-arch-method={m} onClick={() => onMethod(m)} style={tab(m === method)}>
+              {m === "UNDECIDED" ? "Not decided" : m === "FRAME" ? "Wood frame" : "3D-printed walls"}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* material take-off — branches by method */}
+      <section data-arch-takeoff>
+        <div style={{ color: C.cyan, fontSize: ".64rem", letterSpacing: ".08em", marginBottom: ".4rem" }}>WHAT IT TAKES TO BUILD · wall system</div>
+        {takeoff.length === 0 ? (
+          <div style={{ fontSize: ".72rem", color: C.faint }}>Pick a construction method to see the wall-system take-off.</div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: ".7rem", minWidth: "22rem" }}>
+              <thead><tr style={{ color: C.dim, textAlign: "left" }}><th style={th}>Item</th><th style={{ ...th, textAlign: "right" }}>Quantity</th><th style={th}>Basis</th></tr></thead>
+              <tbody>
+                {takeoff.map((l, i) => (
+                  <tr key={i} style={{ borderTop: `1px solid ${C.edge}` }}>
+                    <td style={td}>{l.item}</td>
+                    <td style={{ ...td, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{l.qty.toLocaleString("en-US")} {l.unit}</td>
+                    <td style={{ ...td, color: C.faint }}>{l.calculation} · {l.evidence.toLowerCase()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* four economic domains — each labelled; never a generic "project cost" */}
+      <section data-arch-economics>
+        <div style={{ color: C.cyan, fontSize: ".64rem", letterSpacing: ".08em", marginBottom: ".4rem" }}>WHAT IT COSTS · four separate things, never mixed</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(10rem, 1fr))", gap: ".5rem" }}>
+          <EconCard label={ev.baseline.label} value={ev.baseline.value} evidence={ev.baseline.evidence} note={ev.baseline.note} />
+          <EconCard label={ev.perNetFt2.label} value={ev.perNetFt2.value} evidence={ev.perNetFt2.evidence} note={ev.perNetFt2.note} />
+          <EconCard label={ev.labor.label} value={ev.labor.value} evidence={ev.labor.evidence} />
+          <EconCard label={ev.recognition.label} value={ev.recognition.value} evidence={ev.recognition.evidence} />
+        </div>
+        <details style={{ marginTop: ".5rem" }}>
+          <summary style={{ fontSize: ".66rem", color: C.dim, cursor: "pointer" }}>The ten baseline rows (illustrative · assumed)</summary>
+          <div style={{ marginTop: ".4rem", fontSize: ".68rem", color: C.dim }}>
+            {ev.baselineSections.map((s) => (
+              <div key={s.name} style={{ display: "flex", justifyContent: "space-between", gap: ".8rem", padding: ".08rem 0" }}>
+                <span>{s.name}</span><span style={{ fontVariantNumeric: "tabular-nums" }}>{s.value}</span>
+              </div>
+            ))}
+          </div>
+        </details>
+      </section>
+
+      {/* local settlement — the ONLY thing a jurisdiction change may move (the firewall) */}
+      <section data-arch-jurisdiction>
+        <div style={{ color: C.cyan, fontSize: ".64rem", letterSpacing: ".08em", marginBottom: ".4rem" }}>WHERE IS IT BUILT? · {ev.settlement.label}</div>
+        <div style={{ display: "flex", gap: ".5rem", alignItems: "center", flexWrap: "wrap" }}>
+          <select value={jurisdiction} onChange={(e) => onJurisdiction(e.target.value)} data-arch-jurisdiction-select
+            style={{ background: C.panel, color: C.text, border: `1px solid ${C.edge}`, borderRadius: ".4rem", padding: ".3rem .5rem", fontSize: ".72rem" }}>
+            {JURISDICTIONS.map((j) => (<option key={j.id} value={j.id}>{j.label}</option>))}
+          </select>
+          <EconCard label={settlementView.label} value={settlementView.value} evidence={settlementView.evidence} note={settlementView.note} />
+        </div>
+        <div style={{ fontSize: ".6rem", color: C.faint, marginTop: ".4rem" }}>Changing where it is built moves only this local figure. The baseline estimate, labour and recognition above never change with it.</div>
+      </section>
+    </div>
+  );
+}
+const th: React.CSSProperties = { padding: ".25rem .4rem", fontWeight: 600, fontSize: ".62rem", textTransform: "uppercase", letterSpacing: ".06em" };
+const td: React.CSSProperties = { padding: ".3rem .4rem", verticalAlign: "top" };
 
 function ActiveElements({ project, selected, onSelect, onRotate, onRemove, onNudge }: { project: ArchitectProjectV2; selected: string | null; onSelect: (id: string) => void; onRotate: () => void; onRemove: () => void; onNudge: (dx: number, dy: number) => void }) {
   return (

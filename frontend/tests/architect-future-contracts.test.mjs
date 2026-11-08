@@ -9,9 +9,7 @@
 // tests/architect-future-canonical.test.mjs (in test:ci). The remaining behavioural contracts stay red-first here.
 const CONTRACTS = [
   // Phase 2 contracts (T-PLACEMENT, T-PROJECTION) are now GREEN — see tests/architect-future-planning.test.mjs.
-  { id: "T-MATERIAL",  phase: 3, mod: "../lib/architect-future/simulation/materials.ts", fn: "materialTakeoff", args: [null] },
-  { id: "T-COST",      phase: 3, mod: "../lib/architect-future/simulation/costs.ts", fn: "baselineEstimate", args: [] },
-  { id: "T-FIREWALL",  phase: 3, mod: "../lib/architect-future/simulation/costs.ts", fn: "applyJurisdiction", args: [null, "us-tx-austin"] },
+  // Phase 3 contracts (T-MATERIAL, T-COST, T-FIREWALL) are now GREEN — see tests/architect-future-economics.test.mjs.
   { id: "T-RATINGS",   phase: 4, mod: "../lib/architect-future/selectors/ratings.ts", fn: "ratingsView", args: [[], [], []] },
   { id: "T-ACTOR-AUTH", phase: 4, mod: "../lib/architect-future/state/authority-machine.ts", fn: "approve", args: [null, { kind: "SYSTEM", id: "s" }] },
   { id: "T-HEALTH",    phase: 4, mod: "../lib/architect-future/selectors/health.ts", fn: "projectHealth", args: [null] },

@@ -6,11 +6,11 @@ import type { ArchitectProjectV2, SiteDefinition } from "../domain/project";
 import type { SpaceEntityV2, SpaceFunction, WetClass } from "../domain/geometry";
 import type { ActorRef } from "../domain/actors";
 import type { ProjectTransformedFromV1Event } from "../rcore/events";
-import type { BaselineBuildEstimate, ProjectEconomics } from "../domain/economics";
-import { OUTER_UM, CLEAR_UM, ZONE_UM, PROFILE_ID, CLEAR_FT2 } from "../domain/geometry";
-import { BASELINE_ROWS, BASELINE_TOTAL_USD, tagUsd } from "../domain/economics";
+import type { ProjectEconomics } from "../domain/economics";
+import { OUTER_UM, CLEAR_UM, ZONE_UM, PROFILE_ID } from "../domain/geometry";
 import { readV1Program } from "../adapters/legacy-v1";
 import { hashV2 } from "../serialization/hash-v2";
+import { baselineEstimate } from "../simulation/costs";
 
 export interface TransformResult {
   project: ArchitectProjectV2;
@@ -20,18 +20,11 @@ export interface TransformResult {
 const ROW_INDEX: Record<string, number> = { C: 0, B: 1, A: 2 }; // seed y-order: C at 0, B at 1·OUTER, A at 2·OUTER
 const COL_INDEX: Record<string, number> = { "1": 0, "2": 1, "3": 2 };
 
+// The baseline is declared ONCE, in simulation/costs.baselineEstimate (the same value the Systems tab reads). labour,
+// recognition and settlement start NOT_CALCULATED — they fill only when the human supplies evidence / picks a jurisdiction.
 function baselineEconomics(): ProjectEconomics {
-  const sections = BASELINE_ROWS.map((r) => ({ id: r.id, name: r.name, usd: tagUsd("baseline", r.usd), evidence: "ASSUMED" as const }));
-  const baseline: BaselineBuildEstimate = {
-    kind: "BaselineBuildEstimate",
-    sections,
-    total_usd: tagUsd("baseline", BASELINE_TOTAL_USD),
-    total_evidence: "DERIVED",
-    per_net_ft2_usd: Math.round(BASELINE_TOTAL_USD / CLEAR_FT2),
-    per_net_ft2_evidence: "DERIVED",
-  };
   return {
-    baseline,
+    baseline: baselineEstimate(),
     labor: { kind: "ProjectLaborCost", labor_usd: null, evidence: "NOT_CALCULATED" },
     recognition: { kind: "GlobalRecognition", u_earned: null, evidence: "NOT_CALCULATED" },
     settlement: { kind: "LocalSettlement", jurisdiction_id: "", native_currency: "USD", settlement_native: null, evidence: "NOT_CALCULATED" },
