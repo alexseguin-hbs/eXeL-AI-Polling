@@ -8,7 +8,7 @@
  * CAD). Renders from the shared TINY_ROOM_LAYOUT so 2D plan, 3D voxel, and P3 cube-modification all
  * read one source. Clicking a room selects it (lifts to the app so the right panel + 3D agree).
  */
-import { TINY_ROOM_LAYOUT, ROOM_FT, TINY_GRID, type RoomCell } from "@/lib/room-layout";
+import { TINY_ROOM_LAYOUT, ROOM_FT, TINY_GRID, SHELL_FT, HOUSE_FT, WALL_ZONE_PER_SIDE_FT, type RoomCell } from "@/lib/room-layout";
 import { projectPlaced, OBJECT_SPEC, defaultObjectsForRoom, ROOM_GRID, type PlacedObject } from "@/lib/room-objects";
 import { doorSymbol, doorSymbolSvg, symbolForSpan, type DoorSymbol } from "@/lib/door-symbol";
 import { useRCoreGestures } from "./use-rcore-gestures";
@@ -20,11 +20,18 @@ import { FRAME_COLOR } from "@/lib/architect-phase-palette";   // ONE framing pa
 // palette, gated by tests/architect-one-source.test.mjs); the outer shell stays the reference's cyan, non-framing colours unchanged.
 const C = { bg: "#070b12", grid: "#13202f", wall: FRAME_COLOR, door: "#ffd400", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", gold: "#ffd400", border: "#1e2b3a" };
 
-// SVG layout: 30-ft plan drawn at 30 units/room inside a padded viewBox (room for dimension lines).
-const U = 30;                 // svg units per 10-ft room cell
-const PAD = 16;               // margin for the dimension lines/labels
-const SIDE = U * TINY_GRID;   // 90 units = 30 ft
+// SVG layout: the 36-ft SHELL plan at 3 units/ft (H.I. 2026-11-08 — one geometry source). Each 10-ft CLEAR room
+// (INNER = 30 units) sits inset by the 1-ft reserved wall/service zone (CAVITY = 3 units) inside its 12-ft outer module
+// (CUBE = 36 units); the built shell is 3 modules = 108 units = 36 ft. Clear-room origins 1/13/25 ft, outer-module
+// origins 0/12/24 ft, net 900 ft² clear / gross 1,296 ft² shell. The old 30×30 edge-to-edge envelope is removed.
+const FT = 3;                             // svg units per foot
+const PAD = 16;                           // margin for the dimension lines/labels
+const CUBE = SHELL_FT * FT;               // 36 units = the 12-ft outer-module pitch
+const INNER = ROOM_FT * FT;               // 30 units = the 10-ft clear room (furniture/doors scale on this)
+const CAVITY = WALL_ZONE_PER_SIDE_FT * FT;// 3 units = the 1-ft reserved wall/service zone each side
+const SIDE = HOUSE_FT * FT;               // 108 units = the 36-ft shell
 const VB = SIDE + PAD * 2;
+const U = INNER;                          // a 1-cell room spans 10 ft (INNER) on each axis
 
 
 // ACTUAL placed contents — projects each object the user placed in the room (via the in-room designer) into the room
@@ -44,8 +51,9 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
   layout?: RoomCell[]; selectedRoomId?: string | null; onSelectRoom?: (id: string) => void; showFurniture?: boolean;
 }) {
   const { t } = useLexicon();
-  const x = (col: number) => PAD + col * U;
-  const y = (row: number) => PAD + row * U;
+  // clear-room origin: the 12-ft outer module at col·CUBE, the 10-ft room inset by the 1-ft reserved zone (CAVITY).
+  const x = (col: number) => PAD + col * CUBE + CAVITY;
+  const y = (row: number) => PAD + row * CUBE + CAVITY;
   // R-Core interaction (Mission-Planning parity): LEFT-drag pan · RIGHT-drag rotate · pinch/scroll zoom. Flat
   // plan → pitch unused. Bearing (rad) spins the plan under a North compass; tap-to-select survives via `moved`.
   const { bearing, zoom, pan, reset, moved, setBearing, handlers } = useRCoreGestures({ initialZoom: 1, pan: true, cfg: { minZoom: 0.6, maxZoom: 5 } });
@@ -55,14 +63,22 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
       <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) rotate(${bearing}rad) scale(${zoom})`, transformOrigin: "center", transition: "none" }}>
     <svg data-arch-floorplan viewBox={`0 0 ${VB} ${VB}`} preserveAspectRatio="xMidYMid meet"
       className="w-full rounded" style={{ background: C.bg, aspectRatio: "1 / 1" }}>
-      {/* overall 30'-0" dimension lines (top + left) */}
+      {/* overall 36'-0" dimension lines (top + left) — the built shell (3 × 12-ft modules), one geometry source */}
       <line x1={PAD} y1={PAD - 7} x2={PAD + SIDE} y2={PAD - 7} stroke={C.dim} strokeWidth="0.4" />
-      <text x={PAD + SIDE / 2} y={PAD - 9} fill={C.dim} fontSize="5" textAnchor="middle">{`${ROOM_FT * TINY_GRID}'-0"`}</text>
+      <text x={PAD + SIDE / 2} y={PAD - 9} fill={C.dim} fontSize="5" textAnchor="middle">{`${HOUSE_FT}'-0"`}</text>
       <line x1={PAD - 7} y1={PAD} x2={PAD - 7} y2={PAD + SIDE} stroke={C.dim} strokeWidth="0.4" />
-      <text x={PAD - 9} y={PAD + SIDE / 2} fill={C.dim} fontSize="5" textAnchor="middle" transform={`rotate(-90 ${PAD - 9} ${PAD + SIDE / 2})`}>{`${ROOM_FT * TINY_GRID}'-0"`}</text>
+      <text x={PAD - 9} y={PAD + SIDE / 2} fill={C.dim} fontSize="5" textAnchor="middle" transform={`rotate(-90 ${PAD - 9} ${PAD + SIDE / 2})`}>{`${HOUSE_FT}'-0"`}</text>
 
-      {/* outer shell (exterior wall, cyan like the reference) */}
+      {/* outer shell (exterior wall, cyan like the reference) — the 36-ft envelope */}
       <rect x={PAD} y={PAD} width={SIDE} height={SIDE} fill="none" stroke={C.cyan} strokeWidth="1.4" />
+      {/* 12-ft outer-module gridlines (at 0/12/24/36 ft) — the band between a module edge and its 10-ft clear room is the
+          1-ft reserved wall/service zone (H.I. 2026-11-08); drawn faint so the modules + reserved zone read behind the rooms */}
+      {Array.from({ length: TINY_GRID - 1 }, (_, i) => PAD + (i + 1) * CUBE).map((p, i) => (
+        <g key={`mod${i}`}>
+          <line x1={p} y1={PAD} x2={p} y2={PAD + SIDE} stroke={C.border} strokeWidth="0.3" />
+          <line x1={PAD} y1={p} x2={PAD + SIDE} y2={p} stroke={C.border} strokeWidth="0.3" />
+        </g>
+      ))}
 
       {/* rooms */}
       {layout.map((r) => {

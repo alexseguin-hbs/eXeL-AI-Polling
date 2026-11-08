@@ -39,9 +39,11 @@ function serviceAmps(usable: number): number {
   return 400;
 }
 
-/** Finalized Tiny Home (operator design): 3×3 grid of nine 10'×10'×10' rooms = 900 ft², 1 story,
- * one full bath (Master Bath). Fixed by the design — NOT derived from global area. */
-export const TINY_HOME = { grossSqft: 900, usableSqft: 900, rooms: 9, bathrooms: 1, bedrooms: 1, ceilingFt: 10, footprintFt: 30, windows: 8, doors: 9 } as const;
+/** Finalized Tiny Home (operator design, H.I. 2026-11-08): a 3×3 grid of nine 10'×10' CLEAR rooms = 900 ft² livable,
+ * nested in 12'×12' outer modules (a 1-ft reserved wall/service zone each side) → a 36×36 ft shell = 1,296 ft² gross,
+ * 1 story, one full bath (Master Bath). Fixed by the design — NOT derived from global area. gross = shell footprint;
+ * usable = clear livable; footprint = the shell edge — the ONE geometry source, mirrored in lib/room-layout.ts. */
+export const TINY_HOME = { grossSqft: 1296, usableSqft: 900, rooms: 9, bathrooms: 1, bedrooms: 1, ceilingFt: 10, footprintFt: 36, windows: 8, doors: 9 } as const;
 
 // homeType accepts all four markets; only "tiny" changes the metrics (fixed 900 ft² program) — Home /
 // Multi-Family / Commercial use the style-equivalence gross/usable (per-market scale is a flagged follow-on).

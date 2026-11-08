@@ -93,7 +93,10 @@ export function formGeometry(m: SimModel): FormGeo {
     const rad = Math.sqrt(a / Math.PI), circ = 2 * Math.PI * rad, ht = STOREY_FT;   // dome footprint → radius · the one storey
     return { areaFt2: a, sideFt: r0(2 * rad), perimeterFt: r0(circ), wallHt: ht, extWallLF: r0(circ), intWallLF: 60, wallAreaFt2: r0(2 * Math.PI * rad * rad), roofAreaFt2: r0(2 * Math.PI * rad * rad), windows: 6, doors: 1 };
   }
-  const side = Math.sqrt(a), per = 4 * side, ht = STOREY_FT;     // cube 3×3 (30 × 30 @ 900 ft²) · the 10-ft storey the walk draws
+  const side = Math.sqrt(a), per = 4 * side, ht = STOREY_FT;     // cube 3×3 · side from √(clear area) · the 10-ft storey the walk draws
+  // ⚠ R3 (H.I. 2026-11-08): this take-off basis uses the clear-area side (√900 = 30), not the 36-ft SHELL perimeter the
+  // one geometry source now carries (room-layout HOUSE_FT=36; house-truth already takes wall/slab off the 36 shell). The
+  // BOM/take-off unification in R3 re-seats this formGeometry on the shell (perimeter 144, slab/roof 1,296); R1a left it.
   return { areaFt2: a, sideFt: r0(side), perimeterFt: r0(per), wallHt: ht, extWallLF: r0(per), intWallLF: r0(per), wallAreaFt2: r0(per * ht), roofAreaFt2: r0(a * 1.15), windows: 9, doors: 10 };
 }
 const cubicYards = (ft2: number, inches: number) => Math.round((ft2 * (inches / 12) / 27) * 10) / 10;

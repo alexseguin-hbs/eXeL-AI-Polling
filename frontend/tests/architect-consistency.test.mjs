@@ -5,7 +5,7 @@
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-consistency.test.mjs
 import fs from "node:fs";
 import path from "node:path";
-import { STOREY_FT, ROOM_FT, TINY_SIDE_FT, VOXEL_PX_PER_FT } from "@/lib/room-layout";
+import { STOREY_FT, ROOM_FT, TINY_SIDE_FT, VOXEL_PX_PER_FT, HOUSE_FT, GROSS_SQFT, CLEAR_SQFT, WALL_ZONE_SQFT } from "@/lib/room-layout";
 import { TINY_HOME, DEFAULT_PROGRAM } from "@/lib/room-program";
 import { PHASE_ORDER, BUILD_PHASES, phaseById } from "@/lib/architect-phases";
 import { modelById, ELEMENTS } from "@/lib/architect-sim-options";
@@ -54,7 +54,12 @@ ok(ELEMENTS[2] === "Roof" && ELEMENTS.indexOf("Roof") === ELEMENTS.indexOf("Wall
 ok(JSON.stringify([...ELEMENTS]) === JSON.stringify(boArr), `cost-by-element order === build order, one standard (${ELEMENTS.join(",")})`);
 
 // ── 3. SQUARE FOOTAGE — scoped, never conflated (canonical 900 ≠ the Tiny catalog preset 280) ──
-ok(TINY_HOME.grossSqft === 900 && TINY_SIDE_FT * TINY_SIDE_FT / 100 * 100 === 900 && TINY_SIDE_FT === 30, "the canonical nine-space plan is 900 ft² (30×30) — one source");
+// H.I. 2026-11-08 (binding): the nine 10×10 CLEAR rooms = 900 ft² livable, nested in 12-ft outer modules (1-ft reserved
+// wall/service zone each side) → a 36×36 shell = 1,296 ft² gross; their difference = 396 ft² is the reserved zone. net 900
+// (clear/usable) ≠ gross 1,296 (shell), each labelled; the old 30×30-as-shell is removed. ONE geometry source (room-layout).
+ok(TINY_HOME.usableSqft === 900 && CLEAR_SQFT === 900 && TINY_SIDE_FT === 30, `the nine clear rooms are 900 ft² livable (clear span ${TINY_SIDE_FT} ft) — one source`);
+ok(TINY_HOME.grossSqft === 1296 && GROSS_SQFT === 1296 && HOUSE_FT === 36 && TINY_HOME.footprintFt === 36, `the built shell is 36×36 = 1,296 ft² gross (TINY_HOME.grossSqft ${TINY_HOME.grossSqft}, footprint ${TINY_HOME.footprintFt})`);
+ok(WALL_ZONE_SQFT === 396 && GROSS_SQFT - CLEAR_SQFT === 396, `the reserved wall/service zone = gross − clear = 396 ft² (got ${WALL_ZONE_SQFT})`);
 const tiny = modelById("tiny");
 ok(!!tiny.catalogPreset && tiny.catalogPreset.mainFloorFt2 === 280 && tiny.areaFt2 === 280, "the Tiny catalog preset is 280 ft² main floor (a SEPARATE scope from the 900 ft² canonical)");
 ok(tiny.catalogPreset.mainFloorFt2 !== TINY_HOME.grossSqft, "the preset's 280 ft² and the canonical 900 ft² are DECLARED different (preset ≠ canonical) — never conflated");

@@ -9,7 +9,8 @@ const ok = (c, m) => { if (c) { pass++; } else { fail++; console.log("FAIL", m);
 
 // ── defaults ──
 ok(DEFAULT_PROGRAM.bedrooms === 3 && DEFAULT_PROGRAM.bathrooms === 2 && DEFAULT_PROGRAM.ceilingFt === 9 && DEFAULT_PROGRAM.kitchens === 1, "DEFAULT_PROGRAM 3bd/2ba/9ft/1kitchen");
-ok(TINY_HOME.grossSqft === 900 && TINY_HOME.footprintFt === 30 && TINY_HOME.rooms === 9, "TINY_HOME truth: 900 ft² · 30 ft · 9 rooms");
+// H.I. 2026-11-08: TINY_HOME is 900 ft² CLEAR (usable) inside a 36×36 ft = 1,296 ft² GROSS shell — net ≠ gross, each labelled.
+ok(TINY_HOME.grossSqft === 1296 && TINY_HOME.usableSqft === 900 && TINY_HOME.footprintFt === 36 && TINY_HOME.rooms === 9, "TINY_HOME truth: 900 ft² clear · 1,296 ft² gross · 36 ft shell · 9 rooms");
 ok(TINY_HOME.bedrooms === 1 && TINY_HOME.bathrooms === 1 && TINY_HOME.windows === 8 && TINY_HOME.doors === 9, "TINY_HOME 1bd/1ba/8win/9door");
 
 // ── full home metrics (metric-strip counts) ──
@@ -23,7 +24,7 @@ ok(full.bedroomVolumeFt3 > 0 && full.perBedroomSqft > 0, "derived bedroom sqft +
 
 // ── tiny home is pinned to the fixed TINY_HOME truth ──
 const tiny = programMetrics(DEFAULT_PARAMS, DEFAULT_PROGRAM, "tiny");
-ok(tiny.grossSqft === TINY_HOME.grossSqft, "tiny grossSqft locks to TINY_HOME (900)");
+ok(tiny.grossSqft === TINY_HOME.grossSqft && tiny.usableSqft === TINY_HOME.usableSqft, "tiny gross/usable lock to TINY_HOME (1,296 gross / 900 clear)");
 ok(tiny.counts.windows === TINY_HOME.windows && tiny.counts.doors === TINY_HOME.doors, "tiny window/door counts lock to TINY_HOME");
 ok(tiny.grossSqft < full.grossSqft, "tiny is smaller than full");
 

@@ -27,15 +27,22 @@ export interface RoomCell {
 export type ElementKind = "windows" | "doors" | "outlets";
 export const ELEMENT_MAX = 8; // clamp (Enki: 0..max, no negative)
 
-export const ROOM_FT = 10;        // each cell edge = 10 ft
+export const ROOM_FT = 10;        // each clear room edge = 10 ft (what you walk)
 export const TINY_GRID = 3;       // 3×3
-export const TINY_SIDE_FT = ROOM_FT * TINY_GRID; // 30 ft
+// TINY_SIDE_FT is the CLEAR interior span (3 rooms × 10 ft, edge-to-edge) — NOT the house outline. The built house
+// OUTLINE is the shell, HOUSE_FT = 36 (H.I. 2026-11-08: 12-ft outer module · 10-ft clear room · 1-ft reserved
+// wall/service zone per side · 36×36 shell · 900 clear · 1,296 gross). Kept for the voxel's land-cell scale until R1b
+// re-seats it on HOUSE_FT; the drawn shell on the 2D plan / Build / Overview reads HOUSE_FT, never this.
+export const TINY_SIDE_FT = ROOM_FT * TINY_GRID; // 30 ft — clear interior span (NOT the shell; the shell is HOUSE_FT=36)
 
 /** THE VOXEL PROPORTION LAW (operator 2026-10-31: "remember voxel pixel height and width for 3x3x3 is to be realistically
  * proportional"; 2026-10-25: "3x3x3 shape is same pixels tall, wide, and long"). ONE scale for the plan and every vertical:
  * the land cell (the 30-ft house) is 66 px, so 2.2 px/ft; a storey is one room edge — 10 ft — so the 3×3×3 cube is the HOUSE
  * (3 rooms × 3 rooms × 3 storeys of 10-ft voxels = 30 × 30 × 30 ft = 66 × 66 × 66 px), the house its level 1. Gated by
- * tests/architect-voxel-proportion.test.mjs; STOREY_FT must equal TINY_HOME.ceilingFt (room-program) and the room designer's N. */
+ * tests/architect-voxel-proportion.test.mjs; STOREY_FT must equal TINY_HOME.ceilingFt (room-program) and the room designer's N.
+ * ⚠ R1b (H.I. 2026-11-08): this 30-ft land-cell metaphor is superseded by the ONE-storey nested cube below — the house is a
+ * 36×36×12 shell, not a 30×30×30 three-storey block. R1b re-seats VOXEL_PX_PER_FT on HOUSE_FT (66/36) and the voxel's
+ * footprint/cube3 on 36; R1a left it here so the 2D plan / Build / Overview could adopt 36 first (they do not read this). */
 export const VOXEL_PX_PER_FT = 66 / TINY_SIDE_FT;   // 2.2 px per foot
 export const STOREY_FT = ROOM_FT;                     // 10 ft — one storey = one room edge = one INNER clear ceiling
 // THE NESTED CUBE (operator 2026-11-06: "12×12×12 is outer shell to allow for inner of 10×10×10"; "36x36x12 ft is outer
@@ -45,8 +52,17 @@ export const STOREY_FT = ROOM_FT;                     // 10 ft — one storey = 
 // MEP, framing and the house-level roof/foundation/overhead all key off these so the cube can never drift back to 8.
 export const SHELL_FT = ROOM_FT + 2;                  // 12 ft — per-room OUTER shell edge (1-ft construction each side)
 export const PLENUM_FT = SHELL_FT - STOREY_FT;        // 2 ft — the zone ABOVE the 10-ft ceiling (ducts / roof / insulation)
-export const HOUSE_FT = TINY_GRID * SHELL_FT;         // 36 ft — whole-house outer width = depth (3 rooms × 12)
+export const HOUSE_FT = TINY_GRID * SHELL_FT;         // 36 ft — whole-house outer width = depth (3 rooms × 12) — THE SHELL OUTLINE
 export const HOUSE_H = SHELL_FT;                       // 12 ft — whole-house outer height (10 inner clear + 2 plenum), ONE storey
+// THE RESERVED WALL/SERVICE ZONE + THE TWO AREAS (H.I. 2026-11-08, binding): the 1-ft band each side of a clear room is
+// the reserved wall/service zone (wall assembly + a chase for wiring/plumbing), NOT the structural wall thickness. Net
+// (clear, livable) = 9 × 10×10 = 900 ft²; gross (shell footprint) = 36×36 = 1,296 ft²; their difference = 396 ft² is the
+// reserved zone. These are THE one geometry source for every DISPLAYED area/dimension (plan · dimensions · Overview ·
+// Build take-off · Project Health). Clear-room origins 1/13/25 ft; outer-module origins 0/12/24 ft.
+export const WALL_ZONE_PER_SIDE_FT = (SHELL_FT - ROOM_FT) / 2;  // 1 ft — reserved wall/service zone each side
+export const CLEAR_SQFT = ROOM_FT * ROOM_FT * (TINY_GRID * TINY_GRID); // 900 — net livable (9 clear 10×10 rooms)
+export const GROSS_SQFT = HOUSE_FT * HOUSE_FT;                  // 1,296 — gross shell footprint (36×36)
+export const WALL_ZONE_SQFT = GROSS_SQFT - CLEAR_SQFT;         // 396 — the reserved wall/service zone (gross − clear)
 export const STEP_RISE_FT = 7 / 12;                   // a 7-in riser (IRC R311.7.5.1 allows up to 7¾ in)
 
 /** ONE OPENING STANDARD (Wave 0 · P0·I, operator 2026-11-07 via MoT: "DOOR_W=3.2 would print a non-existent 3'-2″"). The walk

@@ -29,7 +29,7 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLo
   const est = houseEstimate(ids);
 
   // THE ONE MASTER (operator 2026-11-01: "master source of data that flows through to all components") — the
-  // canonical 3×3 house: 900 ft² / 9 rooms / 30×30 from the seed GEOMETRY, $240,000 + the real build-by-phase from
+  // canonical 3×3 house: 900 ft² clear / 9 rooms / 36×36 shell (1,296 gross) from the seed GEOMETRY, $240,000 + the real build-by-phase from
   // the ONE-COST-TRUTH engine, and the framing/envelope material take-off. Every number below reads THIS, so the
   // HOUSE BUILD SPEC can never again disagree with the Design surface (the 2,000 ft²/$2,000 defect this closes).
   const master = useMemo(() => canonicalHouseTruth(), []);

@@ -12,7 +12,7 @@
  * is not reached). Self-contained SVG; pure client; deterministic (no Math.random — replay law).
  */
 import { useEffect, useRef, useState } from "react";
-import { TINY_ROOM_LAYOUT, TINY_GRID, ROOM_FT, TINY_SIDE_FT } from "@/lib/room-layout";
+import { TINY_ROOM_LAYOUT, TINY_GRID, ROOM_FT, HOUSE_FT, GROSS_SQFT } from "@/lib/room-layout";
 import { defaultObjectsForRoom, ROOM_GRID } from "@/lib/room-objects";
 import { outletPositions } from "@/lib/mep-runs";
 import { doorSymbol, doorSymbolSvg, symbolForSpan, type DoorSymbol } from "@/lib/door-symbol";
@@ -25,7 +25,7 @@ interface Step { s: number; e: number; trade: string; label: string; kind: strin
 // Dry-in BEFORE MEP (the Build-Instructions BUILD_ORDER: Foundation → Wall System → Roof → Plumbing → Electrical → finish;
 // the Gantt's "Framing" trade is the structural activity that raises the Wall System + roof).
 const SEQ: Step[] = [
-  { s: 1, e: 2, trade: "Concrete", label: "Footings + Slab — 30×30 ft", kind: "foundation" },
+  { s: 1, e: 2, trade: "Concrete", label: "Footings + Slab — 36×36 ft", kind: "foundation" },
   { s: 3, e: 6, trade: "Framing", label: "Room Walls — 9 rooms on the 3×3", kind: "studs" },
   { s: 7, e: 9, trade: "Framing", label: "Beams + Roof Trusses", kind: "beams" },
   { s: 10, e: 11, trade: "Framing", label: "Sheathing + Roof Deck — dry-in", kind: "sheathing" },
@@ -38,8 +38,9 @@ const TOTAL = 20;
 const shown = (day: number, k: string) => SEQ.some((x) => x.kind === k && day >= x.s);
 const ramp = (day: number, k: string) => { const x = SEQ.find((s) => s.kind === k); if (!x) return 0; return Math.max(0, Math.min(1, (day - x.s + 1) / (x.e - x.s + 1))); };
 
-// ── the 3×3 in plan view: the 30×30 ft house drawn at X0/Y0 with `cell` px per 10-ft room ───────────────────────────
-const X0 = 22, Y0 = 6, CELL = 19, HOUSE = CELL * TINY_GRID;            // 57 px across for 30 ft
+// ── the 3×3 in plan view: the 36×36 ft shell drawn at X0/Y0 with `cell` px per room (illustrative schematic; R1b insets
+//    the 1-ft reserved wall/service zone so the shell reads 36 with 10-ft clear rooms, like the 2D plan) ───────────────
+const X0 = 22, Y0 = 6, CELL = 19, HOUSE = CELL * TINY_GRID;            // 57 px across (the 36-ft shell, schematic)
 const cx = (col: number) => X0 + col * CELL, cy = (row: number) => Y0 + row * CELL;
 const isWet = (k: string) => k === "B" || k === "K" || k === "S";    // the centre column — the canonical wet core
 const exteriorEdges = (row: number, col: number): ("N" | "S" | "E" | "W")[] => {
@@ -73,14 +74,14 @@ export function ArchitectBuild() {
       <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         <div className="mb-1 flex items-center justify-between text-[9px]" style={{ color: C.dim }}>
-          <span><b style={{ color: C.cyan }}>THE 3×3 DESIGN</b> · {rooms.length} rooms · {TINY_SIDE_FT}×{TINY_SIDE_FT} ft · {TINY_SIDE_FT * TINY_SIDE_FT} ft² — plan view, built step by step</span>
+          <span><b style={{ color: C.cyan }}>THE 3×3 DESIGN</b> · {rooms.length} rooms · {HOUSE_FT}×{HOUSE_FT} ft · {GROSS_SQFT.toLocaleString()} ft² — plan view, built step by step</span>
           <span>N ↑</span>
         </div>
         {/* progressive build of the canonical 3×3 — one source (TINY_ROOM_LAYOUT), revealed by phase */}
         <svg data-arch-build data-arch-build-3x3 viewBox="0 0 100 70" preserveAspectRatio="xMidYMid meet" className="w-full rounded" style={{ background: "#070b12", aspectRatio: "10 / 7" }}>
           {/* site datum */}
           <line x1="4" y1="66" x2="96" y2="66" stroke="#233043" strokeWidth="0.4" />
-          {/* FOUNDATION — 30×30 slab + footings under every room wall */}
+          {/* FOUNDATION — 36×36 slab + footings under every room wall */}
           {shown(day, "foundation") && (
             <g data-el="foundation" opacity={ramp(day, "foundation")}>
               <rect x={X0} y={Y0} width={HOUSE} height={HOUSE} fill="#2a2f38" stroke="#8a8f98" strokeWidth="0.6" />
@@ -88,7 +89,7 @@ export function ArchitectBuild() {
                 <line x1={cx(i)} y1={Y0} x2={cx(i)} y2={Y0 + HOUSE} stroke="#5a6170" strokeWidth="0.35" strokeDasharray="1 1" />
                 <line x1={X0} y1={cy(i)} x2={X0 + HOUSE} y2={cy(i)} stroke="#5a6170" strokeWidth="0.35" strokeDasharray="1 1" />
               </g>))}
-              <text x={X0 + HOUSE / 2} y={Y0 + HOUSE + 3.2} fontSize="2.4" fill="#8a8f98" textAnchor="middle" style={{ fontFamily: "monospace" }}>slab {TINY_SIDE_FT}×{TINY_SIDE_FT} ft</text>
+              <text x={X0 + HOUSE / 2} y={Y0 + HOUSE + 3.2} fontSize="2.4" fill="#8a8f98" textAnchor="middle" style={{ fontFamily: "monospace" }}>slab {HOUSE_FT}×{HOUSE_FT} ft</text>
             </g>
           )}
           {/* ROOM WALLS — the nine 10×10 rooms of the 3×3, each with its key (the Design tab's M/B/C/L/K/D/O/S/E) */}

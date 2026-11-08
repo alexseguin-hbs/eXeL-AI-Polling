@@ -7,7 +7,7 @@
  * The canonical 3×3 Cube IS the house. This module is the SINGLE source every surface reads for its facts, so no
  * two surfaces can ever disagree (the HOUSE BUILD SPEC showed 2,000 ft² / $2,000 / 1 component while the Design
  * tab showed 900 ft² / 9 rooms — two engines, one house: the exact failure this closes):
- *   • DIMENSIONS — from the seed GEOMETRY (netProgramAreaUm2 of the R0 project) → 900 ft², 9 rooms, 30×30 ft.
+ *   • DIMENSIONS — from the seed GEOMETRY (netProgramAreaUm2 of the R0 project) → 900 ft² clear, 9 rooms, 36×36 ft shell (1,296 gross).
  *     Never a literal; derived from the same µm geometry the Design surface draws.
  *   • COST       — from the ONE-COST-TRUTH engine (architect-sim-options.costFor / costBreakdown of the Cube at
  *     its native option) → $240,000, reconciling element-by-element to the penny. The same number the Simulate
@@ -15,7 +15,7 @@
  *   • BUILD      — the real build elements (costBreakdown: Foundation · Wall System · Roof · Plumbing · Electrical ·
  *     HVAC + the site/finish remainder) grouped into install phases, each carrying its real USD. Σ === $240,000.
  *   • MATERIAL   — the framing & envelope take-off (slab ft² · wall linear ft · studs · plates · roof ft²) derived
- *     from the 30×30 geometry + the one stud spacing (STUD_SPACING_IN). "length of material", from the one source.
+ *     from the 36×36 shell geometry + the one stud spacing (STUD_SPACING_IN). "length of material", from the one source.
  *
  * TRIPLE-CHECK (the operator asked 3×): the GEOMETRY area (seed) and the COST-MODEL area (SimModel.areaFt2) MUST
  * agree — asserted here (canonicalHouseTruth throws on divergence) AND gated (tests/architect-house-truth.test.mjs).
@@ -31,6 +31,7 @@ import { TINY_HOME_V1 } from "./architect-2525/seeds/tiny-home-v1";
 import { modelById, SIM_MODELS, costFor, costBreakdown, monthsFor, laborHoursFor, type SimModel } from "./architect-sim-options";
 import { STUD_SPACING_IN, STUD_GAUGES, DEFAULT_STUD_GAUGE } from "./architect-phase-palette";
 import { PHASES, type Phase } from "./architect-house";
+import { SHELL_FT } from "./room-layout";   // the ONE shell source (12-ft outer module = 10 clear + 1 reserved each side)
 
 const CANONICAL_MODEL_ID = "3x3-grid";
 
@@ -104,8 +105,8 @@ export function canonicalHouseTruth(): CanonicalHouseTruth {
   // The built SHELL is the 3×3 of cubes → 36′. NET (interior) program stays 900 ft²; GROSS (shell) = 1,296 ft².
   const gridN = Math.round(Math.sqrt(rooms));                                                 // 3
   const roomFt = Math.round(ftFromUm(spaces[0].width_um));                                    // 10 (interior room edge)
-  const CAVITY_FT = 2;                                                                        // 1′ each side
-  const cubeFt = roomFt + CAVITY_FT;                                                          // 12
+  const cubeFt = SHELL_FT;                                                                    // 12 — the 12′ outer module, from the ONE shell source (room-layout)
+  const CAVITY_FT = cubeFt - roomFt;                                                          // 2 (1′ reserved wall/service zone each side), derived — never a literal
   const shellWidthFt = cubeFt * gridN;                                                        // 36
   const shellDepthFt = cubeFt * gridN;                                                        // 36
   const netSqft = geomSqft;                                                                   // 900 (interior)

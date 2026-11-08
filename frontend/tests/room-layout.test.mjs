@@ -1,14 +1,19 @@
 // ARCHITECT-2525 room-layout lock — pure move/swap/resize/sqft semantics (P3 cube modification).
 // Run: node --experimental-strip-types tests/room-layout.test.mjs
-import { TINY_ROOM_LAYOUT, cloneLayout, roomAt, layoutSqft, moveRoomInLayout, resizeRoomInLayout, TINY_SIDE_FT, setRoomElement, toggleRoomFurniture, layoutTotals, moduleHash, ELEMENT_MAX, STRETCH_MAX_CELLS } from "../lib/room-layout.ts";
+import { TINY_ROOM_LAYOUT, cloneLayout, roomAt, layoutSqft, moveRoomInLayout, resizeRoomInLayout, TINY_SIDE_FT, HOUSE_FT, SHELL_FT, GROSS_SQFT, CLEAR_SQFT, WALL_ZONE_SQFT, WALL_ZONE_PER_SIDE_FT, setRoomElement, toggleRoomFurniture, layoutTotals, moduleHash, ELEMENT_MAX, STRETCH_MAX_CELLS } from "../lib/room-layout.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log("PASS", m); } else { fail++; console.log("FAIL", m); } };
 
-// 1. The finalized Tiny Home = 9 rooms, 900 ft², 30 ft side.
+// 1. The finalized Tiny Home = 9 rooms, 900 ft² clear, inside a 36×36 shell (H.I. 2026-11-08 — ONE geometry source).
 ok(TINY_ROOM_LAYOUT.length === 9, "9 rooms");
-ok(layoutSqft(TINY_ROOM_LAYOUT) === 900, "default layout = 900 ft²");
-ok(TINY_SIDE_FT === 30, "30 ft side");
+ok(layoutSqft(TINY_ROOM_LAYOUT) === 900, "default layout = 900 ft² clear (livable)");
+ok(TINY_SIDE_FT === 30, "30 ft CLEAR interior span (3 × 10-ft rooms edge-to-edge) — NOT the shell");
+// the built house OUTLINE is the shell: 3 × 12-ft outer modules = 36 ft (10-ft clear room + a 1-ft reserved wall/service
+// zone each side); gross shell = 1,296 ft², clear = 900 ft², their difference = 396 ft² is the reserved zone.
+ok(HOUSE_FT === 36 && HOUSE_FT === 3 * SHELL_FT, `36 ft shell outline (3 × ${SHELL_FT}-ft modules) — the house, not TINY_SIDE_FT`);
+ok(WALL_ZONE_PER_SIDE_FT === 1, "1-ft reserved wall/service zone each side");
+ok(GROSS_SQFT === 1296 && CLEAR_SQFT === 900 && WALL_ZONE_SQFT === 396 && GROSS_SQFT - CLEAR_SQFT === WALL_ZONE_SQFT, `gross 1,296 / clear 900 / reserved zone 396 (got ${GROSS_SQFT}/${CLEAR_SQFT}/${WALL_ZONE_SQFT})`);
 
 // 2. clone is a deep copy (mutating the clone never touches the source).
 const c = cloneLayout(); c[0].row = 2;

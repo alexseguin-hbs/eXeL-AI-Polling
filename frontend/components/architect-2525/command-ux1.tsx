@@ -45,7 +45,7 @@ import { MetricStrip } from "./metric-strip";
 import { useLayerState } from "./use-layer-state";
 import { ArchitectProjects } from "./architect-projects";
 import { serializeProject, parseProject, type ArchitectProjectFile } from "@/lib/architect-project-file";
-import { type RoomCell } from "@/lib/room-layout";
+import { type RoomCell, GROSS_SQFT } from "@/lib/room-layout";
 import { HouseSpec } from "./house-spec";
 import { CodesPanel } from "./codes-panel";
 import { MasterReadout } from "./master-readout";
@@ -411,7 +411,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               <Tile label="Net Program" value={`${canonSqft} ft²`} sub={`${canonSpaces} Spaces · ${canonWet} Wet · ${canonBath} Bath`} color={C.cyan} />
               <Tile label="Budget Target" value={fmtUsd(BUDGET_TARGET_USD)} sub="ASSUMED" color={C.amber} />
               <Tile label="Project Cost" value="NOT CALCULATED" sub="no estimate yet" color={C.dim} />
-              <Tile label="Gross Building Area" value="NOT CALCULATED" sub="Spaces only in G2 · PLAN" color={C.dim} />
+              <Tile label="Gross Building Area" value={`${GROSS_SQFT.toLocaleString()} ft²`} sub="36×36 ft shell · 1′ wall/service zone" color={C.cyan} />
               <Tile label="Build-Ready" value="—" sub="qualify to unlock" color={C.amber} />
               <Tile label="Iteration" value="— / 33" sub="20–33 loop · not started" color={C.dim} />
               <Tile label="Model" value={`${canonSpaces} Spaces`} sub="PLAN + VECTOR 3D · boundaries, no walls" color={C.cyan} />

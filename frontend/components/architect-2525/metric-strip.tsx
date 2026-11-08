@@ -34,7 +34,8 @@ export function MetricStrip({ state, overlay = false, homeType = "full" }: { sta
   const items: { icon: typeof Bath; label: string; value: string; color: string }[] = [
     { icon: LayoutGrid, label: "Rooms", value: `${m.counts.rooms}`, color: C.violet },
     { icon: Bath, label: "Baths", value: `${m.bathrooms}`, color: C.violet },
-    { icon: Ruler, label: "Sq Ft", value: m.grossSqft.toLocaleString(), color: C.cyan },
+    // "Sq Ft" = living (clear) area — 900 for the tiny home; the gross shell (1,296) is a separate truth (H.I. 2026-11-08)
+    { icon: Ruler, label: "Sq Ft", value: m.usableSqft.toLocaleString(), color: C.cyan },
     { icon: Square, label: "Windows", value: `${m.counts.windows}`, color: C.cyan },
     { icon: DoorOpen, label: "Doors", value: `${m.counts.doors}`, color: C.green },
     { icon: Plug, label: "Outlets", value: `${m.counts.outlets}`, color: C.gold },
