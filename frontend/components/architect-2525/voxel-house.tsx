@@ -81,7 +81,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   // TERRAIN ELEVATION (operator) — the 8 land cells AROUND the house rise/fall to their procedural elevation
   // (seeded by the lot lat/lon; datum = house pad). Grass-shaded slabs so the relief reads when you orbit.
   const FT_PER_M = 3.28084;
-  const ELEV_SCALE = VOXEL_PX_PER_FT * FT_PER_M;   // px per metre of elevation — the plan's own scale (7.2), so relief is to proportion
+  const ELEV_SCALE = VOXEL_PX_PER_FT * FT_PER_M;   // px per metre of elevation — the plan's own scale (~6.0 px/m at 66/36), so relief is to proportion
   const datum = elevAt(lat, lon, 0, 0);
   const slab = (t: string, w: number, h: number, fill: string): CSSProperties => ({ ...at(t), width: w, height: h, background: fill, border: `1px solid ${fill}` });
   // SINGLE-FINGER SMOOTHNESS (operator 2026-10-25: "the 3D map needs a single finger enhancement like room … not

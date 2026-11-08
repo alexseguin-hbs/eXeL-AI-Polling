@@ -196,7 +196,11 @@ const WET_FIXTURES: ObjectKind[] = Array.from(new Set<ObjectKind>([...WATER_FIXT
 /** DERIVED per-room physical systems: essential (auto-open) + secondary (collapsed). See block comment above. */
 export function roomSystems(roomKey: string): { essential: string[]; secondary: string[] } {
   const kinds = new Set<ObjectKind>(paletteForRoom(roomKey));
-  const wet = WET_FIXTURES.some((k) => kinds.has(k));          // plumbing iff a wet fixture is offered here
+  // plumbing iff a wet fixture is OFFERED here — the MEP pipe-run set (WET_FIXTURES) PLUS the counter, because a base-cabinet
+  // counter carries a sink (room-objects: "base.cabinets.w.sink"), so a room that offers a counter offers plumbing (operator
+  // ACCEPTED — e.g. a dining-room serving counter). This is the TREE-SCOPE offer set only; the pipe runs still key off the
+  // separate sink/tub/shower/toilet/washer fixtures, so no double run is drawn for the counter.
+  const wet = WET_FIXTURES.some((k) => kinds.has(k)) || kinds.has("counter");
   const av = kinds.has("tv") || kinds.has("desk");             // comms iff an AV/data asset is offered here
   const essential = [SYS.electrical, ...(wet ? [SYS.plumbing] : [])];
   const secondary = [SYS.mechanical, SYS.interior, SYS.envelope, SYS.structure,

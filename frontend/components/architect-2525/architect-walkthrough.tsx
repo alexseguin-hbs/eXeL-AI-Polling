@@ -76,8 +76,26 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   const { t } = useLexicon();
   const Hpx = Math.max(240, height);
   const roomObjs = room ? (room.objects ?? defaultObjectsForRoom(room.k)) : [];
-  // ACTUAL per-wall door centre (the user's placed door, else the wall centre) — drives the openings, the lanes + crossings.
-  const doorCtr = { N: wallDoorCenter(roomObjs, "N") ?? ROOM_FT / 2, S: wallDoorCenter(roomObjs, "S") ?? ROOM_FT / 2, E: wallDoorCenter(roomObjs, "E") ?? ROOM_FT / 2, W: wallDoorCenter(roomObjs, "W") ?? ROOM_FT / 2 };
+  // COMMON-SENSE OPENINGS (operator 2026-11-08 "window and door overlap"): an opening (window on an exterior wall · doorway
+  // on an interior wall) is NOT just centred — it is OFFSET away from any perpendicular EXTERIOR wall, so a solid corner
+  // pier always separates a window from a neighbouring door (or two windows on a corner room). One rule, all nine rooms.
+  const extAt = (r: number, c: number) => !layout.find((x) => x.row === r && x.col === c);   // no neighbour → exterior wall
+  const ext = room ? { N: extAt(room.row - 1, room.col), S: extAt(room.row + 1, room.col), E: extAt(room.row, room.col + 1), W: extAt(room.row, room.col - 1) }
+    : { N: true, S: true, E: true, W: true };
+  const PIER_OFF = 1.75;   // ft — pull an opening toward the non-exterior end of its wall so it clears the window corner
+  const defCtr = (side: Side): number => {
+    const mid = ROOM_FT / 2;
+    if (side === "W" || side === "E") {   // vertical wall, along y (0 = S/near … 10 = N/far)
+      if (ext.N && !ext.S) return mid - PIER_OFF;   // window on N → open toward S
+      if (ext.S && !ext.N) return mid + PIER_OFF;   // window on S → open toward N
+      return mid;
+    }
+    if (ext.W && !ext.E) return mid + PIER_OFF;     // horizontal wall, along x (0 = W … 10 = E): window on W → open toward E
+    if (ext.E && !ext.W) return mid - PIER_OFF;     // window on E → open toward W
+    return mid;
+  };
+  // ACTUAL per-wall opening centre: the user's placed door, else the corner-clearing default (never the bare wall centre).
+  const doorCtr = { N: wallDoorCenter(roomObjs, "N") ?? defCtr("N"), S: wallDoorCenter(roomObjs, "S") ?? defCtr("S"), E: wallDoorCenter(roomObjs, "E") ?? defCtr("E"), W: wallDoorCenter(roomObjs, "W") ?? defCtr("W") };
 
   // VIEWBOX tracks the container px so the 3D picture FILLS the box (no letterbox) and the sticks sit ON the picture.
   const rootRef = useRef<HTMLDivElement>(null);

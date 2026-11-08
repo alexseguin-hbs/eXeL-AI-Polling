@@ -708,7 +708,7 @@ export const COMMON_ASSETS: ObjectKind[] = ["door", "window", "shell", "roof"];
  */
 export const DECOR_DEFAULTS: Record<string, ObjectKind[]> = {
   // M (Master Bedroom) is intentionally omitted — it has the decided STANDARD_LAYOUTS.M (Layout A′), already decluttered.
-  B: ["toilet", "sink", "shower"],              // bath essentials
+  B: ["toilet", "sink", "shower", "tub"],       // master-bath essentials — the four core fixtures (a master bath has a tub + a shower)
   C: ["wardrobe", "dresser", "shelving"],       // closet storage
   L: ["sofa", "table", "tv"],                   // seating · surface · focal
   K: ["counter", "fridge", "stove", "sink"],    // the kitchen work triangle
