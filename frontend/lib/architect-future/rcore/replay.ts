@@ -5,8 +5,17 @@
 import type { ArchitectProjectV2 } from "../domain/project";
 import type { PlacedAsset } from "../domain/assets";
 import type { ConstructionMethod } from "../domain/construction";
+import type { ActorRef } from "../domain/actors";
 import type { FutureEvent } from "./events";
 import { transformV1toV2 } from "../transformation/reference-v1-to-v2";
+import { isAuthenticatedHuman } from "../domain/actors";
+
+// Authority is enforced in the REDUCER and on REPLAY (plan §40.7), not only in command helpers: a forged log whose
+// PLAN_APPROVED is by an AI/SYSTEM can never reach APPROVED on replay. Submit/review need a person; approve needs an
+// authenticated human.
+function isHuman(a: ActorRef | null | undefined): boolean {
+  return !!a && (a.kind === "AUTHENTICATED_HUMAN" || a.kind === "UNAUTHENTICATED_HUMAN");
+}
 
 export function applyEvent(project: ArchitectProjectV2, event: FutureEvent): ArchitectProjectV2 {
   const p = { ...project, revision_id: "r" + event.sequence };
@@ -25,11 +34,12 @@ export function applyEvent(project: ArchitectProjectV2, event: FutureEvent): Arc
     case "INTENT_CHANGED":
       return { ...p, intent: pl.intent as ArchitectProjectV2["intent"] };
     case "PLAN_SUBMITTED":
-      return { ...p, authority: { plan: "SUBMITTED", by: event.actor, at: event.occurred_at } };
+      return isHuman(event.actor) ? { ...p, authority: { plan: "SUBMITTED", by: event.actor, at: event.occurred_at } } : p;
     case "PLAN_REVIEWED":
-      return { ...p, authority: { plan: "REVIEWED", by: event.actor, at: event.occurred_at } };
+      return isHuman(event.actor) ? { ...p, authority: { plan: "REVIEWED", by: event.actor, at: event.occurred_at } } : p;
     case "PLAN_APPROVED":
-      return { ...p, authority: { plan: "APPROVED", by: event.actor, at: event.occurred_at } };
+      // only an AUTHENTICATED human can reach APPROVED — an AI/SYSTEM-authored approval is ignored on replay (§13/§40.7)
+      return isAuthenticatedHuman(event.actor) ? { ...p, authority: { plan: "APPROVED", by: event.actor, at: event.occurred_at } } : p;
     default:
       return p; // events with no canonical effect yet (Phase 3/4 extend this)
   }

@@ -15,6 +15,11 @@ import { materialTakeoff } from "@/lib/architect-future/simulation/materials";
 import { applyJurisdiction } from "@/lib/architect-future/simulation/costs";
 import { economicsView } from "@/lib/architect-future/selectors/economics";
 import { JURISDICTIONS } from "@/lib/architect-future/adapters/labor";
+import { ratingsView } from "@/lib/architect-future/selectors/ratings";
+import { projectHealth } from "@/lib/architect-future/selectors/health";
+import { benchmarks } from "@/lib/architect-future/simulation/compare";
+import { submit, review as reviewPlan, approve } from "@/lib/architect-future/state/authority-machine";
+import type { AuthorityResult } from "@/lib/architect-future/state/authority-machine";
 import type { ArchitectProjectV2 } from "@/lib/architect-future/domain/project";
 import type { ConstructionMethod } from "@/lib/architect-future/domain/construction";
 import type { FutureEvent, EventType } from "@/lib/architect-future/rcore/events";
@@ -26,7 +31,7 @@ const EVENTS_KEY = STORE_KEY + ".events";
 function nowIso() { return new Date().toISOString(); }
 
 type View = "PLAN" | "3D" | "WALK";
-type Mode = "DESIGN" | "SYSTEMS";
+type Mode = "DESIGN" | "SYSTEMS" | "REVIEW";
 
 export function FutureApp() {
   const [project, setProject] = useState<ArchitectProjectV2 | null>(null);
@@ -121,6 +126,14 @@ export function FutureApp() {
     flash(method === "FRAME" ? "Framed — the take-off now lists lumber" : method === "PRINT" ? "3D-printed — the take-off now lists printed walls" : "Method set aside");
   };
 
+  // the authority ladder — submit/review are a person's to make; approve needs a signed-in person (this demo is a guest)
+  const doAuthority = (fn: (p: ArchitectProjectV2, a: typeof ACTOR, now: string) => AuthorityResult, type: EventType) => {
+    if (!project) return;
+    const res = fn(project, ACTOR, nowIso());
+    if (res.accepted) { pushEvent(res.project, type, {}); flash(`Plan ${res.project.authority.plan.toLowerCase().replace("_", " ")}`); }
+    else flash(res.rejected_reason ?? "not allowed");
+  };
+
   // ───────────────────────────────────────── INTENT (first) ─────────────────────────────────────────
   if (!project) return <Intent onCreate={create} />;
 
@@ -131,9 +144,9 @@ export function FutureApp() {
       {/* header */}
       <header style={{ borderBottom: `1px solid ${C.edge}`, padding: "0.6rem 0.9rem", display: "flex", alignItems: "center", gap: ".6rem", flexWrap: "wrap" }}>
         <span style={{ letterSpacing: ".25em", fontSize: ".62rem", color: C.cyan }}>ARCHITECT-2525 · FUTURE</span>
-        <div style={{ display: "flex", gap: ".3rem" }}>
-          {(["DESIGN", "SYSTEMS"] as Mode[]).map((m) => (
-            <button key={m} data-arch-mode={m} onClick={() => setMode(m)} style={tab(m === mode)}>{m === "DESIGN" ? "Design" : "Systems & cost"}</button>
+        <div style={{ display: "flex", gap: ".3rem", flexWrap: "wrap" }}>
+          {(["DESIGN", "SYSTEMS", "REVIEW"] as Mode[]).map((m) => (
+            <button key={m} data-arch-mode={m} onClick={() => setMode(m)} style={tab(m === mode)}>{m === "DESIGN" ? "Design" : m === "SYSTEMS" ? "Systems & cost" : "Review"}</button>
           ))}
         </div>
         {mode === "DESIGN" && (
@@ -166,6 +179,13 @@ export function FutureApp() {
       {mode === "SYSTEMS" ? (
         <main style={{ flex: 1, padding: ".6rem .9rem 1.2rem" }}>
           <Systems project={project} jurisdiction={jurisdiction} onJurisdiction={setJurisdiction} onMethod={setMethod} />
+        </main>
+      ) : mode === "REVIEW" ? (
+        <main style={{ flex: 1, padding: ".6rem .9rem 1.2rem" }}>
+          <Review project={project}
+            onSubmit={() => doAuthority(submit, "PLAN_SUBMITTED")}
+            onReview={() => doAuthority(reviewPlan, "PLAN_REVIEWED")}
+            onApprove={() => doAuthority(approve, "PLAN_APPROVED")} />
         </main>
       ) : (
         <main style={{ flex: 1, display: "flex", gap: ".6rem", padding: ".6rem .9rem 1.2rem", alignItems: "stretch", flexWrap: "wrap" }}>
@@ -362,6 +382,81 @@ function Systems({ project, jurisdiction, onJurisdiction, onMethod }: { project:
 }
 const th: React.CSSProperties = { padding: ".25rem .4rem", fontWeight: 600, fontSize: ".62rem", textTransform: "uppercase", letterSpacing: ".06em" };
 const td: React.CSSProperties = { padding: ".3rem .4rem", verticalAlign: "top" };
+
+function Review({ project, onSubmit, onReview, onApprove }: { project: ArchitectProjectV2; onSubmit: () => void; onReview: () => void; onApprove: () => void }) {
+  const findings = projectHealth(project);
+  const ratings = ratingsView(project.references, project.design_targets, project.qualifications);
+  const marks = benchmarks();
+  const plan = project.authority.plan;
+  const steps: { key: string; label: string; done: boolean; active: boolean; onClick: () => void; gated?: boolean }[] = [
+    { key: "SUBMITTED", label: "Submit for review", done: ["SUBMITTED", "REVIEWED", "APPROVED", "BUILD_READY"].includes(plan), active: plan === "DRAFT", onClick: onSubmit },
+    { key: "REVIEWED", label: "Mark reviewed", done: ["REVIEWED", "APPROVED", "BUILD_READY"].includes(plan), active: plan === "SUBMITTED", onClick: onReview },
+    { key: "APPROVED", label: "Approve", done: ["APPROVED", "BUILD_READY"].includes(plan), active: plan === "REVIEWED", onClick: onApprove, gated: true },
+  ];
+  return (
+    <div data-arch-review style={{ display: "flex", flexDirection: "column", gap: ".9rem", maxWidth: "48rem" }}>
+      {/* authority ladder */}
+      <section data-arch-authority>
+        <div style={{ color: C.cyan, fontSize: ".64rem", letterSpacing: ".08em", marginBottom: ".4rem" }}>WHO SIGNS OFF · the plan is a {plan.toLowerCase().replace("_", " ")}</div>
+        <div style={{ display: "flex", gap: ".4rem", flexWrap: "wrap", alignItems: "center" }}>
+          {steps.map((s) => (
+            <button key={s.key} data-arch-authority-step={s.key} onClick={s.onClick} disabled={!s.active}
+              style={{ ...tab(s.done), opacity: s.active || s.done ? 1 : 0.5, cursor: s.active ? "pointer" : "default", borderColor: s.done ? C.cyan : s.active ? C.violet : C.edge, color: s.done ? C.cyan : s.active ? C.violet : C.dim }}>
+              {s.done ? "✓ " : ""}{s.label}
+            </button>
+          ))}
+        </div>
+        <div style={{ fontSize: ".6rem", color: C.faint, marginTop: ".4rem" }}>You can draft, submit and review as a guest. Approving the plan needs a signed-in person — a plan is never approved by the tool.</div>
+      </section>
+
+      {/* project health */}
+      <section data-arch-health>
+        <div style={{ color: C.cyan, fontSize: ".64rem", letterSpacing: ".08em", marginBottom: ".4rem" }}>IS THE PLAN WHOLE? · {findings.filter((f) => f.ok).length}/{findings.length} clear</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(14rem, 1fr))", gap: ".4rem" }}>
+          {findings.map((f) => (
+            <div key={f.category} style={{ background: C.panel, border: `1px solid ${f.ok ? C.edge : C.violet}`, borderRadius: ".45rem", padding: ".45rem .55rem" }}>
+              <div style={{ fontSize: ".6rem", color: f.ok ? C.cyan : C.violet, letterSpacing: ".05em" }}>{f.ok ? "✓" : "!"} {f.category}</div>
+              <div style={{ fontSize: ".68rem", color: C.dim, marginTop: ".15rem" }}>{f.detail}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* references · targets · qualifications — three separate records */}
+      <section data-arch-ratings>
+        <div style={{ color: C.cyan, fontSize: ".64rem", letterSpacing: ".08em", marginBottom: ".4rem" }}>EVIDENCE · three separate things</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(13rem, 1fr))", gap: ".5rem", fontSize: ".68rem" }}>
+          <div style={{ background: C.panel, border: `1px solid ${C.edge}`, borderRadius: ".45rem", padding: ".55rem" }}>
+            <div style={{ color: C.text }}>References <span style={{ color: C.faint }}>· {ratings.counts.references}</span></div>
+            <div style={{ color: C.faint, marginTop: ".2rem" }}>Something you found — an outside reference. A reference stays a reference.</div>
+          </div>
+          <div style={{ background: C.panel, border: `1px solid ${C.edge}`, borderRadius: ".45rem", padding: ".55rem" }}>
+            <div style={{ color: C.text }}>Design targets <span style={{ color: C.faint }}>· {ratings.counts.targets}</span></div>
+            <div style={{ color: C.faint, marginTop: ".2rem" }}>A goal you chose. It never changes the reference it came from.</div>
+          </div>
+          <div style={{ background: C.panel, border: `1px solid ${C.edge}`, borderRadius: ".45rem", padding: ".55rem" }}>
+            <div style={{ color: C.text }}>Qualified <span style={{ color: C.faint }}>· {ratings.counts.qualifications}</span></div>
+            <div style={{ color: C.faint, marginTop: ".2rem" }}>Proven for this home — needs real evidence and a signed-in person. A guess can never say “qualified”.</div>
+          </div>
+        </div>
+      </section>
+
+      {/* benchmarks — separate axes */}
+      <section data-arch-benchmarks>
+        <div style={{ color: C.cyan, fontSize: ".64rem", letterSpacing: ".08em", marginBottom: ".4rem" }}>BENCHMARKS · each on its own scale (never multiplied together)</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(11rem, 1fr))", gap: ".5rem" }}>
+          {marks.map((m) => (
+            <div key={m.id} style={{ background: C.panel, border: `1px solid ${C.edge}`, borderRadius: ".5rem", padding: ".55rem" }}>
+              <div style={{ fontSize: ".62rem", color: C.dim }}>{m.label}</div>
+              <div style={{ fontSize: "1rem", color: C.text, fontVariantNumeric: "tabular-nums", marginTop: ".1rem" }}>{m.unit.includes("USD") ? "$" + m.value.toLocaleString("en-US") : "$" + m.value}</div>
+              <div style={{ fontSize: ".58rem", color: C.faint }}>{m.unit} · {m.evidence.toLowerCase()}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
 
 function ActiveElements({ project, selected, onSelect, onRotate, onRemove, onNudge }: { project: ArchitectProjectV2; selected: string | null; onSelect: (id: string) => void; onRotate: () => void; onRemove: () => void; onNudge: (dx: number, dy: number) => void }) {
   return (

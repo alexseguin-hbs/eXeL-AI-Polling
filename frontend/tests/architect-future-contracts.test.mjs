@@ -7,13 +7,11 @@
 
 // Phase 1 contracts (T-TRANSFORM, T-HASH, T-SERIALIZE, T-REPLAY) are now GREEN — see
 // tests/architect-future-canonical.test.mjs (in test:ci). The remaining behavioural contracts stay red-first here.
-const CONTRACTS = [
-  // Phase 2 contracts (T-PLACEMENT, T-PROJECTION) are now GREEN — see tests/architect-future-planning.test.mjs.
-  // Phase 3 contracts (T-MATERIAL, T-COST, T-FIREWALL) are now GREEN — see tests/architect-future-economics.test.mjs.
-  { id: "T-RATINGS",   phase: 4, mod: "../lib/architect-future/selectors/ratings.ts", fn: "ratingsView", args: [[], [], []] },
-  { id: "T-ACTOR-AUTH", phase: 4, mod: "../lib/architect-future/state/authority-machine.ts", fn: "approve", args: [null, { kind: "SYSTEM", id: "s" }] },
-  { id: "T-HEALTH",    phase: 4, mod: "../lib/architect-future/selectors/health.ts", fn: "projectHealth", args: [null] },
-];
+// ALL behavioural contracts are now GREEN (Phases 1–4): T-TRANSFORM/T-HASH/T-SERIALIZE/T-REPLAY in
+// architect-future-canonical; T-PLACEMENT/T-PROJECTION in architect-future-planning; T-MATERIAL/T-COST/T-FIREWALL in
+// architect-future-economics; T-RATINGS/T-ACTOR-AUTH/T-HEALTH in architect-future-review. The expected-red runner is
+// therefore empty — it stands as the record that nothing is left red-first. (T-SCHEMA/T-IMPORT-BAN are their own gates.)
+const CONTRACTS = [];
 
 let red = 0, green = 0, broken = 0;
 for (const c of CONTRACTS) {
