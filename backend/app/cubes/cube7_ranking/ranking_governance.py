@@ -130,6 +130,14 @@ async def emit_ranking_complete(
     except Exception:
         pass
 
+    # Live 9-theme prioritization (G2/G4/S4): the per-category group ranking rides in the broadcast, so the moderator
+    # panel and anonymous phones can show it without a second (Auth0-gated) GET /rankings.
+    try:
+        category_rankings = await category_rankings_for(db, session_id, cycle_id)
+    except Exception as exc:  # noqa: BLE001 — never block the broadcast on the summary
+        logger.warning("cube7.category_rankings.failed", extra={"session_id": str(session_id), "error": str(exc)})
+        category_rankings = None
+
     # Broadcast ranking_complete (CRS-17: <500ms). Full contract payload.
     payload = {
         "session_id": str(session_id),
@@ -147,6 +155,7 @@ async def emit_ranking_complete(
         "contract_version": "2026-07-03.1",
         "live": live,
         "is_final": not live,
+        "category_rankings": category_rankings,
     }
     try:
         # One low-rate message on the topic clients actually join. Above 1000 voters it used to go
@@ -170,7 +179,8 @@ async def emit_ranking_complete(
     if live:
         return {**{k: payload[k] for k in ("session_id", "cycle_id", "algorithm", "participant_count",
                                             "theme01_category", "theme_level", "top_theme2_id", "top_theme2_label",
-                                            "replay_hash", "anomaly_count", "excluded_participants")},
+                                            "replay_hash", "anomaly_count", "excluded_participants",
+                                            "category_rankings")},
                 "status": "ranking_live"}
 
     # Fire the `ranking_complete` WEBHOOK to any registered subscriptions (CRS-19 /
@@ -229,8 +239,41 @@ async def emit_ranking_complete(
         "replay_hash": replay_hash,
         "anomaly_count": anomaly_count,
         "excluded_participants": excluded_participants,
+        "category_rankings": category_rankings,
         "status": "ranking_complete",
     }
+
+
+CATEGORY_RANKING_LIMIT = 9
+
+
+async def category_rankings_for(db: AsyncSession, session_id: uuid.UUID, cycle_id: int) -> dict[str, list[dict]]:
+    """{category: [{theme_id, label, score, vote_count, rank}]} from the stored aggregation, best first per category.
+
+    Category = the Theme02's parent Theme01 (risk | support | neutral). Works for every method: for top3_points it is
+    the original design's per-category result; for Borda it splits the single ballot's order by category.
+    """
+    from app.cubes.cube6_ai.pipeline import _category_key
+
+    rows = (await db.execute(
+        select(AggregatedRanking.theme_id, AggregatedRanking.score, AggregatedRanking.vote_count,
+               AggregatedRanking.rank_position, Theme.label, Theme.parent_theme_id)
+        .join(Theme, Theme.id == AggregatedRanking.theme_id)
+        .where(and_(AggregatedRanking.session_id == session_id, AggregatedRanking.cycle_id == cycle_id))
+        .order_by(AggregatedRanking.rank_position)
+    )).all()
+    parent_ids = {r[5] for r in rows if r[5] is not None}
+    parent_label = {}
+    if parent_ids:
+        parent_label = dict((await db.execute(select(Theme.id, Theme.label).where(Theme.id.in_(parent_ids)))).all())
+    out: dict[str, list[dict]] = {}
+    for tid, score, votes, _pos, label, parent in rows:  # rank_position order = score desc + seeded tiebreak
+        cat = _category_key(parent_label.get(parent)) or "uncategorized"
+        lst = out.setdefault(cat, [])
+        if len(lst) < CATEGORY_RANKING_LIMIT:
+            lst.append({"theme_id": str(tid), "label": label, "score": float(score or 0), "vote_count": int(votes or 0),
+                        "rank": len(lst) + 1})
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -640,6 +683,7 @@ async def run_ranking_pipeline(
     theme01_category: str | None = None,
     theme_level: str | None = None,
     live: bool = False,
+    ranking_method: str | None = None,
 ) -> dict:
     """Full ranking pipeline: detect anomalies → exclude → aggregate → identify → emit.
 
@@ -654,12 +698,16 @@ async def run_ranking_pipeline(
     """
     # 0. Auto-fill category/level from Session if the caller omitted them.
     # This is the normal path — router callers just pass session_id.
-    if theme01_category is None or theme_level is None:
+    if theme01_category is None or theme_level is None or ranking_method is None:
         from app.models.session import Session
 
         s_res = await db.execute(select(Session).where(Session.id == session_id))
         s = s_res.scalar_one_or_none()
         if s is not None:
+            if ranking_method is None:
+                # P1: the session's method decides; NULL keeps the existing Borda behaviour.
+                m = getattr(s, "ranking_method", None)
+                ranking_method = m if isinstance(m, str) else None
             if theme01_category is None:
                 theme01_category = getattr(s, "theme01_category", None)
             if theme_level is None:
@@ -680,6 +728,7 @@ async def run_ranking_pipeline(
         theme01_category=theme01_category,
         theme_level=theme_level,
         is_final=not live,
+        ranking_method=ranking_method if ranking_method == "top3_points" else None,
     )
 
     # 4. Identify top theme
@@ -727,6 +776,7 @@ async def run_ranking_pipeline(
         "anomalies": anomalies,
         "excluded_participants": len(excluded_participants),
         "weight_audit": weight_audit,
+        "category_rankings": emit_result.get("category_rankings"),
         "status": "ranking_live" if live else "ranking_complete",
         "is_final": not live,
     }
@@ -990,6 +1040,7 @@ async def verify_replay(
         t = await tally_rankings(
             db, session_id, cycle_id, effective_seed, participant_stakes if quadratic else None, excluded,
             theme01_category, theme_level, hash_algorithm=stored_algorithm,
+            ranking_method="top3_points" if stored_algorithm == "top3_points" else None,
         )
     except ValueError:  # no ballot left: nothing to replay
         t = {"scores": {}, "participant_count": 0, "excluded_count": len(excluded), "replay_hash": None}

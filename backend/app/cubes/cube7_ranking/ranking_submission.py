@@ -193,6 +193,124 @@ async def submit_user_ranking(
     return ranking
 
 
+
+# ---------------------------------------------------------------------------
+# P1: top3_points ballot — original design Round 2 (top 3 per category, 3/2/1)
+# ---------------------------------------------------------------------------
+
+TOP3_POINTS = "top3_points"
+
+
+async def valid_theme_ids_by_category(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    cycle_id: int,
+    theme2_voting_level: str,
+    theme01_category: str | None = None,
+) -> dict[str, set[uuid.UUID]]:
+    """{category key: non-empty Theme02 ids at the voting level} for the ballot cycle — the same slice rules as
+    submit_user_ranking (newest themed cycle, no empty placeholder slots), grouped by the parent's category."""
+    from app.cubes.cube6_ai.pipeline import _category_key, ballot_cycle_clause
+
+    level_num = theme2_voting_level.replace("theme2_", "")
+    in_ballot_cycle = ballot_cycle_clause(session_id, cycle_id)
+    parents = await db.execute(
+        select(Theme.id, Theme.label).where(
+            and_(Theme.session_id == session_id, Theme.parent_theme_id.is_(None), in_ballot_cycle)
+        )
+    )
+    parent_cat = {pid: _category_key(label) for pid, label in parents.all()}
+    kids = await db.execute(
+        select(Theme.id, Theme.parent_theme_id).where(
+            and_(
+                Theme.session_id == session_id,
+                Theme.parent_theme_id.isnot(None),
+                in_ballot_cycle,
+                Theme.cluster_metadata["level"].as_string() == level_num,
+                Theme.label != "",
+            )
+        )
+    )
+    out: dict[str, set[uuid.UUID]] = {}
+    for tid, parent in kids.all():
+        cat = parent_cat.get(parent)
+        if cat and (theme01_category is None or cat == theme01_category):
+            out.setdefault(cat, set()).add(tid)
+    return out
+
+
+async def submit_top3_ballot(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    participant_id: uuid.UUID,
+    category_ballots: dict[str, list[uuid.UUID]],
+    cycle_id: int = 1,
+    theme2_voting_level: str = "theme2_9",
+    session_short_code: str | None = None,
+    theme01_category: str | None = None,
+    allow_revote: bool = False,
+) -> Ranking:
+    """P1: store a top3_points ballot — per category voted, 1–3 distinct themes of THAT category, best first.
+
+    Stored in the existing user_rankings row (one per participant per cycle; no schema change) as
+    {"method": "top3_points", "category_ballots": {cat: [ids]}, "ranked_theme_ids": [flat ids]} — the
+    flat list keeps every existing reader of the {"ranked_theme_ids": [...]} shape working. A re-vote
+    replaces the whole ballot (all categories), the same living-vote rule as the Borda path.
+    """
+    valid = await valid_theme_ids_by_category(db, session_id, cycle_id, theme2_voting_level, theme01_category)
+    if not valid:
+        raise ValueError(f"No themes found at level {theme2_voting_level} for session {session_id}")
+    clean: dict[str, list[str]] = {}
+    for cat in ("support", "risk", "neutral"):  # canonical order: Support, Concerns, Neutral (original sketch)
+        ids = category_ballots.get(cat)
+        if ids is None:
+            continue
+        if cat not in valid:
+            raise ValueError(f"Category '{cat}' has no themes to vote on in this round")
+        if not 1 <= len(ids) <= 3 or len(ids) != len(set(ids)):
+            raise ValueError(f"category_ballots[{cat}] must pick 1–3 distinct themes")
+        extra = set(ids) - valid[cat]
+        if extra:
+            raise ValueError(f"Theme ID mismatch in {cat}: {extra} are not {cat} themes at this level")
+        clean[cat] = [str(t) for t in ids]
+    if not clean:
+        raise ValueError("category_ballots must vote at least one category")
+    stored = {
+        "method": TOP3_POINTS,
+        "category_ballots": clean,
+        "ranked_theme_ids": [t for cat in clean for t in clean[cat]],
+    }
+
+    prior = (await db.execute(
+        select(Ranking).where(
+            and_(Ranking.session_id == session_id, Ranking.cycle_id == cycle_id, Ranking.participant_id == participant_id)
+        )
+    )).scalar_one_or_none()
+    if prior is not None:
+        if not allow_revote:
+            raise ValueError(
+                f"Participant {participant_id} already submitted ranking for session {session_id} cycle {cycle_id}"
+            )
+        prior.ranked_theme_ids = stored
+        prior.submitted_at = datetime.now(timezone.utc)
+        await db.flush()
+        await db.refresh(prior)
+        ranking = prior
+    else:
+        ranking = Ranking(
+            session_id=session_id, cycle_id=cycle_id, participant_id=participant_id,
+            ranked_theme_ids=stored, submitted_at=datetime.now(timezone.utc),
+        )
+        db.add(ranking)
+        await db.flush()
+        await db.refresh(ranking)
+    if session_short_code:
+        _schedule_progress(session_id, session_short_code, cycle_id)
+    logger.info("cube7.ranking.submitted", extra={"session_id": str(session_id), "method": TOP3_POINTS,
+                                                   "categories": sorted(clean)})
+    return ranking
+
+
 PROGRESS_INTERVAL_S = 1.0
 _progress_due: dict[tuple, float] = {}   # (session, cycle) → monotonic time the next send is allowed
 _progress_tasks: set = set()
