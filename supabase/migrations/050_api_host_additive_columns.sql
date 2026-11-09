@@ -1,3 +1,4 @@
+-- Applied to ppgfjplawtlrfqpnszyb 2026-11-09 via apply_migration as "045_api_host_additive_columns" (renumbered 50 here: 045-048 are taken in this dir).
 -- 045: additive columns so the hosted FastAPI ORM matches live Supabase. ADD COLUMN IF NOT EXISTS only (nullable, no FKs),
 -- plus defaults on two legacy NOT NULL columns the ORM never writes (both tables have 0 rows). No drops, no data changes.
 ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
