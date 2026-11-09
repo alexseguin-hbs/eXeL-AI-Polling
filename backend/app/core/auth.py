@@ -48,6 +48,7 @@ class CurrentUser:
     email: str | None
     role: str
     permissions: list[str]
+    display_name: str | None = None
 
 
 async def _get_jwks() -> dict:
@@ -95,12 +96,42 @@ async def _decode_token(token: str) -> CurrentUser:
             detail="Unable to find signing key",
         )
 
+    issuer = f"https://{settings.auth0_domain}/"
+
+    # t189u — live sign-in before the Auth0 API (audience) exists: accept the SPA's OIDC
+    # ID token, verified exactly like an access token (RS256 + tenant JWKS + issuer + exp)
+    # but with aud == the SPA client id. The identity (sub, email) is real; the role is
+    # fixed at "user" (t190u: any signed-in user is a creator of their OWN polls) — an ID
+    # token can never grant moderator-strict, lead or admin.
+    spa_client_id = settings.auth0_spa_client_id
+    if spa_client_id:
+        aud = jwt.get_unverified_claims(token).get("aud")
+        auds = aud if isinstance(aud, list) else [aud]
+        if spa_client_id in auds:
+            id_payload = jwt.decode(
+                token,
+                rsa_key,
+                algorithms=["RS256"],
+                audience=spa_client_id,
+                issuer=issuer,
+            )
+            sub = id_payload.get("sub")
+            if not sub:
+                raise JWTError("ID token has no subject")
+            return CurrentUser(
+                user_id=sub,
+                email=id_payload.get("email"),
+                role="user",
+                permissions=[],
+                display_name=id_payload.get("name") or id_payload.get("nickname"),
+            )
+
     payload = jwt.decode(
         token,
         rsa_key,
         algorithms=["RS256"],
         audience=settings.auth0_api_audience,
-        issuer=f"https://{settings.auth0_domain}/",
+        issuer=issuer,
     )
 
     namespace = "https://exel-polling.com"

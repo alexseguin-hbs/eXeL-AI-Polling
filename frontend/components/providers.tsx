@@ -18,6 +18,8 @@ import {
   AUTH0_AUDIENCE,
   AUTH0_REDIRECT_URI,
 } from "@/lib/constants";
+import { setTokenGetter } from "@/lib/api";
+import { makeTokenGetter } from "@/lib/auth-token";
 
 /**
  * Bridge: syncs Auth0 authentication state into the theme system.
@@ -25,12 +27,18 @@ import {
  * When logged out (or not authenticated), theme is locked to AI Cyan.
  */
 function ThemeAuthSync({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth0();
+  const { isAuthenticated, getAccessTokenSilently, getIdTokenClaims } = useAuth0();
   const { setModeratorAuthenticated } = useTheme();
 
   useEffect(() => {
     setModeratorAuthenticated(isAuthenticated);
   }, [isAuthenticated, setModeratorAuthenticated]);
+
+  // t189u: every page (not only /callback) sends the signed-in creator's token, so a reload
+  // or a deep link to /dashboard still creates polls as the real OAuth user.
+  useEffect(() => {
+    setTokenGetter(isAuthenticated ? makeTokenGetter({ getAccessTokenSilently, getIdTokenClaims }) : async () => "");
+  }, [isAuthenticated, getAccessTokenSilently, getIdTokenClaims]);
 
   return <>{children}</>;
 }

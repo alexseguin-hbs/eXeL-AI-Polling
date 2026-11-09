@@ -198,8 +198,11 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                   ) : (
                     <User className="h-4 w-4" />
                   )}
-                  <span className="hidden sm:inline text-sm">
-                    {user.name || user.email}
+                  <span className="hidden sm:flex flex-col items-start leading-tight text-left" data-testid="header-user">
+                    <span className="text-sm">{user.name || user.email}</span>
+                    {user.email && user.email !== user.name && (
+                      <span className="hidden md:inline text-[10px] text-muted-foreground">{user.email}</span>
+                    )}
                   </span>
                   <Menu className="h-4 w-4 sm:hidden" />
                 </Button>
@@ -210,9 +213,12 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                       className="fixed inset-0 z-40"
                       onClick={() => setMenuOpen(false)}
                     />
-                    <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-md border bg-popover p-1 shadow-md">
-                      <div className="px-3 py-2 text-sm text-muted-foreground sm:hidden">
-                        {user.name || user.email}
+                    <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-md border bg-popover p-1 shadow-md">
+                      <div className="px-3 py-2 text-sm" data-testid="signed-in-user">
+                        <div className="truncate font-medium">{user.name || user.email}</div>
+                        {user.email && (
+                          <div className="truncate text-xs text-muted-foreground">{user.email}</div>
+                        )}
                       </div>
                       <button
                         onClick={() => {
