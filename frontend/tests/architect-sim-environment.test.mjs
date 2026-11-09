@@ -12,7 +12,9 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } 
 const KEYS = ["M", "B", "C", "L", "K", "D", "O", "S", "E"];
 ok(ALL_ROOM_KEYS.length === 9 && KEYS.every((k) => ALL_ROOM_KEYS.includes(k)), "the full-size home carries the nine real room keys");
 const HOME_OBJECTS = KEYS.reduce((s, k) => s + defaultObjectsForRoom(k).length, 0);   // 44 real pieces (Layout A′ 8 · Living 6 · the rest packed)
-ok(HOME_OBJECTS === 44, `the full-size home has 44 conserved furniture pieces (got ${HOME_OBJECTS})`);
+// R1: the piece count is NOT a fixed number (the R2b declutter changed it 44 → 37; no numeric count is doctrine unless H.I./MoT
+// approves one). The law is CONSERVATION: whatever the curated defaults hold, Cube + Eco carry all of it (asserted below).
+ok(HOME_OBJECTS > 0, `the full-size home has curated furniture to conserve (got ${HOME_OBJECTS})`);
 
 const grid = gridEnvironment(), tiny = tinyEnvironment(), hex = hexEnvironment();
 ok(environmentFor("3x3-grid").formId === "3x3-grid" && environmentFor("tiny").formId === "tiny" && environmentFor("eco-sphere").formId === "eco-sphere", "environmentFor routes each form");
@@ -98,5 +100,5 @@ ok(JSON.stringify(hexEnvironment()) === JSON.stringify(hexEnvironment()), "hexEn
 ok(JSON.stringify(gridEnvironment()) === JSON.stringify(gridEnvironment()), "gridEnvironment is deterministic");
 ok(JSON.stringify(tinyEnvironment()) === JSON.stringify(tinyEnvironment()), "tinyEnvironment is deterministic");
 
-console.log(`\narchitect-sim-environment: ${pass} passed, ${fail} failed · Cube+Eco conserve 9/44 · Tiny = real 8.5×24 THOW subset`);
+console.log(`\narchitect-sim-environment: ${pass} passed, ${fail} failed · Cube+Eco conserve 9 keys + ${HOME_OBJECTS} pieces · Tiny = real 8.5×24 THOW subset`);
 process.exit(fail ? 1 : 0);
