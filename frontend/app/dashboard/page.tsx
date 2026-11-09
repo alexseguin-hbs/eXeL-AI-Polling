@@ -59,7 +59,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { api, ApiClientError } from "@/lib/api";
+import { api, ApiClientError, IS_MOCK_MODE } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
 import { SESSION_TYPES, POLLING_MODES, STATIC_POLL_DURATIONS, TIMER_DISPLAY_MODES, SPIRAL_TEST_ENABLED } from "@/lib/constants";
 import { startSpiralTest, resetSingleSession, DEFAULT_SESSION_IDS, PRODUCT_FEEDBACK_SESSION_ID, fetchSessionFromKV, type SpiralTestProgress } from "@/lib/mock-data";
@@ -1207,6 +1207,12 @@ function DashboardContent() {
 
   const handleCreate = async () => {
     if (!newTitle.trim()) return;
+    // CRS-01.01 / t157u: a paid poll needs the live backend (real session + Stripe Checkout). In demo (mock) mode
+    // nothing is saved server-side, so never create a demo session and pretend payment is "pending".
+    if (IS_MOCK_MODE && (newPricingTier === "moderator_paid" || newPricingTier === "cost_split")) {
+      toast({ title: t("cube8.payment.live_backend_title"), description: t("cube8.payment.live_backend_required"), variant: "destructive" });
+      return;
+    }
     setCreating(true);
     try {
       const session = await api.post<Session>("/sessions", {
