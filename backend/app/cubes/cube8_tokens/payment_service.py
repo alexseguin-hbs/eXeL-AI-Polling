@@ -671,7 +671,7 @@ async def create_divinity_donation_checkout(
     success_url: str = "",
     cancel_url: str = "",
     label: str = "The Divinity Guide — Sacred Contribution",
-    description: str = "The Return to Wholeness and Living Divinity",
+    description: str = "Voluntary contribution supporting the Divinity Guide; not tax-deductible",
     purpose: str = "divinity_guide",
     client_key: str | None = None,
     session_id: uuid.UUID | None = None,

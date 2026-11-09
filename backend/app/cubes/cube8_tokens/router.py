@@ -304,7 +304,7 @@ class DivinityDonationRequest(BaseModel):
     success_url: str = Field("", max_length=500)
     cancel_url: str = Field("", max_length=500)
     label: str = Field("The Divinity Guide — Sacred Contribution", max_length=120)
-    description: str = Field("The Return to Wholeness and Living Divinity", max_length=300)
+    description: str = Field("Voluntary contribution supporting the Divinity Guide; not tax-deductible", max_length=300)
     purpose: str = Field("divinity_guide", pattern=r"^(divinity_guide|derisking_strategies|community)$")
     client_key: str | None = Field(None, pattern=r"^[A-Za-z0-9_-]{8,64}$")
     # Optional poll scope: credits the donation ladder (333 / Original) once the webhook confirms it.

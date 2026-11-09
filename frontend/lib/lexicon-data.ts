@@ -754,6 +754,10 @@ const cube8: TranslationEntry[] = [
   { key: "cube8.pricing.quote_basis", englishDefault: "Tracked AI cost {cost} × margin {margin} + Stripe card fee; minimum {floor}.", context: "Create Poll: how the price is computed (margin setting is configurable)", cubeId: 8 },
   { key: "cube8.pricing.min_fee", englishDefault: "(min {amount})", context: "Create Poll: Moderator Paid minimum amount hint", cubeId: 8 },
   { key: "cube8.donate.demo_thanks", englishDefault: "This is a demo preview — donations run on the live deployment. Thank you for your support! ♡", context: "Donate modal demo-mode acknowledgement", cubeId: 8 },
+  { key: "cube8.donate.desc_community", englishDefault: "Voluntary contribution supporting the SoI Governance platform; not tax-deductible", context: "Stripe Checkout line-item description, Community Contribution (approved t197u; no deductibility claim — 501(c)(3) not verified)", cubeId: 8 },
+  { key: "cube8.donate.desc_divinity", englishDefault: "Voluntary contribution supporting the Divinity Guide; not tax-deductible", context: "Stripe Checkout line-item description, Divinity Guide (approved t197u)", cubeId: 8 },
+  { key: "cube8.donate.desc_session", englishDefault: "Voluntary contribution supporting this session and the SoI Governance platform; not tax-deductible", context: "Stripe Checkout line-item description, poll-scoped contribution (same treatment as t197u)", cubeId: 8 },
+  { key: "cube8.donate.not_deductible", englishDefault: "Contributions are voluntary and not tax-deductible.", context: "Donate modal footnote — IRS-safe labeling (t193u/t197u)", cubeId: 8 },
   { key: "cube8.donate.thanks", englishDefault: "Thank you — your contribution was received. We're confirming it with Stripe now.", context: "Toast shown once when Stripe Checkout returns the visitor with ?donated=true (never before Stripe confirms)", cubeId: 8 },
   { key: "cube8.donate.received", englishDefault: "Contribution received — thank you.", context: "Divinity Guide toast after a verified Stripe return (no token grant is claimed — no ledger backs one)", cubeId: 8 },
   // Payment (Cube 8)

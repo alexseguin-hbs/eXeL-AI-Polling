@@ -117,7 +117,7 @@ export async function handleDonate(request, env) {
 
   const origin = new URL(request.url).origin;
   const label = String(body.label || "eXeL AI Polling — Community Contribution").slice(0, 250);
-  const description = String(body.description || "Support the SoI Governance platform").slice(0, 250);
+  const description = String(body.description || "Voluntary contribution supporting the SoI Governance platform; not tax-deductible").slice(0, 250);
   const successUrl = String(body.success_url || env.STRIPE_SUCCESS_URL || `${origin}/?donated=true`);
   const cancelUrl = String(body.cancel_url || env.STRIPE_CANCEL_URL || origin);
   // The post-payment redirect must come back to this site — never an arbitrary caller-supplied host.

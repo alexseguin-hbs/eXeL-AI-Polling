@@ -1769,7 +1769,7 @@ function DivinityGuidePage() {
       const url = await startDonation({
         amountCents: donationAmount,
         label: "The Divinity Guide — donation",
-        description: "The Return to Wholeness and Living Divinity",
+        description: t("cube8.donate.desc_divinity"),
         successUrl: `${window.location.origin}/divinity-guide/?donated=true`,
         cancelUrl: window.location.href,
         clientKey: donateKey.current,
