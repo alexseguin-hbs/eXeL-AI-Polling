@@ -879,6 +879,8 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 
 ### Cube 6 — Scale CRS (Requirements CRS-09.08) — Date added 2026-11-09
 
+Metrics (append-only, every live/bench theming run): [docs/metrics/cube6-theming.md](metrics/cube6-theming.md) · [json](metrics/cube6-theming.json)
+
 > Requirements.txt is canonical. Cube 6's local CRS-11→14 table remains the Phase A/B engineering map; this block records the **1M / Theme02 <3s / metrics shown** scale target without claiming Implemented.
 
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target | Design Output: Definable / Measurable |
