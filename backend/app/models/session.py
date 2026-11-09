@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, Index, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -125,6 +125,11 @@ class Session(Base):
     final_group_top_theme_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     final_decision_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     final_decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # CRS-36 (migration 059): Round 1 variable auto-select — percent and/or N-of-M of Theme02 at the
+    # voting level advance into the Round 2 ballot; auto_select_theme_ids is the computed {cat: [ids]}.
+    auto_select_percent: Mapped[float | None] = mapped_column(Float, nullable=True)
+    auto_select_n: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    auto_select_theme_ids: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     # API-first scoping — the Project → Differentiator → Specification scope this session
     # (and all its downstream data) inherits, as a canonical scope ref
