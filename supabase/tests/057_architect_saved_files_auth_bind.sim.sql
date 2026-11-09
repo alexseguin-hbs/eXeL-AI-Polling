@@ -68,13 +68,13 @@ BEGIN
 
   -- matching owner: put claims user_id
   PERFORM public.architect_saved_files_put(uid_a::text, 'sim057-auth', '{"n":2}'::jsonb, null);
+  -- Verify as table owner (authenticated has no table SELECT after REVOKE)
+  EXECUTE 'RESET ROLE';
   IF EXISTS (
     SELECT 1 FROM public.architect_saved_files
      WHERE owner_key = uid_a::text AND name = 'sim057-auth' AND user_id = uid_a
   ) THEN pass := pass + 1; log := log || ' ok:auth-claim-stamp';
   ELSE fail := fail + 1; log := log || ' FAIL:auth-claim-stamp'; END IF;
-
-  EXECUTE 'RESET ROLE';
 
   -- 5 · other authenticated user cannot overwrite claimed row
   PERFORM set_config('request.jwt.claims',
