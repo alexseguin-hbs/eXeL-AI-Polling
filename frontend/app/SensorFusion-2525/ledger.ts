@@ -1,12 +1,4 @@
-impor
-    {
-      rev: 79,
-      date: "2026-11-08",
-      kind: "release",
-      text: "Newly introduced collaborative progress, settings, reviewer, and auth notes look up English through the shared lexicon t() keys (sf.collab.*). Non-English fills stay AFTER_FILL and are not claimed complete. Preexisting SensorFusion English strings outside this set are unchanged.",
-      commit: "ae99d95",
-    },
-t { fromLedgerJson, type LedgerInput } from "@/lib/2525-core/revisions";
+import { fromLedgerJson, type LedgerInput } from "@/lib/2525-core/revisions";
 
 /** SensorFusion-2525 only. Not the Financial-2525 ledger. */
 export const SENSOR_FUSION_LEDGER: LedgerInput = {
@@ -578,7 +570,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Collaborative persistence contracts: PNG and XML share one stem across member devices; team progress and per-project settings serialize for Supabase membership sync; Level 2 must be a different person; corrections are append-only; project JSON still waits until every picture has independent Level 1 and Level 2. Migration 044 is review-only and not applied live. Missing auth fails honestly and does not claim a local cache as a team save. R-CORE history badge remains the SensorFusion ledger surface.",
       commit: "d5592fa",
     },
-
+    {
+      rev: 79,
+      date: "2026-11-08",
+      kind: "release",
+      text: "Newly introduced collaborative progress, settings, reviewer, and auth notes look up English through the shared lexicon t() keys (sf.collab.*). Non-English fills stay AFTER_FILL and are not claimed complete. Preexisting SensorFusion English strings outside this set are unchanged.",
+      commit: "ae99d95",
+    },
   ],
 };
 
