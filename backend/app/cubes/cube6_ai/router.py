@@ -12,6 +12,7 @@ from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
 from app.core.permissions import require_role
 from app.cubes.cube6_ai import service
+from app.cubes.cube8_tokens.entitle_read import session_and_entitlement, apply_theme_paid_view_gate
 from app.schemas.theme import ThemeRead
 from app.schemas.theme_pipeline import PipelineRunRequest
 
@@ -157,7 +158,13 @@ async def get_themes(
         enriched = [e for e in enriched if e["theme01_category"] == category]
     if level is not None:
         enriched = [e for e in enriched if e["theme_level"] == level]
-    return [ThemeRead.model_validate(e) for e in enriched]
+    # CRS-39: summary_333 null unless W2 view_entitlement; summary (33) + summary_111 stay
+    _session, ent = await session_and_entitlement(db, session_id, user)
+    unlocked_333 = bool(ent.get("summary_333"))
+    return [
+        ThemeRead.model_validate(apply_theme_paid_view_gate(e, unlocked_333=unlocked_333))
+        for e in enriched
+    ]
 
 
 @router.post("/themes/summarize", status_code=202)

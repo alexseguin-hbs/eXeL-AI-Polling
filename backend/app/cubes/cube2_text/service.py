@@ -542,18 +542,32 @@ async def publish_submission_event(
 # ---------------------------------------------------------------------------
 
 
-def apply_response_paid_view_gate(item: dict, *, unlocked_333: bool | None = None) -> dict:
-    """Pass-through for cube2 list/detail.
+def apply_response_paid_view_gate(
+    item: dict,
+    *,
+    unlocked_333: bool = False,
+    unlocked_original: bool = False,
+) -> dict:
+    """CRS-39: redact paid tiers unless W2 view_entitlement grants them.
 
-    CRS-39 Pay-to-View is enforced on GET /sessions/{id}/drilldown via
-    ``cube8_tokens.view_entitlement.resolve_view_entitlement`` (W2 — do not
-    duplicate payment logic here). List/detail remain additive exposes of stored
-    summary_111/333 for owners; unpaid redaction for those routes should call
-    the same helper when a user context is threaded through (TODO: wire router
-    user → entitlement → null summary_333/clean_text). Do not edit payment modules.
+    Reuses ``resolve_view_entitlement`` flags from the router (do not fork payment
+    logic here). 33 and 111 stay visible (same as GET /drilldown). Fail-closed:
+    missing/False unlock → null.
     """
-    _ = unlocked_333  # reserved when router threads entitlement
-    return item
+    out = dict(item)
+    if not unlocked_333:
+        out["summary_333"] = None
+    if not unlocked_original:
+        for key in ("clean_text", "detailed_results", "raw_text", "original"):
+            if key in out:
+                out[key] = None
+    return out
+
+
+def apply_theme_paid_view_gate(item: dict, *, unlocked_333: bool = False) -> dict:
+    """CRS-39: ThemeRead summary_333 null unless entitled (33/111 stay)."""
+    from app.cubes.cube8_tokens.entitle_read import apply_theme_paid_view_gate as _gate
+    return _gate(item, unlocked_333=unlocked_333)
 
 
 async def submit_text_response(
@@ -795,6 +809,8 @@ async def get_responses(
     *,
     page: int = 1,
     page_size: int = 50,
+    unlocked_333: bool = False,
+    unlocked_original: bool = False,
 ) -> dict:
     """Paginated list of responses for a session (JOIN ResponseMeta + TextResponse + ResponseSummary)."""
     offset = (page - 1) * page_size
@@ -838,7 +854,7 @@ async def get_responses(
             "summary_111": summary.summary_111 if summary else None,
             "summary_333": summary.summary_333 if summary else None,
         }
-        items.append(apply_response_paid_view_gate(item))
+        items.append(apply_response_paid_view_gate(item, unlocked_333=unlocked_333, unlocked_original=unlocked_original))
 
     return {
         "items": items,
@@ -853,6 +869,9 @@ async def get_response_by_id(
     db: AsyncSession,
     session_id: uuid.UUID,
     response_id: uuid.UUID,
+    *,
+    unlocked_333: bool = False,
+    unlocked_original: bool = False,
 ) -> dict | None:
     """Single response lookup with full text response detail + summary_33/111/333."""
     result = await db.execute(
@@ -889,4 +908,4 @@ async def get_response_by_id(
         "pii_scrubbed_text": text_resp.pii_scrubbed_text if text_resp else None,
         "profanity_words": text_resp.profanity_words if text_resp else None,
     }
-    return apply_response_paid_view_gate(payload)
+    return apply_response_paid_view_gate(payload, unlocked_333=unlocked_333, unlocked_original=unlocked_original)

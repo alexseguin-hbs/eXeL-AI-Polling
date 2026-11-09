@@ -1,8 +1,8 @@
-"""CRS-09 / CRS-39: list/detail expose summary_111 + summary_333 (no generation change)."""
+"""CRS-09 / CRS-39: list/detail expose summary_111 + summary_333; CRS-39 redacts unpaid."""
 
 from app.schemas.response import ResponseListItem, ResponseRead, TextResponseDetail
 from app.schemas.theme import ThemeRead
-from app.cubes.cube2_text.service import apply_response_paid_view_gate
+from app.cubes.cube2_text.service import apply_response_paid_view_gate, apply_theme_paid_view_gate
 from app.cubes.cube8_tokens.cost_ledger import CostKind, lines_from_ai_cost_row
 
 
@@ -21,11 +21,32 @@ def test_theme_read_schema_has_111_333():
     assert "summary_333" in fields
 
 
-def test_paid_view_gate_is_passthrough_until_w2():
-    item = {"summary_33": "a", "summary_111": "b", "summary_333": "c", "clean_text": "raw"}
-    out = apply_response_paid_view_gate(item, unlocked_333=False)
-    assert out["summary_333"] == "c"
-    assert out["clean_text"] == "raw"
+def test_paid_view_gate_redacts_unpaid():
+    item = {
+        "summary_33": "a",
+        "summary_111": "b",
+        "summary_333": "c",
+        "clean_text": "raw",
+        "detailed_results": "orig",
+    }
+    out = apply_response_paid_view_gate(item, unlocked_333=False, unlocked_original=False)
+    assert out["summary_33"] == "a" and out["summary_111"] == "b"
+    assert out["summary_333"] is None
+    assert out["clean_text"] is None and out["detailed_results"] is None
+
+
+def test_paid_view_gate_keeps_when_entitled():
+    item = {"summary_333": "c", "clean_text": "raw"}
+    out = apply_response_paid_view_gate(item, unlocked_333=True, unlocked_original=True)
+    assert out["summary_333"] == "c" and out["clean_text"] == "raw"
+
+
+def test_theme_gate_redacts_333_only():
+    item = {"summary": "s33", "summary_111": "s111", "summary_333": "s333"}
+    out = apply_theme_paid_view_gate(item, unlocked_333=False)
+    assert out["summary"] == "s33" and out["summary_111"] == "s111"
+    assert out["summary_333"] is None
+    assert apply_theme_paid_view_gate(item, unlocked_333=True)["summary_333"] == "s333"
 
 
 def test_phase_a_ai_cost_maps_to_phase_a_kind():

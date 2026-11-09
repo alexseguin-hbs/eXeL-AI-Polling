@@ -24,6 +24,7 @@ from app.core.rate_limit import limiter
 from app.core.submission_validators import validate_session_exists
 from app.cubes.cube2_text import metrics as cube2_metrics
 from app.cubes.cube2_text import service
+from app.cubes.cube8_tokens.entitle_read import session_and_entitlement
 from app.schemas.response import (
     PaginatedResponseList,
     ResponseCreate,
@@ -97,10 +98,17 @@ async def list_responses(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
-    """List paginated responses for a session. CRS-07: Session validated."""
+    """List paginated responses for a session. CRS-07: Session validated.
+
+    CRS-39: summary_333 + Original (clean_text on detail) withheld unless
+    ``view_entitlement`` grants them; 33/111 always returned when stored.
+    """
     await validate_session_exists(db, session_id)
+    _session, ent = await session_and_entitlement(db, session_id, user)
     return await service.get_responses(
         db, session_id, page=page, page_size=page_size,
+        unlocked_333=bool(ent.get("summary_333")),
+        unlocked_original=bool(ent.get("original")),
     )
 
 
@@ -133,9 +141,17 @@ async def get_response(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_session_owner("moderator", "lead_developer", "admin", leads_read=True)),
 ):
-    """Get a single response by ID. CRS-08: Session validated, correct 404."""
+    """Get a single response by ID. CRS-08: Session validated, correct 404.
+
+    CRS-39: summary_333 + clean_text (Original) null unless view_entitlement unlocks.
+    """
     await validate_session_exists(db, session_id)
-    result = await service.get_response_by_id(db, session_id, response_id)
+    _session, ent = await session_and_entitlement(db, session_id, user)
+    result = await service.get_response_by_id(
+        db, session_id, response_id,
+        unlocked_333=bool(ent.get("summary_333")),
+        unlocked_original=bool(ent.get("original")),
+    )
     if result is None:
         raise ResponseNotFoundError(str(response_id))
     return result

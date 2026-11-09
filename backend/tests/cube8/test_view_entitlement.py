@@ -29,6 +29,7 @@ from app.models.payment import PaymentTransaction  # noqa: E402
 from app.models.question import Question  # noqa: E402
 from app.models.response_meta import ResponseMeta  # noqa: E402
 from app.models.response_summary import ResponseSummary  # noqa: E402
+from app.models.text_response import TextResponse  # noqa: E402
 from app.models.session import Session  # noqa: E402
 
 NOW = datetime.now(timezone.utc)
@@ -41,7 +42,7 @@ ADMIN = CurrentUser(user_id="auth0|admin", email=None, role="admin", permissions
 
 from app.models.theme import Theme  # noqa: E402  (questions.parent_theme_id FK)
 
-_TABLES = (Session, Theme, Question, Participant, PaymentTransaction, ResponseMeta, ResponseSummary)
+_TABLES = (Session, Theme, Question, Participant, PaymentTransaction, ResponseMeta, ResponseSummary, TextResponse)
 
 
 async def _engine():
@@ -379,3 +380,86 @@ async def test_moderator_export_follows_creator_payment_on_paid_tiers(db):
     free, _, _ = await _poll(db, "free")
     assert await resolve_export_tier(db, free.id, CREATOR.user_id, "moderator") == TIER_TALENT, "free flow unchanged"
     assert await resolve_export_tier(db, split.id, ADMIN.user_id, "admin") == TIER_TALENT
+
+
+# --------------------------------------------------------------------------- CRS-39 list/detail/ThemeRead (same entitlement as drilldown)
+async def _seed_text_and_theme(db, s, participant):
+    q = Question(session_id=s.id, question_text="Q?")
+    db.add(q)
+    await db.flush()
+    rm = ResponseMeta(
+        session_id=s.id, question_id=q.id, participant_id=participant.id,
+        raw_text="ORIGINAL TEXT", char_count=13, submitted_at=NOW - timedelta(minutes=1),
+    )
+    db.add(rm)
+    await db.flush()
+    db.add(TextResponse(
+        response_meta_id=rm.id, clean_text="ORIGINAL TEXT",
+        language_code="en", pii_detected=False, profanity_detected=False,
+    ))
+    db.add(ResponseSummary(
+        response_meta_id=rm.id, session_id=s.id,
+        summary_33="S33", summary_111="S111", summary_333="S333",
+        theme01="Risk & Concerns", theme2_3="Cost", theme2_3_confidence=0.9,
+    ))
+    db.add(Theme(
+        session_id=s.id, cycle_id=1, label="Cost", summary="theme33",
+        confidence=0.9, response_count=1, ai_provider="openai", ai_model="x",
+        theme_summary_33="theme33", theme_summary_111="theme111", theme_summary_333="theme333",
+        cluster_metadata={"level": "3"},
+    ))
+    await db.commit()
+    return rm
+
+
+async def test_list_detail_withhold_333_and_original_until_paid(db, api):
+    """CRS-39: Cube2 list/detail must match drilldown — unpaid free creator sees null 333/Original."""
+    c, who = api
+    s, alice, _ = await _poll(db, "free")
+    rm = await _seed_text_and_theme(db, s, alice)
+    list_url = f"/api/v1/sessions/{s.id}/responses"
+    detail_url = f"/api/v1/sessions/{s.id}/responses/{rm.id}"
+
+    body = (await c.get(list_url)).json()
+    assert body["total"] >= 1
+    item = body["items"][0]
+    assert item["summary_33"] == "S33" and item["summary_111"] == "S111"
+    assert item["summary_333"] is None, "list must redact summary_333 for unpaid"
+    assert "S333" not in (await c.get(list_url)).text
+
+    detail = (await c.get(detail_url)).json()
+    assert detail["summary_33"] == "S33" and detail["summary_111"] == "S111"
+    assert detail["summary_333"] is None and detail.get("clean_text") is None
+
+    # Donation ladder: $9.99 → 333; $11.11 → Original
+    db.add(_tx(s, 999, ttype="donation"))
+    await db.commit()
+    item = (await c.get(list_url)).json()["items"][0]
+    assert item["summary_333"] == "S333"
+    detail = (await c.get(detail_url)).json()
+    assert detail["summary_333"] == "S333"
+    assert detail.get("clean_text") is None, "Original still locked at $9.99"
+
+    db.add(_tx(s, 112, ttype="donation", event="evt_full"))  # 999+112 >= 1111
+    await db.commit()
+    detail = (await c.get(detail_url)).json()
+    assert detail["clean_text"] == "ORIGINAL TEXT"
+
+
+async def test_themes_withhold_summary_333_until_paid(db, api):
+    """CRS-39: ThemeRead summary_333 null unless entitled; summary/summary_111 stay."""
+    c, who = api
+    s, alice, _ = await _poll(db, "free")
+    await _seed_text_and_theme(db, s, alice)
+    url = f"/api/v1/sessions/{s.id}/themes"
+    rows = (await c.get(url)).json()
+    assert isinstance(rows, list) and rows
+    # enriched prefers theme_summary_33 for summary
+    assert any(r.get("summary_111") == "theme111" for r in rows)
+    assert all(r.get("summary_333") is None for r in rows), "unpaid must not see theme summary_333"
+    assert "theme333" not in (await c.get(url)).text
+
+    db.add(_tx(s, 1111, ttype="donation"))
+    await db.commit()
+    rows = (await c.get(url)).json()
+    assert any(r.get("summary_333") == "theme333" for r in rows)

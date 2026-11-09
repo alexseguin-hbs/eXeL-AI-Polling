@@ -36,6 +36,8 @@ from app.schemas.desired_outcome import (
     DesiredOutcomeRead,
     ResultsLogCreate,
 )
+from app.cubes.cube8_tokens.entitle_read import session_and_entitlement
+from app.cubes.cube2_text.service import apply_response_paid_view_gate
 
 router = APIRouter(prefix="/sessions/{session_id}", tags=["Cube 4 -- Collector"])
 
@@ -55,13 +57,22 @@ async def list_collected_responses(
     CRS-09: Session validated to prevent enumeration.
     """
     await validate_session_exists(db, session_id)
-    return await get_collected_responses(
+    _session, ent = await session_and_entitlement(db, session_id, user)
+    result = await get_collected_responses(
         db, session_id,
         include_summaries=include_summaries,
         include_themes=include_themes,
         page=page,
         page_size=page_size,
     )
+    # CRS-39: redact summary_333 + detailed_results (Original) unless entitled
+    s333, orig = bool(ent.get("summary_333")), bool(ent.get("original"))
+    items = result.get("items") or []
+    result["items"] = [
+        apply_response_paid_view_gate(it, unlocked_333=s333, unlocked_original=orig)
+        for it in items
+    ]
+    return result
 
 
 @router.get("/collected/{response_id}")
@@ -76,10 +87,15 @@ async def get_collected_response(
     CRS-09.01: Session validated; 404 uses ResponseNotFoundError.
     """
     await validate_session_exists(db, session_id)
+    _session, ent = await session_and_entitlement(db, session_id, user)
     result = await get_single_response(db, session_id, response_id)
     if result is None:
         raise ResponseNotFoundError(str(response_id))
-    return result
+    return apply_response_paid_view_gate(
+        result,
+        unlocked_333=bool(ent.get("summary_333")),
+        unlocked_original=bool(ent.get("original")),
+    )
 
 
 @router.get("/response-count")

@@ -36,3 +36,10 @@ Token rates: reuse Cube 5 (`♡=ceil(minutes)` per entry / floor public accum; l
 - Cost ledger: `AICostLog.phase=phase_a` maps to `CostKind.PHASE_A` (was lumped as theme02).
 - Paid-view: `apply_response_paid_view_gate` passthrough TODO for W2 unlock (no payment module edits).
 - Tests: `tests/cube2/test_summary_tiers_expose.py` (5), FE `adapt-collected-responses.test.mjs`.
+
+## Verified 2026-11-09 (W3) — CRS-39 list/detail/ThemeRead entitlement
+
+- Cube2 list/detail + ThemeRead + collected apply W2 `resolve_view_entitlement` (via `entitle_read`); unpaid → `summary_333`/Original null; 33/111 stay.
+- Reuse only — no fork of payment modules.
+- Tests: unpaid vs paid in `tests/cube8/test_view_entitlement.py` + gate unit tests.
+- Theme02 latency 24624ms recorded for W1 at `/workspace/fleet/voting-live/theme02-latency-w3-20261109.md`.
