@@ -172,10 +172,34 @@
   },
   {
    "rev": 4,
-   "commit": "38132aaad96e2c42140bd1988d1f1d29a6dd1749",
+   "commit": "05a918d5eec9f964b904ab2a14775d83dfb31b96",
    "commitSource": "ledger-row",
-   "status": "no-code-change",
-   "areas": []
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-saved-files.ts",
+       "blob": "b9461370257afe8ec873a7781e69bf96c5fd1b3f"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 2054,
+     "lines": 27,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 5,
@@ -1910,6 +1934,37 @@
      "del": 2,
      "bytes": 3498,
      "lines": 45,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 41,
+   "commit": "05a918d5eec9f964b904ab2a14775d83dfb31b96",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/architect-saved-files.ts",
+       "blob": "b9461370257afe8ec873a7781e69bf96c5fd1b3f"
+      }
+     ],
+     "add": 4,
+     "del": 4,
+     "bytes": 2054,
+     "lines": 27,
      "status": "recorded"
     }
    ]
