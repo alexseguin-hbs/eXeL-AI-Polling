@@ -62,8 +62,39 @@
  "revisions": [
   {
    "rev": 1,
-   "status": "no-commit",
-   "areas": []
+   "commit": "3f09955fc0467c415373fb276b3ca7cb9c02eea2",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      8,
+      14
+     ],
+     "files": [
+      {
+       "path": "docs/traceability/exel-ai-polling.ledger.json",
+       "blob": "85585e2adc446c3eff74dc32bc57532bbcec7e53"
+      },
+      {
+       "path": "frontend/app/eXeL-AI-Polling/page.tsx",
+       "blob": "cd98b32b0a0b476c333e7714ed89ed796bde34a8"
+      }
+     ],
+     "add": 96,
+     "del": 0,
+     "bytes": 5860,
+     "lines": 102,
+     "status": "recorded"
+    }
+   ]
   },
   {
    "rev": 2,
@@ -104,8 +135,39 @@
   },
   {
    "rev": 4,
-   "status": "no-commit",
-   "areas": []
+   "commit": "3f09955fc0467c415373fb276b3ca7cb9c02eea2",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      8,
+      14
+     ],
+     "files": [
+      {
+       "path": "docs/traceability/exel-ai-polling.ledger.json",
+       "blob": "85585e2adc446c3eff74dc32bc57532bbcec7e53"
+      },
+      {
+       "path": "frontend/app/eXeL-AI-Polling/page.tsx",
+       "blob": "cd98b32b0a0b476c333e7714ed89ed796bde34a8"
+      }
+     ],
+     "add": 96,
+     "del": 0,
+     "bytes": 5860,
+     "lines": 102,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
