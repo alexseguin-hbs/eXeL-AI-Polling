@@ -45,9 +45,54 @@ from app.cubes.cube6_ai.phase_b import (
 logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib raised TypeError
 
 # Theme01 categories (matches monolith)
-THEME01_CATEGORIES = ["Risk & Concerns", "Supporting Comments", "Neutral Comments"]
+THEME01_CATEGORIES = ["Supporting Comments", "Risk & Concerns", "Neutral Comments"]  # owner order (t165u, 2026-11-09)
 _CONFIDENCE_THRESHOLD = 65  # <65% -> reclassify as Neutral (monolith line 127)
 
+
+
+class _CostRowsWritten(Exception):
+    """Control flow: per-vendor cost rows were persisted."""
+
+
+def _batch_broadcaster(session, start_time: float, min_interval_s: float = 0.25):
+    """CRS-09.08.03: stream partial Theme02 (samples of 10) to the moderator as each batch finishes.
+
+    Supabase broadcast `theme_batch_progress` on session:{short_code}, throttled to one event per `min_interval_s`
+    (the latest themes are carried forward, so nothing is lost by throttling); `flush()` sends the final state.
+    Additive event — existing listeners ignore it; the dashboard can render "themes forming" from it."""
+    import time as _time
+
+    state = {"last": 0.0, "pending": [], "done": 0, "total": 0, "covered": 0, "sent": 0}
+
+    async def _send() -> None:
+        from app.core.supabase_broadcast import broadcast_event
+
+        payload = {
+            "session_id": str(session.id), "short_code": session.short_code, "cycle_id": session.current_cycle,
+            "batches_done": state["done"], "batches_total": state["total"], "covered_responses": state["covered"],
+            "elapsed_ms": round((_time.monotonic() - start_time) * 1000),
+            "themes": state["pending"][-24:], "contract_version": "2026-11-09.1",
+        }
+        state["pending"] = []
+        state["last"] = _time.monotonic()
+        state["sent"] += 1
+        await broadcast_event(channel=f"session:{session.short_code}", event="theme_batch_progress", payload=payload)
+
+    async def on_batch(category: str, themes: list[str], done: int, total: int, covered: int) -> None:
+        state.update(done=done, total=total, covered=covered)
+        state["pending"].extend({"category": category, "label": t} for t in themes)
+        if _time.monotonic() - state["last"] >= min_interval_s:
+            await _send()
+
+    async def flush() -> None:
+        if state["pending"] or state["sent"] == 0:
+            try:
+                await _send()
+            except Exception as e:  # noqa: BLE001
+                logger.warning("cube6.fast.flush_failed", error=str(e))
+
+    on_batch.flush = flush  # type: ignore[attr-defined]
+    return on_batch
 
 
 async def run_pipeline(
@@ -100,6 +145,18 @@ async def run_pipeline(
     # C6-2: never crash the whole pipeline on a missing key — degrade to the
     # deterministic OFFLINE provider in dev/test/CI (production still raises).
     summarizer = get_summarization_provider_or_offline(provider_name)
+    # CRS-09.08.01 fast path (theme_fast.py): batched Theme01, streamed samples of 10, tree reduce, cosine assignment.
+    # OFFLINE (CI / dev / unapproved simulation) keeps the original step functions byte-for-byte.
+    fast = bool(getattr(settings, "theme_fast_path", True)) and getattr(
+        getattr(summarizer, "provider_name", None), "value", provider_name) != "offline"
+    stage_ms: dict[str, int] = {}
+    fast_stats: dict = {}
+    _t = [time.monotonic()]
+
+    def _lap(name: str) -> None:
+        now = time.monotonic()
+        stage_ms[name] = round((now - _t[0]) * 1000)
+        _t[0] = now
 
     # Cost tracking for this pipeline run
     from app.cubes.cube6_ai.providers.base import AICostTracker
@@ -110,6 +167,7 @@ async def run_pipeline(
     # Step 1: Fetch pre-computed 33-word summaries
     logger.info("Step 1: Fetching pre-computed summaries")
     responses = await _fetch_summaries(db, session_id)
+    _lap("fetch")
     if not responses:
         return {
             "session_id": str(session_id),
@@ -126,7 +184,13 @@ async def run_pipeline(
         # Step 2: Classify Theme01 (batch parallel)
         session.pipeline_stage = "classifying"
         logger.info("Step 2: Classifying Theme01 for %d responses", len(responses))
-        responses = await _classify_theme01(summarizer, responses)
+        if fast:
+            from app.cubes.cube6_ai.theme_fast import classify_theme01_batched
+
+            fast_stats["classify"] = await classify_theme01_batched(summarizer, responses)
+        else:
+            responses = await _classify_theme01(summarizer, responses)
+        _lap("theme01_classify")
 
         # Step 3: Group by Theme01
         session.pipeline_stage = "grouping"
@@ -139,27 +203,51 @@ async def run_pipeline(
         logger.info("Step 4: Marble sampling (seed=%d)", seed_int)
         bin_samples = await _parallel_marble_sample(bins, seed_int)
         group_counts = {k: len(v) for k, v in bin_samples.items()}
+        _lap("group_and_sample")
 
         # Step 5: Generate 3 themes per marble group (10+ concurrent agents)
         session.pipeline_stage = "generating"
         logger.info("Step 5: Generating themes (%s groups total)",
                     sum(group_counts.values()))
-        all_themes = await _parallel_generate_themes(summarizer, bin_samples)
+        if fast:
+            from app.cubes.cube6_ai.theme_fast import generate_themes_streaming
+
+            on_batch = _batch_broadcaster(session, start_time)
+            all_themes, fast_stats["generate"] = await generate_themes_streaming(summarizer, bin_samples, on_batch)
+            await on_batch.flush()
+        else:
+            all_themes = await _parallel_generate_themes(summarizer, bin_samples)
         theme_counts = {k: len(v) for k, v in all_themes.items()}
+        _lap("theme02_samples_of_10")
 
         # Step 6: Reduce all -> 9 -> 6 -> 3 (concurrent per category)
         session.pipeline_stage = "reducing"
         logger.info("Step 6: Reducing themes (all->9->6->3)")
-        reduced = await _reduce_themes(summarizer, all_themes)
+        if fast:
+            from app.cubes.cube6_ai.theme_fast import reduce_themes_tree
+
+            reduced, fast_stats["reduce"] = await reduce_themes_tree(summarizer, all_themes)
+        else:
+            reduced = await _reduce_themes(summarizer, all_themes)
+        _lap("reduce_9_6_3")
 
         # Step 7: Assign themes to all responses
         session.pipeline_stage = "assigning"
         logger.info("Step 7: Assigning themes to all responses")
-        if use_embedding_assignment:
-            embedder = get_embedding_provider(provider_name)
-            responses = await _assign_themes_embedding(embedder, responses, reduced)
+        assign_mode = "llm"
+        if use_embedding_assignment or fast:
+            try:
+                embedder = get_embedding_provider(provider_name)
+                responses = await _assign_themes_embedding(embedder, responses, reduced)
+                assign_mode = f"embedding:{embedder.model_id()}"
+            except Exception as e:  # no embedding vendor answered → the LLM matcher (original monolith method)
+                if not fast:
+                    raise
+                logger.warning("cube6.fast.embedding_assign_failed", error=type(e).__name__)
+                responses = await _assign_themes_llm(summarizer, responses, reduced)
         else:
             responses = await _assign_themes_llm(summarizer, responses, reduced)
+        _lap("assign")
 
         # Step 8: Store results
         session.pipeline_stage = "storing"
@@ -167,6 +255,7 @@ async def run_pipeline(
         replay_hash = await _store_results(
             db, session, responses, bin_samples, reduced
         )
+        _lap("store")
 
         session.pipeline_stage = "completed"
 
@@ -216,9 +305,21 @@ async def run_pipeline(
     # Estimate cost from response count × AI calls made
     # Phase B: ~3 calls per category (reduce 9→6→3) × 3 categories = 9
     # + 1 classify call + N assignment calls
-    total_chars = sum(len(r.get("summary_33", "")) for r in responses)
-    cost_tracker.log_call(total_chars * 3, total_chars)  # classify + assign estimate
-    cost_tracker.log_call(total_chars, total_chars // 3)  # reduction estimate
+    from app.cubes.cube6_ai.providers.multi_vendor import vendor_cost_rows
+
+    vendor_rows = vendor_cost_rows(summarizer)  # CRS-09.08.06: measured calls/chars per vendor that was called
+    if not vendor_rows:
+        total_chars = sum(len(r.get("summary_33", "")) for r in responses)
+        cost_tracker.log_call(total_chars * 3, total_chars)  # classify + assign estimate
+        cost_tracker.log_call(total_chars, total_chars // 3)  # reduction estimate
+    convergence_report = None
+    if fast:
+        try:
+            from app.cubes.cube6_ai.theme_fast import convergence
+
+            convergence_report = convergence(bin_samples)
+        except Exception as e:  # noqa: BLE001 — telemetry never fails a completed run
+            logger.warning("cube6.fast.convergence_failed", error=str(e))
 
     logger.info(
         "cube6.pipeline.completed",
@@ -226,6 +327,8 @@ async def run_pipeline(
         total_responses=len(responses),
         duration_sec=duration,
         **cost_tracker.summary(),
+        stage_ms=stage_ms,
+        vendors=vendor_rows,
     )
 
     # Persist cost tracking to DB for audit trail
@@ -235,6 +338,19 @@ async def run_pipeline(
         # estimated_cost_usd may be None when provider rate is unknown — never coerce
         # unknown → 0 in the ledger path; column is non-null Float so we skip persist
         # when unknown (chars/calls still useful via usage_records).
+        if vendor_rows:
+            for row in vendor_rows:
+                if row["estimated_cost_usd"] is None:
+                    continue  # unknown rate is never written as $0
+                db.add(AICostLog(
+                    session_id=session_id, phase="phase_b", provider=row["provider"],
+                    total_calls=row["total_calls"], total_input_chars=row["total_input_chars"],
+                    total_output_chars=row["total_output_chars"], estimated_cost_usd=row["estimated_cost_usd"],
+                    response_count=len(responses), duration_sec=duration,
+                ))
+            cost_summary = {"total_calls": sum(r["total_calls"] for r in vendor_rows)}
+            await db.commit()
+            raise _CostRowsWritten  # rows written; skip the single-provider estimate row below
         _est = cost_summary.get("estimated_cost_usd")
         if _est is None or cost_summary.get("rate_unknown"):
             logger.warning(
@@ -256,6 +372,8 @@ async def run_pipeline(
         )
         db.add(cost_log)
         await db.commit()
+    except _CostRowsWritten:
+        pass
     except Exception as e:
         logger.warning("cube6.cost_log.persist_failed", error=str(e))
 
@@ -293,6 +411,8 @@ async def run_pipeline(
             "replay_hash": replay_hash,
             "duration_sec": duration,
             "contract_version": "2026-07-03.1",         # Krishna contract fix
+            "stage_ms": stage_ms,                        # CRS-09.08.04 telemetry (additive keys)
+            "vendors": [r["provider"] for r in vendor_rows],
         }
         await broadcast_event(
             channel=f"session:{session.short_code}",
@@ -331,6 +451,13 @@ async def run_pipeline(
         "total_responses": len(responses),
         "bins": bin_counts,
         "marble_groups": group_counts,
+        # CRS-09.08.04 telemetry (additive): per-stage ms, fast-path stats, per-vendor calls/cost, convergence.
+        "fast_path": fast,
+        "assign_mode": assign_mode,
+        "stage_ms": stage_ms,
+        "fast_stats": fast_stats,
+        "vendors": vendor_rows,
+        "convergence": convergence_report,
         "candidate_themes": theme_counts,
         "themes_9": {
             cat: [t["label"] for t in levels.get("9", [])]

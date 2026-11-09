@@ -698,8 +698,10 @@ async def run_ranking_pipeline(
     """
     # 0. Auto-fill category/level from Session if the caller omitted them.
     # This is the normal path — router callers just pass session_id.
-    if theme01_category is None or theme_level is None or ranking_method is None:
+    auto_select_token = None
+    if True:  # always load session for ranking_method / theme slice / CRS-36 replay token
         from app.models.session import Session
+        from app.cubes.cube7_ranking.auto_select import auto_select_replay_token
 
         s_res = await db.execute(select(Session).where(Session.id == session_id))
         s = s_res.scalar_one_or_none()
@@ -714,6 +716,12 @@ async def run_ranking_pipeline(
                 raw = getattr(s, "theme2_voting_level", None)
                 if raw and raw.startswith("theme2_"):
                     theme_level = raw.replace("theme2_", "")
+            # CRS-36.03: Round 1 config + selected set are replay-hash relevant.
+            auto_select_token = auto_select_replay_token(
+                getattr(s, "auto_select_percent", None),
+                getattr(s, "auto_select_n", None),
+                getattr(s, "auto_select_theme_ids", None),
+            )
 
     # 1. Detect anomalies FIRST (before aggregation)
     anomalies = await detect_voting_anomalies(db, session_id, cycle_id)
@@ -729,6 +737,7 @@ async def run_ranking_pipeline(
         theme_level=theme_level,
         is_final=not live,
         ranking_method=ranking_method if ranking_method == "top3_points" else None,
+        auto_select_token=auto_select_token,
     )
 
     # 4. Identify top theme

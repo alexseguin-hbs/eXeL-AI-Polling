@@ -1915,10 +1915,11 @@ Use these exactly as “build targets” for website + backend.
 > Source: operator sketches + SoI brief (pre-AI polling design). Map first; status is **Planned** or **In progress** only — never claim implemented until code + green checks prove it.
 > Numbering note: CRS-36..39 continue the polling Requirements.txt sequence after CRS-35. Vision Innovation Project ids in `frontend/lib/innovation-data.ts` (CRS-36→93) are a **separate product surface** and are not these rows.
 
-**CRS-36** Round 1 — Variable auto-select of themes per category for the ranking ballot. *(Cube 7)* · **Planned** · Date added 2026-11-09
+**CRS-36** Round 1 — Variable auto-select of themes per category for the ranking ballot. *(Cube 7)* · **In progress** · Date added 2026-11-09
 - **CRS-36.01** Moderator configures auto-select as a percentage and/or N-of-M (example from original sketch: **40% · 4 of 10**) per Theme01 category (Support / Concerns / Neutral).
 - **CRS-36.02** Selected subset becomes the Round 2 ballot set for that category; non-selected themes remain visible in review but are not ranked in Round 2.
 - **CRS-36.03** Setting is session-scoped, auditable, and replay-hash relevant (method + percent/N recorded).
+- **CRS-36.04** Implementation track: Cube 7 auto_select + migration 059 — **In progress** (2026-11-09).
 
 **CRS-37** Round 2 — Per-category top-3 ranking with 3/2/1 points (`top3_points`). *(Cube 7)* · **In progress** · Date added 2026-11-09
 - **CRS-37.01** Participant picks up to **3** distinct themes that are a **subset** of the category's valid set at the voting level (default L9 → pick 3 of 9); points **3 / 2 / 1** by rank position.

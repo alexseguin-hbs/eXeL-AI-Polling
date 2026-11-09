@@ -256,6 +256,8 @@ async def create_session(
         theme2_voting_level=payload.theme2_voting_level,
         theme01_category=payload.theme01_category,
         ranking_method=payload.ranking_method,
+        auto_select_percent=payload.auto_select_percent,
+        auto_select_n=payload.auto_select_n,
         live_feed_enabled=payload.live_feed_enabled,
         polling_mode_type=payload.polling_mode_type,
         static_poll_duration_days=payload.static_poll_duration_days,

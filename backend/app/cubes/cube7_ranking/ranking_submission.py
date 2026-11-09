@@ -249,6 +249,7 @@ async def submit_top3_ballot(
     session_short_code: str | None = None,
     theme01_category: str | None = None,
     allow_revote: bool = False,
+    session=None,
 ) -> Ranking:
     """P1: store a top3_points ballot — per category voted, 1–3 distinct themes of THAT category, best first.
 
@@ -272,6 +273,10 @@ async def submit_top3_ballot(
         extra = set(ids) - valid[cat]
         if extra:
             raise ValueError(f"Theme ID mismatch in {cat}: {extra} are not {cat} themes at this level")
+        # CRS-36.02: Round 1 shortlist gate (when the moderator has computed auto_select_theme_ids).
+        if session is not None:
+            from app.cubes.cube7_ranking.auto_select import enforce_auto_select_subset
+            enforce_auto_select_subset(session, cat, list(ids))
         clean[cat] = [str(t) for t in ids]
     if not clean:
         raise ValueError("category_ballots must vote at least one category")

@@ -4,6 +4,13 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+
+def _default_ai_provider() -> str:
+    from app.config import settings
+
+    name = (settings.default_ai_provider or "openai").lower()
+    return name if name in ("openai", "grok", "gemini") else "openai"
+
 # Shared Literal type for theme_id (used in Create, Update, Read)
 ThemeIdType = Literal[
     "exel-cyan", "ocean-blue", "emerald", "sunset",
@@ -23,7 +30,9 @@ class SessionCreate(BaseModel):
     ranking_mode: Literal["auto", "manual"] = "auto"
     language: str = Field("en", min_length=2, max_length=10)
     max_response_length: int = Field(3333, ge=50, le=3333)
-    ai_provider: Literal["openai", "grok", "gemini"] = "openai"
+    # CRS-09.08.06 (2026-11-09): a poll that names no provider uses the deployment default (prod: grok = xAI, the owner's
+    # funded primary; OpenAI/Gemini remain runtime fallbacks). Explicit choices are honoured unchanged.
+    ai_provider: Literal["openai", "grok", "gemini"] = Field(default_factory=lambda: _default_ai_provider())
     seed: str | None = None
     # Session type & polling mode
     session_type: Literal["polling", "peer_volunteer", "team_collaboration", "simulation"] = "polling"
@@ -42,6 +51,9 @@ class SessionCreate(BaseModel):
     theme01_category: Literal["risk", "support", "neutral"] | None = None
     # Ranking method — None/borda_count = full-rank Borda (default); top3_points = top 3 per category, 3/2/1
     ranking_method: Literal["borda_count", "top3_points"] | None = None
+    # CRS-36 Round 1 auto-select (percent and/or N-of-M of Theme02 → Round 2 ballot)
+    auto_select_percent: float | None = Field(None, gt=0, le=100)
+    auto_select_n: int | None = Field(None, ge=1)
     # Live feed
     live_feed_enabled: bool = False
     # Static poll countdown
@@ -85,6 +97,8 @@ class SessionUpdate(BaseModel):
     theme2_voting_level: Literal["theme2_9", "theme2_6", "theme2_3"] | None = None
     theme01_category: Literal["risk", "support", "neutral"] | None = None
     ranking_method: Literal["borda_count", "top3_points"] | None = None
+    auto_select_percent: float | None = Field(None, gt=0, le=100)
+    auto_select_n: int | None = Field(None, ge=1)
     # Live feed
     live_feed_enabled: bool | None = None
     # Static poll countdown
@@ -132,6 +146,9 @@ class SessionRead(BaseModel):
     theme2_voting_level: str = "theme2_9"
     theme01_category: str | None = None
     ranking_method: str | None = None
+    auto_select_percent: float | None = None
+    auto_select_n: int | None = None
+    auto_select_theme_ids: dict[str, list[str]] | None = None
     final_theme_id: uuid.UUID | None = None
     final_group_top_theme_id: uuid.UUID | None = None
     final_decision_reason: str | None = None

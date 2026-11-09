@@ -141,6 +141,7 @@ async def submit_ranking(
                 session_short_code=session.short_code,
                 theme01_category=getattr(session, "theme01_category", None),
                 allow_revote=True,
+                session=session,
             )
             await db.commit()
         except ValueError as e:
@@ -573,3 +574,77 @@ async def post_final_decision(
         raise HTTPException(status_code=400, detail=str(e))
     await broadcast_event(channel=f"session:{session.short_code}", event="final_decision", payload=snap)
     return snap
+
+
+# ---------------------------------------------------------------------------
+# CRS-36 Round 1 — variable auto-select (top Theme02 slice → Round 2 ballot)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/rankings/auto-select")
+@limiter.limit("60/minute")
+async def get_auto_select(
+    request: Request,
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
+    participant_token: str | None = Header(default=None, alias=PARTICIPANT_TOKEN_HEADER),
+):
+    """CRS-36: the Round 1 shortlist (config + selected theme ids per Theme01 category).
+
+    Readable by a participant of THIS session or a signed-in user — same audience as live ranking.
+    """
+    if participant_token:
+        if verify_participant_token(session_id, participant_token) is None:
+            raise HTTPException(status_code=403, detail="Invalid participant token")
+    elif user is None:
+        raise HTTPException(status_code=401, detail="Join the session (participant token) or log in")
+    session = await _session_or_404(db, session_id)
+    selected = getattr(session, "auto_select_theme_ids", None) or {}
+    return {
+        "percent": getattr(session, "auto_select_percent", None),
+        "n": getattr(session, "auto_select_n", None),
+        "selected": selected,
+        "theme_level": (getattr(session, "theme2_voting_level", None) or "theme2_9").replace("theme2_", ""),
+        "cycle_id": getattr(session, "current_cycle", 1) or 1,
+        "active": bool(selected) or (
+            getattr(session, "auto_select_percent", None) is not None
+            or getattr(session, "auto_select_n", None) is not None
+        ),
+    }
+
+
+@router.post("/rankings/auto-select")
+@limiter.limit("20/minute")
+async def post_auto_select(
+    request: Request,
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
+    percent: float | None = None,
+    n: int | None = None,
+):
+    """CRS-36: moderator sets percent and/or N, then computes the shortlist from the live ranking.
+
+    Query/body-less: optional `percent` and `n` query params update the session config first.
+    When both are omitted, the existing session config is used. Returns the computed set.
+    """
+    from app.core.supabase_broadcast import broadcast_event
+    from app.cubes.cube7_ranking.auto_select import compute_auto_select_set, validate_auto_select_config
+
+    session = await _session_or_404(db, session_id)
+    try:
+        if percent is not None or n is not None:
+            validate_auto_select_config(percent, n)
+            if percent is not None:
+                session.auto_select_percent = percent
+            if n is not None:
+                session.auto_select_n = n
+        elif getattr(session, "auto_select_percent", None) is None and getattr(session, "auto_select_n", None) is None:
+            raise ValueError("Set auto_select_percent and/or auto_select_n before computing Round 1")
+        payload = await compute_auto_select_set(db, session, persist=True)
+        await db.commit()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    await broadcast_event(channel=f"session:{session.short_code}", event="auto_select", payload=payload)
+    return payload
