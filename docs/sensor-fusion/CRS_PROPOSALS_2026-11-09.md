@@ -1,6 +1,6 @@
 # SensorFusion CRS proposals — 2026-11-09
 
-**Status: PROPOSED (not implemented).**  
+**Status: IMPLEMENTING in migration 059 + feat/sf-anon-heart-trace (2026-11-09).**  
 Design: [ANON_HEART_TOKENS_PROPOSAL_2026-11-09.md](./ANON_HEART_TOKENS_PROPOSAL_2026-11-09.md).
 
 Do **not** write these into `sensorfusion-2525.code.json` revisions until an implementation commit exists.

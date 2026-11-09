@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** eXeL AI Polling append-only traceability ledger — 16 entries, extracted at build time. */
+/** eXeL AI Polling append-only traceability ledger — 17 entries, extracted at build time. */
 export const EXEL_AI_POLLING_LEDGER: LedgerInput = {
   "section": "eXeL AI Polling",
   "route": "/eXeL-AI-Polling",
@@ -120,6 +120,13 @@ export const EXEL_AI_POLLING_LEDGER: LedgerInput = {
       "date": "2026-11-09",
       "kind": "decision",
       "text": "R-CORE catch-up tip: public /eXeL-AI-Polling badge advanced through PR #17–#24/#20/#22/#23/#27/#28/#30 + run7 evidence baseline. Commit recovered from the row-adding commit (Stage 2 newest-revision code-record bar).",
+      "commit": ""
+    },
+    {
+      "rev": 17,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Architect-2525 PR #36 merge 1a282311 + live 058 auth_bind (20261109213726) + SIM058 9/0. SensorFusion-2525 slice 059 (anon seats / class reuse / work-events) opened on feat/sf-anon-heart-trace (CRS-05.04, 08.04–06, 19.07–08, 24.03, 25.02, 32.04).",
       "commit": ""
     }
   ]

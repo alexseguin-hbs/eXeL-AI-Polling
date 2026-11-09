@@ -3921,6 +3921,82 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 88,
+   "commit": "93f60d40bd81c609d785b3f6e20d61a097cd2b35",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14,
+      16
+     ],
+     "files": [
+      {
+       "path": "frontend/app/SensorFusion-2525/ledger.ts",
+       "blob": "f268a008506d03890609469407d7513ac1b75e63"
+      }
+     ],
+     "add": 19,
+     "del": 0,
+     "bytes": 959,
+     "lines": 29,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 89,
+   "commit": "93f60d40bd81c609d785b3f6e20d61a097cd2b35",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "glass",
+     "name": "The glass",
+     "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14,
+      16
+     ],
+     "files": [
+      {
+       "path": "frontend/app/SensorFusion-2525/ledger.ts",
+       "blob": "f268a008506d03890609469407d7513ac1b75e63"
+      }
+     ],
+     "add": 19,
+     "del": 0,
+     "bytes": 959,
+     "lines": 29,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }

@@ -1735,3 +1735,44 @@
   height: 100%;
   object-fit: cover;
 }
+
+.classSuggest {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  max-height: 8rem;
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--sf-accent, #5ee) 35%, transparent);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, #0b1220 88%, transparent);
+}
+.classSuggest button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+}
+.classSuggest button:hover,
+.classSuggest button:focus-visible {
+  background: color-mix(in srgb, var(--sf-accent, #5ee) 18%, transparent);
+}
+.didYouMean {
+  margin: 0.35rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  font-size: 0.85rem;
+}
+.seatBox {
+  margin: 0.5rem 0;
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--sf-accent, #5ee) 30%, transparent);
+  display: grid;
+  gap: 0.4rem;
+}

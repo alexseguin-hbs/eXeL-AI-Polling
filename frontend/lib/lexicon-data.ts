@@ -3632,6 +3632,16 @@ const sensorFusion2525: TranslationEntry[] = [
   { key: "sf.collab.json_needs_level2", englishDefault: "JSON waits. Every picture in this project still needs Level 2 by a different person, saved as XML.", context: "SensorFusion project JSON gate: missing independent Level 2", cubeId: 81 },
   { key: "sf.collab.correction_save_failed", englishDefault: "The Level 2 correction could not be saved to the project. It stayed on this device.", context: "SensorFusion correction insert failed", cubeId: 81 },
   { key: "sf.collab.correction_needs_indep", englishDefault: "A Level 2 correction must be made by a different person than the Level 1 labeler.", context: "SensorFusion correction independence gate", cubeId: 81 },
+  { key: "sf.seat.anonymous_choose", englishDefault: "Continue as Anonymous", context: "SensorFusion anonymous seat chooser (CRS-05.04)", cubeId: 81 },
+  { key: "sf.seat.display_name", englishDefault: "Display name", context: "SensorFusion seat display name field", cubeId: 81 },
+  { key: "sf.seat.name_taken", englishDefault: "That name is taken in this project", context: "SensorFusion seat name collision", cubeId: 81 },
+  { key: "sf.seat.oauth_optional", englishDefault: "Or sign in with your account", context: "SensorFusion OAuth optional alternative to anonymous seat", cubeId: 81 },
+  { key: "sf.seat.join_failed", englishDefault: "Could not join this project seat. Try another name or sign in again.", context: "SensorFusion join seat RPC failure", cubeId: 81 },
+  { key: "sf.tokens.hud", englishDefault: "♡ {si} | ◬ {ai}", context: "SensorFusion education token HUD; placeholders si/ai (CRS-25.02)", cubeId: 81 },
+  { key: "sf.class.did_you_mean", englishDefault: "Did you mean {name}?", context: "SensorFusion class near-match prompt (CRS-08.05)", cubeId: 81 },
+  { key: "sf.class.reuse_existing", englishDefault: "Use existing class", context: "SensorFusion confirm reuse of near-match class", cubeId: 81 },
+  { key: "sf.class.create_new", englishDefault: "Create new class", context: "SensorFusion confirm create after near-match", cubeId: 81 },
+  { key: "sf.class.pick_existing", englishDefault: "Existing classes", context: "SensorFusion class autocomplete list label", cubeId: 81 },
 ];
 
 export const CUBE_GROUPS: CubeGroup[] = [

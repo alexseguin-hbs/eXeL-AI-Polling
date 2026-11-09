@@ -647,6 +647,22 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
         "(Stage 2 newest-revision code-record bar).",
       commit: "",
     },
+    {
+      rev: 88,
+      date: "2026-11-09",
+      kind: "ask",
+      text:
+        "CRS-05.04 / CRS-08.04–08.06 / CRS-19.07–19.08 / CRS-24.03 / CRS-25.02 / CRS-32.04: anonymous display seats via Supabase anonymous auth, shared class list with normalize + did-you-mean + merge, append-only work events with ♡=ceil(minutes) and ◬=5×♡ (웃=0 until H.I. funded). Proposed 2026-11-09; user-approved for implementation.",
+      commit: "",
+    },
+    {
+      rev: 89,
+      date: "2026-11-09",
+      kind: "release",
+      text:
+        "Migration 059_sensor_fusion_anon_heart_trace: sensor_fusion_classes, sensor_fusion_work_events, members.is_anonymous, join_seat / resolve_class / merge_class RPCs, RLS + actor_uid bind. Client: classes.ts, work-events.ts, anon-seat.ts; Labeler class picker + anonymous seat chooser. Tests: sensor-fusion-classes, sensor-fusion-work-events; SIM059.",
+      commit: "",
+    },
   ],
 };
 

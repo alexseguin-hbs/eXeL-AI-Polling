@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Architect-2525 append-only traceability ledger — 41 entries, extracted at build time. */
+/** Architect-2525 append-only traceability ledger — 42 entries, extracted at build time. */
 export const ARCHITECT_LEDGER: LedgerInput = {
   "section": "Architect-2525",
   "route": "/Architect-2525",
@@ -296,6 +296,13 @@ export const ARCHITECT_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "Architect-2525 R1 cloud-save follow-up (HI decision Q4 2026.10.31 ask; SSSES Security; VISION_2525_REUSE_CATALOG cloud-saved-files). (1) Repo migration 053_architect_saved_files_rpc renumbered to 057 — live history row 20261109131322 / name 053_architect_saved_files_rpc is NOT rewritten; 053_revoke stays the sole 053_*; 054 SensorFusion, 055 ranking, 056 session final decision already taken. (2) Migration 058 adds user_id/created_at and rewrites get/put with auth.uid claim bind: when a Supabase JWT is present p_owner must equal auth.uid()::text; a claimed row is off-limits to anon and to any other account; first signed-in write stamps user_id and never un-claims. Justified alternative to authenticated-only today: Auth0 login does not mint a Supabase JWT (lib/supabase.ts anon client), so revoking anon EXECUTE would kill cloud save — same trade-off innovation_state took in 030. Capability preserved. Corrective 058 applied live only after merge. Gate: owner-key-store-security extended for 057/058; sim 058_*.sim.sql. Evidence labels: DERIVED (anon client, live grants, dual-053 history); USER_STATED (OAuth active / HI Q4); ASSUMED none for the bind shape.",
       "commit": "05a918d5"
+    },
+    {
+      "rev": 42,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "PR #36 merged (merge SHA 1a282311817835dc7614622a66d622460dc76cba). Live Supabase ppgfjplawtlrfqpnszyb applied migration architect_saved_files_auth_bind (history version 20261109213726). Columns user_id + created_at verified. SIM058 rolled-back proof pass=9 fail=0: anon-put-get, cross-bearer-null, reject-anon-literal, auth-owner-mismatch, auth-claim-stamp, other-auth-blocked, anon-cannot-read-claimed, anon-cannot-put-claimed, table-deny-or-empty. CRS: HI Q4 / SSSES Security / ARC cloud-saved-files.",
+      "commit": "1a282311"
     }
   ]
 };

@@ -262,6 +262,38 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 17,
+   "commit": "93f60d40bd81c609d785b3f6e20d61a097cd2b35",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      8,
+      14
+     ],
+     "files": [
+      {
+       "path": "docs/traceability/exel-ai-polling.ledger.json",
+       "blob": "055b004fc670003725eb783b22b8c0db4820d074"
+      }
+     ],
+     "add": 84,
+     "del": 0,
+     "bytes": 5098,
+     "lines": 94,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }

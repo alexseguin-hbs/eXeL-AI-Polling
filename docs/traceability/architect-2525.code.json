@@ -1940,8 +1940,7 @@
   },
   {
    "rev": 41,
-   "commit": "05a918d5eec9f964b904ab2a14775d83dfb31b96",
-   "commitSource": "ledger-row",
+   "commit": "05a918d5",
    "status": "recorded",
    "areas": [
     {
@@ -1968,6 +1967,12 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 42,
+   "commit": "1a282311",
+   "status": "no-code-change",
+   "areas": []
   }
  ]
 }

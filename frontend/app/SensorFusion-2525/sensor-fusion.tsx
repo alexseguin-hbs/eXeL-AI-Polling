@@ -29,6 +29,9 @@ import {
   appendCorrection,
 } from "@/lib/sensor-fusion/collab";
 import { supabase } from "@/lib/supabase";
+import { classNameKey, resolveClassInput, suggestClasses, type SfClass } from "@/lib/sensor-fusion/classes";
+import { buildWorkEvent, heartCreditFromSeconds, loginJoinCredit } from "@/lib/sensor-fusion/work-events";
+import { SF_SEAT_KEYS, joinSeatRpcArgs, parseJoinSeatPayload, validateSeatName } from "@/lib/sensor-fusion/anon-seat";
 import {
   COLORS,
   FRAMES,
@@ -620,6 +623,18 @@ function Labeler({
   const [pics, setPics] = useState<Shot[]>(shots);
   const [index, setIndex] = useState(0);
   const [labelName, setLabelName] = useState(names[0] || "person");
+  const [projectClasses, setProjectClasses] = useState<SfClass[]>(() =>
+    names.map((n, i) => ({
+      class_id: `local-${i}-${classNameKey(n)}`,
+      project_id: "local",
+      canonical_name: n,
+      name_key: classNameKey(n),
+      use_count: names.length - i,
+    })),
+  );
+  const [nearClass, setNearClass] = useState<SfClass | null>(null);
+  const [seatName, setSeatName] = useState(who || "");
+  const [seatNote, setSeatNote] = useState("");
   const [left, setLeft] = useState<number>(START_BOX.left);
   const [top, setTop] = useState<number>(START_BOX.top);
   const [right, setRight] = useState<number>(START_BOX.right);
@@ -659,7 +674,129 @@ function Labeler({
   }
 
   function toggleClock() {
-    remember(clock.open ? stopClock(clock, Date.now()) : startClock(clock, who || "guest", Date.now()));
+    const now = Date.now();
+    if (clock.open) {
+      const startedAt = clock.open.startedAt;
+      const stopped = stopClock(clock, now);
+      remember(stopped);
+      const duration_ms = Math.max(0, now - startedAt);
+      // Work-event for session_stop (♡ from measured time). Live insert when member session exists.
+      void appendLocalWorkEvent("session_stop", { duration_ms });
+    } else {
+      remember(startClock(clock, who || "guest", now));
+      void appendLocalWorkEvent("session_start", { credit_time: true });
+    }
+  }
+
+  async function appendLocalWorkEvent(
+    event_type: "session_start" | "session_stop" | "label_create" | "label_edit" | "class_reuse" | "class_create",
+    extra: { duration_ms?: number; credit_time?: boolean; class_name?: string; before_box?: Record<string, unknown>; after_box?: Record<string, unknown> } = {},
+  ) {
+    if (!supabase) return;
+    const session = (await supabase.auth.getSession()).data.session;
+    const gate = requireMemberSession(session);
+    if (!gate.ok) return;
+    const draft = buildWorkEvent({
+      project_id: projectName,
+      actor_uid: gate.owner,
+      display_name: seatName || who || "guest",
+      event_type,
+      class_name: extra.class_name || labelName,
+      duration_ms: extra.duration_ms,
+      credit_time: extra.credit_time,
+      before_box: extra.before_box,
+      after_box: extra.after_box,
+      picture_id: pic ? pictureName(pic) : undefined,
+    });
+    try {
+      await supabase.from("sensor_fusion_work_events").insert({
+        project_id: draft.project_id,
+        actor_uid: draft.actor_uid,
+        display_name: draft.display_name,
+        event_type: draft.event_type,
+        class_name: draft.class_name,
+        picture_id: draft.picture_id,
+        duration_ms: draft.duration_ms ?? null,
+        delta_heart: draft.delta_heart,
+        delta_unity: draft.delta_unity,
+        delta_human: 0,
+        before_box: draft.before_box ?? null,
+        after_box: draft.after_box ?? null,
+      });
+    } catch {
+      /* local labeling continues; work log sync is best-effort until seat exists */
+    }
+  }
+
+  function onLabelNameChange(value: string) {
+    setLabelName(value);
+    const verdict = resolveClassInput(value, projectClasses);
+    setNearClass(verdict.kind === "near" ? verdict.match : null);
+  }
+
+  function acceptExistingClass(match: SfClass) {
+    setLabelName(match.canonical_name);
+    setNearClass(null);
+    setProjectClasses((cur) => {
+      const rest = cur.filter((c) => c.name_key !== match.name_key);
+      return [{ ...match, use_count: match.use_count + 1 }, ...rest];
+    });
+  }
+
+  function confirmNewClass() {
+    const key = classNameKey(labelName);
+    const created: SfClass = {
+      class_id: `local-${key}-${Date.now()}`,
+      project_id: projectName,
+      canonical_name: labelName.trim() || "person",
+      name_key: key,
+      use_count: 1,
+    };
+    setProjectClasses((cur) => {
+      const rest = cur.filter((c) => c.name_key !== key);
+      return [created, ...rest];
+    });
+    setNearClass(null);
+  }
+
+  async function joinAnonymousSeat() {
+    if (!supabase) {
+      setSeatNote(t(SF_SEAT_KEYS.joinFailed));
+      return;
+    }
+    const nameCheck = validateSeatName(seatName, []);
+    if (!nameCheck.ok) {
+      setSeatNote(t(nameCheck.reason === "name_taken" ? SF_SEAT_KEYS.nameTaken : SF_SEAT_KEYS.displayName));
+      return;
+    }
+    try {
+      const existing = (await supabase.auth.getSession()).data.session;
+      if (!existing) {
+        const anon = await supabase.auth.signInAnonymously();
+        if (anon.error) {
+          setSeatNote(t(SF_SEAT_KEYS.joinFailed));
+          return;
+        }
+      }
+      const args = joinSeatRpcArgs({ projectId: projectName, displayName: nameCheck.name, isAnonymous: true });
+      const { data, error } = await supabase.rpc("sensor_fusion_join_seat", args);
+      if (error) {
+        const taken = /taken|23505/i.test(error.message || "");
+        setSeatNote(t(taken ? SF_SEAT_KEYS.nameTaken : SF_SEAT_KEYS.joinFailed));
+        return;
+      }
+      const parsed = parseJoinSeatPayload(data);
+      if (!parsed.ok) {
+        setSeatNote(t(SF_SEAT_KEYS.joinFailed));
+        return;
+      }
+      setSeatName(parsed.display_name);
+      const join = loginJoinCredit();
+      setSeatNote(t(SF_SEAT_KEYS.tokensHud).replace("{si}", String(join.heart)).replace("{ai}", String(join.unity)));
+      void appendLocalWorkEvent("session_start", { credit_time: true });
+    } catch {
+      setSeatNote(t(SF_SEAT_KEYS.joinFailed));
+    }
   }
 
   function runSim() {
@@ -860,9 +997,21 @@ function Labeler({
     }
     const prior = marks[pic.id] || [];
     const previous = editing ? prior.find((item) => item.id === editing) : undefined;
+    const resolved = resolveClassInput(labelName, projectClasses);
+    if (resolved.kind === "near" && nearClass) {
+      setNote(t("sf.class.did_you_mean").replace("{name}", nearClass.canonical_name));
+      return;
+    }
+    if (resolved.kind === "exact") {
+      acceptExistingClass(resolved.match);
+    } else if (resolved.kind === "new") {
+      confirmNewClass();
+    }
+    const chosenName =
+      resolved.kind === "exact" ? resolved.match.canonical_name : labelName.trim() || names[0] || "person";
     const draft: Mark = {
       id: editing || `${Date.now()}`,
-      name: labelName.trim() || names[0] || "person",
+      name: chosenName,
       left,
       top,
       right,
@@ -896,6 +1045,11 @@ function Labeler({
       const kept = chosenFolder ? `Saved ${where}.` : `Box ${list.length} kept on this device. FILES saves ${where}.`;
       setNote(`${kept} ${fileName}. Next: another box, or LEVEL 2 by a second person.`);
     }
+    void appendLocalWorkEvent(previous ? "label_edit" : "label_create", {
+      class_name: chosenName,
+      before_box: previous ? { name: previous.name, left: previous.left, top: previous.top, right: previous.right, bottom: previous.bottom } : null,
+      after_box: { name: mark.name, left: mark.left, top: mark.top, right: mark.right, bottom: mark.bottom },
+    });
   }
 
   async function acceptBox(mark: Mark) {
@@ -1200,15 +1354,60 @@ function Labeler({
           <p className={styles.muted}>No pictures yet. Turn the camera on and save some, or add pictures from this device.</p>
         )}
         {pic && <p className={styles.fileName}>{pictureName(pic)}</p>}
+        <div className={styles.seatBox} aria-label={t(SF_SEAT_KEYS.displayName)}>
+          <label className={styles.nameLine}>
+            {t(SF_SEAT_KEYS.displayName)}
+            <input
+              type="text"
+              value={seatName}
+              placeholder={t(SF_SEAT_KEYS.displayName)}
+              onChange={(event) => setSeatName(event.target.value)}
+            />
+          </label>
+          <button type="button" onClick={() => void joinAnonymousSeat()}>
+            {t(SF_SEAT_KEYS.anonymousChoose)}
+          </button>
+          <p className={styles.muted}>{t(SF_SEAT_KEYS.oauthOptional)}</p>
+          {seatNote ? <p className={styles.muted}>{seatNote}</p> : null}
+        </div>
         <label className={styles.nameLine}>
           Label name
           <input
             type="text"
             value={labelName}
             placeholder="Type a name"
-            onChange={(event) => setLabelName(event.target.value)}
+            list="sf-class-suggestions"
+            onChange={(event) => onLabelNameChange(event.target.value)}
+            autoComplete="off"
           />
         </label>
+        <datalist id="sf-class-suggestions">
+          {suggestClasses(labelName, projectClasses).map((item) => (
+            <option key={item.class_id} value={item.canonical_name} />
+          ))}
+        </datalist>
+        {suggestClasses(labelName, projectClasses).length > 0 && (
+          <ul className={styles.classSuggest} aria-label={t("sf.class.pick_existing")}>
+            {suggestClasses(labelName, projectClasses).map((item) => (
+              <li key={item.class_id}>
+                <button type="button" onClick={() => acceptExistingClass(item)}>
+                  {item.canonical_name} · {item.use_count}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {nearClass && (
+          <div className={styles.didYouMean}>
+            <span>{t("sf.class.did_you_mean").replace("{name}", nearClass.canonical_name)}</span>
+            <button type="button" onClick={() => acceptExistingClass(nearClass)}>
+              {t("sf.class.reuse_existing")}
+            </button>
+            <button type="button" onClick={() => confirmNewClass()}>
+              {t("sf.class.create_new")}
+            </button>
+          </div>
+        )}
         <details className={styles.corners}>
           <summary>Box numbers</summary>
           <label>
