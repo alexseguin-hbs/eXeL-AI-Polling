@@ -12,6 +12,7 @@
 | CRS | Cube | Title | Status |
 |-----|------|-------|--------|
 | CRS-09.08 | Cube 6 (theming) / Cube 7 (prioritization) | 1M live theming+prioritization; Theme02 <3s; metrics shown | Planned |
+| CRS-09.08.01–.06 | Cube 6 (theming) | Theme02 scale: batched Theme01, parallel vendors + hedging, streamed samples, telemetry + convergence, tree reduce + cosine assign, xAI primary | In progress |
 | CRS-15.09 | Cube 3 | Live voice-to-text for Moderator **and** Participants | Planned |
 | CRS-22.04 | Cube 7 | Moderator final decision transparency (show group #1 + reason) | Planned |
 | CRS-36 | Cube 7 | Round 1 variable auto-select (e.g. 40% · 4/10) | **In progress** |

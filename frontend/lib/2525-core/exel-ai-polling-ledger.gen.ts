@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** eXeL AI Polling append-only traceability ledger — 16 entries, extracted at build time. */
+/** eXeL AI Polling append-only traceability ledger — 17 entries, extracted at build time. */
 export const EXEL_AI_POLLING_LEDGER: LedgerInput = {
   "section": "eXeL AI Polling",
   "route": "/eXeL-AI-Polling",
@@ -120,6 +120,13 @@ export const EXEL_AI_POLLING_LEDGER: LedgerInput = {
       "date": "2026-11-09",
       "kind": "decision",
       "text": "R-CORE catch-up tip: public /eXeL-AI-Polling badge advanced through PR #17–#24/#20/#22/#23/#27/#28/#30 + run7 evidence baseline. Commit recovered from the row-adding commit (Stage 2 newest-revision code-record bar).",
+      "commit": ""
+    },
+    {
+      "rev": 17,
+      "date": "2026-11-09",
+      "kind": "decision",
+      "text": "BEST PRACTICE for scaling Theme02 toward a 1M poll (CRS-09.08.01–.06; owner steer t162u–t165u, Tesla/SpaceX method). The original notebook (333→111→33; Theme01 'Supporting Comments' / 'Risk & Concerns' / 'Neutral Comments' with <65% → Neutral; shuffle into samples of 10 → 3 themes; pool → 9 → 6 → 3; assign Theme2_9/6/3) is the semantic contract — only scheduling changes. (1) Delete the part: ≤33-word inputs skip summarization; Theme01 classifies 25 responses per request; 2 samples of 10 per request. (2) Parallel engines: xAI primary, OpenAI then Gemini failover, per-call timeouts, hedge at 1.1×p95 of the call kind, client pacing under each vendor's RPM (xAI 1,800/min), circuits for credit/auth failures. (3) Streaming line: each finished sample broadcasts theme_batch_progress; next step is classifying and theming samples DURING polling so only reduce + assign remain after close. (4) Tree reduce: parallel chunks of 60 → 9 (names only) until one prompt fits, then one request returns 9 → 6 → 3; cosine assignment on cached embeddings, LLM fallback. (5) Telemetry: stage_ms, per-vendor calls/hedges/failures/USD, coverage %, convergence of top-3 shares vs samples. (6) Test to failure and publish honestly: on the owner's CSVs, per-request output speed (~90–100 tokens/s) and vendor RPM are the binding limits. Status: in progress — a release row with merge SHA and live evidence follows.",
       "commit": ""
     }
   ]

@@ -46,7 +46,7 @@ def money(value: Any, places: Decimal = TWOPLACE) -> Decimal:
 # Rate catalog (versioned). Unknown keys → RateLookup.unknown, never 0.
 # ---------------------------------------------------------------------------
 
-RATE_CATALOG_VERSION = "2026-04.v1"  # mirrors provider pricing notes already in-repo
+RATE_CATALOG_VERSION = "2026-11.v2"  # 2026-11-09: grok row → official xAI grok-4.20 non-reasoning price (CRS-09.08.06)
 CURRENCY_USD = "USD"
 
 
@@ -71,10 +71,12 @@ THEME_RATES_USD_PER_1K: dict[str, dict[str, Decimal]] = {
         "summary_per_1k_input": D("0.000075"),
         "summary_per_1k_output": D("0.0003"),
     },
+    # xAI grok-4.20-0309-non-reasoning: $1.25 / $2.50 per 1M (https://docs.x.ai/docs/pricing, updated 2026-10-10,
+    # read 2026-11-09; CRS-09.08.06). Embeddings delegate to OpenAI text-embedding-3-small (xAI has no embedding API).
     "grok": {
         "embed_per_1k": D("0.00002"),
-        "summary_per_1k_input": D("0.0005"),
-        "summary_per_1k_output": D("0.002"),
+        "summary_per_1k_input": D("0.00125"),
+        "summary_per_1k_output": D("0.0025"),
     },
     "claude": {
         "embed_per_1k": D("0.00002"),

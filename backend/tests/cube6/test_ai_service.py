@@ -458,12 +458,12 @@ class TestProviderFactory:
 
 class TestTheme01Categories:
     def test_categories_match_monolith(self):
-        """Theme01 categories should match the monolith constants."""
+        """Theme01 categories: the monolith's three exact labels, in the owner's order (2026-11-09)."""
         from app.cubes.cube6_ai.service import THEME01_CATEGORIES
 
         assert THEME01_CATEGORIES == [
-            "Risk & Concerns",
             "Supporting Comments",
+            "Risk & Concerns",
             "Neutral Comments",
         ]
 
