@@ -1847,6 +1847,36 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 38,
+   "commit": "fd4a4ae1c",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "ux",
+     "name": "Command UX",
+     "cells": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      8
+     ],
+     "files": [
+      {
+       "path": "frontend/components/architect-2525/architect-walkthrough.tsx",
+       "blob": "282ca0806c6580d01dfa64bce2a9cc373e8ad006"
+      }
+     ],
+     "add": 7,
+     "del": 4,
+     "bytes": 2981,
+     "lines": 29,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }

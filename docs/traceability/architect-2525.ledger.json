@@ -283,6 +283,14 @@
       "text": "R2c — VISION TREE ↔ PHASE ALIGNMENT. Two build phases pointed treeGroup at Vision-Tree nodes that do not exist, so selecting either scoped the left-rail Vision Tree to NOTHING (layer-tree phaseOK matches a physical node id EXACTLY — id === phaseGroup || id.startsWith(phaseGroup + '/') — then hides the rest of the physical branch): Air Flow (hvac) pointed at physical/hvac, but the tree's HVAC home is physical/mechanical (ductwork lives there); Finish pointed at physical/interior-finish, but the finish surfaces (drywall · flooring · trim · paint) are the CHILDREN of physical/interior, so Finish scopes there alongside Interior Design — exactly as Plumbing+Sewer share physical/plumbing and Roofing+Insulation share physical/building-envelope. Fixed at the root in lib/architect-phases.ts (hvac → physical/mechanical, finish → physical/interior); both phases now scope AND open their real tree node. CLASS gate (why it slipped since the phases shipped): tests/architect-phases no longer mirrors the expected strings — it derives the valid physical-node set from the REAL LAYER_TREE and asserts every phase's treeGroup is a member, so a future bad value fails at the gate, not on the operator's phone (156/0). It had been red in test:ci, which Verify Live does not run. Proven: tsc 0 new · full build Compiled (exit 0) · architect-consistency 39/0 · architect-product-truth 86/0. Carried by commit 4a9c1acf5.",
       "commit": "4a9c1acf5",
       "title": "R2c — Vision Tree ↔ phase alignment (Air Flow → Mechanical, Finish → Interior)"
+    },
+    {
+      "rev": 38,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "R2e — THE WALK EYE-HEIGHT GOES UP TO THE CEILING (operator LIVE feedback 2026-11-09, from the Master Closet walk: \"make height up to 10 feet\"). The walk's eye-height slider in the map HUD capped at DOOR_H − 0.2 ≈ 6'-5\" — the old 'stay under the door head' rule. Raised EYE_MAX_FT from DOOR_H − 0.2 to CEIL_FT (= STOREY_FT = the one 10-ft storey ceiling source, never a literal 10) in components/architect-2525/architect-walkthrough.tsx. The slider now spans 1'-10\" … 10'-0\"; the default stays his 5.1 ft and any persisted eye height is unaffected (the clamp band only widened). The old cap was never necessary: stepping through a door is HORIZONTAL-ONLY (walkMove reads x/y; the eye z never enters collision), so a high eye still crosses every opening. Gate: tests/architect-walk-controls §3 now locks the band [1.8, CEIL_FT] with CEIL_FT bound to STOREY_FT (one ceiling source) and the ftIn band-end at 10'-0\" — 92/92. Proven: tsc 0 new · full build Compiled successfully (exit 0). Carried by commit fd4a4ae1c.",
+      "commit": "fd4a4ae1c",
+      "title": "R2e — the walk eye-height goes up to the 10-ft ceiling"
     }
   ]
 }
