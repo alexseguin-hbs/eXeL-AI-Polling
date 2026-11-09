@@ -1,0 +1,16 @@
+{
+  "cube": 5,
+  "metric": "active_input_si",
+  "rule_version": "si-active-input-v1-2026-11-09",
+  "rows": [
+    {
+      "at_cst": "2026-11-09 16:30",
+      "n": 7,
+      "path": "unit_anti_gaming",
+      "label": "SIMULATED",
+      "heart_sum": null,
+      "notes": "idle/paste/inflate/empty/ceil-minutes",
+      "evidence": "backend/tests/cube5/test_active_input_credit.py"
+    }
+  ]
+}

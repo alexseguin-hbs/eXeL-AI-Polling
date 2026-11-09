@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Index, String
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -48,6 +48,8 @@ class TokenLedger(Base):
     reason: Mapped[str | None] = mapped_column(String(500))
     reference_id: Mapped[str | None] = mapped_column(String(255))
     version_id: Mapped[str | None] = mapped_column(String(255))
+    # CRS-19.09: capped active typing/speaking ms credited for this row
+    active_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     __table_args__ = (
         Index("ix_token_ledger_session", "session_id"),
