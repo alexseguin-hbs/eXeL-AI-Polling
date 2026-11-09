@@ -40,6 +40,8 @@ class SessionCreate(BaseModel):
     # Theme voting — level (3/6/9) + moderator-selected category (risk/support/neutral)
     theme2_voting_level: Literal["theme2_9", "theme2_6", "theme2_3"] = "theme2_9"
     theme01_category: Literal["risk", "support", "neutral"] | None = None
+    # Ranking method — None/borda_count = full-rank Borda (default); top3_points = top 3 per category, 3/2/1
+    ranking_method: Literal["borda_count", "top3_points"] | None = None
     # Live feed
     live_feed_enabled: bool = False
     # Static poll countdown
@@ -82,6 +84,7 @@ class SessionUpdate(BaseModel):
     # Theme voting — level (3/6/9) + moderator-selected category (risk/support/neutral)
     theme2_voting_level: Literal["theme2_9", "theme2_6", "theme2_3"] | None = None
     theme01_category: Literal["risk", "support", "neutral"] | None = None
+    ranking_method: Literal["borda_count", "top3_points"] | None = None
     # Live feed
     live_feed_enabled: bool | None = None
     # Static poll countdown
@@ -128,6 +131,7 @@ class SessionRead(BaseModel):
     # Theme voting — level (3/6/9) + moderator-selected category (risk/support/neutral)
     theme2_voting_level: str = "theme2_9"
     theme01_category: str | None = None
+    ranking_method: str | None = None
     # Live feed
     live_feed_enabled: bool = False
     # Static poll countdown

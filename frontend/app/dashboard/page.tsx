@@ -67,7 +67,8 @@ import { runMoTExport, type MoTExportProgress } from "@/lib/mot-export-orchestra
 import { useLexicon } from "@/lib/lexicon-context";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
-import { useSessionBroadcast } from "@/lib/use-session-broadcast";
+import { useSessionBroadcast, type RankingCompletePayload } from "@/lib/use-session-broadcast";
+import { LiveRankingPanel } from "@/components/live-ranking-panel";
 import { useViewEntitlement } from "@/lib/use-view-entitlement";
 import { supabase } from "@/lib/supabase";
 import { syncStatusToSupabase, fetchStatusFromSupabase } from "@/lib/supabase-session-sync";
@@ -325,15 +326,44 @@ function SessionDetail({
   // The backend broadcasts ranking_progress on every submission and
   // ranking_complete when aggregation lands. Wired here so the events
   // reach the dashboard tree (UI state binding is a follow-up refinement).
+  // G2 (live 9-theme prioritization): bound to the live panel — vote counter + per-category group ranking.
+  const [rankingSubmissions, setRankingSubmissions] = useState<number | null>(null);
+  const [liveRanking, setLiveRanking] = useState<RankingCompletePayload | null>(null);
+  const [liveRefreshing, setLiveRefreshing] = useState(false);
   const onRankingProgress = useCallback((payload: { submissions?: number; cycle_id?: number }) => {
-    if (typeof payload?.submissions === "number") {
-      console.info("[dashboard] ranking_progress:", payload.submissions, "cycle", payload.cycle_id);
+    if (typeof payload?.submissions === "number") setRankingSubmissions(payload.submissions);
+  }, []);
+
+  const onRankingComplete = useCallback((payload: RankingCompletePayload) => {
+    if (!payload) return;
+    setLiveRanking(payload);
+    if (typeof payload.participant_count === "number") {
+      setRankingSubmissions((prev) => Math.max(prev ?? 0, payload.participant_count ?? 0));
     }
   }, []);
 
-  const onRankingComplete = useCallback((payload: { top_theme2_id?: string; top_theme2_label?: string; replay_hash?: string }) => {
-    console.info("[dashboard] ranking_complete:", payload?.top_theme2_label, "hash", payload?.replay_hash);
-  }, []);
+  // Initial snapshot when the dashboard opens mid-round: the ballot count (moderator-only endpoint).
+  useEffect(() => {
+    if (session.status !== "ranking") return;
+    let cancelled = false;
+    api.get<{ submissions?: number }>(`/sessions/${session.id}/rankings/progress`)
+      .then((p) => { if (!cancelled && typeof p?.submissions === "number") setRankingSubmissions(p.submissions); })
+      .catch(() => { /* the broadcast keeps it live */ });
+    return () => { cancelled = true; };
+  }, [session.id, session.status]);
+
+  // Moderator fallback: tally the ballots now (live — no webhook/CQS; the close still finalizes).
+  const refreshLiveRanking = useCallback(async () => {
+    setLiveRefreshing(true);
+    try {
+      const r = await api.post<RankingCompletePayload & { status?: string }>(`/sessions/${session.id}/rankings/aggregate?live=true`);
+      if (r) onRankingComplete({ ...r, is_final: r.is_final ?? false });
+    } catch {
+      toast({ title: t("cube7.live.refresh_failed"), variant: "destructive" });
+    } finally {
+      setLiveRefreshing(false);
+    }
+  }, [session.id, onRankingComplete, t]);
 
   const { broadcast } = useSessionBroadcast(
     session.short_code,
@@ -679,6 +709,19 @@ function SessionDetail({
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* G2: live 9-theme prioritization — ballots + per-category group ranking as votes arrive */}
+        {(session.status === "ranking" || (["closed", "archived"].includes(session.status) && liveRanking)) && (
+          <div className="mb-4">
+            <LiveRankingPanel
+              variant="moderator"
+              submissions={rankingSubmissions}
+              ranking={liveRanking}
+              onRefresh={session.status === "ranking" ? refreshLiveRanking : undefined}
+              refreshing={liveRefreshing}
+            />
           </div>
         )}
 

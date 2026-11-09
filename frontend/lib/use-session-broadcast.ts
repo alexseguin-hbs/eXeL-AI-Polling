@@ -74,11 +74,20 @@ export interface RankingProgressPayload {
   expected?: number;
 }
 
+/** One theme in a category's group ranking (ranking_complete.category_rankings). */
+export interface CategoryRankingRow {
+  theme_id: string;
+  label: string;
+  score: number;
+  vote_count: number;
+  rank: number;
+}
+
 export interface RankingCompletePayload {
   session_id?: string;
   short_code?: string;
   cycle_id?: number;
-  algorithm?: "borda_count" | "quadratic_borda";
+  algorithm?: "borda_count" | "quadratic_borda" | "top3_points";
   participant_count?: number;
   theme01_category?: string | null;
   theme_level?: "3" | "6" | "9";
@@ -86,6 +95,11 @@ export interface RankingCompletePayload {
   top_theme2_label?: string;
   replay_hash?: string;
   anomaly_count?: number;
+  /** Live 9-theme prioritization: true while the round is open (in-round tally), false once final. */
+  live?: boolean;
+  is_final?: boolean;
+  /** Per Theme01 category (support | risk | neutral), best first. */
+  category_rankings?: Record<string, CategoryRankingRow[]> | null;
 }
 
 export interface SessionBroadcastCallbacks {
