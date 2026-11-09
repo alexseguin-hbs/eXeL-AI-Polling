@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Settings append-only traceability ledger — 8 entries, extracted at build time. */
+/** Settings append-only traceability ledger — 9 entries, extracted at build time. */
 export const SETTINGS_LEDGER: LedgerInput = {
   "section": "Settings",
   "route": "Settings slide-over",
@@ -64,6 +64,13 @@ export const SETTINGS_LEDGER: LedgerInput = {
       "date": "2026-11-08",
       "kind": "release",
       "text": "Payments go live. Create Poll prices the chosen options server-side (POST /payments/poll-quote): tracked AI/STT cost from the same provider catalog as the Cost Estimate panel × ONE margin setting (PRICING_MARGIN_MULTIPLIER, default 1.5 = cost + 50% markup; 2.0 = 50% gross margin — owner decision pending) + Stripe card fee, minimum $11.11; Cost Split = creator 50% at Checkout, participants 50%/N. Moderator Paid and Cost Split both open Stripe Checkout on live Products; Divinity Guide, DeRisking Strategies and community donations book to their own live Products. Signed Stripe webhooks complete ledger rows exactly once (durable stripe_webhook_events, migration 046/047). New strings via t() englishDefault keys (cube8.pricing.*; 33-language validation not claimed).",
+      "commit": ""
+    },
+    {
+      "rev": 9,
+      "date": "2026-11-09",
+      "kind": "correction",
+      "text": "THREE RELEASE ROWS IN THIS RECORD SHIPPED WITH AN EMPTY commit FIELD, and until today nothing said so. Revisions 6, 7 and 8 are all kind \"release\" with an EMPTY commit field. Found 2026-11-09 while clearing the traceability gate (110 pass / 1 fail). NOTHING ABOVE IS EDITED — append-only law. The commits that authored those rows (and that the rows describe) are, with certainty from git show + PR linkage: rev 6 → dac774f7 (fix(payments): session cost ledger, fee catalog, settings Cost Estimate accuracy; commit message names \"R-CORE Settings rev 6\"; introduced on main by PR #2 merge 4c2761a6); rev 7 → 75be1b4d (fix(payments): Stripe idempotency keys + server fee catalog panel hookup; in PR #8 merge d4bd33c1); rev 8 → f70210c0 (feat(payments): go live — priced poll options, donation products, signed webhook ledger; in PR #8 merge d4bd33c1). The three empty release rows stay exactly as written so the history of the mistake survives; this correction names the SHAs a future reader must use. Traceability gate exempts ONLY these three by name through this row.",
       "commit": ""
     }
   ]

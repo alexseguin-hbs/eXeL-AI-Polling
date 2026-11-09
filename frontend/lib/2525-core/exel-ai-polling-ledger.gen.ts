@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** eXeL AI Polling append-only traceability ledger — 4 entries, extracted at build time. */
+/** eXeL AI Polling append-only traceability ledger — 16 entries, extracted at build time. */
 export const EXEL_AI_POLLING_LEDGER: LedgerInput = {
   "section": "eXeL AI Polling",
   "route": "/eXeL-AI-Polling",
@@ -36,6 +36,90 @@ export const EXEL_AI_POLLING_LEDGER: LedgerInput = {
       "date": "2026-11-09",
       "kind": "decision",
       "text": "R-CORE version-history badge mounted on eXeL AI Polling (Stage 2 pattern): public route /eXeL-AI-Polling carries the bottom-centre two-click R-CORE reticle → Version History compare panel, reading this surface's own append-only ledger. Strings via t(). Public append-only revision history is the transparent-decision surface (Vision-2525 §II). PR #16 (SensorFusion correction binding / migration 054) is recorded on the SensorFusion-2525 ledger, not here — different project surface. Gap: run7/E2E evidence not located as a single verified merge SHA at seed time; append when identified.",
+      "commit": ""
+    },
+    {
+      "rev": 5,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #17 (merge e52ebb32): forward SUPABASE_KEY on the API host so Realtime ranking_progress / ranking_complete broadcasts reach clients (G1). Status: verified.",
+      "commit": "e52ebb3"
+    },
+    {
+      "rev": 6,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #18 (merge 71179640): Cube 7 live tally as votes arrive + close finalizes aggregation (G3). Debounced live aggregate while ranking is open. Status: verified.",
+      "commit": "7117964"
+    },
+    {
+      "rev": 7,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #20 (merge 56c24257): Auth0 audience wiring + mock-off gates prepared; mock not flipped yet. CRS-24.02 path. Status: verified (prep only — mock remains on until audience/roles confirmed).",
+      "commit": "56c2425"
+    },
+    {
+      "rev": 8,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #21 (merge 364832ca): Cube 7 top3_points ranking method (per-category top 3 scored 3/2/1); migration 055_session_ranking_method.sql; category_rankings on ranking_complete. Status: verified.",
+      "commit": "364832c"
+    },
+    {
+      "rev": 9,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #22 (merge bab732d8): API_INSTANCE bumped to api-v1n after Auth0 audience prep (CRS-24.02). Status: verified.",
+      "commit": "bab732d"
+    },
+    {
+      "rev": 10,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #24 (merge 70c6e903): live 9-theme ranking panel for moderator + participants (G2/G4). Evidence: /workspace/fleet/voting-live/proof/proof-summary.json — session bgYtjNeF, ranking_method top3_points, ballot_sets 9/9/9, theme_level 9, hand_match_live+final true, ranking_progress 7 / ranking_complete 8, final_rows 25, replay_hash 68f2b035…. CRS-37.x Round 2 ranking path partial; CRS-09.08 live-metrics path partial (not full 1M/<3s Theme02 claim). Status: verified for live 9-theme voting panels + proof; CRS-09.08 scale target remains planned.",
+      "commit": "70c6e90"
+    },
+    {
+      "rev": 11,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #23 (merge 937d1725): CRS-39.02 / CRS-14.05 / CRS-01.01 / CRS-39.03 — Pay to View unlock on webhook-confirmed payment (server-enforced), poll-scoped donations, Cost Split share via creator pricing. Status: verified.",
+      "commit": "937d172"
+    },
+    {
+      "rev": 12,
+      "date": "2026-11-09",
+      "kind": "decision",
+      "text": "run7 / E2E evidence (read-only map at fleet/exel-ai-quality/map.md): hosted API proof against main tip a9e7497 — isolated session, 9 neutral L9 themes, 3 ballots accepted (201), aggregate 200 (borda_count), GET /rankings 1..9. Not a product merge; gaps G1–G4 named there were closed by PR #17/#18/#24. Citing a9e7497 as the evidence baseline SHA (ancestor of HEAD). Status: verified evidence baseline, not a feature release.",
+      "commit": "a9e7497"
+    },
+    {
+      "rev": 13,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #27 (merge 4a3bd2ca): CRS-09 / CRS-39 — expose summary_111/333 on read APIs + wire drill-down. Status: verified.",
+      "commit": "4a3bd2c"
+    },
+    {
+      "rev": 14,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #28 (merge 13f134c1): CRS-39 follow-up — use W2 drilldown for drawer; drop collected bypass. Status: verified.",
+      "commit": "13f134c"
+    },
+    {
+      "rev": 15,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #30 (merge 2736ae07): API_INSTANCE bumped to api-v1o after summary-tier expose. Status: verified.",
+      "commit": "2736ae0"
+    },
+    {
+      "rev": 16,
+      "date": "2026-11-09",
+      "kind": "decision",
+      "text": "R-CORE catch-up tip: public /eXeL-AI-Polling badge advanced through PR #17–#24/#20/#22/#23/#27/#28/#30 + run7 evidence baseline. Commit recovered from the row-adding commit (Stage 2 newest-revision code-record bar).",
       "commit": ""
     }
   ]

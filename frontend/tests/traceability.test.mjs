@@ -25,14 +25,31 @@ for (const f of files) {
   sections.push(L.section);
   ok(!!L.section && !!L.route, `${f}: has section + route`);
   let prev = 0, monotonic = true, kindsOk = true, releasesOk = true;
+  // Append-only law: empty release commits may only survive when a later correction row NAMES them
+  // by number (SensorFusion pattern; Settings rev 6–8 corrected 2026-11-09). Never silent.
+  const namedEmpty = new Set();
+  for (const e of L.entries.filter((x) => x.kind === 'correction')) {
+    const m = /Revisions ([\d,\s and]+) are all kind/.exec(e.text || '');
+    if (!m) continue;
+    for (const part of m[1].split(/,| and /)) {
+      const n = parseInt(part.trim(), 10);
+      if (Number.isFinite(n)) namedEmpty.add(n);
+    }
+  }
   for (const e of L.entries) {
     if (e.rev !== prev + 1) monotonic = false; prev = e.rev;
     if (!KINDS.has(e.kind)) kindsOk = false;
-    if (e.kind === 'release' && (!e.commit || !exists(e.commit))) releasesOk = false;
+    if (e.kind === 'release' && (!e.commit || !exists(e.commit))) {
+      if (!namedEmpty.has(e.rev)) releasesOk = false;
+    }
   }
   ok(monotonic, `${L.section}: revs monotonic 1..${L.entries.length}`);
   ok(kindsOk, `${L.section}: every kind ∈ ask|decision|release|correction`);
-  ok(releasesOk, `${L.section}: every release cites a commit that exists`);
+  ok(releasesOk, `${L.section}: every release cites a commit that exists (or is named by a correction row)`);
+  if (namedEmpty.size) {
+    ok([...namedEmpty].every((n) => L.entries.some((e) => e.rev === n && e.kind === 'release' && !e.commit)),
+      `${L.section}: correction-named empty releases (${[...namedEmpty].join(',')}) are still empty on the record`);
+  }
   // Real content verification (was a tautology — `e.rev <= L.entries.length` is always true under the
   // monotonicity asserted above, so it verified NOTHING and could not catch a gutted or rewritten entry;
   // fleet 2026-09-26, Odin/MoT). Replay HEAD as: every entry well-formed (int rev ≥ 1, non-empty date,
