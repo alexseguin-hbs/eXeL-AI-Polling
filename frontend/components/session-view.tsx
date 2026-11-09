@@ -1338,12 +1338,13 @@ export function SessionView() {
                     <textarea
                       placeholder={t("cube2.input.placeholder")}
                       value={responseText}
-                      onChange={(e) => { startTimerOnActivity(); activeInputRef.current.onInput(); setResponseText(e.target.value); }} onPaste={() => { activeInputRef.current.onPaste(); }} onKeyDown={() => { activeInputRef.current.onKey(); }}
+                      onChange={(e) => { startTimerOnActivity(); activeInputRef.current.onInput(); setResponseText(e.target.value); }}
+                      onPaste={() => { activeInputRef.current.onPaste(); }}
                       maxLength={session.max_response_length || 3333}
                       rows={4}
                       disabled={simulationMode && simPhase !== "polling"}
                       className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 resize-none"
-                      onKeyDown={handleKeyDown}
+                      onKeyDown={(e) => { activeInputRef.current.onKey(); handleKeyDown(e); }}
                     />
                     <p className="text-xs text-muted-foreground text-right">
                       {responseText.length}/{session.max_response_length || 3333}
