@@ -27,24 +27,30 @@ r = await J(await handleDonate(req({ amount_cents: 1_000_000 }, { origin: SITE }
 // redirect URLs must be on this site
 r = await J(await handleDonate(req({ amount_cents: 333, success_url: "https://evil.example/thanks" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" }));
 ok(r.status === 400 && /this site/.test(r.body.error), "off-site success_url → 400");
-// happy path: Stripe mocked; idempotency key = client key; form carries amount + donate
+// t192u/t193u LEDGER FIRST: the edge never calls Stripe to create a Checkout — it asks the API, which writes the
+// pending payment_transactions row before returning the Checkout URL.
+const API = "https://exel-ai-polling-api.explore-096.workers.dev/api/v1/payments/divinity-donate";
 const calls = [];
-globalThis.fetch = async (url, init) => { calls.push({ url, init }); return new Response(JSON.stringify({ url: "https://checkout.stripe.com/c/pay/cs_test_123" }), { status: 200, headers: { "Content-Type": "application/json" } }); };
+const apiOk = async (url, init) => { calls.push({ url, init, body: JSON.parse(init.body) }); return new Response(JSON.stringify({ checkout_url: "https://checkout.stripe.com/c/pay/cs_test_123", checkout_id: "cs_test_123" }), { status: 200, headers: { "Content-Type": "application/json" } }); };
+globalThis.fetch = apiOk;
 r = await J(await handleDonate(req({ amount_cents: 333, client_key: "abcDEF123_-abcDEF123_-", success_url: SITE + "/divinity-guide?donated=true", cancel_url: SITE + "/divinity-guide" }, { origin: SITE }), { STRIPE_RESTRICTED_KEY: "rk_test_x" }));
-ok(r.status === 200 && r.body.url.startsWith("https://checkout.stripe.com/"), "configured → Stripe Checkout URL");
-ok(calls[0].url === "https://api.stripe.com/v1/checkout/sessions", "calls Stripe Checkout Sessions");
-ok(calls[0].init.headers["Idempotency-Key"] === "abcDEF123_-abcDEF123_-", "Idempotency-Key is the client's key");
-ok(calls[0].init.headers.Authorization === "Bearer rk_test_x", "restricted key preferred");
-const form = new URLSearchParams(calls[0].init.body);
-ok(form.get("line_items[0][price_data][unit_amount]") === "333" && form.get("submit_type") === "donate" && form.get("success_url") === SITE + "/divinity-guide?donated=true&cs={CHECKOUT_SESSION_ID}", "form carries amount, donate, success_url (+ session id)");
+ok(r.status === 200 && r.body.url.startsWith("https://checkout.stripe.com/") && r.body.ledger === true, "configured → API ledger Checkout URL");
+ok(calls[0].url === API, "calls the API ledger route, never api.stripe.com");
+ok(!JSON.stringify(calls[0].init.headers).includes("rk_test_x"), "the Stripe key never leaves the edge");
+ok(calls[0].body.amount_cents === 333 && calls[0].body.client_key === "abcDEF123_-abcDEF123_-" && calls[0].body.success_url === SITE + "/divinity-guide?donated=true&cs={CHECKOUT_SESSION_ID}", "body carries amount, client key, success_url (+ session id)");
 ok(r.h["access-control-allow-origin"] === SITE, "response CORS echoes own origin only");
-// a malformed client key falls back to a generated one (never fails the donation)
 r = await J(await handleDonate(req({ amount_cents: 333, client_key: "x" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" }));
-ok(r.status === 200 && /^[0-9a-f-]{36}$/.test(calls[1].init.headers["Idempotency-Key"]), "bad client key → generated UUID");
-// Stripe's own error surfaces as 502 with its message
-globalThis.fetch = async () => new Response(JSON.stringify({ error: { message: "This API key does not have Checkout permission" } }), { status: 401, headers: { "Content-Type": "application/json" } });
+ok(r.status === 200 && /^[0-9a-f-]{36}$/.test(calls[1].body.client_key), "bad client key → generated UUID");
+// API down → refuse (503), never a direct Stripe Checkout the ledger cannot see
+globalThis.fetch = async () => new Response("upstream", { status: 501 });
 r = await J(await handleDonate(req({ amount_cents: 333 }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" }));
-ok(r.status === 502 && /Checkout permission/.test(r.body.error), "Stripe error surfaces, key never");
+ok(r.status === 503 && /nothing was charged/.test(r.body.error), "API unavailable → 503, nothing charged");
+globalThis.fetch = async () => { throw new Error("network"); };
+r = await J(await handleDonate(req({ amount_cents: 333 }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" }));
+ok(r.status === 503, "API unreachable → 503");
+globalThis.fetch = async () => new Response(JSON.stringify({ detail: "Redirect URLs must return to this site" }), { status: 400, headers: { "Content-Type": "application/json" } });
+r = await J(await handleDonate(req({ amount_cents: 333 }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" }));
+ok(r.status === 400 && /this site/.test(r.body.error), "API 400 detail surfaces");
 console.log(`donate-core: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
 
 // ── verified return (Odin, wave 2) ─────────────────────────────────────────────────
@@ -67,43 +73,20 @@ const vreq = (qs, origin = SITE, method = "GET") => new Request(SITE + "/api/don
   ok2(r.status === 200 && r.body.paid === true && stripeCalls === 0, "verify: a verified session is served from cache (no Stripe call)");
   r = await J(await handleDonateVerify(vreq("?cs=cs_test_abcdefghijkl", "https://evil.example"), { STRIPE_SECRET_KEY: "sk_test_x" }));
   ok2(r.status === 403, "verify: cross-origin → 403");
-  // the create path now appends cs={CHECKOUT_SESSION_ID} to the success URL
-  const calls2 = []; globalThis.fetch = async (url, init) => { calls2.push(init); return new Response(JSON.stringify({ url: "https://checkout.stripe.com/c/pay/x" }), { status: 200, headers: { "Content-Type": "application/json" } }); };
-  await handleDonate(req({ amount_cents: 333, success_url: SITE + "/divinity-guide/?donated=true" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
-  ok2(new URLSearchParams(calls2[0].body).get("success_url") === SITE + "/divinity-guide/?donated=true&cs={CHECKOUT_SESSION_ID}", "create: success_url carries {CHECKOUT_SESSION_ID}");
   console.log(`donate-verify: ${pass2} passed, ${fail2} failed`); if (fail2) process.exit(1);
 }
-// 2026-11-08 payments go-live: a LIVE key books the donation to the purpose's live Product; unknown purpose → community.
-{
-  let p3 = 0, f3 = 0; const ok3 = (c, m) => { if (c) p3++; else { f3++; console.log("FAIL:", m); } };
-  const seen = []; globalThis.fetch = async (url, init) => { seen.push(new URLSearchParams(init.body)); return new Response(JSON.stringify({ url: "https://checkout.stripe.com/c/pay/cs_live_x" }), { status: 200, headers: { "Content-Type": "application/json" } }); };
-  await handleDonate(req({ amount_cents: 500, purpose: "derisking_strategies" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_live_x" });
-  ok3(seen[0].get("line_items[0][price_data][product]") === "prod_VavRWTGbsPbrLx" && !seen[0].get("line_items[0][price_data][product_data][name]"), "live key: DeRisking donation attached to its live Product");
-  ok3(seen[0].get("metadata[purpose]") === "derisking_strategies" && seen[0].get("metadata[transaction_type]") === "donation", "metadata carries purpose; transaction_type stays donation (verify contract)");
-  await handleDonate(req({ amount_cents: 333, purpose: "divinity_guide" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_live_x" });
-  ok3(seen[1].get("line_items[0][price_data][product]") === "prod_VavR1Xy18Cyu43", "live key: Divinity Guide product");
-  await handleDonate(req({ amount_cents: 333, purpose: "__proto__" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_live_x" });
-  ok3(seen[2].get("metadata[purpose]") === "community", "unknown purpose falls back to community");
-  await handleDonate(req({ amount_cents: 333, purpose: "divinity_guide" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
-  ok3(!seen[3].get("line_items[0][price_data][product]") && seen[3].get("line_items[0][price_data][product_data][name]"), "test key: inline product_data (live product ids not used)");
-  console.log(`donate-products: ${p3} passed, ${f3} failed`); if (f3) process.exit(1);
-}
-
-// 2026-11-09 (fleet W2): a poll-scoped donation carries session_id / poll_id / participant_id so the signed webhook can
-// credit the 333 / Original donation ladder; malformed ids are dropped, a participant without a session is dropped.
+// purpose + poll scope pass through to the API (which owns products, metadata and the ladder)
 {
   let p4 = 0, f4 = 0; const ok4 = (c, m) => { if (c) p4++; else { f4++; console.log("FAIL:", m); } };
-  const seen = []; globalThis.fetch = async (url, init) => { seen.push(new URLSearchParams(init.body)); return new Response(JSON.stringify({ url: "https://checkout.stripe.com/c/pay/cs_test_y" }), { status: 200, headers: { "Content-Type": "application/json" } }); };
+  const seen = []; globalThis.fetch = async (url, init) => { seen.push(JSON.parse(init.body)); return new Response(JSON.stringify({ checkout_url: "https://checkout.stripe.com/c/pay/cs_test_y" }), { status: 200, headers: { "Content-Type": "application/json" } }); };
   const SID = "8a0b2c4d-1e2f-4a5b-8c9d-0e1f2a3b4c5d", PID = "1b2c3d4e-5f60-4a7b-9c8d-7e6f5a4b3c2d";
-  await handleDonate(req({ amount_cents: 999, session_id: SID, participant_id: PID }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
-  ok4(seen[0].get("metadata[session_id]") === SID && seen[0].get("metadata[poll_id]") === SID && seen[0].get("metadata[participant_id]") === PID, "Checkout metadata carries poll + participant");
-  ok4(seen[0].get("payment_intent_data[metadata][session_id]") === SID && seen[0].get("payment_intent_data[metadata][participant_id]") === PID, "PaymentIntent metadata carries poll + participant");
-  ok4(seen[0].get("client_reference_id") === SID, "client_reference_id = poll id");
+  await handleDonate(req({ amount_cents: 999, session_id: SID, participant_id: PID, purpose: "derisking_strategies" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_live_x" });
+  ok4(seen[0].session_id === SID && seen[0].participant_id === PID && seen[0].purpose === "derisking_strategies", "poll + participant + purpose forwarded");
   await handleDonate(req({ amount_cents: 333, session_id: "not-a-uuid'; drop", participant_id: PID }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
-  ok4(!seen[1].get("metadata[session_id]") && !seen[1].get("metadata[participant_id]") && !seen[1].get("client_reference_id"), "malformed poll id → unscoped (and no participant)");
-  await handleDonate(req({ amount_cents: 333, participant_id: PID }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
-  ok4(!seen[2].get("metadata[participant_id]"), "participant without a poll is dropped");
-  await handleDonate(req({ amount_cents: 333, session_id: SID }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
-  ok4(seen[3].get("metadata[session_id]") === SID && !seen[3].get("metadata[participant_id]"), "creator donation: poll only, participant blank");
+  ok4(!seen[1].session_id && !seen[1].participant_id, "malformed poll id → unscoped (and no participant)");
+  await handleDonate(req({ amount_cents: 333, purpose: "__proto__" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
+  ok4(seen[2].purpose === "community", "unknown purpose falls back to community");
+  await handleDonate(req({ amount_cents: 333, label: "x".repeat(250) }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
+  ok4(seen[3].label.length === 120, "label clamped to the API's 120 chars");
   console.log(`donate-scope: ${p4} passed, ${f4} failed`); if (f4) process.exit(1);
 }

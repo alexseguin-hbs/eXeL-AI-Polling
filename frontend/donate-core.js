@@ -50,7 +50,9 @@ export const DONATION_PRODUCTS = {
   derisking_strategies: ["prod_VavRWTGbsPbrLx", "derisking_strategies_donation"],
   community: ["prod_VavRF4QMRRsden", "exel_session_donation"],
 };
-const isLiveKey = (k) => /^(sk|rk)_live_/.test(k);
+// The API that owns the payment ledger (override with env.LEDGER_API_URL on previews).
+export const DEFAULT_LEDGER_API = "https://exel-ai-polling-api.explore-096.workers.dev/api/v1";
+const LEDGER_DOWN = "Payments are briefly unavailable, so nothing was charged. Please try again in a minute.";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** {session_id, poll_id, participant_id} from a donate body — UUIDs only; participant needs a session. */
@@ -126,61 +128,39 @@ export async function handleDonate(request, env) {
   // replays the same Checkout session instead of minting two. A fresh UUID is the fallback only.
   const clientKey = typeof body.client_key === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(body.client_key) ? body.client_key : crypto.randomUUID();
 
-  const form = new URLSearchParams();
-  form.set("mode", "payment");
-  form.set("line_items[0][quantity]", "1");
-  form.set("line_items[0][price_data][currency]", "usd");
-  form.set("line_items[0][price_data][unit_amount]", String(amount));
   const purpose = Object.prototype.hasOwnProperty.call(DONATION_PRODUCTS, body.purpose) ? body.purpose : "community";
-  const [productId, productLine] = DONATION_PRODUCTS[purpose];
-  if (isLiveKey(key)) {
-    form.set("line_items[0][price_data][product]", productId);
-  } else {
-    form.set("line_items[0][price_data][product_data][name]", label);
-    form.set("line_items[0][price_data][product_data][description]", description);
-  }
-  form.set("submit_type", "donate");
-  form.set("success_url", successWithCs);
-  form.set("cancel_url", cancelUrl);
-  form.set("metadata[transaction_type]", "donation");
-  form.set("metadata[source]", "edge_donate");
-  form.set("metadata[purpose]", purpose);
-  form.set("metadata[product_line]", productLine);
-  form.set("payment_intent_data[description]", label);
-  form.set("payment_intent_data[metadata][transaction_type]", "donation");
-  form.set("payment_intent_data[metadata][purpose]", purpose);
-  // Poll scope (optional): the signed webhook credits the 333 / Original donation ladder for this poll + payer.
-  // Only well-formed UUIDs pass; the API re-checks that the poll exists and the participant belongs to it.
   const scope = donationScope(body);
-  if (scope.session_id) {
-    form.set("client_reference_id", scope.session_id);
-    for (const [k, v] of Object.entries(scope)) {
-      if (!v) continue;
-      form.set(`metadata[${k}]`, v);
-      form.set(`payment_intent_data[metadata][${k}]`, v);
-    }
-  }
 
+  // t192u/t193u LEDGER FIRST: this route no longer creates Stripe Checkouts itself. A Checkout made here
+  // never reached the API, so a real $3.33 had no payment_transactions row. It now asks the API
+  // (/payments/divinity-donate), which writes the pending ledger row BEFORE returning the Checkout URL; the
+  // signature-verified webhook completes it. If the API is unreachable we refuse — nothing is charged —
+  // rather than take money the ledger can't see.
+  const apiBase = String((env && env.LEDGER_API_URL) || DEFAULT_LEDGER_API).replace(/\/+$/, "");
   let res;
   try {
-    res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+    res = await fetch(`${apiBase}/payments/divinity-donate`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-        // A double-tap on mobile must not create two sessions.
-        "Idempotency-Key": clientKey,
-      },
-      body: form.toString(),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount_cents: amount,
+        success_url: successWithCs,
+        cancel_url: cancelUrl,
+        label: label.slice(0, 120),
+        description: description.slice(0, 300),
+        purpose,
+        client_key: clientKey,
+        ...(scope.session_id ? { session_id: scope.session_id } : {}),
+        ...(scope.participant_id ? { participant_id: scope.participant_id } : {}),
+      }),
     });
   } catch {
-    return json({ error: "Could not reach Stripe" }, 502);
+    return json({ error: LEDGER_DOWN }, 503);
   }
-
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.url) {
-    // Surface Stripe's own message (e.g. a restricted key missing Checkout permission) — never the key.
-    return json({ error: (data && data.error && data.error.message) || "Stripe error" }, 502);
+  if (!res.ok || !data.checkout_url) {
+    const detail = data && typeof data.detail === "string" ? data.detail : "";
+    return json({ error: res.status === 400 && detail ? detail : LEDGER_DOWN }, res.status === 400 ? 400 : 503);
   }
-  return json({ url: data.url });
+  return json({ url: data.checkout_url, ledger: true });
 }
