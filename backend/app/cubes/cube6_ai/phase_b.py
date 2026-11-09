@@ -161,10 +161,15 @@ def _plain_label(text: str) -> str:
 
 _CLASSIFY_INSTRUCTION = (
     "If the input is not in English, translate it to English first. "
-    "Then reply with the exact format: 'THEME (Confidence: XX%)' where THEME is "
+    "Then reply on one line with the exact format: '<category> (Confidence: XX%)' where <category> is replaced by "
     "ONE of these three exact phrases: 'Supporting Comments' or 'Risk & Concerns' "
-    "or 'Neutral Comments', and XX is a number from 0 to 100 indicating your confidence."
+    "or 'Neutral Comments', and XX is a number from 0 to 100 indicating your confidence. "
+    "Example reply: Risk & Concerns (Confidence: 85%)"
 )
+# CRS-09.08.06 (2026-11-09 SIMULATED bench, N=500, grok-4.20-0309-non-reasoning): the notebook wording
+# "'THEME (Confidence: XX%)' where THEME is ..." was echoed literally by Grok ("THEME (Confidence: 40%)") on 480/500
+# items (0/30 in a probe), so every response fell to Neutral at confidence 0. gpt-3.5 filled THEME in; Grok does not.
+# Deliberate deviation from the notebook prompt text only: same three phrases, same output format, same <65% rule.
 
 _CLASSIFY_PATTERN = re.compile(r"(.+?)\s*\(Confidence:\s*(\d+)%\)")
 
