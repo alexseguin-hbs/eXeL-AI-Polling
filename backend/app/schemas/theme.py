@@ -21,5 +21,10 @@ class ThemeRead(BaseModel):
     theme01_category: str | None = None
     theme_level: str | None = None
     parent_theme_id: uuid.UUID | None = None
+    # CRS-09 / CRS-39: additive expose of stored theme_summary_111/333 for RankedThemes
+    # 33/111/333 drill-down. Generation unchanged (theme_summarizer). Paid-view redaction
+    # for 111/333 is a W2 unlock hook — do not invent a parallel payment check here.
+    summary_111: str | None = None
+    summary_333: str | None = None
 
     model_config = {"from_attributes": True}

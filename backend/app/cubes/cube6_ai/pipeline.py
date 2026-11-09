@@ -467,12 +467,14 @@ async def get_session_themes_enriched(
             raw_level = t.cluster_metadata.get("level")
             if raw_level is not None:
                 level = str(raw_level)
+        # Prefer stored theme_summary_33 for the free 33-tier when present; keep
+        # label `summary` as fallback. 111/333 are additive (CRS-09 / CRS-39).
         enriched.append({
             "id": t.id,
             "session_id": t.session_id,
             "cycle_id": t.cycle_id,
             "label": t.label,
-            "summary": t.summary,
+            "summary": t.theme_summary_33 or t.summary,
             "confidence": t.confidence,
             "response_count": t.response_count,
             "ai_provider": t.ai_provider,
@@ -481,6 +483,8 @@ async def get_session_themes_enriched(
             "theme01_category": category,
             "theme_level": level,
             "parent_theme_id": t.parent_theme_id,
+            "summary_111": t.theme_summary_111,
+            "summary_333": t.theme_summary_333,
         })
     return enriched
 

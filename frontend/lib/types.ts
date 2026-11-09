@@ -132,6 +132,10 @@ export interface TextResponseRead {
   pii_detected: boolean;
   profanity_detected: boolean;
   clean_text: string | null;
+  /** CRS-09.07 Phase A summaries — 33 free; 111 free in drawer; 333 paid (CRS-39). */
+  summary_33?: string | null;
+  summary_111?: string | null;
+  summary_333?: string | null;
   heart_tokens_earned: number;
   unity_tokens_earned: number;
   response_hash: string | null;

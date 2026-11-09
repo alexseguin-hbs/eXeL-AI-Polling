@@ -50,9 +50,13 @@ class ResponseBase(BaseModel):
 class ResponseRead(ResponseBase):
     clean_text: str | None = None
 
-    # CRS-09.07 / Task A4: AI-generated 33-word English summary from Cube 6 Phase A.
-    # None at submit time (Phase A is async); real value arrives via summary_ready broadcast.
+    # CRS-09.07 / Task A4: AI-generated English summaries from Cube 6 Phase A.
+    # None at submit time (Phase A is async); real values arrive via summary_ready broadcast.
+    # 33 is free; 111 is free in the drawer; 333 + original are paid (CRS-39 Pay-to-View).
+    # Server-side redaction for unpaid callers is a W2 unlock hook — see cube2_text.service.
     summary_33: str | None = None
+    summary_111: str | None = None
+    summary_333: str | None = None
 
     # CRS-08: Integrity hash
     response_hash: str | None = None
@@ -84,6 +88,8 @@ class TextResponseDetail(ResponseRead):
 
 class ResponseListItem(ResponseBase):
     summary_33: str | None = None
+    summary_111: str | None = None
+    summary_333: str | None = None
 
 
 class PaginatedResponseList(BaseModel):
