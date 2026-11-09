@@ -13,6 +13,8 @@ export interface LiveThemeRow {
   /** Richer per-theme tiers from ThemeRead (theme_summary_111/333); 33 == summary. */
   summary_111?: string | null;
   summary_333?: string | null;
+  /** Theme description (111/222/333 words at level 9/6/3) — paid view; absent until the API ships it. */
+  description?: string | null;
   confidence: number; // 0-1 or 0-100 — normalized below
   response_count: number;
   /** risk | support | neutral (maps to the 3 Theme01 buckets). */
@@ -51,6 +53,8 @@ function toInfo(row: LiveThemeRow): ThemeInfo {
     summary33: row.summary || "",
     summary111: row.summary_111 || undefined,
     summary333: row.summary_333 || undefined,
+    // undefined when the API has no `description` field yet (UI hides the block); null when sent but withheld/empty.
+    ...("description" in row ? { description: row.description || null } : {}),
     isEmpty,
   };
 }

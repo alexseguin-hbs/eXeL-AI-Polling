@@ -14,6 +14,8 @@ import { ThemeCircle } from "./theme-circle";
 import { RotaryKnob } from "./rotary-knob";
 import { ResponseDrawer } from "./response-drawer";
 import { RankedThemes } from "./ranked-themes";
+import { ThemeDetailSheet } from "./theme-detail-sheet";
+import { ThemeDescriptionList } from "./theme-description-list";
 import { PollingRevisionHistory } from "@/components/polling-revision-history";
 import { normalizeRankings } from "@/lib/ranking-shape";
 import {
@@ -85,6 +87,8 @@ interface FlowerVisualizationProps {
   /** Session short code — the seeded 5,000-response showcase renders ONLY for the
    *  demo codes; every real session fetches live Cube 6 themes (GET /themes). */
   sessionShortCode?: string;
+  /** t181: payment prompt for the locked theme description (e.g. this poll's Stripe Checkout). */
+  onUnlock?: () => void;
 }
 
 export function FlowerVisualization({
@@ -93,6 +97,7 @@ export function FlowerVisualization({
   isPaidTier = false,
   unlockOriginal,
   sessionShortCode,
+  onUnlock,
 }: FlowerVisualizationProps) {
   const { t } = useLexicon();
   const isDemo = !!sessionShortCode && DEMO_SHOWCASE_CODES.has(sessionShortCode.toUpperCase());
@@ -156,6 +161,8 @@ export function FlowerVisualization({
     animating: false,
   });
 
+  // t181: a bubble tap opens the detail sheet; "View responses" in the sheet opens the response drawer.
+  const [showResponses, setShowResponses] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPortrait, setIsPortrait] = useState(false);
@@ -172,7 +179,9 @@ export function FlowerVisualization({
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+    // Re-attach once live themes are ready: the loading placeholder renders without the container, so a mount-only
+    // effect never observed it and live sessions never switched to the phone layout (t181 readability).
+  }, [liveStatus]);
 
   // Positions
   const theme1Positions = THEME1_POSITIONS;
@@ -228,6 +237,7 @@ export function FlowerVisualization({
   const handleTheme2Click = useCallback(
     (label: string) => {
       if (state.animating) return;
+      setShowResponses(false);
       setState((s) => ({
         ...s,
         selectedTheme2: s.selectedTheme2 === label ? null : label,
@@ -237,6 +247,7 @@ export function FlowerVisualization({
   );
 
   const handleDrawerClose = useCallback(() => {
+    setShowResponses(false);
     setState((s) => ({ ...s, selectedTheme2: null }));
   }, []);
 
@@ -352,18 +363,18 @@ export function FlowerVisualization({
                 className="flower-fade-in"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" />
-                Back
+                {t("flower.detail.back")}
               </Button>
             )}
             <CardTitle className="text-base">
               {state.view === "theme1"
-                ? "Theme Analysis"
-                : `${state.selectedTheme1} — Sub-themes`}
+                ? t("flower.flower_visualization.theme_analysis")
+                : t("flower.detail.subthemes_title").replace("{0}", state.selectedTheme1 ?? "")}
             </CardTitle>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground">
-              {data.totalResponses.toLocaleString()} responses
+              {t("flower.detail.total_responses").replace("{0}", data.totalResponses.toLocaleString())}
             </span>
             <Button
               variant="ghost"
@@ -467,6 +478,7 @@ export function FlowerVisualization({
                       fill={fillRgba}
                       stroke={selectedTheme1Color!.stroke}
                       onClick={() => handleTheme2Click(theme.label)}
+                      compact={isPortrait}
                       bloom
                       bloomDelay={i * 80}
                     />
@@ -509,6 +521,16 @@ export function FlowerVisualization({
             </div>
           )}
 
+          {/* t181: readable list of the current level's themes — first line of each description, expandable. */}
+          {state.view === "theme2" && (
+            <ThemeDescriptionList
+              themes={currentTheme2Themes}
+              accentColor={selectedTheme1Color?.stroke ?? "#00E5CC"}
+              isPaidTier={isPaidTier}
+              onOpen={handleTheme2Click}
+            />
+          )}
+
           {/* Default ranked-priorities panel with per-theme 33/111/333 descriptions.
               Theme2 view ranks the current level's sub-themes; Theme1 view ranks the
               three categories. Ranks by count until a live Cube-7 order is wired in. */}
@@ -529,8 +551,22 @@ export function FlowerVisualization({
             />
           )}
 
-          {/* Response Drawer */}
-          {state.selectedTheme2 && selectedTheme2Info && (
+          {/* t181: theme detail sheet (bottom sheet on phones, side panel on desktop) */}
+          {state.selectedTheme2 && selectedTheme2Info && !showResponses && state.selectedTheme1 && (
+            <ThemeDetailSheet
+              theme={selectedTheme2Info}
+              level={state.theme2Level}
+              category={state.selectedTheme1}
+              accentColor={selectedTheme1Color?.stroke ?? "#00E5CC"}
+              isPaidTier={isPaidTier}
+              onClose={handleDrawerClose}
+              onViewResponses={() => setShowResponses(true)}
+              onUnlock={onUnlock}
+            />
+          )}
+
+          {/* Response Drawer (from the detail sheet's "View responses") */}
+          {state.selectedTheme2 && selectedTheme2Info && showResponses && (
             <ResponseDrawer
               theme={selectedTheme2Info}
               responses={drawerResponses}

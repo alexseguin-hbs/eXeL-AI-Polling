@@ -17,6 +17,8 @@ export interface ThemeCircleProps {
   bloomDelay?: number;
   /** Show as smaller hub circle */
   isHub?: boolean;
+  /** t181: narrow (iPhone-width) layout — larger label, no tiny confidence/summary lines (they live in the list + sheet). */
+  compact?: boolean;
 }
 
 export const ThemeCircle = memo(function ThemeCircle({
@@ -31,12 +33,14 @@ export const ThemeCircle = memo(function ThemeCircle({
   bloom,
   bloomDelay = 0,
   isHub,
+  compact,
 }: ThemeCircleProps) {
-  const fontSize = isHub ? 10 : Math.max(9, Math.min(14, r / 7));
-  const countSize = isHub ? 12 : Math.max(12, Math.min(22, r / 5));
-  const confSize = isHub ? 9 : Math.max(8, Math.min(12, r / 10));
-  // Show subtitle in any circle r >= 55 (covers Divinity Guide center + Theme 9-layout)
-  const summarySize = isHub ? 0 : r >= 55 ? Math.max(7, Math.min(11, r / 10)) : 0;
+  // compact: the SVG is drawn ~0.6× on a phone, so labels need ~1.6× the desktop size to stay ≥ ~11 px on screen.
+  const fontSize = isHub ? 10 : compact ? Math.max(16, Math.min(24, r / 4)) : Math.max(9, Math.min(14, r / 7));
+  const countSize = isHub ? 12 : compact ? Math.max(16, Math.min(26, r / 4)) : Math.max(12, Math.min(22, r / 5));
+  const confSize = isHub ? 9 : compact ? 0 : Math.max(8, Math.min(12, r / 10));
+  // Show subtitle in any circle r >= 55 (covers Divinity Guide center + Theme 9-layout); never in compact
+  const summarySize = isHub || compact ? 0 : r >= 55 ? Math.max(7, Math.min(11, r / 10)) : 0;
 
   // Text width clamped to fit inside the circle (inscribed rectangle ~r*1.4)
   const textWidth = r * 1.4;
@@ -119,7 +123,7 @@ export const ThemeCircle = memo(function ThemeCircle({
               overflow: "hidden",
               textOverflow: "ellipsis",
               display: "-webkit-box",
-              WebkitLineClamp: 2,
+              WebkitLineClamp: compact ? 3 : 2,
               WebkitBoxOrient: "vertical",
               fontStyle: isEmpty ? "italic" : "normal",
             }}
@@ -142,7 +146,7 @@ export const ThemeCircle = memo(function ThemeCircle({
           )}
 
           {/* Confidence — hidden when 0 */}
-          {theme.avgConfidence > 0 && (
+          {theme.avgConfidence > 0 && confSize > 0 && (
             <div
               style={{
                 fontSize: `${confSize}px`,
