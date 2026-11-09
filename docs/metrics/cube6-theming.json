@@ -281,6 +281,66 @@
       "note": "t186 speed-weighted round-robin, no xAI preference; Gemini HTTP 402 (credit); reduce landed on slower vendor -> #55 race-when-idle",
       "row": 10,
       "label": "SIMULATED"
+    },
+    {
+      "at_cst": "2026-11-09 16:50:41",
+      "kind": "LIVE /ai/run (poll titled SIMULATED, proof mode)",
+      "n": 12,
+      "theme01_split": "S0/R12/N0",
+      "time_to_first_themes_s": 5.39,
+      "time_to_final_theme02_s": 9.91,
+      "total_incl_assign_s": 16.05,
+      "calls": 5,
+      "vendor_split": "gemini 0/1 (hedges 0, fail 1), grok 2/2 (hedges 0, fail 0), openai 1/2 (hedges 1, fail 0)",
+      "p50_p95": "grok 4379/4379 ms, openai 2397/2397 ms",
+      "tokens": null,
+      "cost_usd": 0.002036,
+      "stage_ms": {
+        "fetch": 507,
+        "theme01_classify": 2398,
+        "group_and_sample": 2,
+        "theme02_samples_of_10": 2622,
+        "reduce_9_6_3": 4380,
+        "assign": 1196,
+        "store": 2477
+      },
+      "convergence": "Risk: top1 stable from sample 1/2",
+      "evidence": "live-ladder-n12-165041.json",
+      "merge_sha": "6c897be16 (#55) + cd982db72 (#58) served on api-v1y",
+      "cf_version": "83991a77 (api-v1y; served sha 40787ea0)",
+      "note": "t186 speed_rr + #55 race-when-idle (2 fastest). vs row5 xAI-primary: wall 16.05s (was 12.29s), final 9.91s (was 7.19s), reduce 4.38s (was 16.2s on row10 RR-only). Gemini HTTP 402. Theme01 all Risk on 60-short CSV (same as row5).",
+      "row": 11,
+      "label": "SIMULATED"
+    },
+    {
+      "at_cst": "2026-11-09 16:56:02",
+      "kind": "LIVE /ai/run (poll titled SIMULATED, proof mode)",
+      "n": 48,
+      "theme01_split": "S18/R30/N0",
+      "time_to_first_themes_s": 3.83,
+      "time_to_final_theme02_s": 15.24,
+      "total_incl_assign_s": 19.52,
+      "calls": 24,
+      "vendor_split": "grok 8/12 (hedges 0, fail 0), openai 5/12 (hedges 0, fail 0)",
+      "p50_p95": "grok 1913/4523 ms, openai 2031/4310 ms",
+      "tokens": null,
+      "cost_usd": 0.009325,
+      "stage_ms": {
+        "fetch": 269,
+        "theme01_classify": 2256,
+        "group_and_sample": 2,
+        "theme02_samples_of_10": 2091,
+        "reduce_9_6_3": 10625,
+        "assign": 1019,
+        "store": 1357
+      },
+      "convergence": "Risk: top1 stable from sample 1/3; Supporting: top1 stable from sample 1/2",
+      "evidence": "live-ladder-n48-165602.json",
+      "merge_sha": "6c897be16 (#55) + cd982db72 (#58) served on api-v1y",
+      "cf_version": "ff269307 (api-v1y redeploy; served sha f28668f9)",
+      "note": "t186 speed_rr + #55 race-when-idle. vs row3 xAI-primary: wall 19.52s (was 28.23s), final 15.24s (was 20.59s), first 3.83s (was 5.28s). Gemini circuit-open (no calls). 48/48 loaded (workers=1 after mid-redeploy 501s).",
+      "row": 12,
+      "label": "SIMULATED"
     }
   ]
 }
