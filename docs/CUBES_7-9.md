@@ -574,6 +574,9 @@ Key responsibilities:
 
 ### Cube 8 — CRS Traceability
 
+**Billing SECURE (definition + live proof, append-only):** [docs/metrics/cube8-billing.md](metrics/cube8-billing.md)
+
+
 > **CRS Alignment Note:** Cube 8 owns CRS-25 (token calculation), CRS-24 (governance/audit), CRS-32–34 (attribution/disputes/lifecycle), CRS-35 (token policy). CRS-18/19 shared with Cube 5. Requirements.txt is canonical.
 
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target | Design Output: Definable / Measurable |
