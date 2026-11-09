@@ -1465,5 +1465,10 @@ const T: Record<string, string> = {
   "fin.add_line": "Satır ekle",
   "fin.remove_line": "Bu satırı kaldır",
   "fin.reset_sheet": "Örnek tabloya döndür",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "Arayüz tahmini",
+  "cube1.settings.cost_rates_stale": "Ücretler eski — haftalık güncelleme zamanı geldi",
+  "cube1.settings.cost_unknown_rate": "ücret bilinmiyor",
+  "cube1.settings.cost_audio_denom": "V2T $/dk = faturalandırılabilir ses dakikaları (oturum süresi değil)",
 };
 export default T;

@@ -1478,5 +1478,10 @@ const T: Record<string, string> = {
   "fin.add_line": "Προσθήκη γραμμής",
   "fin.remove_line": "Αφαίρεση αυτής της γραμμής",
   "fin.reset_sheet": "Επαναφορά στο φύλλο",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "Εκτίμηση διεπαφής",
+  "cube1.settings.cost_rates_stale": "Οι χρεώσεις είναι παλιές — απαιτείται εβδομαδιαία ενημέρωση",
+  "cube1.settings.cost_unknown_rate": "άγνωστη χρέωση",
+  "cube1.settings.cost_audio_denom": "V2T $/λεπτό = χρεώσιμα λεπτά ήχου (όχι η διάρκεια της συνεδρίας)",
 };
 export default T;

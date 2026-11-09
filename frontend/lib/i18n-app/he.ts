@@ -1466,5 +1466,10 @@ const T: Record<string, string> = {
   "fin.add_line": "הוספת שורה",
   "fin.remove_line": "הסרת שורה זו",
   "fin.reset_sheet": "חזרה לגיליון הדוגמה",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "הערכת ממשק",
+  "cube1.settings.cost_rates_stale": "התעריפים אינם עדכניים — נדרש עדכון שבועי",
+  "cube1.settings.cost_unknown_rate": "תעריף לא ידוע",
+  "cube1.settings.cost_audio_denom": "V2T $/דקה = דקות שמע לחיוב (לא משך הסשן)",
 };
 export default T;

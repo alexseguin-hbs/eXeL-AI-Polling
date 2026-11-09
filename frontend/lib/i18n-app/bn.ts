@@ -1467,5 +1467,10 @@ const T: Record<string, string> = {
   "fin.add_line": "একটি লাইন যোগ করুন",
   "fin.remove_line": "এই লাইনটি সরান",
   "fin.reset_sheet": "নমুনা শিটে ফিরিয়ে আনুন",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "UI অনুমান",
+  "cube1.settings.cost_rates_stale": "হার পুরনো — সাপ্তাহিক হালনাগাদ বাকি",
+  "cube1.settings.cost_unknown_rate": "হার অজানা",
+  "cube1.settings.cost_audio_denom": "V2T $/মিনিট = বিলযোগ্য অডিও মিনিট (সেশনের সময় নয়)",
 };
 export default T;

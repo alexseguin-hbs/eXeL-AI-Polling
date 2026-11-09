@@ -1468,5 +1468,10 @@ const T: Record<string, string> = {
   "fin.add_line": "添加一行",
   "fin.remove_line": "删除此行",
   "fin.reset_sheet": "恢复为示例表",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "界面估算",
+  "cube1.settings.cost_rates_stale": "费率已过期 — 需要每周更新",
+  "cube1.settings.cost_unknown_rate": "费率未知",
+  "cube1.settings.cost_audio_denom": "V2T $/分钟 = 计费音频分钟数（非会话时长）",
 };
 export default T;

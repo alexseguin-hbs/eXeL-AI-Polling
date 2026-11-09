@@ -1467,5 +1467,10 @@ const T: Record<string, string> = {
   "fin.add_line": "항목 추가",
   "fin.remove_line": "이 항목 삭제",
   "fin.reset_sheet": "예시 시트로 되돌리기",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "UI 추정치",
+  "cube1.settings.cost_rates_stale": "요금이 오래됨 — 주간 갱신 필요",
+  "cube1.settings.cost_unknown_rate": "요금 알 수 없음",
+  "cube1.settings.cost_audio_denom": "V2T $/분 = 청구 대상 오디오 분 (세션 시간 아님)",
 };
 export default T;

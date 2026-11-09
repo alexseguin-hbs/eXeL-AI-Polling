@@ -1467,5 +1467,10 @@ const T: Record<string, string> = {
   "fin.add_line": "Додати рядок",
   "fin.remove_line": "Видалити цей рядок",
   "fin.reset_sheet": "Скинути до зразка",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "Оцінка інтерфейсу",
+  "cube1.settings.cost_rates_stale": "Тарифи застаріли — потрібне щотижневе оновлення",
+  "cube1.settings.cost_unknown_rate": "тариф невідомий",
+  "cube1.settings.cost_audio_denom": "V2T $/хв = оплачувані хвилини аудіо (не тривалість сесії)",
 };
 export default T;

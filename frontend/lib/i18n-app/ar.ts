@@ -1463,5 +1463,10 @@ const T: Record<string, string> = {
   "fin.add_line": "إضافة بند",
   "fin.remove_line": "حذف هذا البند",
   "fin.reset_sheet": "إعادة الضبط إلى الورقة النموذجية",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "تقدير الواجهة",
+  "cube1.settings.cost_rates_stale": "الأسعار قديمة — التحديث الأسبوعي مستحق",
+  "cube1.settings.cost_unknown_rate": "السعر غير معروف",
+  "cube1.settings.cost_audio_denom": "V2T $/دقيقة = دقائق الصوت القابلة للفوترة (وليست مدة الجلسة)",
 };
 export default T;
