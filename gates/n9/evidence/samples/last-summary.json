@@ -1,0 +1,102 @@
+{
+  "suite": "gates/n9",
+  "suite_run_fingerprint": "a4f938a113154fc9d3c333821e5e1387ff5a1e2284712d8749f01c0a95b3cb3b",
+  "source_sha": "4c2761a6618a4f24c9c940cedee93a98b7938c58",
+  "run_id": "75548a830a42fbc8",
+  "america_chicago_note": "box clock = America/Chicago",
+  "minted_nine_from_one_run": false,
+  "html_allowed": false,
+  "ssses_scores_invented": false,
+  "qa_baseline_incorporated": "/cursor/stores/store-4ff5b235-5045-41af-8897-1124f2ebc55e/qa/BASELINE-QA-t71-t72.md",
+  "known_gaps_from_qa": [
+    "main@4c2761a Workers/typecheck RED — PR3 hotfix 1dcd2ae unmerged",
+    "weekly fee lookup docs/config only — NOT official fetch (assert fail = correct)",
+    "Cost panel static catalog — NOT /payments/provider-fees API",
+    "stripe_idempotency_key unused on PaymentIntent.create",
+    "cost UI residual hardcoded strings; 33-lang for cost_* unverified",
+    "sim-console-driver harness alias @/lib fail (distinct from product asserts)",
+    "backend jurisdiction 60!=59 on main CI",
+    "18 cost fixtures ≠ invoice proof",
+    "pod-persist / sf-collab not_available on main (PR4/PR5 open)"
+  ],
+  "results": [
+    {
+      "group": "n2_payments_costs",
+      "round_hint": 2,
+      "id": "weekly-fee-official-fetch",
+      "command": "assert_absent_fetch:backend/app/cubes/cube8_tokens/fee_catalog.py",
+      "status": "fail",
+      "exit_code": null,
+      "stdout_sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa",
+      "note": "QA: weekly refresh is docs/config only — official fetch ABSENT; do NOT treat as pass",
+      "failure_class": "docs_only_weekly_lookup"
+    },
+    {
+      "group": "n2_payments_costs",
+      "round_hint": 2,
+      "id": "cost-panel-api-wired",
+      "command": "assert_contains:frontend/components/moderator-settings.tsx",
+      "status": "fail",
+      "exit_code": null,
+      "stdout_sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa",
+      "note": "QA: CostEstimateTable uses static buildComboRows — not API-wired",
+      "failure_class": "panel_not_api_wired"
+    },
+    {
+      "group": "n2_payments_costs",
+      "round_hint": 2,
+      "id": "stripe-idempotency-used",
+      "command": "assert:stripe-idempotency-used",
+      "status": "fail",
+      "exit_code": null,
+      "stdout_sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa",
+      "note": "QA: stripe_idempotency_key helper unused from PaymentIntent.create",
+      "detail": {
+        "found": false,
+        "expect_status": "fail"
+      },
+      "failure_class": "product_gap_assert"
+    },
+    {
+      "group": "n6_pod_supabase",
+      "round_hint": 6,
+      "id": "pod-persist-status-lexicon",
+      "command": "policy:pod-persist-status-lexicon",
+      "status": "fail",
+      "exit_code": null,
+      "stdout_sha256": null,
+      "note": "New English persist-status literal => lexicon FAIL/UNVERIFIED — not 100; do not score Succinctness/Stability 100 from local unit greens",
+      "failure_class": "policy_unverified"
+    },
+    {
+      "group": "n7_sensorfusion",
+      "round_hint": 7,
+      "id": "sf-33lang-lexicon",
+      "command": "policy:sf-33lang-lexicon",
+      "status": "fail",
+      "exit_code": null,
+      "stdout_sha256": null,
+      "note": "SF has no t()/useLexicon; new English strings follow preexisting pattern. User gate still FAIL/UNVERIFIED for 33-lang — do NOT convert no-regression into a 33-lang pass.",
+      "failure_class": "policy_unverified"
+    },
+    {
+      "group": "n8_rcore_lexicon",
+      "round_hint": 8,
+      "id": "session-rcore-badge",
+      "command": "policy:session-rcore-badge",
+      "status": "fail",
+      "exit_code": null,
+      "stdout_sha256": null,
+      "note": "QA: app/session/page.tsx no RCoreBadge — gap remains unverified/fail until inventory proves otherwise",
+      "failure_class": "policy_unverified"
+    }
+  ],
+  "counts": {
+    "pass": 0,
+    "fail": 6,
+    "blocked": 0,
+    "not_available": 0,
+    "unverified": 0
+  },
+  "reminder": "test_count_is_not_pillar_score — do not convert counts to SSSES 100; AsM/MoT bodies not fabricated by this runner"
+}

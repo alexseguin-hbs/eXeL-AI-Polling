@@ -35,3 +35,9 @@ clean: ## Clean build artifacts
 	find . -type d -name .pytest_cache -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name .mypy_cache -exec rm -rf {} + 2>/dev/null || true
 	rm -rf backend/dist backend/build frontend/.next frontend/out
+
+# N9 SSSES+SPIRAL shareable gate suite (Claude Code MoT)
+n9-gate:
+	node gates/n9/runner/run-n9.mjs --group n1_baseline_tooling --strict-n1
+n9-gate-list:
+	node gates/n9/runner/run-n9.mjs --list

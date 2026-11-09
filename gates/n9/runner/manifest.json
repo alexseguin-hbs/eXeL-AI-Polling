@@ -1,0 +1,510 @@
+{
+  "base_sha_expected": "4c2761a6618a4f24c9c940cedee93a98b7938c58",
+  "qa_baseline": "/cursor/stores/store-4ff5b235-5045-41af-8897-1124f2ebc55e/qa/BASELINE-QA-t71-t72.md",
+  "notes": [
+    "Invoke existing package commands; do not duplicate product tests.",
+    "not_available = path/script missing on this SHA (unmerged worker tree).",
+    "blocked = known environmental/auth/live prereq; never score as pass.",
+    "Harness alias failures (e.g. @/lib unresolved under bare node) are recorded as fail of the *invocation harness*, distinct from product assertion failures."
+  ],
+  "groups": {
+    "n1_baseline_tooling": {
+      "round_hint": 1,
+      "commands": [
+        {
+          "id": "gate-wordcount-self",
+          "kind": "node",
+          "cwd": "gates/n9",
+          "cmd": [
+            "node",
+            "tests/wordcount.test.mjs"
+          ],
+          "availability": "always"
+        },
+        {
+          "id": "gate-validate-round-self",
+          "kind": "node",
+          "cwd": "gates/n9",
+          "cmd": [
+            "node",
+            "tests/validate-round.test.mjs"
+          ],
+          "availability": "always"
+        },
+        {
+          "id": "gate-runner-safety-self",
+          "kind": "node",
+          "cwd": "gates/n9",
+          "cmd": [
+            "node",
+            "tests/runner-safety.test.mjs"
+          ],
+          "availability": "always"
+        }
+      ]
+    },
+    "n2_payments_costs": {
+      "round_hint": 2,
+      "commands": [
+        {
+          "id": "cost-ledger-fees-18",
+          "kind": "pytest",
+          "cwd": "backend",
+          "cmd": [
+            "python",
+            "-m",
+            "pytest",
+            "tests/cube8/test_cost_ledger_fees.py",
+            "-v",
+            "--noconftest",
+            "-q"
+          ],
+          "availability": "always",
+          "label": "fixture tests — NOT invoice-reconciled"
+        },
+        {
+          "id": "payment-stripe-unit",
+          "kind": "pytest",
+          "cwd": "backend",
+          "cmd": [
+            "python",
+            "-m",
+            "pytest",
+            "tests/cube8/test_payment_stripe.py",
+            "-q",
+            "--noconftest"
+          ],
+          "availability": "always"
+        },
+        {
+          "id": "donate-core",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:donate-core"
+          ],
+          "availability": "always"
+        },
+        {
+          "id": "weekly-fee-official-fetch",
+          "kind": "assert_absent",
+          "path": "backend/app/cubes/cube8_tokens/fee_catalog.py",
+          "must_not_contain": [
+            "httpx",
+            "requests.get",
+            "urllib.request"
+          ],
+          "expect_status": "fail",
+          "note": "QA: weekly refresh is docs/config only — official fetch ABSENT; do NOT treat as pass"
+        },
+        {
+          "id": "cost-panel-api-wired",
+          "kind": "assert_absent",
+          "path": "frontend/components/moderator-settings.tsx",
+          "must_contain_any": [
+            "/payments/provider-fees"
+          ],
+          "expect_status": "fail",
+          "note": "QA: CostEstimateTable uses static buildComboRows — not API-wired"
+        },
+        {
+          "id": "stripe-idempotency-used",
+          "kind": "assert_absent",
+          "path": "backend/app/cubes/cube8_tokens",
+          "glob_must_contain": "idempotency_key",
+          "in_files_matching": "*payment_service*",
+          "expect_status": "fail",
+          "note": "QA: stripe_idempotency_key helper unused from PaymentIntent.create"
+        }
+      ]
+    },
+    "n3_settings_hotfix_retest": {
+      "round_hint": 3,
+      "commands": [
+        {
+          "id": "main-typecheck-moderator-settings",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npx",
+            "tsc",
+            "--noEmit",
+            "-p",
+            "tsconfig.json"
+          ],
+          "availability": "always",
+          "expect_on_main_4c2761a": "fail",
+          "note": "S0: unclosed SettingsLanguageSelector — main red until PR3 merged"
+        },
+        {
+          "id": "pr3-hotfix-typecheck",
+          "kind": "external_ref",
+          "ref": "PR3 1dcd2ae",
+          "note": "Workers green + local tsc 0 on hotfix — record as fail→fix→retest evidence when checked out; not auto-merged",
+          "availability": "opt_in_checkout"
+        }
+      ]
+    },
+    "n4_voice_api_sim": {
+      "round_hint": 4,
+      "commands": [
+        {
+          "id": "voice-mime",
+          "kind": "node",
+          "cwd": "frontend",
+          "cmd": [
+            "node",
+            "--experimental-strip-types",
+            "tests/voice-mime.test.mjs"
+          ],
+          "availability": "if_exists",
+          "path": "frontend/tests/voice-mime.test.mjs",
+          "note": "On PR1 head: 12 passed; absent on main → not_available"
+        },
+        {
+          "id": "api-connectivity",
+          "kind": "node",
+          "cwd": "frontend",
+          "cmd": [
+            "node",
+            "--experimental-strip-types",
+            "--loader",
+            "./tests/ts-alias-loader.mjs",
+            "tests/api-connectivity.test.mjs"
+          ],
+          "availability": "if_exists",
+          "path": "frontend/tests/api-connectivity.test.mjs",
+          "note": "Requires experimental-loader; bare node fails MODULE_NOT_FOUND"
+        },
+        {
+          "id": "sim-console-driver",
+          "kind": "node",
+          "cwd": "frontend",
+          "cmd": [
+            "node",
+            "--experimental-strip-types",
+            "--loader",
+            "./tests/ts-alias-loader.mjs",
+            "tests/sim-console-driver.test.mjs"
+          ],
+          "availability": "if_exists",
+          "path": "frontend/tests/sim-console-driver.test.mjs",
+          "expect_status": "fail",
+          "failure_class": "harness_alias",
+          "note": "QA: FAIL @/lib from mock-data.ts — harness/alias failure, not product assertion proof"
+        }
+      ]
+    },
+    "n5_pod_local": {
+      "round_hint": 5,
+      "worker_evidence": "/workspace/research-exel/artifacts/workers/pod/",
+      "worker_sha": "787bfb522f5be34b6468dd69feef42a0f4751488",
+      "commands": [
+        {
+          "id": "soi-pod-flow",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:soi-pod"
+          ],
+          "availability": "always",
+          "note": "main+PR4: 27 passed"
+        },
+        {
+          "id": "pod-invariant",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:pod-invariant"
+          ],
+          "availability": "always",
+          "note": "463 passed"
+        },
+        {
+          "id": "soi-pod-sim",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:soi-pod-sim"
+          ],
+          "availability": "always",
+          "note": "66 passed"
+        },
+        {
+          "id": "pod-workers-build-pr4",
+          "kind": "external_ref",
+          "availability": "opt_in_checkout",
+          "note": "PR4 Workers FAIL = preexisting moderator-settings from PR2 on main — NOT pod regression (CI_WORKERS_BUILDS_DIAGNOSIS.md)"
+        }
+      ]
+    },
+    "n6_pod_supabase": {
+      "round_hint": 6,
+      "worker_evidence": "/workspace/research-exel/artifacts/workers/pod/",
+      "commands": [
+        {
+          "id": "pod-persist",
+          "kind": "node",
+          "cwd": "frontend",
+          "cmd": [
+            "node",
+            "--experimental-strip-types",
+            "--loader",
+            "./tests/ts-alias-loader.mjs",
+            "tests/pod-persist.test.mjs"
+          ],
+          "availability": "if_exists",
+          "path": "frontend/tests/pod-persist.test.mjs",
+          "note": "PR4: 26 passed; main: not_available"
+        },
+        {
+          "id": "pod-supabase-team-save",
+          "kind": "blocked",
+          "reason": "team Supabase save BLOCKED — auth/migration 036 review-only; DB transitions NONE; see gate/SUPABASE_E2E_BLOCKED.txt"
+        },
+        {
+          "id": "pod-db-transitions",
+          "kind": "blocked",
+          "reason": "T72 realtime audit: no proven subscribed-channel DB transitions for Trinity pod persist"
+        },
+        {
+          "id": "pod-persist-status-lexicon",
+          "kind": "assert_policy",
+          "expect_status": "fail",
+          "note": "New English persist-status literal => lexicon FAIL/UNVERIFIED — not 100; do not score Succinctness/Stability 100 from local unit greens"
+        }
+      ]
+    },
+    "n7_sensorfusion": {
+      "round_hint": 7,
+      "worker_evidence": "/workspace/research-exel/artifacts/workers/sensorfusion/",
+      "commands": [
+        {
+          "id": "sf-capture",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:sf-capture"
+          ],
+          "availability": "always"
+        },
+        {
+          "id": "sf-labels",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:sf-labels"
+          ],
+          "availability": "always"
+        },
+        {
+          "id": "sf-voc",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:sf-voc"
+          ],
+          "availability": "always"
+        },
+        {
+          "id": "sf-glass",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:sf-glass"
+          ],
+          "availability": "always"
+        },
+        {
+          "id": "sf-collab",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:sf-collab"
+          ],
+          "availability": "if_script",
+          "script": "test:sf-collab",
+          "note": "PR5 7150bcc only — main: not_available; local on PR5: 40 passed"
+        },
+        {
+          "id": "sf-workers-build-pr5",
+          "kind": "external_ref",
+          "ref": "CF build a1335b69",
+          "availability": "opt_in_checkout",
+          "note": "PR5 Workers FAIL = preexisting moderator-settings CostEstimateTable syntax from PR2 on main 4c2761a — NOT SF regression. Same signature on main build 03f23552."
+        },
+        {
+          "id": "sf-33lang-lexicon",
+          "kind": "assert_policy",
+          "expect_status": "fail",
+          "note": "SF has no t()/useLexicon; new English strings follow preexisting pattern. User gate still FAIL/UNVERIFIED for 33-lang — do NOT convert no-regression into a 33-lang pass."
+        },
+        {
+          "id": "sf-realtime-db-transitions",
+          "kind": "blocked",
+          "reason": "fail-honest upserts coded; migration 044 not applied; actual DB transitions + membership seats UNVERIFIED; no new realtime channel"
+        },
+        {
+          "id": "sf-live-rls-probe",
+          "kind": "blocked",
+          "reason": "RLS_PROBE_* unset; live anon probe not run"
+        }
+      ]
+    },
+    "n8_rcore_lexicon": {
+      "round_hint": 8,
+      "worker_evidence": [
+        "/workspace/research-exel/artifacts/workers/pod/",
+        "/workspace/research-exel/artifacts/workers/sensorfusion/"
+      ],
+      "commands": [
+        {
+          "id": "lexicon-coverage",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:lexicon-coverage"
+          ],
+          "availability": "always",
+          "note": "Existing coverage gate; NEW cost_* and pod persist-status / SF English strings still FAIL/UNVERIFIED for 33-lang"
+        },
+        {
+          "id": "rcore-gen-check",
+          "kind": "node",
+          "cwd": "frontend",
+          "cmd": [
+            "node",
+            "scripts/gen-rcore-revisions.mjs",
+            "--check"
+          ],
+          "availability": "if_exists",
+          "path": "frontend/scripts/gen-rcore-revisions.mjs",
+          "note": "PR4 worker: OK incl pod-session-ledger; on main may exist"
+        },
+        {
+          "id": "rcore-stage2",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:rcore-stage2"
+          ],
+          "availability": "if_script",
+          "script": "test:rcore-stage2",
+          "note": "PR4: 117 passed"
+        },
+        {
+          "id": "projects-registry",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:projects-registry"
+          ],
+          "availability": "if_script",
+          "script": "test:projects-registry",
+          "note": "PR4: 106 passed"
+        },
+        {
+          "id": "backend-jurisdiction-59",
+          "kind": "pytest",
+          "cwd": "backend",
+          "cmd": [
+            "python",
+            "-m",
+            "pytest",
+            "tests/cube8/test_ssses_optimization.py::TestTokenPrecision59Jurisdictions::test_all_59_jurisdictions_1_minute",
+            "-q",
+            "--noconftest"
+          ],
+          "availability": "always",
+          "expect_on_main_4c2761a": "fail",
+          "note": "CI assert 60==59"
+        },
+        {
+          "id": "session-rcore-badge",
+          "kind": "assert_policy",
+          "expect_status": "fail",
+          "note": "QA: app/session/page.tsx no RCoreBadge — gap remains unverified/fail until inventory proves otherwise"
+        }
+      ]
+    },
+    "n9_spiral_metrics": {
+      "round_hint": 9,
+      "commands": [
+        {
+          "id": "spiral9-soi-optin",
+          "kind": "npm",
+          "cwd": "frontend",
+          "cmd": [
+            "npm",
+            "run",
+            "--silent",
+            "test:soi-section"
+          ],
+          "availability": "always",
+          "note": "Full spiral9 N=5/9/18 is opt-in heavy; default suite runs light soi gate only"
+        },
+        {
+          "id": "spiral9-full",
+          "kind": "blocked",
+          "reason": "opt-in: SPIRAL_DOMAIN=all SPIRAL_N=3 node scripts/spiral9.mjs — long; not default; no million-user claim"
+        }
+      ]
+    }
+  },
+  "live_opt_in": {
+    "env_flags": [
+      "N9_LIVE_READONLY=1",
+      "N9_STRIPE_SANDBOX=1",
+      "N9_SUPABASE_READONLY=1",
+      "RLS_PROBE_URL"
+    ],
+    "forbidden_defaults": [
+      "production writes",
+      "provider charges",
+      "load tests",
+      "forged auth",
+      "million-user live claim"
+    ]
+  },
+  "qa_baselines": [
+    "/cursor/stores/store-4ff5b235-5045-41af-8897-1124f2ebc55e/qa/BASELINE-QA-t71-t72.md",
+    "/workspace/research-exel/artifacts/workers/sensorfusion/ACCEPTANCE_CHECKLIST.md",
+    "/workspace/research-exel/artifacts/workers/pod/"
+  ]
+}
