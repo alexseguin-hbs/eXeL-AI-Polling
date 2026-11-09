@@ -17,6 +17,9 @@ const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 // re-staged AND its 32 now-stale translations are removed from lib/i18n-app/*, so t() falls back to the corrected
 // English rather than returning the old, wrong translation ("listed never silent" — an orphaned fill is a silent lie).
 const AFTER_FILL = new Set([
+  // Live 9-theme prioritization panel (2026-11-09, user #1 priority): ENGLISH ONLY — staged until the operator HI-tests the
+  // live panel; listed never silent; ×32 fill owed.
+  ...['title','final','ballots','updating','waiting','tallying','points','votes','refresh','refresh_failed','other','your_ballot'].map((k) => `cube7.live.${k}`),
   // SensorFusion-2525 collab UI notes (2026-11-08): ENGLISH ONLY — staged until HI-tested; ×32 fill unverified / not claimed.
   ...['auth_required','reviewer_needs_labeler','reviewer_needs_name','reviewer_must_differ','progress_not_connected','progress_save_failed','settings_save_failed','pair_name_mismatch','sync_waiting_tables','json_needs_pictures','json_needs_level1','json_needs_level2','correction_save_failed','correction_needs_indep'].map((k) => `sf.collab.${k}`),
 

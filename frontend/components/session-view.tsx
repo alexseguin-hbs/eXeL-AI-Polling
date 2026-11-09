@@ -39,11 +39,12 @@ import { SimModeratorExperience } from "@/components/sim-moderator-experience";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, Question, SimTheme } from "@/lib/types";
 import { useRealtimeStatus } from "@/lib/use-realtime-status";
-import { useSessionBroadcast, type SessionBroadcastPayload } from "@/lib/use-session-broadcast";
+import { useSessionBroadcast, type SessionBroadcastPayload, type RankingCompletePayload } from "@/lib/use-session-broadcast";
 import { STATUS_ORDER, statusRank, statusAdvances } from "@/lib/session-utils";
 import { supabase } from "@/lib/supabase";
 import { ThemeRankingDnD } from "@/components/theme-ranking-dnd";
 import { ThemeResultsChart } from "@/components/theme-results-chart";
+import { LiveRankingPanel } from "@/components/live-ranking-panel";
 import { getSimPollBySessionId, resolveThemesForLevel } from "@/lib/sim-data";
 import { useSessionBallotThemes, type BallotCategory } from "@/lib/ballot-themes";
 
@@ -805,10 +806,25 @@ export function SessionView() {
   // Presence carries no status, so it never marks the channel healthy: only a backend-confirmed status may
   // pause the corrective poll (AsM round 7 — presence is anon-writable and constant in a large poll).
   const onBroadcastPresence = useCallback((count: number) => { setParticipantCount(count); }, []);
+  // G4 (live 9-theme prioritization): the participant's results card shows the GROUP ranking, carried in the
+  // ranking_complete broadcast (no Auth0 read needed), next to their own submitted order.
+  const [groupSubmissions, setGroupSubmissions] = useState<number | null>(null);
+  const [groupRanking, setGroupRanking] = useState<RankingCompletePayload | null>(null);
+  const onGroupProgress = useCallback((p: { submissions?: number }) => {
+    if (typeof p?.submissions === "number") setGroupSubmissions(p.submissions);
+  }, []);
+  const onGroupRanking = useCallback((p: RankingCompletePayload) => { if (p) setGroupRanking(p); }, []);
+  useEffect(() => { if (session?.status === "polling") { setGroupRanking(null); setGroupSubmissions(null); } }, [session?.status]);
   const { broadcast: broadcastToSession } = useSessionBroadcast(
     simulationMode ? null : session?.short_code,
     onBroadcastStatus,
     onBroadcastPresence,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    onGroupProgress,
+    onGroupRanking,
   );
 
   // Supabase Realtime postgres_changes (secondary — activates when DB tables exist). Same rule: a hint.
@@ -1404,6 +1420,12 @@ export function SessionView() {
               <CardDescription>{t("cube10.sim.sim_results_desc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
+              {!simulationMode && (
+                <LiveRankingPanel variant="participant" submissions={groupSubmissions} ranking={groupRanking} />
+              )}
+              {!simulationMode && myRankedOrder && (
+                <p className="text-xs font-medium text-muted-foreground pt-1">{t("cube7.live.your_ballot")}</p>
+              )}
               {resultThemes.map((theme, i) => (
                 <div
                   key={theme.id}
