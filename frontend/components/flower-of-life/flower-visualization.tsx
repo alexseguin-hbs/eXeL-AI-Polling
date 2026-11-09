@@ -23,7 +23,7 @@ import {
   THEME1_INDEX,
 } from "@/lib/flower-geometry";
 import { generateSampleSessionData } from "@/lib/sample-session-data";
-import { adaptLiveThemes, withCollectedResponses, type LiveThemeRow, type LiveCollectedItem } from "@/lib/adapt-live-themes";
+import { adaptLiveThemes, type LiveThemeRow } from "@/lib/adapt-live-themes";
 import { api } from "@/lib/api";
 import { useLexicon } from "@/lib/lexicon-context";
 import type { Theme01Label, ThemeInfo, SessionThemeData } from "@/lib/types";
@@ -115,17 +115,9 @@ export function FlowerVisualization({
       try {
         const rows = await api.get<LiveThemeRow[]>(`/sessions/${sessionId}/themes`);
         if (cancelled) return;
-        let adapted = adaptLiveThemes(sessionId, rows || []);
-        // CRS-09 / CRS-39: feed ResponseDrawer 33/111/333 tabs from collected
-        // (already stores summary_111/333). Moderator-only; ignore 403 for participants.
-        try {
-          const collected = await api.get<{ items?: LiveCollectedItem[] }>(
-            `/sessions/${sessionId}/collected?include_summaries=true&include_themes=true&page_size=500`,
-          );
-          if (!cancelled && collected?.items?.length) {
-            adapted = withCollectedResponses(adapted, collected.items);
-          }
-        } catch { /* non-owner / not ready — drawer stays empty for live */ }
+        // ResponseDrawer loads 33/111/333 via W2 GET /drilldown (view_entitlement-gated).
+        // ThemeRead now exposes summary_111/333 for RankedThemes (this themes fetch).
+        const adapted = adaptLiveThemes(sessionId, rows || []);
         if (adapted.totalResponses > 0) {
           setLiveData(adapted);
           setLiveStatus("ready");
