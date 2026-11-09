@@ -476,6 +476,120 @@ async def create_cost_split_intent(
     }
 
 
+async def create_cost_split_share_checkout(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    participant_id: uuid.UUID,
+    user_id: str,
+    success_url: str = "",
+    cancel_url: str = "",
+    client_key: str | None = None,
+) -> dict:
+    """Hosted Stripe Checkout for a Cost Split PARTICIPANT's share (CRS-01.01, CRS-14.05, CRS-39.02).
+
+    Same pricing path as the creator (cost_split_quote → poll_pricing, single margin config) and the same
+    hosted-Checkout + signed-webhook confirmation as the creator's moderator-checkout, so a participant needs no
+    publishable key / card form in our UI. Unlock happens ONLY when the signed webhook confirms the payment
+    (participant.payment_status = paid; the row counts toward that participant's ladder) — never on return.
+
+    Rules: Cost Split polls only; the session must have been opened by the creator (joinable states); the caller
+    must be the signed-in owner of that participant; no share due (< $0.50) → 409, never a minimum charge.
+    """
+    session = await _get_session(db, session_id)
+    if session.pricing_tier != "cost_split":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session pricing tier is not 'cost_split'")
+    if session.status not in ("open", "polling", "ranking", "closed"):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="The poll is not open yet — the creator opens it before participants join or pay")
+    participant = (await db.execute(
+        select(Participant).where(Participant.id == participant_id, Participant.session_id == session_id)
+    )).scalar_one_or_none()
+    if not participant:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Participant not found in this session")
+    if not participant.user_id or participant.user_id != user_id:
+        # Strict: a share is paid by the signed-in owner of the seat (results go to a logged-in account).
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your participant")
+    if participant.payment_status in ("paid", "lead_exempt"):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Your share is already paid")
+
+    quote = await cost_split_quote(db, session)
+    share_cents = int(quote["participant_share_cents"])
+    if share_cents <= 0:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="No participant share is due for this poll — the creator covers the full price")
+
+    tx_type, line = "cost_split", "poll_cost_split_participant"
+    idem_key = stripe_idempotency_key(
+        action="checkout_cost_split_share",
+        session_id=str(session_id),
+        participant_id=str(participant_id),
+        amount_cents=share_cents,
+        transaction_type=tx_type,
+        nonce=client_key or new_attempt_nonce(),
+    )
+    base = f"{settings.frontend_url}/session/?id={session_id}&pid={participant_id}"
+    ok_url = success_url or f"{base}&share=success"
+    ok_url = ok_url if "{CHECKOUT_SESSION_ID}" in ok_url else ok_url + ("&" if "?" in ok_url else "?") + "cs={CHECKOUT_SESSION_ID}"
+    metadata = {
+        "session_id": str(session_id),
+        "poll_id": str(session_id),
+        "participant_id": str(participant_id),
+        "short_code": session.short_code,
+        "transaction_type": tx_type,
+        "product_line": line,
+        "pricing_tier": "cost_split",
+        "participants": str(quote["participants"]),
+        "margin_multiplier": str(quote["margin_multiplier"]),
+        "quote_total_cents": str(quote["total_cents"]),
+        "catalog_version": str(quote.get("catalog_version", "")),
+    }
+    checkout = stripe.checkout.Session.create(
+        line_items=[{
+            "price_data": stripe_catalog.price_data(
+                line, share_cents,
+                name=f"eXeL AI Polling: {session.title}"[:120],
+                description=f"Poll {session.short_code} — your Cost Split share",
+            ),
+            "quantity": 1,
+        }],
+        mode="payment",
+        client_reference_id=str(session_id),
+        success_url=ok_url,
+        cancel_url=cancel_url or f"{base}&share=cancelled",
+        metadata=metadata,
+        payment_intent_data={"metadata": metadata, "description": f"eXeL AI Polling — poll {session.short_code} (participant share)"},
+        idempotency_key=idem_key,
+    )
+    existing = (await db.execute(
+        select(PaymentTransaction).where(PaymentTransaction.stripe_checkout_session_id == checkout.id)
+    )).scalar_one_or_none()
+    if not isinstance(existing, PaymentTransaction):
+        db.add(PaymentTransaction(
+            session_id=session_id,
+            participant_id=participant_id,
+            transaction_type=tx_type,
+            amount_cents=share_cents,
+            currency="USD",
+            stripe_checkout_session_id=checkout.id,
+            status="pending",
+            product_line=product_line_for(tx_type),
+            idempotency_key=idem_key,
+            reconcile_status="awaiting_webhook",
+            metadata_json=json.dumps({"share_of_quote": {k: quote.get(k) for k in (
+                "total_cents", "participant_share_cents", "participants", "margin_multiplier", "catalog_version")}}),
+        ))
+    await db.commit()
+    logger.info("cube8.payment.cost_split_share_checkout_created", session_id=str(session_id),
+                participant_id=str(participant_id), amount_cents=share_cents, checkout_id=checkout.id)
+    return {
+        "checkout_url": checkout.url,
+        "checkout_id": checkout.id,
+        "amount_cents": share_cents,
+        "quote_total_cents": int(quote["total_cents"]),
+        "margin_multiplier": str(quote["margin_multiplier"]),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Donation (all tiers — after results delivered)
 # ---------------------------------------------------------------------------
@@ -732,6 +846,15 @@ async def handle_payment_completed(
                         )
                 except Exception as e:  # noqa: BLE001
                     logger.warning("cube8.payment.donation_receipt_failed", error=str(e)[:300])
+            elif tx.session_id and tx.transaction_type == "cost_split" and tx.participant_id:
+                # A PARTICIPANT's Cost Split share (hosted Checkout) pays that seat only — it must never flip the
+                # creator's session.is_paid (CRS-01.01 / CRS-14.05).
+                p_row = (await db.execute(
+                    select(Participant).where(Participant.id == tx.participant_id,
+                                              Participant.session_id == tx.session_id)
+                )).scalar_one_or_none()
+                if p_row is not None and not (paid_cents is not None and int(paid_cents) != int(tx.amount_cents)):
+                    p_row.payment_status = "paid"
             elif tx.session_id and tx.transaction_type in ("moderator_fee", "cost_split", "usage_billing"):
                 session = await _get_session(db, tx.session_id)
                 session.is_paid = True

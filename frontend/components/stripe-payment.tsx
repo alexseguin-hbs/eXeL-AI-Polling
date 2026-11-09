@@ -9,6 +9,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 import { startDonation } from "@/lib/donate";
 import { useLexicon } from "@/lib/lexicon-context";
 import { STRIPE_PUBLISHABLE_KEY, MODERATOR_MIN_FEE_CENTS } from "@/lib/constants";
@@ -257,6 +258,85 @@ export function CostSplitPayment({
         >
           <CostSplitForm onSuccess={onSuccess} amountCents={amountCents} />
         </Elements>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Cost Split participant share — hosted Stripe Checkout (CRS-01.01, CRS-14.05, CRS-39.02)
+// Priced by the server from the SAME quote the creator paid against. Results unlock only after the signed
+// Stripe webhook confirms the payment (view-entitlement / export ladder) — returning here proves nothing.
+// ---------------------------------------------------------------------------
+
+export function ParticipantPayPanel({
+  sessionId,
+  shortCode,
+  participantId,
+  pricingTier,
+}: {
+  sessionId: string;
+  shortCode: string;
+  participantId: string;
+  pricingTier: "free" | "moderator_paid" | "cost_split";
+}) {
+  const { t } = useLexicon();
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [donateOpen, setDonateOpen] = useState(false);
+  const returned = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("share") : null;
+
+  const payShare = async () => {
+    setLoading(true);
+    setMsg("");
+    try {
+      const here = window.location.href.split("#")[0];
+      const res = await api.post<{ checkout_url: string; amount_cents: number }>("/payments/cost-split-checkout", {
+        session_id: sessionId,
+        participant_id: participantId,
+        success_url: here.replace(/[?&]share=[^&]*/g, "").replace(/[?&]cs=[^&]*/g, "") + "&share=success",
+        cancel_url: here.replace(/[?&]share=[^&]*/g, "").replace(/[?&]cs=[^&]*/g, "") + "&share=cancelled",
+      });
+      if (res.checkout_url) {
+        window.location.href = res.checkout_url;
+        return;
+      }
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Payment unavailable");
+    }
+    setLoading(false);
+  };
+
+  if (!participantId) return null;
+  return (
+    <div className="rounded-md border border-input p-3 space-y-2 text-sm" data-testid="participant-pay-panel">
+      {pricingTier === "cost_split" && (
+        <>
+          <p className="font-medium">{t("cube8.payment.your_share")}</p>
+          {returned === "success" ? (
+            <p className="text-xs text-muted-foreground">
+              Payment received by Stripe — results unlock as soon as Stripe confirms it (usually seconds). Refresh to check.
+            </p>
+          ) : (
+            <Button className="w-full" onClick={payShare} disabled={loading}>
+              {loading ? "Redirecting..." : "Pay your share to unlock results"}
+            </Button>
+          )}
+        </>
+      )}
+      <Button variant="outline" className="w-full" onClick={() => setDonateOpen(true)}>
+        {t("cube8.donation.donate_button")}
+      </Button>
+      {msg && <p className="text-xs text-destructive">{msg}</p>}
+      {donateOpen && (
+        <DonationPrompt
+          sessionId={sessionId}
+          shortCode={shortCode}
+          pricingTier={pricingTier}
+          participantId={participantId}
+          onSuccess={() => setDonateOpen(false)}
+          onDismiss={() => setDonateOpen(false)}
+        />
       )}
     </div>
   );
