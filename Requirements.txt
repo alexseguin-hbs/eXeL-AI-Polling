@@ -2533,3 +2533,33 @@ See `Token_Governance_Math.md` for full formal specification. Summary:
 > Build a full-stack web app called "SoI Polling Tool" using the following requirements. Implement frontend pages for Moderator, User, and Lead/Developer. Implement backend APIs in FastAPI. Use PostgreSQL for sessions/questions/rankings/audit/tokens/raw responses, Redis for live state, and WebSockets for real-time updates (MVP2). Implement AI theme clustering pipeline with embeddings + clustering + summarization returning themes with confidence and counts. Implement token ledger for ♡ SI, 웃 HI, ◬ AI with lifecycle states and dispute flow. Implement a modular "Cube Simulation Mode" that allows Lead/Developer to check out a cube, run replay tests (including upstream/downstream dependency replays), compare metrics, and approve/reject changes with versioning and rollback. Follow CRS-01 through CRS-35 exactly as functional requirements and implement the workflow steps 1–9. Provide complete code structure, database schema, API routes, and UI screens. Use React + Next.js frontend, FastAPI backend, Auth0 for auth, Cloudflare for hosting/CDN, and a multi-provider AI abstraction layer.
 
 ---
+
+---
+
+## Proposed CRS sub-items — SensorFusion anonymous seats / ♡ work credit / class reuse / WORK TRACEABILITY
+**Status: PROPOSED 2026-11-09 — not implemented until operator approval.**  
+Full design: `docs/sensor-fusion/ANON_HEART_TOKENS_PROPOSAL_2026-11-09.md` (also `/workspace/fleet/anon-heart-tokens.md`).
+
+### CRS-05 (anonymous vs identified) — proposed
+- **CRS-05.04** SensorFusion anonymous display seats use Supabase anonymous auth uid + unique canonical display name per project; no OAuth required for labeling participation. *(Proposed 2026-11-09)*
+
+### CRS-08 (constrained submit analogue for labeling classes) — proposed
+- **CRS-08.04** SensorFusion project maintains a shared class list; new labels prefer existing classes (autocomplete, most-used first). *(Proposed 2026-11-09)*
+- **CRS-08.05** New class names are normalized and matched before insert; near-duplicates prompt “did you mean?”. *(Proposed 2026-11-09)*
+- **CRS-08.06** Moderator/reviewer may merge duplicate classes; boxes re-point; merge is append-only in the work log. *(Proposed 2026-11-09)*
+
+### CRS-19 (engagement / time) — proposed
+- **CRS-19.07** SensorFusion records per-user active labeling/review time with start/stop attributable to `auth.uid()`. *(Proposed 2026-11-09)*
+- **CRS-19.08** SensorFusion work log is append-only: label create/edit, Level-2 correction/review, and class-merge each write who/what/when/image/project/time/♡. *(Proposed 2026-11-09)*
+
+### CRS-24 (governance / RBAC) — proposed
+- **CRS-24.03** SensorFusion work events bind `actor_uid = auth.uid()`; display names are non-authoritative for authorization (extends PR #16 / migration 054). *(Proposed 2026-11-09)*
+
+### CRS-25 / CRS-32 (Trinity tokens + attribution) — proposed
+- **CRS-25.02** SensorFusion education credit uses existing ♡/◬ rules only; 웃 remains gated by `human_enabled` until H.I. treasury funded. *(Proposed 2026-11-09)*
+- **CRS-32.04** SensorFusion exports per-user and per-project work+token traces (CSV/JSON) including anonymous seats by uid. *(Proposed 2026-11-09)*
+
+**Token rates:** reuse Cube 5 `calculate_tokens` / `login_heart_tokens=1` / `unity_heart_multiplier=5`. No per-box ♡ rate exists in-repo — do not invent one.
+
+**Auth go-live (verified prep, mock still ON):** PR #20 merge `56c24257` (CRS-24.02 audience wiring); API_INSTANCE api-v1n deploy Worker `53a50280-de69-42b6-80c2-92b1a56af2f1`.
+
