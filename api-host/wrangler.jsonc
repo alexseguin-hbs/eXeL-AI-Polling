@@ -1,0 +1,31 @@
+{
+  // eXeL AI Polling — hosted FastAPI backend (backend/) on Cloudflare Containers.
+  // Deploy: api-host/deploy.sh (packs backend/ into bundle/ then `wrangler deploy`). Secrets live in the Worker secret
+  // store (wrangler secret put): DATABASE_URL, GEMINI_API_KEY, SESSION_SECRET, BUNDLE_TOKEN, optional OPENAI_API_KEY,
+  // STRIPE_SECRET_KEY (+ STRIPE_WEBHOOK_SECRET — the key is only passed to the app once the webhook secret exists).
+  "name": "exel-ai-polling-api",
+  "main": "index.js",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "./bundle", "binding": "BUNDLE", "run_worker_first": true },
+  "containers": [
+    {
+      "class_name": "ExelApi",
+      "image": "docker.io/library/python:3.12-slim",
+      "max_instances": 2,
+      "instance_type": "standard-1"
+    }
+  ],
+  "durable_objects": { "bindings": [{ "name": "API", "class_name": "ExelApi" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ExelApi"] }],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "AUTH0_DOMAIN": "exel-ai-polling.us.auth0.com",
+    "DEFAULT_AI_PROVIDER": "gemini",
+    "FRONTEND_URL": "https://exel-ai-polling.explore-096.workers.dev",
+    "ALLOWED_ORIGINS": "https://exel-ai-polling.explore-096.workers.dev",
+    "BACKEND_URL": "https://exel-ai-polling-api.explore-096.workers.dev",
+    "BEHIND_CLOUDFLARE": "true",
+    "LOG_LEVEL": "INFO"
+  },
+  "observability": { "enabled": true }
+}
