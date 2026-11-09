@@ -27,3 +27,12 @@ Do **not** write these into `sensorfusion-2525.code.json` revisions until an imp
 | E2E after api-v1n | 41/41 PASS — agent path `/workspace/research-exel/artifacts/e2e-launch/` |
 
 Token rates: reuse Cube 5 (`♡=ceil(minutes)` per entry / floor public accum; login ♡1; ◬=5×♡). No per-box ♡ rate in repo.
+
+## Verified 2026-11-09 (W3) — CRS-09 / CRS-39 summary tier expose
+
+- ResponseRead/ResponseListItem + cube2 list/detail now return `summary_111`/`summary_333` (generation unchanged).
+- ThemeRead + enriched themes API return `summary_111`/`summary_333` from `theme_summary_*`.
+- Flower ResponseDrawer wired via `GET /collected?include_summaries&include_themes` → ThemedResponse.
+- Cost ledger: `AICostLog.phase=phase_a` maps to `CostKind.PHASE_A` (was lumped as theme02).
+- Paid-view: `apply_response_paid_view_gate` passthrough TODO for W2 unlock (no payment module edits).
+- Tests: `tests/cube2/test_summary_tiers_expose.py` (5), FE `adapt-collected-responses.test.mjs`.

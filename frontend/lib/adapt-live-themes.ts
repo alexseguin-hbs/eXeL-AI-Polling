@@ -3,7 +3,7 @@
 // sessions show REAL Theme 01 (Risk/Supporting/Neutral) × Theme 02 (3/6/9)
 // results instead of the seeded 5,000-response mock. Pure + deterministic
 // (unit-locked in tests/adapt-live-themes.test.mjs).
-import type { SessionThemeData, ThemeInfo, Theme01Label } from "@/lib/types";
+import type { SessionThemeData, ThemeInfo, Theme01Label, ThemedResponse } from "@/lib/types";
 
 /** One enriched row from GET /sessions/{id}/themes (backend schema ThemeRead). */
 export interface LiveThemeRow {
@@ -101,4 +101,69 @@ export function adaptLiveThemes(sessionId: string, rows: LiveThemeRow[]): Sessio
 
   const totalResponses = THEME01_LABELS.reduce((s, l) => s + (theme1[l].count || 0), 0);
   return { sessionId, totalResponses, theme1, theme2, responses: [] };
+}
+
+/** One row from GET /sessions/{id}/collected?include_summaries&include_themes. */
+export interface LiveCollectedItem {
+  response_id?: string;
+  user?: string;
+  detailed_results?: string;
+  summary_33?: string | null;
+  summary_111?: string | null;
+  summary_333?: string | null;
+  theme01?: string | null;
+  theme01_confidence?: number | string | null;
+  theme2_9?: string | null;
+  theme2_9_confidence?: number | string | null;
+  theme2_6?: string | null;
+  theme2_6_confidence?: number | string | null;
+  theme2_3?: string | null;
+  theme2_3_confidence?: number | string | null;
+}
+
+function confPct(v: number | string | null | undefined): number {
+  if (typeof v === "number" && Number.isFinite(v)) return pct(v);
+  if (typeof v === "string") {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? pct(n) : 0;
+  }
+  return 0;
+}
+
+/**
+ * Map Cube 4 collected rows (summaries + theme assignments) into ThemedResponse
+ * so the Flower ResponseDrawer 33/111/333/Original tabs work for live sessions.
+ * Moderator-only collected endpoint — callers must already be session owners.
+ */
+export function adaptCollectedResponses(items: LiveCollectedItem[]): ThemedResponse[] {
+  const out: ThemedResponse[] = [];
+  for (const row of items || []) {
+    const theme1 = (row.theme01 || "").trim();
+    if (!THEME01_LABELS.includes(theme1 as Theme01Label)) continue;
+    out.push({
+      id: row.response_id || "",
+      userHash: row.user || "Anonymous",
+      rawText: row.detailed_results || "",
+      summary33: row.summary_33 || "",
+      summary111: row.summary_111 || "",
+      summary333: row.summary_333 || "",
+      theme1: theme1 as Theme01Label,
+      theme1Confidence: confPct(row.theme01_confidence),
+      theme2_9: row.theme2_9 || "",
+      theme2_6: row.theme2_6 || "",
+      theme2_3: row.theme2_3 || "",
+      theme2Confidence: confPct(
+        row.theme2_3_confidence ?? row.theme2_6_confidence ?? row.theme2_9_confidence
+      ),
+    });
+  }
+  return out;
+}
+
+/** Attach collected ThemedResponses onto an adapted SessionThemeData. */
+export function withCollectedResponses(
+  data: SessionThemeData,
+  items: LiveCollectedItem[],
+): SessionThemeData {
+  return { ...data, responses: adaptCollectedResponses(items) };
 }

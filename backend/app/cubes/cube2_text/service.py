@@ -536,6 +536,24 @@ async def publish_submission_event(
 # ---------------------------------------------------------------------------
 
 
+
+# ---------------------------------------------------------------------------
+# CRS-39 Pay-to-View hook (coordinate with W2 — do NOT edit payment modules here)
+# ---------------------------------------------------------------------------
+
+
+def apply_response_paid_view_gate(item: dict, *, unlocked_333: bool | None = None) -> dict:
+    """Pass-through today. When W2 exposes a shared unlock map, redact paid tiers.
+
+    TODO(W2/CRS-39): call the shared unlock helper (session.is_paid / content-tier
+    map). For unpaid callers, null out summary_333 and clean_text (Original) so
+    FE locks stay server-consistent. Do not invent a parallel Stripe/payment check
+    in this module — leave that to W2 payment unlock work.
+    """
+    _ = unlocked_333  # reserved for W2 hook
+    return item
+
+
 async def submit_text_response(
     db: AsyncSession,
     *args,
@@ -788,7 +806,7 @@ async def get_responses(
     total = count_result.scalar() or 0
     pages = math.ceil(total / page_size) if total > 0 else 0
 
-    # Fetch page with summary JOIN for summary_33
+    # Fetch page with summary JOIN for summary_33/111/333
     result = await db.execute(
         select(ResponseMeta, TextResponse, ResponseSummary)
         .outerjoin(TextResponse, TextResponse.response_meta_id == ResponseMeta.id)
@@ -815,8 +833,10 @@ async def get_responses(
             "pii_detected": text_resp.pii_detected if text_resp else False,
             "profanity_detected": text_resp.profanity_detected if text_resp else False,
             "summary_33": summary.summary_33 if summary else None,
+            "summary_111": summary.summary_111 if summary else None,
+            "summary_333": summary.summary_333 if summary else None,
         }
-        items.append(item)
+        items.append(apply_response_paid_view_gate(item))
 
     return {
         "items": items,
@@ -832,7 +852,7 @@ async def get_response_by_id(
     session_id: uuid.UUID,
     response_id: uuid.UUID,
 ) -> dict | None:
-    """Single response lookup with full text response detail + summary_33."""
+    """Single response lookup with full text response detail + summary_33/111/333."""
     result = await db.execute(
         select(ResponseMeta, TextResponse, ResponseSummary)
         .outerjoin(TextResponse, TextResponse.response_meta_id == ResponseMeta.id)
@@ -847,7 +867,7 @@ async def get_response_by_id(
         return None
 
     meta, text_resp, summary = row
-    return {
+    payload = {
         "id": meta.id,
         "session_id": meta.session_id,
         "question_id": meta.question_id,
@@ -861,7 +881,10 @@ async def get_response_by_id(
         "profanity_detected": text_resp.profanity_detected if text_resp else False,
         "clean_text": text_resp.clean_text if text_resp else None,
         "summary_33": summary.summary_33 if summary else None,
+        "summary_111": summary.summary_111 if summary else None,
+        "summary_333": summary.summary_333 if summary else None,
         "pii_types": text_resp.pii_types if text_resp else None,
         "pii_scrubbed_text": text_resp.pii_scrubbed_text if text_resp else None,
         "profanity_words": text_resp.profanity_words if text_resp else None,
     }
+    return apply_response_paid_view_gate(payload)

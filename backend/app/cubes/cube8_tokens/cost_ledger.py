@@ -163,6 +163,7 @@ def theme_rate_table(provider: str) -> dict[str, Decimal] | None:
 class CostKind(str, Enum):
     STT = "stt"
     THEME02 = "theme02"
+    PHASE_A = "phase_a"  # Cube 6 Phase A per-response summaries (summary_333/111/33)
     OTHER = "other"
 
 
@@ -622,7 +623,16 @@ def lines_from_voice_row(row: Mapping[str, Any], *, session_id: str, scope_ref: 
 
 
 def lines_from_ai_cost_row(row: Mapping[str, Any], *, session_id: str, scope_ref: str | None = None) -> CostLine:
-    return estimate_theme02_line(
+    """Map an AICostLog row into a CostLine.
+
+    Phase A (per-response summaries) already writes ai_cost_logs with phase="phase_a";
+    surface those as CostKind.PHASE_A so the session cost ledger shows a distinct
+    summary cost line (not lumped under theme02).
+    """
+    import dataclasses
+
+    phase = str(row.get("phase") or "phase_b")
+    line = estimate_theme02_line(
         session_id=session_id,
         provider=str(row.get("provider") or ""),
         input_chars=row.get("total_input_chars"),
@@ -630,9 +640,16 @@ def lines_from_ai_cost_row(row: Mapping[str, Any], *, session_id: str, scope_ref
         recorded_cost_usd=row.get("estimated_cost_usd"),
         model=row.get("model"),
         scope_ref=scope_ref,
-        phase=str(row.get("phase") or "phase_b"),
+        phase=phase,
         attempt=int(row.get("attempt") or 1),
         billed_retry=bool(row.get("billed_retry") or False),
         failure=bool(row.get("failure") or False),
         source=str(row.get("source") or "ai_cost_logs"),
     )
+    if phase == "phase_a":
+        line = dataclasses.replace(
+            line,
+            kind=CostKind.PHASE_A,
+            notes=(line.notes + "; phase_a summary cost").strip("; "),
+        )
+    return line
