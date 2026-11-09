@@ -40,3 +40,11 @@ Required before claiming weekly lookup is live:
 4. Scheduler activation on supported host (cron/Workers) — not done
 
 Until then: treat weekly refresh as **config/docs + admin reaffirm endpoint only**.
+
+## Adapter readiness (2026-11-08)
+
+See `app.cubes.cube8_tokens.fee_source_adapters.readiness_report()`.
+
+Auto parsers ready: `whisper`, `aws` (US-East batch example), `grok` (xAI STT REST $/hr→/min).
+Manual only: `gemini` STT pin, all Theme02 token tables.
+`weekly_cron_activated` remains **false** until host schedules the admin refresh with adapter wiring reviewed.
