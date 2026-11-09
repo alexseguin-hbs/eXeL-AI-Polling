@@ -43,6 +43,15 @@ const sameOrigin = (u, origin) => { try { return new URL(u).origin === origin; }
 
 const resolveKey = (env) => (env && (env.STRIPE_RESTRICTED_KEY || env.STRIPE_SECRET_KEY)) || "";
 
+// Live Stripe Products (eXeL AI account, created 2026-11-08 — IDs are not secrets). Attached only with a LIVE key;
+// a test key falls back to inline product_data so previews keep working. purpose → [product, product_line].
+export const DONATION_PRODUCTS = {
+  divinity_guide: ["prod_VavR1Xy18Cyu43", "divinity_guide_donation"],
+  derisking_strategies: ["prod_VavRWTGbsPbrLx", "derisking_strategies_donation"],
+  community: ["prod_VavRF4QMRRsden", "exel_session_donation"],
+};
+const isLiveKey = (k) => /^(sk|rk)_live_/.test(k);
+
 /**
  * GET /api/donate/verify?cs=<checkout session id> — the ONLY proof a donation happened. The success
  * URL carries Stripe's {CHECKOUT_SESSION_ID}; the page asks here before saying thank you or
@@ -114,13 +123,24 @@ export async function handleDonate(request, env) {
   form.set("line_items[0][quantity]", "1");
   form.set("line_items[0][price_data][currency]", "usd");
   form.set("line_items[0][price_data][unit_amount]", String(amount));
-  form.set("line_items[0][price_data][product_data][name]", label);
-  form.set("line_items[0][price_data][product_data][description]", description);
+  const purpose = Object.prototype.hasOwnProperty.call(DONATION_PRODUCTS, body.purpose) ? body.purpose : "community";
+  const [productId, productLine] = DONATION_PRODUCTS[purpose];
+  if (isLiveKey(key)) {
+    form.set("line_items[0][price_data][product]", productId);
+  } else {
+    form.set("line_items[0][price_data][product_data][name]", label);
+    form.set("line_items[0][price_data][product_data][description]", description);
+  }
   form.set("submit_type", "donate");
   form.set("success_url", successWithCs);
   form.set("cancel_url", cancelUrl);
   form.set("metadata[transaction_type]", "donation");
   form.set("metadata[source]", "edge_donate");
+  form.set("metadata[purpose]", purpose);
+  form.set("metadata[product_line]", productLine);
+  form.set("payment_intent_data[description]", label);
+  form.set("payment_intent_data[metadata][transaction_type]", "donation");
+  form.set("payment_intent_data[metadata][purpose]", purpose);
 
   let res;
   try {

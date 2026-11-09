@@ -1149,12 +1149,14 @@ function DashboardContent() {
         session.title,
         session.polling_mode_type,
       ).catch(() => {});
-      // Moderator Paid: redirect to Stripe Checkout before session is usable
-      if (newPricingTier === "moderator_paid") {
+      // Moderator Paid / Cost Split: the creator pays at Stripe Checkout before the poll is usable. The server
+      // re-prices the stored poll options (cost × margin, min $11.11) — the amount sent can raise it, never lower it.
+      if (newPricingTier === "moderator_paid" || newPricingTier === "cost_split") {
         try {
           const checkout = await api.post<{ checkout_url: string }>("/payments/moderator-checkout", {
             session_id: session.id,
-            amount_cents: newFeeAmountCents,
+            amount_cents: newPricingTier === "moderator_paid" ? newFeeAmountCents : null,
+            participants: parseInt(newMaxParticipants) || null,
           });
           if (checkout.checkout_url) {
             window.location.href = checkout.checkout_url;
@@ -1425,6 +1427,12 @@ function DashboardContent() {
                   onChange={setNewPricingTier}
                   feeAmountCents={newFeeAmountCents}
                   onFeeChange={setNewFeeAmountCents}
+                  quoteParams={{
+                    participants: parseInt(newMaxParticipants) || 100,
+                    aiProvider: newAiProvider,
+                    maxResponseLength: parseInt(newMaxResponse) || 3333,
+                    responsesPerParticipant: newType === "project_series" ? 3 : 1,
+                  }}
                 />
 
                 {newPricingTier !== "free" && (

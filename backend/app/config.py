@@ -53,6 +53,17 @@ class Settings(BaseSettings):
     stripe_live_secret_key: str = ""     # Production Stripe keys
     stripe_live_publishable_key: str = ""
     stripe_live_restricted_key: str = ""
+    # Payments go-live (2026-11-08): Stripe catalog objects created on the live eXeL AI account. IDs are not
+    # secrets; env overrides exist only for a future account move. See cube8_tokens/stripe_catalog.py.
+    stripe_product_divinity_donation: str = "prod_VavR1Xy18Cyu43"
+    stripe_product_derisking_donation: str = "prod_VavRWTGbsPbrLx"
+    stripe_product_community_donation: str = "prod_VavRF4QMRRsden"
+    stripe_product_poll_moderator_paid: str = "prod_VavRfQV5WrXfet"
+    stripe_product_poll_cost_split_moderator: str = "prod_VavRP8VVmVPxhe"
+    stripe_product_poll_cost_split_participant: str = "prod_VavRscDoQJfvGJ"
+    # ONE margin knob for priced polls: price = tracked cost × this. 1.5 = "cost + 50% markup" (default);
+    # 2.0 = "50% gross margin". Owner decision pending — see cube8_tokens/poll_pricing.py.
+    pricing_margin_multiplier: str = "1.5"
 
     # Session defaults
     default_session_expiry_hours: int = 24

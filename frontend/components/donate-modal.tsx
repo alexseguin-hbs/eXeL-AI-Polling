@@ -11,12 +11,27 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Heart, X } from "lucide-react";
-import { startDonation, donatedReturnUrl, newClientKey } from "@/lib/donate";
+import { startDonation, donatedReturnUrl, newClientKey, type DonationPurpose } from "@/lib/donate";
 import { useLexicon } from "@/lib/lexicon-context";
 
 const PRESETS_CENTS = [111, 333, 999, 2525]; // $1.11 · $3.33 · $9.99 · $25.25
 
-export function DonateModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+/** Which live Stripe Product a navbar donation books to: an explicit prop wins, else the page it was opened on. */
+export function donationPurposeFor(pathname: string, search = ""): DonationPurpose {
+  const p = (pathname || "").toLowerCase();
+  const q = (search || "").toLowerCase();
+  if (p.startsWith("/divinity-guide")) return "divinity_guide";
+  if (p.includes("derisking") || p.includes("de-risking") || /[?&]for=derisking/.test(q)) return "derisking_strategies";
+  return "community";
+}
+
+const PURPOSE_LABELS: Record<DonationPurpose, [string, string]> = {
+  divinity_guide: ["The Divinity Guide — donation", "The Return to Wholeness and Living Divinity"],
+  derisking_strategies: ["DeRisking Strategies — donation", "Support DeRisking Strategies"],
+  community: ["eXeL AI Polling — Community Contribution", "Support the SoI Governance platform"],
+};
+
+export function DonateModal({ open, onClose, purpose }: { open: boolean; onClose: () => void; purpose?: DonationPurpose }) {
   const { t } = useLexicon();
   const [amount, setAmount] = useState(333);
   const [amountStr, setAmountStr] = useState("3.33"); // raw editable text (can be empty)
@@ -53,10 +68,12 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
     setError("");
     try {
       const here = typeof window !== "undefined" ? window.location.href : "";
+      const why = purpose || (typeof window !== "undefined" ? donationPurposeFor(window.location.pathname, window.location.search) : "community");
       const url = await startDonation({
         amountCents: amount,
-        label: "eXeL AI Polling — Community Contribution",
-        description: "Support the SoI Governance platform",
+        label: PURPOSE_LABELS[why][0],
+        description: PURPOSE_LABELS[why][1],
+        purpose: why,
         successUrl: donatedReturnUrl(),   // back here with ?donated=true, so the page can say thank you
         cancelUrl: here,
         clientKey: clientKey.current,

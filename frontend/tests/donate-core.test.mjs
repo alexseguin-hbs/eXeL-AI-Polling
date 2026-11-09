@@ -73,3 +73,18 @@ const vreq = (qs, origin = SITE, method = "GET") => new Request(SITE + "/api/don
   ok2(new URLSearchParams(calls2[0].body).get("success_url") === SITE + "/divinity-guide/?donated=true&cs={CHECKOUT_SESSION_ID}", "create: success_url carries {CHECKOUT_SESSION_ID}");
   console.log(`donate-verify: ${pass2} passed, ${fail2} failed`); if (fail2) process.exit(1);
 }
+// 2026-11-08 payments go-live: a LIVE key books the donation to the purpose's live Product; unknown purpose → community.
+{
+  let p3 = 0, f3 = 0; const ok3 = (c, m) => { if (c) p3++; else { f3++; console.log("FAIL:", m); } };
+  const seen = []; globalThis.fetch = async (url, init) => { seen.push(new URLSearchParams(init.body)); return new Response(JSON.stringify({ url: "https://checkout.stripe.com/c/pay/cs_live_x" }), { status: 200, headers: { "Content-Type": "application/json" } }); };
+  await handleDonate(req({ amount_cents: 500, purpose: "derisking_strategies" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_live_x" });
+  ok3(seen[0].get("line_items[0][price_data][product]") === "prod_VavRWTGbsPbrLx" && !seen[0].get("line_items[0][price_data][product_data][name]"), "live key: DeRisking donation attached to its live Product");
+  ok3(seen[0].get("metadata[purpose]") === "derisking_strategies" && seen[0].get("metadata[transaction_type]") === "donation", "metadata carries purpose; transaction_type stays donation (verify contract)");
+  await handleDonate(req({ amount_cents: 333, purpose: "divinity_guide" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_live_x" });
+  ok3(seen[1].get("line_items[0][price_data][product]") === "prod_VavR1Xy18Cyu43", "live key: Divinity Guide product");
+  await handleDonate(req({ amount_cents: 333, purpose: "__proto__" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_live_x" });
+  ok3(seen[2].get("metadata[purpose]") === "community", "unknown purpose falls back to community");
+  await handleDonate(req({ amount_cents: 333, purpose: "divinity_guide" }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
+  ok3(!seen[3].get("line_items[0][price_data][product]") && seen[3].get("line_items[0][price_data][product_data][name]"), "test key: inline product_data (live product ids not used)");
+  console.log(`donate-products: ${p3} passed, ${f3} failed`); if (f3) process.exit(1);
+}
