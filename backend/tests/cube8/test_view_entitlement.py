@@ -379,3 +379,27 @@ async def test_moderator_export_follows_creator_payment_on_paid_tiers(db):
     free, _, _ = await _poll(db, "free")
     assert await resolve_export_tier(db, free.id, CREATOR.user_id, "moderator") == TIER_TALENT, "free flow unchanged"
     assert await resolve_export_tier(db, split.id, ADMIN.user_id, "admin") == TIER_TALENT
+
+
+async def test_get_themes_withholds_theme_333_until_paid(db, api):
+    """CRS-39.02: GET /themes (participant-facing) returns theme summary_333 only to entitled callers."""
+    c, who = api
+    s, alice, _ = await _poll(db, "moderator_paid")
+    row = {"id": uuid.uuid4(), "session_id": s.id, "cycle_id": 1, "label": "Cost", "summary": "S33", "summary_111": "T111",
+           "summary_333": "T333", "confidence": 0.9, "response_count": 3, "ai_provider": "openai", "ai_model": "m",
+           "created_at": NOW, "theme01_category": "risk", "theme_level": "3", "parent_theme_id": uuid.uuid4()}
+
+    async def fake_enriched(*a, **k):
+        return [dict(row)]
+
+    with patch("app.cubes.cube6_ai.service.get_session_themes_enriched", new=fake_enriched):
+        for viewer in (None, ALICE, CREATOR):
+            who["user"] = viewer
+            body = (await c.get(f"/api/v1/sessions/{s.id}/themes")).json()
+            assert body[0]["summary_333"] is None and body[0]["summary_111"] == "T111", viewer
+        db.add(_tx(s, 1111, ttype="moderator_fee"))
+        await db.commit()
+        who["user"] = CREATOR
+        assert (await c.get(f"/api/v1/sessions/{s.id}/themes")).json()[0]["summary_333"] == "T333"
+        who["user"] = ALICE  # the creator paid; participants keep their own ladder
+        assert (await c.get(f"/api/v1/sessions/{s.id}/themes")).json()[0]["summary_333"] is None

@@ -157,6 +157,17 @@ async def get_themes(
         enriched = [e for e in enriched if e["theme01_category"] == category]
     if level is not None:
         enriched = [e for e in enriched if e["theme_level"] == level]
+    # CRS-39.02 Pay to View: theme-level 333 summaries only for callers whose payment Stripe confirmed
+    # (cube8 view_entitlement — per user + poll). 33 / 111 stay free. Participants vote on labels/33.
+    from sqlalchemy import select
+
+    from app.cubes.cube8_tokens.view_entitlement import resolve_view_entitlement
+    from app.models.session import Session
+
+    sess = (await db.execute(select(Session).where(Session.id == session_id))).scalar_one_or_none()
+    unlocked = bool(sess is not None and (await resolve_view_entitlement(db, sess, user))["summary_333"])
+    if not unlocked:
+        enriched = [{**e, "summary_333": None} if isinstance(e, dict) else e for e in enriched]
     return [ThemeRead.model_validate(e) for e in enriched]
 
 

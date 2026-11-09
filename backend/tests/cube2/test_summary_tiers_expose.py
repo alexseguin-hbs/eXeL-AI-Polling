@@ -21,11 +21,13 @@ def test_theme_read_schema_has_111_333():
     assert "summary_333" in fields
 
 
-def test_paid_view_gate_is_passthrough_until_w2():
+def test_paid_view_gate_redacts_333_when_locked():
+    """CRS-39.02 (W2 hook wired): locked → 333 withheld; owner-route raw text unchanged (existing flow)."""
     item = {"summary_33": "a", "summary_111": "b", "summary_333": "c", "clean_text": "raw"}
     out = apply_response_paid_view_gate(item, unlocked_333=False)
-    assert out["summary_333"] == "c"
-    assert out["clean_text"] == "raw"
+    assert out["summary_333"] is None and out["summary_111"] == "b" and out["clean_text"] == "raw"
+    assert apply_response_paid_view_gate(item, unlocked_333=True)["summary_333"] == "c"
+    assert apply_response_paid_view_gate(item)["summary_333"] == "c"  # no caller identity → unchanged
 
 
 def test_phase_a_ai_cost_maps_to_phase_a_kind():

@@ -99,9 +99,25 @@ async def list_responses(
 ):
     """List paginated responses for a session. CRS-07: Session validated."""
     await validate_session_exists(db, session_id)
-    return await service.get_responses(
+    out = await service.get_responses(
         db, session_id, page=page, page_size=page_size,
     )
+    unlocked = await _unlocked_333(db, session_id, user)
+    out["items"] = [service.apply_response_paid_view_gate(i, unlocked_333=unlocked) for i in out.get("items", [])]
+    return out
+
+
+async def _unlocked_333(db: AsyncSession, session_id: uuid.UUID, user) -> bool:
+    """CRS-39.02: the caller's 333 unlock from webhook-confirmed payment (cube8 view_entitlement)."""
+    from sqlalchemy import select
+
+    from app.cubes.cube8_tokens.view_entitlement import resolve_view_entitlement
+    from app.models.session import Session
+
+    session = (await db.execute(select(Session).where(Session.id == session_id))).scalar_one_or_none()
+    if session is None:
+        return False
+    return bool((await resolve_view_entitlement(db, session, user))["summary_333"])
 
 
 @router.get("/metrics")
@@ -138,4 +154,4 @@ async def get_response(
     result = await service.get_response_by_id(db, session_id, response_id)
     if result is None:
         raise ResponseNotFoundError(str(response_id))
-    return result
+    return service.apply_response_paid_view_gate(result, unlocked_333=await _unlocked_333(db, session_id, user))

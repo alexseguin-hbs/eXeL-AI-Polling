@@ -543,14 +543,15 @@ async def publish_submission_event(
 
 
 def apply_response_paid_view_gate(item: dict, *, unlocked_333: bool | None = None) -> dict:
-    """Pass-through today. When W2 exposes a shared unlock map, redact paid tiers.
+    """CRS-39.02 Pay-to-View redaction for response read APIs.
 
-    TODO(W2/CRS-39): call the shared unlock helper (session.is_paid / content-tier
-    map). For unpaid callers, null out summary_333 and clean_text (Original) so
-    FE locks stay server-consistent. Do not invent a parallel Stripe/payment check
-    in this module — leave that to W2 payment unlock work.
+    `unlocked_333` comes from cube8_tokens.view_entitlement (webhook-confirmed payment, per user + poll);
+    the routers pass it. False → summary_333 is withheld (None). None → unchanged (service-level call sites
+    that have no caller identity). Original text on these owner-only routes is unchanged: the moderator
+    already sees raw responses in the live feed and the collected/Web_Results APIs (existing flow).
     """
-    _ = unlocked_333  # reserved for W2 hook
+    if unlocked_333 is False and isinstance(item, dict) and "summary_333" in item:
+        item = {**item, "summary_333": None}
     return item
 
 
