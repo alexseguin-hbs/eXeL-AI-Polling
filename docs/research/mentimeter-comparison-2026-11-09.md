@@ -84,7 +84,7 @@ Paid-plan common caps cited in Help: up to **20,000** participants per presentat
 | Theming | Theme01 categories + Theme02 9→6→3 (AI merry-go-round) | Optional AI grouping; word cloud |
 | Voting | Ranking rounds (incl. top-3 points CRS-37; auto-select CRS-36; Expert Opinion CRS-38 planned) | Optional vote-on-open-ended; Ranking slide; Quiz leaderboard |
 | Results / pay | Pay-to-View / Cost Split / donations (Stripe); unpaid withhold 333 | Free vs paid presenter plans; export on paid |
-| Engagement credit | Join ♡1 + time entries; **submit path currently credits wall/process time, not proven active typing** | Mentimeter does **not** expose a public ♡/SI engagement ledger (no cited equivalent) |
+| Engagement credit | Join ♡1 + **CRS-19.09** submit credits active typing/speaking only (`responding_active`, paste/idle → 0) | Mentimeter does **not** expose a public ♡/SI engagement ledger (no cited equivalent) |
 
 ---
 
