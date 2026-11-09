@@ -9,7 +9,7 @@ let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
 
 const keys = Object.values(SF_NOTE_KEYS);
-ok(keys.length === 12, `12 collab note keys (got ${keys.length})`);
+ok(keys.length === 14, `14 collab note keys (got ${keys.length})`);
 ok(keys.every((k) => k.startsWith("sf.collab.")), "keys use sf.collab.* prefix");
 ok(keys.every((k) => DEFAULT_ENGLISH_TRANSLATIONS[k]?.englishDefault?.trim()), "lexicon-data englishDefault present for each key");
 ok(keys.every((k) => DEFAULT_ENGLISH_TRANSLATIONS[k]?.cubeId === 81), "cubeId 81 SensorFusion collaborative persistence");

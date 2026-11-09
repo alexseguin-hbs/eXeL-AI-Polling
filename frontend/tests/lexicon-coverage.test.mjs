@@ -18,7 +18,7 @@ const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 // English rather than returning the old, wrong translation ("listed never silent" — an orphaned fill is a silent lie).
 const AFTER_FILL = new Set([
   // SensorFusion-2525 collab UI notes (2026-11-08): ENGLISH ONLY — staged until HI-tested; ×32 fill unverified / not claimed.
-  ...['auth_required','reviewer_needs_labeler','reviewer_needs_name','reviewer_must_differ','progress_not_connected','progress_save_failed','settings_save_failed','pair_name_mismatch','sync_waiting_tables','json_needs_pictures','json_needs_level1','json_needs_level2'].map((k) => `sf.collab.${k}`),
+  ...['auth_required','reviewer_needs_labeler','reviewer_needs_name','reviewer_must_differ','progress_not_connected','progress_save_failed','settings_save_failed','pair_name_mismatch','sync_waiting_tables','json_needs_pictures','json_needs_level1','json_needs_level2','correction_save_failed','correction_needs_indep'].map((k) => `sf.collab.${k}`),
 
   // Architect-2525 IMG-05 (operator 2026-10-24, "drag drop on phone + computer"): the armed-banner line for the
   // tap-to-place path. ENGLISH ONLY until the operator says the Architect UI/UX is final — staged, never filled early.

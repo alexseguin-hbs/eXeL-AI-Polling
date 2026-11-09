@@ -21,6 +21,8 @@ export const SF_NOTE_KEYS = {
   jsonNeedsPictures: "sf.collab.json_needs_pictures",
   jsonNeedsLevel1: "sf.collab.json_needs_level1",
   jsonNeedsLevel2: "sf.collab.json_needs_level2",
+  correctionSaveFailed: "sf.collab.correction_save_failed",
+  correctionNeedsIndep: "sf.collab.correction_needs_indep",
 } as const;
 
 export type SfNoteKey = (typeof SF_NOTE_KEYS)[keyof typeof SF_NOTE_KEYS];
@@ -265,5 +267,139 @@ export function settingsUpsertRow(owner: string, settings: ProjectSettings) {
     settings: JSON.parse(serializeProjectSettings({ ...settings, updatedBy: owner })),
     updated_by: owner,
     updated_at: settings.updatedAt || new Date().toISOString(),
+  };
+}
+
+/** Live sensor_fusion_labels insert shape (columns applied 2026-11-08). */
+export type LabelBoxInput = {
+  name: string;
+  xmin: number;
+  ymin: number;
+  xmax: number;
+  ymax: number;
+  level?: number;
+  by?: string;
+  at?: string;
+  reviewer?: string;
+  reviewedAt?: string;
+};
+
+export function labelInsertRows(
+  owner: string,
+  pictureId: string,
+  projectId: string,
+  boxes: readonly LabelBoxInput[],
+  codex = "",
+) {
+  if (!owner?.trim()) throw new Error("labelInsertRows requires a signed-in member id");
+  if (!pictureId?.trim()) throw new Error("labelInsertRows requires pictureId");
+  return boxes.map((box) => ({
+    owner_key: owner,
+    picture_id: pictureId,
+    name: box.name,
+    x1: box.xmin,
+    y1: box.ymin,
+    x2: box.xmax,
+    y2: box.ymax,
+    project_id: projectId,
+    level: box.level ?? 1,
+    labeled_by: box.by || null,
+    labeled_at: box.at || null,
+    reviewed_by: box.reviewer || null,
+    reviewed_at: box.reviewedAt || null,
+    codex: codex || null,
+  }));
+}
+
+/** Live sensor_fusion_pictures insert with XML/device provenance columns. */
+export function pictureInsertRow(input: {
+  owner: string;
+  projectId: string;
+  fileName: string;
+  model: string;
+  jpeg: string;
+  xmlText?: string;
+  sourceDevice?: string;
+  renamedFrom?: string;
+  codexL1?: string;
+  codexL2?: string;
+}) {
+  if (!input.owner?.trim()) throw new Error("pictureInsertRow requires a signed-in member id");
+  const pair = associatePngXml(input.fileName, {
+    sourceDevice: input.sourceDevice,
+    renamedFrom: input.renamedFrom,
+  });
+  return {
+    owner_key: input.owner,
+    name: input.fileName,
+    model: input.model,
+    jpeg: input.jpeg,
+    project_id: input.projectId,
+    codex_l1: input.codexL1 || null,
+    codex_l2: input.codexL2 || null,
+    xml_text: input.xmlText || null,
+    source_device: pair.sourceDevice || null,
+    renamed_from: pair.renamedFrom || null,
+    pair_stem: pair.stem,
+  };
+}
+
+/** Live sensor_fusion_label_corrections insert (append-only). Independent reviewer required. */
+export function correctionInsertRow(input: {
+  owner: string;
+  projectId: string;
+  pictureId: string;
+  labelId?: string | null;
+  event: CorrectionEvent;
+  labeledBy?: string;
+}) {
+  if (!input.owner?.trim()) throw new Error("correctionInsertRow requires a signed-in member id");
+  if (input.labeledBy?.trim()) {
+    const indep = authorizeReviewer(input.labeledBy, input.event.by);
+    if (!indep.ok) throw new Error("correctionInsertRow refuses same-person correction");
+  }
+  return {
+    project_id: input.projectId,
+    picture_id: input.pictureId,
+    label_id: input.labelId || null,
+    corrected_by: input.event.by,
+    labeled_by: input.labeledBy || null,
+    kind: input.event.kind,
+    from_box: { ...input.event.from },
+    to_box: { ...input.event.to },
+    note: input.event.note || null,
+  };
+}
+
+/**
+ * Level-2 decision helper: approve (no correction), reject, or adjust.
+ * Always requires an independent reviewer. Does not invent membership.
+ */
+export function level2Decision(input: {
+  labeler: string;
+  reviewer: string;
+  kind: "approve" | "reject" | "adjust";
+  from: CorrectionEvent["from"];
+  to?: CorrectionEvent["to"];
+  at: string;
+  note?: string;
+}):
+  | { ok: true; kind: "approve" }
+  | { ok: true; kind: "reject" | "adjust"; event: CorrectionEvent }
+  | { ok: false; noteKey: SfNoteKey } {
+  const gate = authorizeReviewer(input.labeler, input.reviewer);
+  if (!gate.ok) return gate;
+  if (input.kind === "approve") return { ok: true, kind: "approve" };
+  return {
+    ok: true,
+    kind: input.kind,
+    event: {
+      at: input.at,
+      by: input.reviewer.trim(),
+      kind: input.kind,
+      from: { ...input.from },
+      to: { ...(input.to || {}) },
+      note: input.note,
+    },
   };
 }

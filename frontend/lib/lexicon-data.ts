@@ -3566,6 +3566,8 @@ const sensorFusion2525: TranslationEntry[] = [
   { key: "sf.collab.json_needs_pictures", englishDefault: "Open the project's pictures first. Level 1 and Level 2 stay XML.", context: "SensorFusion project JSON gate: empty set", cubeId: 81 },
   { key: "sf.collab.json_needs_level1", englishDefault: "Every picture needs a Level 1 box first. Both levels stay XML.", context: "SensorFusion project JSON gate: missing Level 1", cubeId: 81 },
   { key: "sf.collab.json_needs_level2", englishDefault: "JSON waits. Every picture in this project still needs Level 2 by a different person, saved as XML.", context: "SensorFusion project JSON gate: missing independent Level 2", cubeId: 81 },
+  { key: "sf.collab.correction_save_failed", englishDefault: "The Level 2 correction could not be saved to the project. It stayed on this device.", context: "SensorFusion correction insert failed", cubeId: 81 },
+  { key: "sf.collab.correction_needs_indep", englishDefault: "A Level 2 correction must be made by a different person than the Level 1 labeler.", context: "SensorFusion correction independence gate", cubeId: 81 },
 ];
 
 export const CUBE_GROUPS: CubeGroup[] = [

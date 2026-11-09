@@ -22,6 +22,11 @@ import {
   settingsUpsertRow,
   SF_NOTE_KEYS,
   type ProjectSettings,
+  labelInsertRows,
+  pictureInsertRow,
+  correctionInsertRow,
+  level2Decision,
+  appendCorrection,
 } from "@/lib/sensor-fusion/collab";
 import { supabase } from "@/lib/supabase";
 import {
@@ -899,11 +904,32 @@ function Labeler({
       setNote(result.note);
       return;
     }
+    const moved =
+      mark.left !== result.box.left ||
+      mark.top !== result.box.top ||
+      mark.right !== result.box.right ||
+      mark.bottom !== result.box.bottom ||
+      mark.name !== result.box.name;
+    const decision = level2Decision({
+      labeler: mark.by || "",
+      reviewer: who || "guest",
+      kind: moved ? "adjust" : "approve",
+      from: { name: mark.name, left: mark.left, top: mark.top, right: mark.right, bottom: mark.bottom, level: mark.level },
+      to: { name: result.box.name, left: result.box.left, top: result.box.top, right: result.box.right, bottom: result.box.bottom, level: result.box.level },
+      at: result.box.reviewedAt || codexStamp(),
+    });
+    if (!decision.ok) {
+      setNote(t(decision.noteKey));
+      return;
+    }
     const list = (marks[pic.id] || []).map((item) => (item.id === mark.id ? { ...item, ...result.box } : item));
     setMarks({ ...marks, [pic.id]: list });
     const fileName = await ensurePng(pictureName(pic), list);
-    touchWork(fileName, "level2");
+    touchWork(fileName, moved ? "adjust" : "level2");
     const where = await writePicture(fileName, list);
+    if (decision.kind === "adjust") {
+      void recordCorrectionToProject(fileName, mark.by || "", decision.event, mark.id);
+    }
     if (where) setNote(`Level 2 saved. ${fileName}. ${where}`);
   }
 
@@ -919,13 +945,60 @@ function Labeler({
 
   async function rejectBox(mark: Mark) {
     if (!pic) return;
+    const fileName = pictureName(pic);
+    const decision = level2Decision({
+      labeler: mark.by || "",
+      reviewer: who || "guest",
+      kind: "reject",
+      from: { name: mark.name, left: mark.left, top: mark.top, right: mark.right, bottom: mark.bottom, level: mark.level },
+      to: {},
+      at: codexStamp(),
+      note: "rejected",
+    });
+    // Own Level-1 draft may still be removed locally; independent reject records provenance.
+    if (who && !sameMember(who, mark.by || "guest")) {
+      if (!decision.ok) {
+        setNote(t(decision.noteKey));
+        return;
+      }
+      touchWork(fileName, "adjust");
+      void recordCorrectionToProject(fileName, mark.by || "", decision.event, mark.id);
+    }
     const list = (marks[pic.id] || []).filter((item) => item.id !== mark.id);
     if (editing === mark.id) setEditing("");
     if (lit === mark.id) setLit("");
     setMarks({ ...marks, [pic.id]: list });
-    if (who && !sameMember(who, mark.by || "guest")) touchWork(pictureName(pic), "adjust");
-    const where = await writePicture(pictureName(pic), list);
+    const where = await writePicture(fileName, list);
     if (where) setNote(`Removed. ${where}`);
+  }
+
+  /** Append-only Level-2 correction. Cloud write only when a real member session exists; never invents membership. */
+  async function recordCorrectionToProject(
+    pictureId: string,
+    labeledBy: string,
+    event: { at: string; by: string; kind: "adjust" | "reject" | "restore"; from: Record<string, unknown>; to: Record<string, unknown>; note?: string },
+    labelId?: string,
+  ) {
+    // Local append-only trail is always shaped; cloud insert is gated.
+    void appendCorrection(undefined, event as Parameters<typeof appendCorrection>[1]);
+    if (!supabase) return;
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const gated = requireMemberSession(session.session);
+      if (!gated.ok) return; // device-local XML remains; auth.users empty is an honest blocker
+      const row = correctionInsertRow({
+        owner: gated.owner,
+        projectId: SENSOR_FUSION_PROJECT,
+        pictureId,
+        labelId: labelId || null,
+        event: event as Parameters<typeof correctionInsertRow>[0]["event"],
+        labeledBy,
+      });
+      const written = await supabase.from("sensor_fusion_label_corrections").insert(row);
+      if (written.error) setNote(t(SF_NOTE_KEYS.correctionSaveFailed));
+    } catch {
+      setNote(t(SF_NOTE_KEYS.correctionNeedsIndep));
+    }
   }
 
   async function reviewOpen() {
@@ -2241,35 +2314,22 @@ export default function SensorFusion() {
       const reviewed = [...page.boxes].reverse().find((box) => box.reviewer && box.reviewedAt);
       const l1 = labeled ? codexLine({ file: fileName, level: 1, who: labeled.by, when: labeled.at }) : "";
       const l2 = reviewed && labeled ? codexLine({ file: fileName, level: 2, who: reviewed.reviewer, when: reviewed.reviewedAt, l1: { who: labeled.by, when: labeled.at } }) : "";
-      const picture = await supabase.from("sensor_fusion_pictures").insert({
-        owner_key: owner,
-        name: fileName,
+      const xmlText = store[fileName] || "";
+      const picture = await supabase.from("sensor_fusion_pictures").insert(pictureInsertRow({
+        owner,
+        projectId: SENSOR_FUSION_PROJECT,
+        fileName,
         model,
         jpeg: shot.url.startsWith("data:") ? shot.url.slice(0, 500000) : `local:${fileName}`,
-        project_id: SENSOR_FUSION_PROJECT,
-        codex_l1: l1,
-        codex_l2: l2,
-      }).select("id").single();
+        xmlText,
+        codexL1: l1,
+        codexL2: l2,
+      })).select("id").single();
       if (picture.error || !picture.data) {
         setUploadNote(picture.error?.message || "The project did not take this set. The pictures and XML stayed in the folder.");
         return;
       }
-      const labels = page.boxes.map((box) => ({
-        owner_key: owner,
-        picture_id: picture.data.id,
-        name: box.name,
-        x1: box.xmin,
-        y1: box.ymin,
-        x2: box.xmax,
-        y2: box.ymax,
-        project_id: SENSOR_FUSION_PROJECT,
-        level: box.level,
-        labeled_by: box.by,
-        labeled_at: box.at,
-        reviewed_by: box.reviewer,
-        reviewed_at: box.reviewedAt,
-        codex: l2,
-      }));
+      const labels = labelInsertRows(owner, picture.data.id, SENSOR_FUSION_PROJECT, page.boxes, l2);
       const written = await supabase.from("sensor_fusion_labels").insert(labels);
       if (written.error) {
         setUploadNote(written.error.message);
