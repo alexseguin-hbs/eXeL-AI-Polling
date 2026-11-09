@@ -671,6 +671,7 @@ class TestWebhookHandler:
 
         db.execute = mock_execute
         db.commit = AsyncMock()
+        db.begin_nested = MagicMock(return_value=AsyncMock())  # receipt runs in a SAVEPOINT (async ctx manager)
 
         event = {
             "type": "checkout.session.completed",
@@ -684,6 +685,8 @@ class TestWebhookHandler:
             assert tx.status == "completed"
             # Verify the award function was called with correct amount
             mock_award.assert_awaited_once()
+            assert mock_award.await_args.kwargs["user_id"] == "donor:anonymous"
+            assert "participant_id" not in mock_award.await_args.kwargs
             call_kwargs = mock_award.call_args
             assert call_kwargs[1]["amount_usd"] == pytest.approx(3.33, abs=0.01)
 

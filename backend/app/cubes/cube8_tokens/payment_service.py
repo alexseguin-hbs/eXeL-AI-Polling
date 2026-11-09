@@ -654,15 +654,19 @@ async def handle_payment_completed(
 
             if tx.transaction_type in DONATION_TX_TYPES and not tx.session_id:
                 # Record an inert contribution receipt (mints no 웃)
+                # The receipt runs in a SAVEPOINT: if it fails, the payment row still commits (the old call passed
+                # participant_id/no user_id → TypeError, so receipts were never written; a DB error here would also
+                # have poisoned the outer transaction and 500'd the webhook).
                 from app.cubes.cube8_tokens.service import record_contribution_receipt
                 try:
-                    amount_usd = tx.amount_cents / 100.0
-                    await record_contribution_receipt(
-                        db, session_id=tx.session_id, participant_id=tx.participant_id,
-                        amount_usd=amount_usd, payment_type="donation",
-                    )
-                except Exception as e:
-                    logger.warning("cube8.payment.donation_receipt_failed", error=str(e))
+                    async with db.begin_nested():
+                        await record_contribution_receipt(
+                            db, session_id=tx.session_id, user_id="donor:anonymous",
+                            amount_usd=tx.amount_cents / 100.0, payment_type="donation",
+                            reference_id=checkout_id,
+                        )
+                except Exception as e:  # noqa: BLE001
+                    logger.warning("cube8.payment.donation_receipt_failed", error=str(e)[:300])
             elif tx.session_id and tx.transaction_type in ("moderator_fee", "cost_split", "usage_billing"):
                 session = await _get_session(db, tx.session_id)
                 session.is_paid = True

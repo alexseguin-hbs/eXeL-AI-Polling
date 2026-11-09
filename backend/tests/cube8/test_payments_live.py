@@ -90,6 +90,7 @@ def _db_returning(tx):
     res.scalar_one_or_none = MagicMock(return_value=tx)
     db.execute = AsyncMock(return_value=res)
     db.add = MagicMock()
+    db.begin_nested = MagicMock(return_value=AsyncMock())
     return db
 
 
