@@ -47,6 +47,7 @@ import { ThemeRankingDnD } from "@/components/theme-ranking-dnd";
 import { Top3Ballot } from "@/components/top3-ballot";
 import { ThemeResultsChart } from "@/components/theme-results-chart";
 import { LiveRankingPanel } from "@/components/live-ranking-panel";
+import { ParticipantPayPanel } from "@/components/stripe-payment";
 import { getSimPollBySessionId, resolveThemesForLevel } from "@/lib/sim-data";
 import { useSessionBallotThemes, type BallotCategory } from "@/lib/ballot-themes";
 
@@ -1461,6 +1462,14 @@ export function SessionView() {
                 <LiveRankingPanel variant="participant" submissions={groupSubmissions} ranking={groupRanking} />
               )}
               {!simulationMode && <FinalDecisionBanner decision={groupDecision} />}
+              {!simulationMode && session && participantId && session.pricing_tier !== "free" && (
+                <ParticipantPayPanel
+                  sessionId={session.id}
+                  shortCode={session.short_code}
+                  participantId={participantId}
+                  pricingTier={session.pricing_tier as "free" | "moderator_paid" | "cost_split"}
+                />
+              )}
               {!simulationMode && myRankedOrder && (
                 <p className="text-xs font-medium text-muted-foreground pt-1">{t("cube7.live.your_ballot")}</p>
               )}
@@ -1537,6 +1546,16 @@ export function SessionView() {
               <CardDescription className="text-center">
                 {t("cube1.session.session_closed_msg")}
               </CardDescription>
+              {!simulationMode && session && participantId && (
+                <div className="w-full">
+                  <ParticipantPayPanel
+                    sessionId={session.id}
+                    shortCode={session.short_code}
+                    participantId={participantId}
+                    pricingTier={session.pricing_tier as "free" | "moderator_paid" | "cost_split"}
+                  />
+                </div>
+              )}
               <Button
                 variant="outline"
                 onClick={() => (window.location.href = "/")}

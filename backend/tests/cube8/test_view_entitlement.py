@@ -18,6 +18,7 @@ from app.cubes.cube8_tokens import poll_pricing  # noqa: E402
 from app.cubes.cube8_tokens.payment_service import (  # noqa: E402
     cost_split_quote,
     create_cost_split_intent,
+    create_cost_split_share_checkout,
     create_divinity_donation_checkout,
     handle_payment_completed,
 )
@@ -425,3 +426,89 @@ async def test_collected_withholds_333_until_creator_paid(db):
         db.add(_tx(s, 1111, ttype="moderator_fee"))
         await db.commit()
         assert (await call())["items"][0]["summary_333"] == "c"
+
+
+# --------------------------------------------------------------------------- (4) Cost Split participant share Checkout
+async def _cs_poll_with_creator_quote(db, status="open", n=10):
+    s, alice, bob = await _poll(db, "cost_split", max_participants=n)
+    s.status = status
+    q = poll_pricing.quote_for_session(s)
+    tx = _tx(s, q["creator_due_cents"], ttype="cost_split")
+    tx.metadata_json = json.dumps({"quote": q})
+    db.add(tx)
+    await db.commit()
+    return s, alice, bob, q
+
+
+async def test_share_checkout_priced_from_creator_quote_and_scoped(db, monkeypatch):
+    monkeypatch.setattr(poll_pricing.settings, "pricing_margin_multiplier", "1.5", raising=False)
+    s, alice, _, q = await _cs_poll_with_creator_quote(db)
+    cs = MagicMock(id="cs_test_share1", url="https://checkout.stripe.com/c/pay/cs_test_share1")
+    with patch("stripe.checkout.Session.create", return_value=cs) as create:
+        out = await create_cost_split_share_checkout(db, s.id, alice.id, ALICE.user_id)
+    kw = create.call_args[1]
+    assert out["amount_cents"] == q["participant_share_cents"] > 0
+    assert kw["line_items"][0]["price_data"]["unit_amount"] == q["participant_share_cents"]
+    md = kw["metadata"]
+    assert md["participant_id"] == str(alice.id) and md["poll_id"] == str(s.id) and md["margin_multiplier"] == "1.5"
+    row = (await db.execute(PaymentTransaction.__table__.select().where(
+        PaymentTransaction.stripe_checkout_session_id == "cs_test_share1"))).mappings().one()
+    assert row["participant_id"] == alice.id and row["status"] == "pending"
+    assert (await resolve_view_entitlement(db, s, ALICE))["summary_333"] is False, "pending share unlocks nothing"
+
+
+async def test_share_checkout_rules(db):
+    from fastapi import HTTPException
+
+    s, alice, bob, _ = await _cs_poll_with_creator_quote(db, status="draft")
+    with patch("stripe.checkout.Session.create") as create:
+        with pytest.raises(HTTPException) as ei:
+            await create_cost_split_share_checkout(db, s.id, alice.id, ALICE.user_id)
+        assert ei.value.status_code == 409, "draft poll: creator must open first"
+        s.status = "polling"
+        await db.commit()
+        with pytest.raises(HTTPException) as ei:
+            await create_cost_split_share_checkout(db, s.id, bob.id, ALICE.user_id)
+        assert ei.value.status_code == 403, "cannot pay/claim someone else's seat"
+        bob.user_id = None
+        await db.commit()
+        with pytest.raises(HTTPException) as ei:
+            await create_cost_split_share_checkout(db, s.id, bob.id, ALICE.user_id)
+        assert ei.value.status_code == 403, "anonymous seat cannot be claimed"
+        alice.payment_status = "paid"
+        await db.commit()
+        with pytest.raises(HTTPException) as ei:
+            await create_cost_split_share_checkout(db, s.id, alice.id, ALICE.user_id)
+        assert ei.value.status_code == 409
+    create.assert_not_called()
+
+
+async def test_share_webhook_marks_participant_paid_not_session(db):
+    s, alice, _, q = await _cs_poll_with_creator_quote(db)
+    share = q["participant_share_cents"]
+    db.add(PaymentTransaction(session_id=s.id, participant_id=alice.id, transaction_type="cost_split",
+                              amount_cents=share, currency="USD", status="pending",
+                              stripe_checkout_session_id="cs_test_share2", reconcile_status="awaiting_webhook"))
+    s.is_paid = False
+    await db.commit()
+    md = {"transaction_type": "cost_split", "session_id": str(s.id), "participant_id": str(alice.id)}
+    with patch("app.cubes.cube8_tokens.payment_service._fire_payment_received", new=_async_none):
+        await handle_payment_completed(db, _cs_event(md, share, cs="cs_test_share2", eid="evt_share2"))
+    await db.refresh(alice)
+    await db.refresh(s)
+    assert alice.payment_status == "paid"
+    assert s.is_paid is False, "a participant share must not mark the creator's poll paid"
+
+
+async def test_share_webhook_amount_mismatch_does_not_mark_paid(db):
+    s, alice, _, q = await _cs_poll_with_creator_quote(db)
+    share = q["participant_share_cents"]
+    db.add(PaymentTransaction(session_id=s.id, participant_id=alice.id, transaction_type="cost_split",
+                              amount_cents=share, currency="USD", status="pending",
+                              stripe_checkout_session_id="cs_test_share3", reconcile_status="awaiting_webhook"))
+    await db.commit()
+    md = {"transaction_type": "cost_split", "session_id": str(s.id), "participant_id": str(alice.id)}
+    with patch("app.cubes.cube8_tokens.payment_service._fire_payment_received", new=_async_none):
+        await handle_payment_completed(db, _cs_event(md, share - 1, cs="cs_test_share3", eid="evt_share3"))
+    await db.refresh(alice)
+    assert alice.payment_status != "paid"
