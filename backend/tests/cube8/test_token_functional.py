@@ -320,5 +320,5 @@ class TestCrossCubeIntegration:
     def test_hi_rates_returns_dict(self):
         from app.core.hi_rates import get_all_rates
         rates = get_all_rates()
-        assert len(rates) == 59
+        assert len(rates) == 60
         assert all("human_rate" in r for r in rates)
