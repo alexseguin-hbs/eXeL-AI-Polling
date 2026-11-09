@@ -17,6 +17,38 @@ const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 // re-staged AND its 32 now-stale translations are removed from lib/i18n-app/*, so t() falls back to the corrected
 // English rather than returning the old, wrong translation ("listed never silent" — an orphaned fill is a silent lie).
 const AFTER_FILL = new Set([
+  // SensorFusion-2525 collab UI notes (2026-11-08): ENGLISH ONLY — staged until HI-tested; ×32 fill unverified / not claimed.
+  ...['auth_required','reviewer_needs_labeler','reviewer_needs_name','reviewer_must_differ','progress_not_connected','progress_save_failed','settings_save_failed','pair_name_mismatch','sync_waiting_tables','json_needs_pictures','json_needs_level1','json_needs_level2','correction_save_failed','correction_needs_indep'].map((k) => `sf.collab.${k}`),
+
+  // Payments go-live (2026-11-08, t110u): Create Poll live price quote — staged ENGLISH ONLY until the operator
+  // finalizes the English (addendum 32 lock); listed never silent; no ×32 fill yet.
+  'cube8.pricing.quote_loading',
+  'cube8.pricing.quote_unavailable',
+  'cube8.pricing.quote_total',
+  'cube8.pricing.quote_split',
+  'cube8.pricing.quote_basis',
+  'cube8.pricing.min_fee',
+  // eXeL Polling Cost Estimate panel (2026-11-08 payments QA): new cube1.settings.cost_* keys
+  // staged ENGLISH ONLY until operator finalizes English UI — listed never silent; no ×32 fill yet.
+  'cube1.settings.cost_estimate_badge',
+  'cube1.settings.cost_rates_stale',
+  'cube1.settings.cost_unknown_rate',
+  'cube1.settings.cost_audio_denom',
+  'cube1.settings.cost_status_loading',
+  'cube1.settings.cost_status_server_ok',
+  'cube1.settings.cost_status_unavailable',
+  'cube1.settings.cost_status_offline',
+  'cube1.settings.cost_status_bad_shape',
+  'cube1.settings.cost_offline_estimate_note',
+  'cube1.settings.cost_not_invoice',
+  'cube1.settings.cost_catalog_label',
+  'cube1.settings.cost_checked_label',
+  'cube1.settings.cost_assumptions_users',
+  'cube1.settings.cost_assumptions_response',
+  'cube1.settings.cost_assumptions_words',
+  'cube1.settings.cost_assumptions_type',
+  'cube1.settings.cost_assumptions_voice',
+  'cube1.settings.cost_prices_not_activated',
   // Architect-2525 IMG-05 (operator 2026-10-24, "drag drop on phone + computer"): the armed-banner line for the
   // tap-to-place path. ENGLISH ONLY until the operator says the Architect UI/UX is final — staged, never filled early.
   'arch.layertree.tapHouseToAdd',

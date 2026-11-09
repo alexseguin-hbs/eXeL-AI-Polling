@@ -59,9 +59,24 @@ router = APIRouter(tags=["Cube 8 — Tokens"])
 
 class ModeratorCheckoutRequest(BaseModel):
     session_id: uuid.UUID
-    amount_cents: int | None = None  # None = minimum $11.11
-    success_url: str = ""
-    cancel_url: str = ""
+    amount_cents: int | None = Field(None, ge=0, le=100_000_000)  # may RAISE the quote, never lower it
+    success_url: str = Field("", max_length=500)
+    cancel_url: str = Field("", max_length=500)
+    participants: int | None = Field(None, ge=1, le=1_000_000)
+    options: list[str] | None = Field(None, max_length=12)
+    voice_share: float | None = Field(None, ge=0, le=1)
+    client_key: str | None = Field(None, pattern=r"^[A-Za-z0-9_-]{8,64}$")
+
+
+class PollQuoteRequest(BaseModel):
+    pricing_tier: str = Field("moderator_paid", pattern=r"^(moderator_paid|cost_split)$")
+    participants: int = Field(100, ge=1, le=1_000_000)
+    responses_per_participant: int = Field(1, ge=1, le=9)
+    max_response_length: int = Field(3333, ge=1, le=100_000)
+    ai_provider: str = Field("openai", max_length=20)
+    stt_provider: str = Field("whisper", max_length=20)
+    voice_share: float = Field(0.0, ge=0, le=1)
+    options: list[str] | None = Field(None, max_length=12)
 
 
 class CostSplitRequest(BaseModel):
@@ -178,6 +193,8 @@ async def create_moderator_checkout(
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
     """Create Stripe Checkout Session for Moderator Paid tier (min $11.11)."""
+    if not (_own_site(payload.success_url) and _own_site(payload.cancel_url)):
+        raise HTTPException(status_code=400, detail="Redirect URLs must return to this site")
     return await payment_service.create_moderator_checkout(
         db,
         session_id=payload.session_id,
@@ -185,7 +202,40 @@ async def create_moderator_checkout(
         amount_cents=payload.amount_cents,
         success_url=payload.success_url,
         cancel_url=payload.cancel_url,
+        participants=payload.participants,
+        options=payload.options,
+        voice_share=payload.voice_share,
+        client_key=payload.client_key,
     )
+
+
+@router.post("/payments/poll-quote")
+@limiter.limit("60/minute")
+async def quote_poll_options(request: Request, payload: PollQuoteRequest):
+    """Price the options chosen on the Create Poll form (public, no charge): tracked cost × margin + Stripe fee,
+    floor $11.11. The same function prices the Checkout server-side, so the number shown is the number charged."""
+    from app.cubes.cube8_tokens import poll_pricing
+
+    return poll_pricing.quote_poll(poll_pricing.PollQuoteInput(
+        pricing_tier=payload.pricing_tier,
+        participants=payload.participants,
+        responses_per_participant=payload.responses_per_participant,
+        max_response_length=payload.max_response_length,
+        ai_provider=payload.ai_provider,
+        stt_provider=payload.stt_provider,
+        voice_share=payload.voice_share,
+        options=tuple(payload.options) if payload.options else poll_pricing.DEFAULT_OPTIONS,
+    ))
+
+
+@router.get("/payments/catalog")
+async def get_payment_catalog():
+    """Live Stripe Product IDs per product line + the margin setting (no secrets)."""
+    from app.cubes.cube8_tokens import poll_pricing, stripe_catalog
+
+    m = poll_pricing.margin_multiplier()
+    return {**stripe_catalog.catalog_status(), "margin_multiplier": str(m), "margin_label": poll_pricing.margin_label(m),
+            "margin_decision_pending": True, "moderator_min_fee_cents": poll_pricing.MODERATOR_MIN_FEE_CENTS}
 
 
 @router.post("/payments/cost-split")
@@ -226,6 +276,8 @@ class DivinityDonationRequest(BaseModel):
     cancel_url: str = Field("", max_length=500)
     label: str = Field("The Divinity Guide — Sacred Contribution", max_length=120)
     description: str = Field("The Return to Wholeness and Living Divinity", max_length=300)
+    purpose: str = Field("divinity_guide", pattern=r"^(divinity_guide|derisking_strategies|community)$")
+    client_key: str | None = Field(None, pattern=r"^[A-Za-z0-9_-]{8,64}$")
 
 
 def _own_site(url: str) -> bool:
@@ -262,6 +314,8 @@ async def create_divinity_donation(
         cancel_url=payload.cancel_url,
         label=payload.label,
         description=payload.description,
+        purpose=payload.purpose,
+        client_key=payload.client_key,
     )
 
 

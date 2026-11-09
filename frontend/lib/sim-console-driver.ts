@@ -4,26 +4,60 @@
 // new question). This driver composes the REAL endpoints (create → inject → theme → rank), so the SAME
 // run works self-contained (NEXT_PUBLIC_MOCK_MODE default → mock handlers) or against a hosted backend
 // (NEXT_PUBLIC_MOCK_MODE=false + provider key). The console shows which mode it is in.
+//
+// P0 (2026-11-08 audit): Easter-egg presets 12/24/48 map onto Theme01 + theme2_9|6|3 (Mentimeter-style
+// narrowing), stage timings, exportable review JSON, honest mock-vs-live via api-connectivity, optional
+// scope_ref so Drone/Security feedback stays separated without inventing new contracts.
 
 import { api, ApiClientError } from "./api";
 import { generateSimResponses, simulateBallots } from "./sim-console";
 import { adaptLiveThemes, THEME01_LABELS, type LiveThemeRow } from "./adapt-live-themes";
-import { ballotThemeRows } from "./ballot-themes";
+import { ballotThemeRows, levelOf, type BallotLevel } from "./ballot-themes";
 import { normalizeRankings, rankingWinner, rankingReplayHash } from "./ranking-shape";
-import type { Session, Question, SessionThemeData, Theme01Label } from "./types";
+import { isMockMode, type ApiConnectivityReport } from "./api-connectivity";
+import type { Session, Question, SessionThemeData, Theme01Label, Theme2VotingLevel } from "./types";
 
 /** Same rule as lib/api.ts — self-contained unless the operator points at a real backend. */
-export const SIM_MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_MODE !== "false";
+export const SIM_MOCK_MODE = isMockMode();
+
+/** Isolated Easter-egg size presets → Theme02 voting level (existing theme2_9|6|3 contract). */
+export const SIM_PRESETS = [
+  { count: 12, theme2VotingLevel: "theme2_9" as Theme2VotingLevel, level: "9" as BallotLevel, label: "12 · Theme02×9" },
+  { count: 24, theme2VotingLevel: "theme2_6" as Theme2VotingLevel, level: "6" as BallotLevel, label: "24 · Theme02×6" },
+  { count: 48, theme2VotingLevel: "theme2_3" as Theme2VotingLevel, level: "3" as BallotLevel, label: "48 · Theme02×3" },
+] as const;
+
+export type SimPresetCount = (typeof SIM_PRESETS)[number]["count"];
+
+export function presetForCount(count: number): (typeof SIM_PRESETS)[number] | null {
+  return SIM_PRESETS.find((p) => p.count === count) ?? null;
+}
+
+export function votingLevelForCount(count: number, fallback: Theme2VotingLevel = "theme2_9"): Theme2VotingLevel {
+  return presetForCount(count)?.theme2VotingLevel ?? fallback;
+}
 
 export interface SimRankRow { theme_id: string; label: string; rank: number; score: number }
 
 /** One failed stage of a run (Christo, AsM round 1: a failed run must never look clean). */
 export interface SimStageError { stage: string; status: number | null; detail: string }
 
+/** Stage wall-clock timings in ms (audit Phase 1). Missing keys mean the stage did not run. */
+export interface SimStageTimingsMs {
+  create?: number;
+  inject?: number;
+  theme?: number;
+  ballot?: number;
+  aggregate?: number;
+  total?: number;
+}
+
 export interface SimConsoleResult {
   sessionId: string;
   shortCode: string | null;
   mode: "self-contained" | "live-backend";
+  /** Honest connectivity snapshot when the caller probed; null when not provided. */
+  connectivity: ApiConnectivityReport | null;
   question: string;
   responseCount: number;
   themes: SessionThemeData;
@@ -36,6 +70,15 @@ export interface SimConsoleResult {
   ranked: { kind: "theme02"; category: Theme01Label; level: "3" | "6" | "9" } | { kind: "theme01" } | null;
   /** Every failed stage, in order. Empty only when every call succeeded. */
   errors: SimStageError[];
+  /** Wall-clock stage timings (ms). */
+  timingsMs: SimStageTimingsMs;
+  /** Echo of the session create fields that keep Drone/Security isolation honest. */
+  sessionType: "simulation";
+  theme2VotingLevel: Theme2VotingLevel;
+  theme01Category: "risk" | "support" | "neutral";
+  scopeRef: string | null;
+  seed: string;
+  excludedFromPublicResults: true;
 }
 
 export interface SimConsoleParams {
@@ -43,6 +86,13 @@ export interface SimConsoleParams {
   count: number;         // number of responses to generate/inject
   voters?: number;       // ballots in the ranking round (default = min(count, 50))
   seed?: string;
+  /** Override Theme02 voting level; default follows SIM_PRESETS for 12/24/48 else theme2_9. */
+  theme2VotingLevel?: Theme2VotingLevel;
+  /** Existing SessionCreate.scope_ref — keep Drone vs Security feedback separated. */
+  scopeRef?: string | null;
+  theme01Category?: "risk" | "support" | "neutral";
+  /** Optional pre-probed connectivity report (ModeBadge / review JSON). */
+  connectivity?: ApiConnectivityReport | null;
   /** progress: 0..1 with a human phase label, so the UI can show a live bar. */
   onProgress?: (fraction: number, phase: string) => void;
 }
@@ -57,6 +107,56 @@ export function stageError(stage: string, e: unknown): SimStageError {
 }
 
 /**
+ * Build the downloadable external-review artifact (audit §8). Pure — no network.
+ */
+export function buildSimReviewArtifact(result: SimConsoleResult): Record<string, unknown> {
+  const themeCount =
+    (result.themes?.theme1
+      ? THEME01_LABELS.reduce((n, l) => n + (result.themes.theme1[l] && !result.themes.theme1[l].isEmpty ? 1 : 0), 0)
+      : 0);
+  return {
+    artifact_version: "1",
+    mode: result.mode === "self-contained" ? "offline-baseline" : "live-backend",
+    session_type: result.sessionType,
+    input_n: result.responseCount,
+    requested_n: undefined as number | undefined, // filled by caller if needed
+    theme_level: result.ranked && result.ranked.kind === "theme02" ? result.ranked.level : levelOf(result.theme2VotingLevel),
+    theme2_voting_level: result.theme2VotingLevel,
+    theme01_category: result.theme01Category,
+    scope_ref: result.scopeRef,
+    seed: result.seed,
+    session_id: result.sessionId,
+    short_code: result.shortCode,
+    connectivity: result.connectivity
+      ? {
+          buildMode: result.connectivity.buildMode,
+          probe: result.connectivity.probe,
+          detail: result.connectivity.detail,
+          httpStatus: result.connectivity.httpStatus,
+          contentType: result.connectivity.contentType,
+        }
+      : null,
+    timings_ms: {
+      inject: result.timingsMs.inject ?? null,
+      theme: result.timingsMs.theme ?? null,
+      ballot: result.timingsMs.ballot ?? null,
+      aggregate: result.timingsMs.aggregate ?? null,
+      create: result.timingsMs.create ?? null,
+      total: result.timingsMs.total ?? null,
+    },
+    observed: {
+      theme_count: themeCount,
+      winner_label: result.winner,
+      replay_hash: result.replayHash,
+      ranking: result.ranking.map((r) => ({ theme_id: r.theme_id, label: r.label, rank: r.rank, score: r.score })),
+      summarized: result.summarized,
+    },
+    errors: result.errors,
+    excluded_from_public_results: true,
+  };
+}
+
+/**
  * Run the whole pipeline end-to-end and return the REAL results (themes + ranked priorities).
  * Deterministic in self-contained mode for a fixed (question, count, seed).
  */
@@ -64,8 +164,14 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   const { question, count } = params;
   const seed = params.seed ?? "sim";
   const voters = params.voters ?? Math.min(Math.max(count, 3), 50);
+  const theme2VotingLevel = params.theme2VotingLevel ?? votingLevelForCount(count);
+  const theme01Category = params.theme01Category ?? "risk";
+  const scopeRef = params.scopeRef ?? null;
+  const ballotLevel = levelOf(theme2VotingLevel);
   const progress = params.onProgress ?? (() => {});
   const errors: SimStageError[] = [];
+  const timingsMs: SimStageTimingsMs = {};
+  const tRun0 = Date.now();
   /** Run one stage; on failure record it (stage + status/detail) and return null — never swallow it. */
   const step = async <T,>(stage: string, call: () => Promise<T>): Promise<T | null> => {
     try { return await call(); } catch (e) { errors.push(stageError(stage, e)); return null; }
@@ -73,17 +179,21 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
 
   // 1) Create the session (real Cube-1 create).
   progress(0.02, "Creating session");
-  const session = await api.post<Session>("/sessions", {
+  const tCreate0 = Date.now();
+  const createBody: Record<string, unknown> = {
     title: question,
     description: "Admin Simulation Console run (AI-written supplemental responses)",
     polling_mode_type: "live_interactive",
     ai_provider: "openai",
     // HP-21: a simulation session (the backend seeds its responses and simulated voters only for this type) that
-    // votes on the nine Theme02 themes of one Theme01 category — the operator's model (addendum 5).
+    // votes on the Theme02 themes of one Theme01 category — the operator's model (addendum 5).
     session_type: "simulation",
-    theme2_voting_level: "theme2_9",
-    theme01_category: "risk",
-  });
+    theme2_voting_level: theme2VotingLevel,
+    theme01_category: theme01Category,
+  };
+  if (scopeRef) createBody.scope_ref = scopeRef;
+  const session = await api.post<Session>("/sessions", createBody);
+  timingsMs.create = Date.now() - tCreate0;
   const sessionId = session!.id;
   const shortCode = session!.short_code ?? null;
 
@@ -111,6 +221,7 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   let accepted = 0;
   let summarized: number | null = null;
   let refusedTotal = 0;
+  const tInject0 = Date.now();
   if (!SIM_MOCK_MODE) {
     summarized = 0;
     // LIVE: each response from its own simulated participant, seeded server-side through the real cube2 service
@@ -141,6 +252,7 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
     );
     progress(0.08 + 0.52 * ((i + batch.length) / responses.length), `Injecting responses (${i + batch.length}/${responses.length})`);
   }
+  timingsMs.inject = Date.now() - tInject0;
 
   if (refusedTotal) errors.push({ stage: "inject responses", status: null, detail: `${refusedTotal} of ${responses.length} responses refused` });
   if (summarized != null && summarized < accepted) {
@@ -150,6 +262,7 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   // 3) Theme them (real Cube-6 when live; grounded mock when self-contained). The backend runs a simulation
   // session on the OFFLINE provider unless an HI-approved cost estimate is recorded (addendum 4).
   progress(0.62, "Theming (Theme01 → Theme02)");
+  const tTheme0 = Date.now();
   await step("theming (ai/run)", () => api.post(`/sessions/${sessionId}/ai/run`, {}));
   let themed = false;
   for (let poll = 0; poll < 30; poll++) {
@@ -164,6 +277,7 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
   }
   const rows = (await step("read themes", () => api.get<LiveThemeRow[]>(`/sessions/${sessionId}/themes`))) ?? [];
   const themes = adaptLiveThemes(sessionId, rows);
+  timingsMs.theme = Date.now() - tTheme0;
 
   // 4) Simulate the ranking round over the Theme01 categories (the priorities).
   progress(0.8, "Simulating ranking round");
@@ -173,18 +287,19 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
     .map((r) => (r as LiveThemeRow).id);
   // Fall back to any parent rows if the label match is thin.
   const parentIds = themeIds.length ? themeIds : rows.filter((r) => r.theme_level == null).map((r) => r.id);
-  // The ballot is the nine Theme02 themes of the session's category (Risk & Concerns) — what the backend's
-  // submit_user_ranking accepts at theme2_9. Parents only when no children exist (a thin self-contained run).
-  const nine = ballotThemeRows(rows, "9", "risk").map((r) => r.id);
-  const pool = nine.length >= 2 ? nine : parentIds;
-  const ranked: SimConsoleResult["ranked"] = nine.length >= 2
-    ? { kind: "theme02", category: THEME01_LABELS[0], level: "9" }
+  // The ballot is the Theme02 themes of the session's category at the chosen level — what the backend's
+  // submit_user_ranking accepts at theme2_*. Parents only when no children exist (a thin self-contained run).
+  const ballot = ballotThemeRows(rows, ballotLevel, theme01Category).map((r) => r.id);
+  const pool = ballot.length >= 2 ? ballot : parentIds;
+  const ranked: SimConsoleResult["ranked"] = ballot.length >= 2
+    ? { kind: "theme02", category: THEME01_LABELS[0], level: ballotLevel }
     : (parentIds.length >= 2 ? { kind: "theme01" } : null);
   if (!ranked) errors.push({ stage: "ranking", status: null, detail: "Fewer than two themes to rank — no ranking round ran" });
 
   let ranking: SimRankRow[] = [];
   let winner: string | null = null;
   let replayHash: string | null = null;
+  const tBallot0 = Date.now();
   if (pool.length >= 2) {
     const ballots = simulateBallots(pool, voters, seed);
     if (!SIM_MOCK_MODE) {
@@ -202,8 +317,10 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
       }
       if (fails.length) errors.push({ ...fails[0], detail: `${fails.length} of ${ballots.length} ballots refused: ${fails[0].detail}` });
     }
+    timingsMs.ballot = Date.now() - tBallot0;
     // Aggregate (object) or the live read (bare list) — one shape via lib/ranking-shape.ts. The console's seed
     // pins the tie-break (backend: `?seed=` → SHA-256(theme_id:seed)), so a fixed seed replays identically.
+    const tAgg0 = Date.now();
     let agg: unknown = await step("aggregate", () => api.post<unknown>(`/sessions/${sessionId}/rankings/aggregate?seed=${encodeURIComponent(seed)}`, {}));
     let rowsRanked = normalizeRankings(agg);
     if (!rowsRanked.length) { agg = await step("read rankings", () => api.get<unknown>(`/sessions/${sessionId}/rankings`)); rowsRanked = normalizeRankings(agg); }
@@ -211,12 +328,25 @@ export async function runSimConsole(params: SimConsoleParams): Promise<SimConsol
     ranking = rowsRanked.map((r) => ({ theme_id: r.theme_id, label: labelOf(r.theme_id), rank: r.rank, score: r.score }));
     winner = rankingWinner(agg, rowsRanked);
     replayHash = rankingReplayHash(agg);
+    timingsMs.aggregate = Date.now() - tAgg0;
+  } else {
+    timingsMs.ballot = Date.now() - tBallot0;
   }
 
+  timingsMs.total = Date.now() - tRun0;
   progress(1, errors.length ? `Finished with ${errors.length} error${errors.length === 1 ? "" : "s"}` : "Complete");
   return {
-    sessionId, shortCode, mode: SIM_MOCK_MODE ? "self-contained" : "live-backend",
+    sessionId, shortCode,
+    mode: SIM_MOCK_MODE ? "self-contained" : "live-backend",
+    connectivity: params.connectivity ?? null,
     question, responseCount: accepted, themes, ranking, winner, replayHash, summarized, ranked, errors,
+    timingsMs,
+    sessionType: "simulation",
+    theme2VotingLevel,
+    theme01Category,
+    scopeRef,
+    seed,
+    excludedFromPublicResults: true,
   };
 }
 

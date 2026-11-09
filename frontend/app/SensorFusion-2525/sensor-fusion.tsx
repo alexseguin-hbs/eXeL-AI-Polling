@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useLexicon } from "@/lib/lexicon-context";
 import { Settings } from "lucide-react";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 import { SENSORFUSION_2525_CODE } from "@/lib/2525-core/sensorfusion-2525-code.gen";   // DD-80: every R-CORE carries the </> unlock
@@ -11,6 +12,22 @@ import { bottomRightLine, codexLine, codexStamp, emptyPairXml, pairNames, readyF
 import { IMAGE_INTAKE, VIDEO_INTAKE, pictureStem, pngSet, type VideoSource } from "@/lib/sensor-fusion/frames";
 import { signSingleHelix, signUpperLeft } from "@/lib/light-codex";
 import { crossReview, emptyClock, finalSubmission, level1Left, levelMetrics, nextFor, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
+import {
+  associatePngXml,
+  authorizeReviewer,
+  progressUpsertRow,
+  projectJsonAllowed,
+  requireMemberSession,
+  serializeTeamProgress,
+  settingsUpsertRow,
+  SF_NOTE_KEYS,
+  type ProjectSettings,
+  labelInsertRows,
+  pictureInsertRow,
+  correctionInsertRow,
+  level2Decision,
+  appendCorrection,
+} from "@/lib/sensor-fusion/collab";
 import { supabase } from "@/lib/supabase";
 import {
   COLORS,
@@ -594,6 +611,7 @@ function Labeler({
   accent: string;
   onBack: () => void;
 }) {
+  const { t } = useLexicon();
   const stageRef = useRef<HTMLDivElement>(null);
   const fitRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -887,11 +905,32 @@ function Labeler({
       setNote(result.note);
       return;
     }
+    const moved =
+      mark.left !== result.box.left ||
+      mark.top !== result.box.top ||
+      mark.right !== result.box.right ||
+      mark.bottom !== result.box.bottom ||
+      mark.name !== result.box.name;
+    const decision = level2Decision({
+      labeler: mark.by || "",
+      reviewer: who || "guest",
+      kind: moved ? "adjust" : "approve",
+      from: { name: mark.name, left: mark.left, top: mark.top, right: mark.right, bottom: mark.bottom, level: mark.level },
+      to: { name: result.box.name, left: result.box.left, top: result.box.top, right: result.box.right, bottom: result.box.bottom, level: result.box.level },
+      at: result.box.reviewedAt || codexStamp(),
+    });
+    if (!decision.ok) {
+      setNote(t(decision.noteKey));
+      return;
+    }
     const list = (marks[pic.id] || []).map((item) => (item.id === mark.id ? { ...item, ...result.box } : item));
     setMarks({ ...marks, [pic.id]: list });
     const fileName = await ensurePng(pictureName(pic), list);
-    touchWork(fileName, "level2");
+    touchWork(fileName, moved ? "adjust" : "level2");
     const where = await writePicture(fileName, list);
+    if (decision.ok && decision.kind === "adjust") {
+      void recordCorrectionToProject(fileName, mark.by || "", decision.event, mark.id);
+    }
     if (where) setNote(`Level 2 saved. ${fileName}. ${where}`);
   }
 
@@ -907,13 +946,64 @@ function Labeler({
 
   async function rejectBox(mark: Mark) {
     if (!pic) return;
+    const fileName = pictureName(pic);
+    const decision = level2Decision({
+      labeler: mark.by || "",
+      reviewer: who || "guest",
+      kind: "reject",
+      from: { name: mark.name, left: mark.left, top: mark.top, right: mark.right, bottom: mark.bottom, level: mark.level },
+      to: {},
+      at: codexStamp(),
+      note: "rejected",
+    });
+    // Own Level-1 draft may still be removed locally; independent reject records provenance.
+    if (who && !sameMember(who, mark.by || "guest")) {
+      if (!decision.ok) {
+        setNote(t(decision.noteKey));
+        return;
+      }
+      if (decision.kind !== "reject" && decision.kind !== "adjust") {
+        setNote(t(SF_NOTE_KEYS.correctionNeedsIndep));
+        return;
+      }
+      touchWork(fileName, "adjust");
+      void recordCorrectionToProject(fileName, mark.by || "", decision.event, mark.id);
+    }
     const list = (marks[pic.id] || []).filter((item) => item.id !== mark.id);
     if (editing === mark.id) setEditing("");
     if (lit === mark.id) setLit("");
     setMarks({ ...marks, [pic.id]: list });
-    if (who && !sameMember(who, mark.by || "guest")) touchWork(pictureName(pic), "adjust");
-    const where = await writePicture(pictureName(pic), list);
+    const where = await writePicture(fileName, list);
     if (where) setNote(`Removed. ${where}`);
+  }
+
+  /** Append-only Level-2 correction. Cloud write only when a real member session exists; never invents membership. */
+  async function recordCorrectionToProject(
+    pictureId: string,
+    labeledBy: string,
+    event: { at: string; by: string; kind: "adjust" | "reject" | "restore"; from: Record<string, unknown>; to: Record<string, unknown>; note?: string },
+    labelId?: string,
+  ) {
+    // Local append-only trail is always shaped; cloud insert is gated.
+    void appendCorrection(undefined, event as Parameters<typeof appendCorrection>[1]);
+    if (!supabase) return;
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const gated = requireMemberSession(session.session);
+      if (!gated.ok) return; // device-local XML remains; auth.users empty is an honest blocker
+      const row = correctionInsertRow({
+        owner: gated.owner,
+        projectId: SENSOR_FUSION_PROJECT,
+        pictureId,
+        labelId: labelId || null,
+        event: event as Parameters<typeof correctionInsertRow>[0]["event"],
+        labeledBy,
+      });
+      const written = await supabase.from("sensor_fusion_label_corrections").insert(row);
+      if (written.error) setNote(t(SF_NOTE_KEYS.correctionSaveFailed));
+    } catch {
+      setNote(t(SF_NOTE_KEYS.correctionNeedsIndep));
+    }
   }
 
   async function reviewOpen() {
@@ -1207,6 +1297,7 @@ function paint(id: SchemeId | "custom", hex: string) {
 export default function SensorFusion() {
   const { user, isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
   const operator = user?.name || user?.email || "";
+  const { t } = useLexicon();
   const videoRef = useRef<HTMLVideoElement>(null);
   const video2Ref = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -2125,6 +2216,64 @@ export default function SensorFusion() {
     }
   }
 
+  async function syncTeamProgressToProject(owner: string, noteOnFail = false) {
+    if (!supabase) {
+      if (noteOnFail) setUploadNote(t(SF_NOTE_KEYS.progressNotConnected));
+      return { ok: false as const, noteKey: SF_NOTE_KEYS.progressNotConnected };
+    }
+    const metrics = levelMetrics(
+      shots.map((shot) => {
+        const xml = readXmlStore()[pictureName(shot)];
+        const page = xml ? readVoc(xml) : null;
+        return {
+          id: pictureName(shot),
+          boxes: (page?.boxes || []).map((box) => ({
+            by: box.by,
+            level: box.level,
+            reviewer: box.reviewer,
+          })),
+        };
+      }),
+      operator || (guest ? "GUEST" : "guest"),
+    );
+    const teamClock = readClock(SENSOR_FUSION_PROJECT);
+    const snap = {
+      projectId: SENSOR_FUSION_PROJECT,
+      clock: teamClock.project === SENSOR_FUSION_PROJECT ? teamClock : emptyClock(SENSOR_FUSION_PROJECT),
+      pictures: metrics.pictures,
+      level1: metrics.level1,
+      level2: metrics.level2,
+      reviewLeft: metrics.reviewLeft,
+      updatedAt: new Date().toISOString(),
+      memberId: owner,
+    };
+    // Local serialize always works; cloud upsert is gated and fails honestly if the table is not applied yet.
+    void serializeTeamProgress(snap);
+    const row = progressUpsertRow(owner, snap);
+    const written = await supabase.from("sensor_fusion_progress").upsert(row);
+    if (written.error) {
+      if (noteOnFail) setUploadNote(written.error.message || t(SF_NOTE_KEYS.progressSaveFailed));
+      return { ok: false as const, noteKey: SF_NOTE_KEYS.progressSaveFailed };
+    }
+    return { ok: true as const };
+  }
+
+  async function syncProjectSettingsToProject(owner: string) {
+    if (!supabase) return { ok: false as const, noteKey: SF_NOTE_KEYS.progressNotConnected };
+    const projectSettings: ProjectSettings = {
+      projectId: SENSOR_FUSION_PROJECT,
+      scheme: scheme === "custom" ? `custom:${customHex}` : scheme,
+      coral,
+      alerts,
+      updatedAt: new Date().toISOString(),
+      updatedBy: owner,
+    };
+    const row = settingsUpsertRow(owner, projectSettings);
+    const written = await supabase.from("sensor_fusion_project_settings").upsert(row);
+    if (written.error) return { ok: false as const, noteKey: SF_NOTE_KEYS.settingsSaveFailed };
+    return { ok: true as const };
+  }
+
   async function uploadSet() {
     if (!shots.length) {
       setUploadNote("Capture images before you upload a set.");
@@ -2135,21 +2284,40 @@ export default function SensorFusion() {
       const xml = store[pictureName(shot)];
       return xml ? readVoc(xml) : null;
     });
-    if (!pages.every((page) => page && readyForProject(page.boxes))) {
+    const jsonGate = projectJsonAllowed(pages.filter(Boolean).map((page) => ({ boxes: page!.boxes })));
+    if (!pages.every((page) => page && readyForProject(page.boxes)) || !jsonGate.ok) {
       setUploadNote("Level 2 is still needed. A different person reviews each box before the project can take this set.");
       setTrainStatus("");
       return;
+    }
+    for (const page of pages) {
+      if (!page) continue;
+      for (const box of page.boxes) {
+        const gate = authorizeReviewer(box.by, box.reviewer);
+        if (!gate.ok) {
+          setUploadNote(t(gate.noteKey));
+          setTrainStatus("");
+          return;
+        }
+      }
+      const linked = associatePngXml(page.file || "picture.png");
+      const stem = (page.file || linked.png).replace(/\.[^.]+$/, "");
+      if (stem !== linked.stem) {
+        setUploadNote(`${t(SF_NOTE_KEYS.pairNameMismatch)} (${linked.png} + ${linked.xml}).`);
+        return;
+      }
     }
     if (!supabase) {
       setUploadNote("The project is not connected from this page. The pictures and XML stayed in the folder.");
       return;
     }
     const { data: session } = await supabase.auth.getSession();
-    const owner = session.session?.user?.id || "";
-    if (!owner) {
-      setUploadNote("Sign in as a member of the sensor-fusion project. The pictures and XML stayed in the folder.");
+    const gated = requireMemberSession(session.session);
+    if (!gated.ok) {
+      setUploadNote(t(gated.noteKey));
       return;
     }
+    const owner = gated.owner;
     let sent = 0;
     for (let index = 0; index < shots.length; index += 1) {
       const shot = shots[index];
@@ -2160,35 +2328,22 @@ export default function SensorFusion() {
       const reviewed = [...page.boxes].reverse().find((box) => box.reviewer && box.reviewedAt);
       const l1 = labeled ? codexLine({ file: fileName, level: 1, who: labeled.by, when: labeled.at }) : "";
       const l2 = reviewed && labeled ? codexLine({ file: fileName, level: 2, who: reviewed.reviewer, when: reviewed.reviewedAt, l1: { who: labeled.by, when: labeled.at } }) : "";
-      const picture = await supabase.from("sensor_fusion_pictures").insert({
-        owner_key: owner,
-        name: fileName,
+      const xmlText = store[fileName] || "";
+      const picture = await supabase.from("sensor_fusion_pictures").insert(pictureInsertRow({
+        owner,
+        projectId: SENSOR_FUSION_PROJECT,
+        fileName,
         model,
         jpeg: shot.url.startsWith("data:") ? shot.url.slice(0, 500000) : `local:${fileName}`,
-        project_id: SENSOR_FUSION_PROJECT,
-        codex_l1: l1,
-        codex_l2: l2,
-      }).select("id").single();
+        xmlText,
+        codexL1: l1,
+        codexL2: l2,
+      })).select("id").single();
       if (picture.error || !picture.data) {
         setUploadNote(picture.error?.message || "The project did not take this set. The pictures and XML stayed in the folder.");
         return;
       }
-      const labels = page.boxes.map((box) => ({
-        owner_key: owner,
-        picture_id: picture.data.id,
-        name: box.name,
-        x1: box.xmin,
-        y1: box.ymin,
-        x2: box.xmax,
-        y2: box.ymax,
-        project_id: SENSOR_FUSION_PROJECT,
-        level: box.level,
-        labeled_by: box.by,
-        labeled_at: box.at,
-        reviewed_by: box.reviewer,
-        reviewed_at: box.reviewedAt,
-        codex: l2,
-      }));
+      const labels = labelInsertRows(owner, picture.data.id, SENSOR_FUSION_PROJECT, page.boxes, l2);
       const written = await supabase.from("sensor_fusion_labels").insert(labels);
       if (written.error) {
         setUploadNote(written.error.message);
@@ -2201,6 +2356,11 @@ export default function SensorFusion() {
     const line = `${sent} pictures are in the sensor-fusion project.`;
     setTrainStatus(line);
     setUploadNote(line);
+    const progress = await syncTeamProgressToProject(owner, false);
+    const settings = await syncProjectSettingsToProject(owner);
+    if (!progress.ok || !settings.ok) {
+      setUploadNote(`${line} ${t(SF_NOTE_KEYS.syncWaitingTables)}`);
+    }
   }
 
   async function saveToNewFolder() {

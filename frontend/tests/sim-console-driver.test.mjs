@@ -58,4 +58,37 @@ api.post = realPost;
 const aggErr = bad.errors.find((e) => e.stage === 'aggregate');
 ok(!!aggErr && aggErr.status === 503 && /aggregation unavailable/.test(aggErr.detail), `aggregate failure recorded with status + detail (got ${JSON.stringify(bad.errors)})`);
 
+
+// P0: presets 12/24/48 → theme2_9|6|3 + review artifact + timings
+const { SIM_PRESETS, votingLevelForCount, buildSimReviewArtifact, presetForCount } = await import('../lib/sim-console-driver.ts');
+ok(SIM_PRESETS.length === 3, 'three easter-egg presets');
+ok(votingLevelForCount(12) === 'theme2_9', '12 → theme2_9');
+ok(votingLevelForCount(24) === 'theme2_6', '24 → theme2_6');
+ok(votingLevelForCount(48) === 'theme2_3', '48 → theme2_3');
+ok(votingLevelForCount(200) === 'theme2_9', 'non-preset falls back to theme2_9');
+ok(presetForCount(24)?.level === '6', 'preset 24 level 6');
+
+ok(res.theme2VotingLevel === 'theme2_9', `count 12 run used theme2_9 (got ${res.theme2VotingLevel})`);
+ok(res.sessionType === 'simulation', 'session_type simulation');
+ok(res.excludedFromPublicResults === true, 'synthetic excluded from public');
+ok(typeof res.timingsMs === 'object' && typeof res.timingsMs.total === 'number', 'timingsMs.total present');
+ok(typeof res.timingsMs.inject === 'number', 'timingsMs.inject present');
+ok(typeof res.timingsMs.theme === 'number', 'timingsMs.theme present');
+
+const art = buildSimReviewArtifact(res);
+ok(art.artifact_version === '1', 'review artifact version');
+ok(art.mode === 'offline-baseline', `review mode offline-baseline (got ${art.mode})`);
+ok(art.session_type === 'simulation', 'review session_type');
+ok(art.excluded_from_public_results === true, 'review excluded flag');
+ok(art.theme2_voting_level === 'theme2_9', 'review theme2 level');
+ok(art.observed && art.observed.replay_hash === res.replayHash, 'review carries replay hash');
+ok(Array.isArray(art.errors) && art.errors.length === 0, 'clean review errors empty');
+
+// Preset 24 run (theme2_6) stays deterministic and records the voting level
+const res24 = await runSimConsole({ question: Q, count: 24, voters: 5, seed: 'drv24' });
+ok(res24.theme2VotingLevel === 'theme2_6', `24-run theme2_6 (got ${res24.theme2VotingLevel})`);
+ok(res24.ranked == null || res24.ranked.kind === 'theme01' || res24.ranked.level === '6',
+  `24-run ranked level 6 or theme01 fallback (got ${JSON.stringify(res24.ranked)})`);
+ok(res24.errors.length === 0, `24-run clean (got ${JSON.stringify(res24.errors)})`);
+
 console.log(`sim-console-driver: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);

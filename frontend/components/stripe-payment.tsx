@@ -413,6 +413,63 @@ interface PricingTierSelectorProps {
   onChange: (tier: "free" | "moderator_paid" | "cost_split") => void;
   feeAmountCents: number;
   onFeeChange: (cents: number) => void;
+  /** Poll options that drive the server price (POST /payments/poll-quote). Omit to hide the quote. */
+  quoteParams?: PollQuoteParams;
+  /** Receives the latest server quote (null while loading / unavailable). */
+  onQuote?: (q: PollQuote | null) => void;
+}
+
+export interface PollQuoteParams {
+  participants: number;
+  aiProvider: string;
+  maxResponseLength: number;
+  responsesPerParticipant?: number;
+  voiceShare?: number;
+}
+
+export interface PollQuote {
+  pricing_tier: string;
+  total_cents: number;
+  creator_due_cents: number;
+  participant_share_cents: number;
+  tracked_cost_usd: string;
+  margin_multiplier: string;
+  margin_label: string;
+  floor_cents: number;
+  options: string[];
+}
+
+const usd = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+
+/** Server quote for the chosen poll options — the same function prices the Checkout, so shown = charged. */
+export function usePollQuote(tier: "free" | "moderator_paid" | "cost_split", params?: PollQuoteParams) {
+  const [quote, setQuote] = useState<PollQuote | null>(null);
+  const [state, setState] = useState<"idle" | "loading" | "ready" | "unavailable">("idle");
+  const key = params ? `${tier}|${params.participants}|${params.aiProvider}|${params.maxResponseLength}|${params.responsesPerParticipant ?? 1}|${params.voiceShare ?? 0}` : "";
+  useEffect(() => {
+    if (!params || tier === "free") { setQuote(null); setState("idle"); return; }
+    let live = true;
+    setState("loading");
+    const h = setTimeout(async () => {
+      try {
+        const q = await api.post<PollQuote>("/payments/poll-quote", {
+          pricing_tier: tier,
+          participants: Math.max(1, Math.min(params.participants || 100, 1_000_000)),
+          ai_provider: params.aiProvider,
+          max_response_length: params.maxResponseLength,
+          responses_per_participant: params.responsesPerParticipant ?? 1,
+          voice_share: params.voiceShare ?? 0,
+        });
+        if (live && q && typeof q.total_cents === "number") { setQuote(q); setState("ready"); }
+        else if (live) { setQuote(null); setState("unavailable"); }
+      } catch {
+        if (live) { setQuote(null); setState("unavailable"); }
+      }
+    }, 300);
+    return () => { live = false; clearTimeout(h); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return { quote, state };
 }
 
 export function PricingTierSelector({
@@ -420,8 +477,18 @@ export function PricingTierSelector({
   onChange,
   feeAmountCents,
   onFeeChange,
+  quoteParams,
+  onQuote,
 }: PricingTierSelectorProps) {
   const { t } = useLexicon();
+  const { quote, state: quoteState } = usePollQuote(value, quoteParams);
+  useEffect(() => { onQuote?.(quote); }, [quote, onQuote]);
+  // The creator may pay MORE than the quote (Moderator Paid) but never less — the server enforces it too.
+  useEffect(() => {
+    if (value === "moderator_paid" && quote && feeAmountCents < quote.creator_due_cents) onFeeChange(quote.creator_due_cents);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quote, value]);
+  const minFee = value === "moderator_paid" && quote ? Math.max(quote.creator_due_cents, MODERATOR_MIN_FEE_CENTS) : MODERATOR_MIN_FEE_CENTS;
   const tiers = [
     {
       id: "free" as const,
@@ -469,21 +536,48 @@ export function PricingTierSelector({
         ))}
       </div>
 
+      {value !== "free" && quoteParams && (
+        <div className="rounded-md border border-input bg-muted/30 p-3 text-xs space-y-1" data-testid="poll-quote">
+          {quoteState === "loading" && <p className="text-muted-foreground">{t("cube8.pricing.quote_loading")}</p>}
+          {quoteState === "unavailable" && <p className="text-muted-foreground">{t("cube8.pricing.quote_unavailable")}</p>}
+          {quote && quoteState === "ready" && (
+            <>
+              <p className="font-medium text-foreground">
+                {t("cube8.pricing.quote_total").replace("{amount}", usd(quote.total_cents))}
+              </p>
+              {value === "cost_split" && quote.participant_share_cents > 0 && (
+                <p className="text-muted-foreground">
+                  {t("cube8.pricing.quote_split")
+                    .replace("{creator}", usd(quote.creator_due_cents))
+                    .replace("{share}", usd(quote.participant_share_cents))}
+                </p>
+              )}
+              <p className="text-muted-foreground">
+                {t("cube8.pricing.quote_basis")
+                  .replace("{cost}", `$${Number(quote.tracked_cost_usd).toFixed(4)}`)
+                  .replace("{margin}", quote.margin_multiplier)
+                  .replace("{floor}", usd(quote.floor_cents))}
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
       {value === "moderator_paid" && (
         <div className="flex items-center gap-2 mt-2">
           <label className="text-sm text-muted-foreground">Amount: $</label>
           <input
             type="number"
-            min={11.11}
+            min={minFee / 100}
             step={0.01}
             value={(feeAmountCents / 100).toFixed(2)}
             onChange={(e) => {
               const cents = Math.round(parseFloat(e.target.value || "0") * 100);
-              onFeeChange(Math.max(cents, MODERATOR_MIN_FEE_CENTS));
+              onFeeChange(Math.max(cents, minFee));
             }}
             className="w-28 px-3 py-1.5 rounded-md border border-input bg-background text-sm"
           />
-          <span className="text-xs text-muted-foreground">(min $11.11)</span>
+          <span className="text-xs text-muted-foreground">{t("cube8.pricing.min_fee").replace("{amount}", usd(minFee))}</span>
         </div>
       )}
     </div>

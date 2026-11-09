@@ -7,7 +7,7 @@
    "rev": 1,
    "date": "2026-08-28",
    "kind": "release",
-   "text": "Genesis — opens the append-only R-CORE record for the shared moderator SETTINGS slide-over: a right-side drawer with the language selector, the session-cascading theme customizer (8 presets + custom), the cost-estimate table, AI + voice-to-text provider selectors, the Cube Architecture status, the Language Lexicon admin and the Atlantis Accords / Vision 2525 links. Auth-gated: polling users see it view-only, moderators get full control. Earliest reachable commit that touched it: ef8b1c3.",
+   "text": "Genesis \u2014 opens the append-only R-CORE record for the shared moderator SETTINGS slide-over: a right-side drawer with the language selector, the session-cascading theme customizer (8 presets + custom), the cost-estimate table, AI + voice-to-text provider selectors, the Cube Architecture status, the Language Lexicon admin and the Atlantis Accords / Vision 2525 links. Auth-gated: polling users see it view-only, moderators get full control. Earliest reachable commit that touched it: ef8b1c3.",
    "commit": "ef8b1c3"
   },
   {
@@ -21,28 +21,42 @@
    "rev": 3,
    "date": "2026-09-13",
    "kind": "release",
-   "text": "Site-UX keyify batch 2 — 79 hardcoded strings across the Settings surface and its child components routed through t() for the 33-language lexicon.",
+   "text": "Site-UX keyify batch 2 \u2014 79 hardcoded strings across the Settings surface and its child components routed through t() for the 33-language lexicon.",
    "commit": "f7ce728"
   },
   {
    "rev": 4,
    "date": "2026-09-15",
    "kind": "release",
-   "text": "Settings drops the Light Codex row — its one door is the easter-egg launcher, so the duplicate control is removed (Succinctness).",
+   "text": "Settings drops the Light Codex row \u2014 its one door is the easter-egg launcher, so the duplicate control is removed (Succinctness).",
    "commit": "4809e52"
   },
   {
    "rev": 5,
    "date": "2026-09-25",
    "kind": "decision",
-   "text": "R-CORE version-history badge mounted inside the SETTINGS slide-over (Stage 2): it appears bottom-centre while Settings is open and, on two clicks, opens the R-CORE · Version History compare panel over this surface's own append-only ledger — so the evolution of Settings is itself traceable through the same compare tool as more features land (operator 2026-09-25).",
+   "text": "R-CORE version-history badge mounted inside the SETTINGS slide-over (Stage 2): it appears bottom-centre while Settings is open and, on two clicks, opens the R-CORE \u00b7 Version History compare panel over this surface's own append-only ledger \u2014 so the evolution of Settings is itself traceable through the same compare tool as more features land (operator 2026-09-25).",
    "commit": ""
   },
   {
    "rev": 6,
    "date": "2026-11-08",
    "kind": "release",
-   "text": "Cost Estimate panel (1,000 users) gains catalog-backed rates with freshness (catalog version / checked date / stale), UI_ESTIMATE badge, billable-audio-minute denominator for V2T $/min, unknown rates shown as 'rate unknown' (never silent $0), and corrected free-tier footer: participants not charged ≠ provider cost zero. Summary combo heritage totals preserved as UI_ESTIMATE_STATIC; Azure V2T flagged unknown until catalog override. Weekly server-side fee reaffirmation is reviewed config only (not activated). Session cost ledger API + migration 033 are review-only — no live Supabase apply; invoice_accurate remains false until genuine reconcile.",
+   "text": "Cost Estimate panel (1,000 users) gains catalog-backed rates with freshness (catalog version / checked date / stale), UI_ESTIMATE badge, billable-audio-minute denominator for V2T $/min, unknown rates shown as 'rate unknown' (never silent $0), and corrected free-tier footer: participants not charged \u2260 provider cost zero. Summary combo heritage totals preserved as UI_ESTIMATE_STATIC; Azure V2T flagged unknown until catalog override. Weekly server-side fee reaffirmation is reviewed config only (not activated). Session cost ledger API + migration 033 are review-only \u2014 no live Supabase apply; invoice_accurate remains false until genuine reconcile.",
+   "commit": ""
+  },
+  {
+   "rev": 7,
+   "date": "2026-11-08",
+   "kind": "release",
+   "text": "Cost Estimate panel loads GET /payments/provider-fees when available; shows honest loading/server_ok/unavailable/offline/bad_shape status; retains labeled offline local UI estimates when server unreachable (never unknown\u2192$0). New status/assumption strings routed through t() englishDefault keys (33-language validation not claimed). Stripe PaymentIntent/Checkout creates now pass Idempotency-Key via stripe_idempotency_key. Weekly official-source HTTP fee adapters remain an explicit blocker (fee_source_adapters interface only).",
+   "commit": ""
+  },
+  {
+   "rev": 8,
+   "date": "2026-11-08",
+   "kind": "release",
+   "text": "Payments go live. Create Poll prices the chosen options server-side (POST /payments/poll-quote): tracked AI/STT cost from the same provider catalog as the Cost Estimate panel \u00d7 ONE margin setting (PRICING_MARGIN_MULTIPLIER, default 1.5 = cost + 50% markup; 2.0 = 50% gross margin \u2014 owner decision pending) + Stripe card fee, minimum $11.11; Cost Split = creator 50% at Checkout, participants 50%/N. Moderator Paid and Cost Split both open Stripe Checkout on live Products; Divinity Guide, DeRisking Strategies and community donations book to their own live Products. Signed Stripe webhooks complete ledger rows exactly once (durable stripe_webhook_events, migration 046/047). New strings via t() englishDefault keys (cube8.pricing.*; 33-language validation not claimed).",
    "commit": ""
   }
  ]

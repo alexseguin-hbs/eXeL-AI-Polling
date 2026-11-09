@@ -158,6 +158,21 @@ const shared: TranslationEntry[] = [
   { key: "cube1.settings.cost_rates_stale", englishDefault: "Rates stale — weekly refresh due", context: "Shown when fee catalog checked_at older than 7 days", cubeId: 1 },
   { key: "cube1.settings.cost_unknown_rate", englishDefault: "rate unknown", context: "Shown when V2T provider has no catalog rate", cubeId: 1 },
   { key: "cube1.settings.cost_audio_denom", englishDefault: "V2T $/min = billable audio minutes (not session clock)", context: "Denominator clarification", cubeId: 1 },
+  { key: "cube1.settings.cost_status_loading", englishDefault: "Loading server fee catalog…", context: "Cost panel status while fetching provider fees", cubeId: 1 },
+  { key: "cube1.settings.cost_status_server_ok", englishDefault: "Rates from server catalog (UI estimate)", context: "Cost panel status when provider-fees OK", cubeId: 1 },
+  { key: "cube1.settings.cost_status_unavailable", englishDefault: "Fee catalog unavailable (HTTP error)", context: "Cost panel status when provider-fees non-OK", cubeId: 1 },
+  { key: "cube1.settings.cost_status_offline", englishDefault: "Fee catalog offline / unreachable", context: "Cost panel status when fetch fails or mock mode", cubeId: 1 },
+  { key: "cube1.settings.cost_status_bad_shape", englishDefault: "Fee catalog response not usable", context: "Cost panel status when JSON shape bad / non-JSON", cubeId: 1 },
+  { key: "cube1.settings.cost_offline_estimate_note", englishDefault: "Showing labeled offline local estimates — not live server rates", context: "Shown when server catalog not used", cubeId: 1 },
+  { key: "cube1.settings.cost_not_invoice", englishDefault: "Not invoice-verified", context: "Reminder totals are estimates", cubeId: 1 },
+  { key: "cube1.settings.cost_catalog_label", englishDefault: "catalog", context: "Freshness line prefix", cubeId: 1 },
+  { key: "cube1.settings.cost_checked_label", englishDefault: "checked", context: "Freshness line checked-at prefix", cubeId: 1 },
+  { key: "cube1.settings.cost_assumptions_users", englishDefault: "users", context: "Cost assumptions label", cubeId: 1 },
+  { key: "cube1.settings.cost_assumptions_response", englishDefault: "response", context: "Cost assumptions label", cubeId: 1 },
+  { key: "cube1.settings.cost_assumptions_words", englishDefault: "words", context: "Cost assumptions label", cubeId: 1 },
+  { key: "cube1.settings.cost_assumptions_type", englishDefault: "type", context: "Cost assumptions label", cubeId: 1 },
+  { key: "cube1.settings.cost_assumptions_voice", englishDefault: "voice", context: "Cost assumptions label", cubeId: 1 },
+  { key: "cube1.settings.cost_prices_not_activated", englishDefault: "Prices not auto-activated — margin policy pending", context: "Footer under cost estimate", cubeId: 1 },
 
   // Error states
   { key: "shared.error.something_wrong", englishDefault: "Something went wrong", context: "Error boundary heading", cubeId: 0 },
@@ -686,6 +701,12 @@ const cube8: TranslationEntry[] = [
   { key: "cube8.donate.continue", englishDefault: "Continue to secure checkout", context: "Donate modal submit button", cubeId: 8 },
   { key: "cube8.donate.close", englishDefault: "Close", context: "Donate modal close button", cubeId: 8 },
   { key: "cube8.donate.secure_note", englishDefault: "Payments are processed securely by Stripe.", context: "Donate modal security note", cubeId: 8 },
+  { key: "cube8.pricing.quote_loading", englishDefault: "Pricing these poll options…", context: "Create Poll: live price quote loading (POST /payments/poll-quote)", cubeId: 8 },
+  { key: "cube8.pricing.quote_unavailable", englishDefault: "Live price unavailable — the exact amount is set at checkout.", context: "Create Poll: price quote could not be fetched (API offline / demo)", cubeId: 8 },
+  { key: "cube8.pricing.quote_total", englishDefault: "Price for these options: {amount}", context: "Create Poll: total poll price from server quote", cubeId: 8 },
+  { key: "cube8.pricing.quote_split", englishDefault: "You pay {creator} now; each participant pays {share}.", context: "Create Poll: Cost Split creator vs participant share", cubeId: 8 },
+  { key: "cube8.pricing.quote_basis", englishDefault: "Tracked AI cost {cost} × margin {margin} + Stripe card fee; minimum {floor}.", context: "Create Poll: how the price is computed (margin setting is configurable)", cubeId: 8 },
+  { key: "cube8.pricing.min_fee", englishDefault: "(min {amount})", context: "Create Poll: Moderator Paid minimum amount hint", cubeId: 8 },
   { key: "cube8.donate.demo_thanks", englishDefault: "This is a demo preview — donations run on the live deployment. Thank you for your support! ♡", context: "Donate modal demo-mode acknowledgement", cubeId: 8 },
   { key: "cube8.donate.thanks", englishDefault: "Thank you — your contribution went through.", context: "Toast shown once when Stripe Checkout returns the visitor with ?donated=true (never before Stripe confirms)", cubeId: 8 },
   { key: "cube8.donate.received", englishDefault: "Contribution received — thank you.", context: "Divinity Guide toast after a verified Stripe return (no token grant is claimed — no ledger backs one)", cubeId: 8 },
@@ -3551,7 +3572,27 @@ const drone2525: TranslationEntry[] = [
   { key: "drone.deck.act.capture", englishDefault: "Capture", context: "Drone-2525 control deck: keyboard map: the action a key performs — photographs the door in view", cubeId: 0 },
 ];
 
+
+// SensorFusion-2525 collaborative persistence notes (2026-11-08). ENGLISH ONLY — staged in AFTER_FILL; ×32 fill unverified / not claimed.
+const sensorFusion2525: TranslationEntry[] = [
+  { key: "sf.collab.auth_required", englishDefault: "Sign in as a member of the sensor-fusion project. Local device copies stayed on this device; nothing was marked saved to the team project.", context: "SensorFusion upload/progress: missing signed-in member session", cubeId: 81 },
+  { key: "sf.collab.reviewer_needs_labeler", englishDefault: "Level 1 must name who labeled the box before Level 2.", context: "SensorFusion Level-2 gate: labeler missing", cubeId: 81 },
+  { key: "sf.collab.reviewer_needs_name", englishDefault: "Level 2 must name a different reviewer.", context: "SensorFusion Level-2 gate: reviewer missing", cubeId: 81 },
+  { key: "sf.collab.reviewer_must_differ", englishDefault: "Level 2 must be a different person than the Level 1 labeler.", context: "SensorFusion Level-2 gate: same person refused", cubeId: 81 },
+  { key: "sf.collab.progress_not_connected", englishDefault: "The project is not connected from this page. Team progress stayed on this device only.", context: "SensorFusion progress sync: supabase client missing", cubeId: 81 },
+  { key: "sf.collab.progress_save_failed", englishDefault: "Team progress could not be saved to the project. It stayed on this device.", context: "SensorFusion progress sync: upsert failed", cubeId: 81 },
+  { key: "sf.collab.settings_save_failed", englishDefault: "Project settings could not be saved to the project. They stayed on this device.", context: "SensorFusion settings sync: upsert failed", cubeId: 81 },
+  { key: "sf.collab.pair_name_mismatch", englishDefault: "Picture and XML must share one name", context: "SensorFusion PNG/XML association refusal prefix; filenames appended by UI", cubeId: 81 },
+  { key: "sf.collab.sync_waiting_tables", englishDefault: "Team progress/settings sync is waiting on the collaborative tables (migration 044) or membership.", context: "SensorFusion upload success + sync deferred note", cubeId: 81 },
+  { key: "sf.collab.json_needs_pictures", englishDefault: "Open the project's pictures first. Level 1 and Level 2 stay XML.", context: "SensorFusion project JSON gate: empty set", cubeId: 81 },
+  { key: "sf.collab.json_needs_level1", englishDefault: "Every picture needs a Level 1 box first. Both levels stay XML.", context: "SensorFusion project JSON gate: missing Level 1", cubeId: 81 },
+  { key: "sf.collab.json_needs_level2", englishDefault: "JSON waits. Every picture in this project still needs Level 2 by a different person, saved as XML.", context: "SensorFusion project JSON gate: missing independent Level 2", cubeId: 81 },
+  { key: "sf.collab.correction_save_failed", englishDefault: "The Level 2 correction could not be saved to the project. It stayed on this device.", context: "SensorFusion correction insert failed", cubeId: 81 },
+  { key: "sf.collab.correction_needs_indep", englishDefault: "A Level 2 correction must be made by a different person than the Level 1 labeler.", context: "SensorFusion correction independence gate", cubeId: 81 },
+];
+
 export const CUBE_GROUPS: CubeGroup[] = [
+  { cubeId: 81, label: "SensorFusion-2525 — collaborative persistence", keys: sensorFusion2525 },
   { cubeId: 78, label: "Drone-2525 — wireframe arena", keys: drone2525 },
   { cubeId: 79, label: "Financial-2525 — the MoT Financial System", keys: financial2525 },
   { cubeId: 77, label: "Polling results UI (2026-09-14)", keys: pollUi },

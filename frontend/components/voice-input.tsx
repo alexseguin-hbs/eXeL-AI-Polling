@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useLexicon } from "@/lib/lexicon-context";
 import { api, ApiClientError } from "@/lib/api";
+import {
+  pickVoiceMime,
+  containerFromMime,
+  voiceErrorKind,
+  VOICE_PROCESS_TIMEOUT_MS,
+  VOICE_PERMISSION_TIMEOUT_MS,
+} from "@/lib/voice-mime";
 
 interface VoiceSubmissionResult {
   id: string;
@@ -69,18 +76,41 @@ export function VoiceInput({
   }, [state]);
 
   const processAudio = useCallback(
-    async (audioBlob: Blob) => {
+    async (audioBlob: Blob, audioFormat: string) => {
       setState("processing");
 
+      if (!audioBlob || audioBlob.size === 0) {
+        toast({
+          title: t("cube3.voice.processing_audio"),
+          description: "No audio was captured (empty recording).",
+          variant: "destructive",
+        });
+        setState("error");
+        return;
+      }
+
+      const container = containerFromMime(audioBlob.type || audioFormat);
+      const timeoutMs = VOICE_PROCESS_TIMEOUT_MS;
+      let timedOut = false;
+      const timer = setTimeout(() => { timedOut = true; }, timeoutMs);
+
       try {
-        const result = await api.submitVoiceResponse(
+        const submitPromise = api.submitVoiceResponse(
           sessionId,
           questionId,
           participantId,
           audioBlob,
           languageCode,
-          "webm",
+          container,
         );
+        const result = await Promise.race([
+          submitPromise,
+          new Promise<never>((_, reject) => {
+            setTimeout(() => reject(Object.assign(new Error("Voice processing timed out"), { name: "TimeoutError" })), timeoutMs);
+          }),
+        ]);
+        clearTimeout(timer);
+        if (timedOut) return;
 
         const voiceResult = result as VoiceSubmissionResult;
         setLastResult(voiceResult);
@@ -117,10 +147,18 @@ export function VoiceInput({
 
         setState("done");
       } catch (err) {
+        clearTimeout(timer);
+        const kind = voiceErrorKind(err);
         const message =
           err instanceof ApiClientError
             ? err.detail
-            : t("cube3.voice.stt_pending");
+            : kind === "timeout"
+              ? "Processing timed out — try a shorter clip or check the API."
+              : kind === "network"
+                ? "Could not reach the voice API."
+                : kind === "empty"
+                  ? "No audio was captured."
+                  : t("cube3.voice.stt_pending");
         toast({
           title: t("cube3.voice.processing_audio"),
           description: message,
@@ -136,11 +174,44 @@ export function VoiceInput({
     setState("requesting");
     setLastResult(null);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+        toast({
+          title: t("cube3.voice.access_denied"),
+          description: "This browser does not support microphone capture.",
+          variant: "destructive",
+        });
+        setState("idle");
+        return;
+      }
+      if (typeof MediaRecorder === "undefined") {
+        toast({
+          title: t("cube3.voice.access_denied"),
+          description: "MediaRecorder is not supported in this browser.",
+          variant: "destructive",
+        });
+        setState("idle");
+        return;
+      }
+
+      const permissionDeadline = new Promise<never>((_, reject) => {
+        setTimeout(
+          () => reject(Object.assign(new Error("Microphone permission timed out"), { name: "TimeoutError" })),
+          VOICE_PERMISSION_TIMEOUT_MS,
+        );
+      });
+      const stream = await Promise.race([
+        navigator.mediaDevices.getUserMedia({ audio: true }),
+        permissionDeadline,
+      ]);
       streamRef.current = stream;
-      const mediaRecorder = new MediaRecorder(stream);
+
+      const { mimeType, container } = pickVoiceMime();
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
+      const chosenMime = mediaRecorder.mimeType || mimeType || `audio/${container}`;
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
@@ -151,16 +222,23 @@ export function VoiceInput({
       mediaRecorder.onstop = () => {
         stream.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
-        const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
-        processAudio(audioBlob);
+        const blobType = chunksRef.current[0]?.type || chosenMime || "audio/webm";
+        const audioBlob = new Blob(chunksRef.current, { type: blobType });
+        processAudio(audioBlob, containerFromMime(blobType));
       };
 
       mediaRecorder.start();
       setState("recording");
-    } catch {
+    } catch (err) {
+      const kind = voiceErrorKind(err);
       toast({
         title: t("cube3.voice.access_denied"),
-        description: t("cube3.voice.allow_mic"),
+        description:
+          kind === "timeout"
+            ? "Microphone permission timed out — allow access and try again."
+            : kind === "unsupported"
+              ? "No usable microphone or MIME type in this browser."
+              : t("cube3.voice.allow_mic"),
         variant: "destructive",
       });
       setState("idle");

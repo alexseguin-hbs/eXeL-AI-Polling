@@ -64,3 +64,54 @@ class WebhookEventDedupe:
 
 # Process-global default for single-worker; tests inject their own.
 DEFAULT_WEBHOOK_DEDUPE = WebhookEventDedupe()
+
+
+# ---------------------------------------------------------------------------
+# Durable dedupe (046_payments_live_ledger.stripe_webhook_events). Falls back to the in-process set when the
+# table is absent (local SQLite / unapplied DB) so a missing table can never break payment processing.
+# ---------------------------------------------------------------------------
+
+async def event_already_processed(db, event_id: str) -> bool:
+    if not event_id:
+        return False
+    if DEFAULT_WEBHOOK_DEDUPE.already_processed(event_id):
+        return True
+    from sqlalchemy import text
+
+    try:
+        row = (await db.execute(text("SELECT 1 FROM stripe_webhook_events WHERE event_id = :e"), {"e": event_id})).first()
+        return row is not None
+    except Exception:  # noqa: BLE001 — table missing → in-memory only
+        await db.rollback()
+        return False
+
+
+async def record_processed_event(db, *, event_id: str, event_type: str, livemode: bool | None,
+                                 outcome: str, session_id=None, payment_transaction_id=None,
+                                 payload: bytes | None = None) -> bool:
+    """Insert once; returns True when this call recorded it (False = duplicate or table missing)."""
+    if not event_id:
+        return False
+    DEFAULT_WEBHOOK_DEDUPE.mark_processed(event_id)
+    from sqlalchemy import text
+
+    try:
+        res = await db.execute(
+            text(
+                "INSERT INTO stripe_webhook_events (id, event_id, event_type, livemode, session_id, "
+                "payment_transaction_id, outcome, payload_digest) VALUES (:id, :e, :t, :lm, :sid, :ptx, :o, :d) "
+                "ON CONFLICT (event_id) DO NOTHING RETURNING id"
+            ),
+            {
+                "id": str(uuid.uuid4()), "e": event_id, "t": event_type[:120], "lm": livemode,
+                "sid": str(session_id) if session_id else None,
+                "ptx": str(payment_transaction_id) if payment_transaction_id else None,
+                "o": outcome[:120], "d": hashlib.sha256(payload).hexdigest() if payload else None,
+            },
+        )
+        inserted = res.first() is not None
+        await db.commit()
+        return inserted
+    except Exception:  # noqa: BLE001
+        await db.rollback()
+        return False

@@ -196,7 +196,8 @@ class TestModeratorCheckout:
             # Verify Stripe was called with correct params
             call_kwargs = mock_create.call_args[1]
             assert call_kwargs["mode"] == "payment"
-            assert call_kwargs["payment_method_types"] == ["card"]
+            # Stripe now rejects payment_method_types on Checkout (dynamic payment methods, Dashboard-managed)
+            assert "payment_method_types" not in call_kwargs
             assert call_kwargs["line_items"][0]["price_data"]["unit_amount"] == 2500
             assert call_kwargs["line_items"][0]["price_data"]["currency"] == "usd"
             assert call_kwargs["metadata"]["transaction_type"] == "moderator_fee"
@@ -670,6 +671,7 @@ class TestWebhookHandler:
 
         db.execute = mock_execute
         db.commit = AsyncMock()
+        db.begin_nested = MagicMock(return_value=AsyncMock())  # receipt runs in a SAVEPOINT (async ctx manager)
 
         event = {
             "type": "checkout.session.completed",
@@ -683,6 +685,8 @@ class TestWebhookHandler:
             assert tx.status == "completed"
             # Verify the award function was called with correct amount
             mock_award.assert_awaited_once()
+            assert mock_award.await_args.kwargs["user_id"] == "donor:anonymous"
+            assert "participant_id" not in mock_award.await_args.kwargs
             call_kwargs = mock_award.call_args
             assert call_kwargs[1]["amount_usd"] == pytest.approx(3.33, abs=0.01)
 

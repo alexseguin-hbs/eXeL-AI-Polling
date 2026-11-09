@@ -1,4 +1,4 @@
--- REVIEW ONLY — do not apply to production / Supabase without human approval.
+-- SUPERSEDED by supabase/migrations/046_payments_live_ledger.sql (applied 2026-11-08). Kept for history; do not apply.
 -- Migration 033: cost ledger + Stripe webhook event dedupe + payment metadata.
 -- Generated 2026-11-08 for feat/cost-ledger-payment-reliability.
 --

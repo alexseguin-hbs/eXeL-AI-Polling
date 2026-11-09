@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { X, Check, Pipette, Mic, Shield, ChevronDown, ChevronUp, DollarSign, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +25,14 @@ import { TrinityColorPicker } from "@/components/trinity-color-picker";
 import { getSortedLanguages } from "@/lib/language-utils";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
-import { buildComboRows, COST_ASSUMPTIONS, FREE_TIER_CORRECTED } from "@/lib/provider-fee-catalog";
+import {
+  COST_ASSUMPTIONS,
+  loadFeeCatalogForPanel,
+  type CostComboRow,
+  type FeeLoadStatus,
+} from "@/lib/provider-fee-catalog";
+import { API_BASE_URL } from "@/lib/constants";
+import { IS_MOCK_MODE } from "@/lib/api";
 import { SETTINGS_LEDGER } from "@/lib/2525-core/settings-ledger.gen"; // Settings slide-over append-only traceability ledger
 
 // R-CORE history for the Settings surface — normalized once at module scope via the shared adapter.
@@ -200,7 +207,11 @@ function SettingsLanguageSelector() {
           ))}
         </SelectContent>
       </Select>
-    </section>// ─── Cost Estimation Table ──────────────────────────────────────
+    </section>
+  );
+}
+
+// ─── Cost Estimation Table ──────────────────────────────────────
 
 /**
  * Moderator Settings → Cost Estimate (1,000 users) — exact panel from live UI.
@@ -212,7 +223,50 @@ function SettingsLanguageSelector() {
 function CostEstimateTable() {
   const { t } = useLexicon();
   const [showCosts, setShowCosts] = useState(false);
-  const { rows, freshness } = useMemo(() => buildComboRows("2026-04-01T00:00:00Z"), []);
+  const [status, setStatus] = useState<FeeLoadStatus>("idle");
+  const [rows, setRows] = useState<CostComboRow[]>([]);
+  const [freshness, setFreshness] = useState({
+    checkedAt: "2026-04-01T00:00:00Z",
+    stale: true,
+    catalogVersion: "—",
+  });
+  const [invoiceAccurate, setInvoiceAccurate] = useState(false);
+
+  useEffect(() => {
+    if (!showCosts) return;
+    let cancelled = false;
+    const ac = new AbortController();
+    setStatus("loading");
+    void (async () => {
+      const result = await loadFeeCatalogForPanel({
+        apiBase: API_BASE_URL,
+        mockMode: IS_MOCK_MODE,
+        signal: ac.signal,
+      });
+      if (cancelled) return;
+      setStatus(result.status);
+      setRows(result.rows);
+      setFreshness(result.freshness);
+      setInvoiceAccurate(result.invoiceAccurate);
+    })();
+    return () => {
+      cancelled = true;
+      ac.abort();
+    };
+  }, [showCosts]);
+
+  const statusLabel =
+    status === "loading"
+      ? t("cube1.settings.cost_status_loading")
+      : status === "server_ok"
+        ? t("cube1.settings.cost_status_server_ok")
+        : status === "unavailable"
+          ? t("cube1.settings.cost_status_unavailable")
+          : status === "bad_shape"
+            ? t("cube1.settings.cost_status_bad_shape")
+            : status === "offline"
+              ? t("cube1.settings.cost_status_offline")
+              : "";
 
   return (
     <section data-testid="cost-estimate-panel">
@@ -234,14 +288,26 @@ function CostEstimateTable() {
         <div className="mt-3 rounded-lg border border-border overflow-hidden">
           <div className="bg-muted/50 px-3 py-2 space-y-1">
             <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-              {COST_ASSUMPTIONS.users.toLocaleString()} users &times; {COST_ASSUMPTIONS.responsesPerUser} response &times;{" "}
-              {COST_ASSUMPTIONS.wordsPerResponse} words &nbsp;|&nbsp; {COST_ASSUMPTIONS.typeUsers} type /{" "}
-              {COST_ASSUMPTIONS.voiceUsers} voice
+              {COST_ASSUMPTIONS.users.toLocaleString()} {t("cube1.settings.cost_assumptions_users")} &times;{" "}
+              {COST_ASSUMPTIONS.responsesPerUser} {t("cube1.settings.cost_assumptions_response")} &times;{" "}
+              {COST_ASSUMPTIONS.wordsPerResponse} {t("cube1.settings.cost_assumptions_words")} &nbsp;|&nbsp;{" "}
+              {COST_ASSUMPTIONS.typeUsers} {t("cube1.settings.cost_assumptions_type")} /{" "}
+              {COST_ASSUMPTIONS.voiceUsers} {t("cube1.settings.cost_assumptions_voice")}
             </p>
             <p className="text-[9px] text-muted-foreground font-mono">
-              catalog {freshness.catalogVersion} · checked {freshness.checkedAt.slice(0, 10)} · V2T unit = billable audio min
+              {t("cube1.settings.cost_catalog_label")} {freshness.catalogVersion} · {t("cube1.settings.cost_checked_label")}{" "}
+              {freshness.checkedAt.slice(0, 10)} · {t("cube1.settings.cost_audio_denom")}
               {freshness.stale ? ` · ${t("cube1.settings.cost_rates_stale")}` : ""}
             </p>
+            {statusLabel && (
+              <p className="text-[9px] text-muted-foreground" data-testid="cost-fee-status">
+                {statusLabel}
+                {status !== "server_ok" && status !== "loading"
+                  ? ` · ${t("cube1.settings.cost_offline_estimate_note")}`
+                  : ""}
+                {invoiceAccurate ? "" : ` · ${t("cube1.settings.cost_not_invoice")}`}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-4 gap-0 px-3 py-1.5 border-b border-border bg-muted/30 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
@@ -297,16 +363,12 @@ function CostEstimateTable() {
             <p className="text-[9px] text-muted-foreground">{t("cube1.settings.cost_audio_denom")}</p>
             <p className="text-[9px] text-muted-foreground">{t("cube1.settings.cost_note_free")}</p>
             <p className="text-[9px] text-muted-foreground font-mono">
-              {FREE_TIER_CORRECTED} · prices not auto-activated
+              {t("cube1.settings.cost_prices_not_activated")}
             </p>
           </div>
         </div>
       )}
     </section>
-  );
-}
-
-
   );
 }
 

@@ -21,6 +21,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.cubes.cube8_tokens.stripe_config import resolve_secret_key
+from app.cubes.cube8_tokens.payment_idempotency import stripe_idempotency_key, new_attempt_nonce
+from app.cubes.cube8_tokens import poll_pricing, stripe_catalog
+from app.cubes.cube8_tokens.payment_product import product_line_for
+import json
 from app.models.payment import PaymentTransaction
 from app.models.session import Session
 from app.models.participant import Participant
@@ -31,8 +35,11 @@ logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib
 # production; never a repo-committed key). Single source of truth = stripe_config.resolve_secret_key.
 stripe.api_key = resolve_secret_key()
 
+DONATION_TX_TYPES = frozenset({"donation", "divinity_guide_donation", "derisking_strategies_donation"})
+
 # Minimum Moderator fee in cents ($11.11)
 MODERATOR_MIN_FEE_CENTS = 1111
+STRIPE_MIN_CENTS = 50
 
 
 # ---------------------------------------------------------------------------
@@ -136,8 +143,14 @@ async def create_usage_billing_checkout(
     metered = await estimate_metered_cost(db, session_id)
     amount_cents = max(metered["estimated_cost_cents"], 50)  # Stripe minimum $0.50
 
+    idem_key = stripe_idempotency_key(
+        action="checkout_usage_billing",
+        session_id=str(session_id),
+        amount_cents=amount_cents,
+        transaction_type="usage_billing",
+        nonce=new_attempt_nonce(),
+    )
     checkout = stripe.checkout.Session.create(
-        payment_method_types=["card"],
         line_items=[{
             "price_data": {
                 "currency": "usd",
@@ -160,6 +173,7 @@ async def create_usage_billing_checkout(
             "transaction_type": "usage_billing",
             "billable_tokens": str(metered["billable_tokens"]),
         },
+        idempotency_key=idem_key,
     )
 
     tx = PaymentTransaction(
@@ -203,81 +217,114 @@ async def create_moderator_checkout(
     amount_cents: int | None = None,
     success_url: str = "",
     cancel_url: str = "",
+    participants: int | None = None,
+    options: list[str] | None = None,
+    voice_share: float | None = None,
+    client_key: str | None = None,
 ) -> dict:
-    """Create Stripe Checkout Session for Moderator Paid tier.
+    """Stripe Checkout for the poll creator, priced from the poll's chosen options.
 
-    Minimum $11.11 (1111 cents). Moderator pays upfront before session opens.
-    Verifies session ownership — only the session creator can pay.
+    Moderator Paid → creator pays the full quote (≥ $11.11; may pay more).
+    Cost Split     → creator pays 50% of the quote now; participants split the rest (cost-split intents).
+    The amount is computed SERVER-SIDE from the stored session (poll_pricing.quote_for_session) — a client can
+    raise it (Moderator Paid) but never lower it. Only the session creator can pay.
     """
     session = await _get_session(db, session_id)
 
-    # Security: verify session ownership
     if session.created_by != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only the session creator can initiate payment",
         )
-
-    if session.pricing_tier != "moderator_paid":
+    tier = session.pricing_tier or "free"
+    if tier not in ("moderator_paid", "cost_split"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Session pricing tier is not 'moderator_paid'",
+            detail="Session pricing tier is not 'moderator_paid' or 'cost_split'",
         )
+    if session.is_paid is True:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This poll is already paid")
 
-    final_amount = max(amount_cents or MODERATOR_MIN_FEE_CENTS, MODERATOR_MIN_FEE_CENTS)
+    quote = poll_pricing.quote_for_session(session, participants=participants, options=options, voice_share=voice_share)
+    due = int(quote["creator_due_cents"])
+    if tier == "moderator_paid":
+        final_amount = max(int(amount_cents or 0), due, MODERATOR_MIN_FEE_CENTS)
+        tx_type, line = "moderator_fee", "poll_moderator_paid"
+    else:
+        final_amount = max(due, STRIPE_MIN_CENTS)
+        tx_type, line = "cost_split", "poll_cost_split_moderator"
 
+    idem_key = stripe_idempotency_key(
+        action="checkout_poll_creator",
+        session_id=str(session_id),
+        amount_cents=final_amount,
+        transaction_type=tx_type,
+        nonce=client_key or new_attempt_nonce(),
+    )
+    base = f"{settings.frontend_url}/dashboard?session={session.short_code}"
+    ok_url = success_url or f"{base}&payment=success"
+    ok_url = ok_url if "{CHECKOUT_SESSION_ID}" in ok_url else ok_url + ("&" if "?" in ok_url else "?") + "cs={CHECKOUT_SESSION_ID}"
+    metadata = {
+        "session_id": str(session_id),
+        "short_code": session.short_code,
+        "transaction_type": tx_type,
+        "product_line": product_line_for(tx_type),
+        "pricing_tier": tier,
+        "poll_options": ",".join(quote["options"])[:400],
+        "participants": str(quote["participants"]),
+        "tracked_cost_usd": quote["tracked_cost_usd"],
+        "margin_multiplier": quote["margin_multiplier"],
+        "quote_total_cents": str(quote["total_cents"]),
+        "catalog_version": quote["catalog_version"],
+    }
     checkout = stripe.checkout.Session.create(
-        payment_method_types=["card"],
         line_items=[{
-            "price_data": {
-                "currency": "usd",
-                "unit_amount": final_amount,
-                "product_data": {
-                    "name": f"SoI Polling Session: {session.title}",
-                    "description": f"Session {session.short_code} — Moderator fee",
-                },
-            },
+            "price_data": stripe_catalog.price_data(
+                line, final_amount,
+                name=f"eXeL AI Polling: {session.title}"[:120],
+                description=f"Poll {session.short_code} — {tier.replace('_', ' ')}",
+            ),
             "quantity": 1,
         }],
         mode="payment",
-        success_url=success_url or f"{settings.frontend_url}/dashboard?session={session.short_code}&payment=success",
-        cancel_url=cancel_url or f"{settings.frontend_url}/dashboard?session={session.short_code}&payment=cancelled",
-        metadata={
-            "session_id": str(session_id),
-            "short_code": session.short_code,
-            "transaction_type": "moderator_fee",
-        },
+        client_reference_id=str(session_id),
+        success_url=ok_url,
+        cancel_url=cancel_url or f"{base}&payment=cancelled",
+        metadata=metadata,
+        payment_intent_data={"metadata": metadata, "description": f"eXeL AI Polling — poll {session.short_code} ({tier})"},
+        idempotency_key=idem_key,
     )
 
-    # Record pending transaction
-    tx = PaymentTransaction(
-        session_id=session_id,
-        transaction_type="moderator_fee",
-        amount_cents=final_amount,
-        currency="USD",
-        stripe_checkout_session_id=checkout.id,
-        status="pending",
-    )
-    db.add(tx)
-
-    # Store checkout ID on session
+    # Idempotent replay (same client_key) returns the same Checkout id — reuse its pending row.
+    existing = (await db.execute(
+        select(PaymentTransaction).where(PaymentTransaction.stripe_checkout_session_id == checkout.id)
+    )).scalar_one_or_none()
+    if not isinstance(existing, PaymentTransaction):
+        db.add(PaymentTransaction(
+            session_id=session_id,
+            transaction_type=tx_type,
+            amount_cents=final_amount,
+            currency="USD",
+            stripe_checkout_session_id=checkout.id,
+            status="pending",
+            product_line=product_line_for(tx_type),
+            idempotency_key=idem_key,
+            reconcile_status="awaiting_webhook",
+            metadata_json=json.dumps({"quote": quote}),
+        ))
     session.stripe_session_id = checkout.id
     session.fee_amount_cents = final_amount
+    session.estimated_cost_cents = poll_pricing._cents_ceil(poll_pricing.D(quote["tracked_cost_usd"]))
     await db.commit()
 
-    logger.info(
-        "cube8.payment.moderator_checkout_created",
-        extra={
-            "session_id": str(session_id),
-            "amount_cents": final_amount,
-            "checkout_id": checkout.id,
-        },
-    )
+    logger.info("cube8.payment.poll_creator_checkout_created", session_id=str(session_id), tier=tier,
+                amount_cents=final_amount, checkout_id=checkout.id)
 
     return {
         "checkout_url": checkout.url,
         "checkout_id": checkout.id,
         "amount_cents": final_amount,
+        "quote": quote,
     }
 
 
@@ -339,6 +386,14 @@ async def create_cost_split_intent(
         share_cents = max(math.ceil(user_share / user_count), 50)  # Min $0.50 per user
         description = f"User share (50%/{user_count}) — Session {session.short_code}"
 
+    idem_key = stripe_idempotency_key(
+        action="intent_cost_split",
+        session_id=str(session_id),
+        participant_id=str(participant_id),
+        amount_cents=share_cents,
+        transaction_type="cost_split",
+        nonce=new_attempt_nonce(),
+    )
     intent = stripe.PaymentIntent.create(
         amount=share_cents,
         currency="usd",
@@ -350,6 +405,7 @@ async def create_cost_split_intent(
             "estimated_total_cents": str(total_cents),
         },
         description=description,
+        idempotency_key=idem_key,
     )
 
     # Record pending transaction
@@ -406,6 +462,14 @@ async def create_donation_intent(
 
     session = await _get_session(db, session_id)
 
+    idem_key = stripe_idempotency_key(
+        action="intent_donation",
+        session_id=str(session_id),
+        participant_id=str(participant_id) if participant_id else None,
+        amount_cents=amount_cents,
+        transaction_type="donation",
+        nonce=new_attempt_nonce(),
+    )
     intent = stripe.PaymentIntent.create(
         amount=amount_cents,
         currency="usd",
@@ -415,6 +479,7 @@ async def create_donation_intent(
             "transaction_type": "donation",
         },
         description=f"Donation — Session {session.short_code}",
+        idempotency_key=idem_key,
     )
 
     tx = PaymentTransaction(
@@ -456,64 +521,78 @@ async def create_divinity_donation_checkout(
     cancel_url: str = "",
     label: str = "The Divinity Guide — Sacred Contribution",
     description: str = "The Return to Wholeness and Living Divinity",
+    purpose: str = "divinity_guide",
+    client_key: str | None = None,
 ) -> dict:
-    """Create an anonymous Stripe Checkout for a voluntary donation.
+    """Anonymous Stripe Checkout for a voluntary donation (no auth, no session).
 
-    No auth, no session — the universal "anyone can donate anytime" path (navbar donate
-    button + Divinity Guide). Caller may override `label`/`description` to brand the
-    Checkout line item (defaults keep the Divinity Guide wording). Minimum $0.50, default
-    $3.33. Records a PaymentTransaction so the webhook can award HI tokens.
+    `purpose` picks the live Product: divinity_guide | derisking_strategies | community. Minimum $0.50,
+    default $3.33. Records a pending PaymentTransaction; the signed webhook completes it.
     """
     if amount_cents < 50:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Minimum donation is $0.50",
         )
+    if purpose not in stripe_catalog.DONATION_PURPOSES:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unknown donation purpose")
+    line, tx_type = stripe_catalog.DONATION_PURPOSES[purpose]
 
+    idem_key = stripe_idempotency_key(
+        action="checkout_donation",
+        amount_cents=amount_cents,
+        transaction_type=tx_type,
+        nonce=client_key or new_attempt_nonce(),
+    )
+    default_ok = f"{settings.frontend_url}/divinity-guide?donated=true" if purpose == "divinity_guide" else f"{settings.frontend_url}/?donated=true"
+    ok_url = success_url or default_ok
+    ok_url = ok_url if "{CHECKOUT_SESSION_ID}" in ok_url else ok_url + ("&" if "?" in ok_url else "?") + "cs={CHECKOUT_SESSION_ID}"
+    metadata = {
+        "transaction_type": tx_type,
+        "product_line": product_line_for(tx_type),
+        "purpose": purpose,
+        "amount_cents": str(amount_cents),
+        "source": "api_donate",
+    }
     checkout = stripe.checkout.Session.create(
-        payment_method_types=["card"],
         line_items=[{
-            "price_data": {
-                "currency": "usd",
-                "unit_amount": amount_cents,
-                "product_data": {
-                    "name": label,
-                    "description": description,
-                },
-            },
+            "price_data": stripe_catalog.price_data(line, amount_cents, name=label, description=description),
             "quantity": 1,
-            "adjustable_quantity": {"enabled": False},
         }],
         mode="payment",
-        success_url=success_url or f"{settings.frontend_url}/divinity-guide?donated=true",
-        cancel_url=cancel_url or f"{settings.frontend_url}/divinity-guide",
-        metadata={
-            "transaction_type": "divinity_guide_donation",
-            "amount_cents": str(amount_cents),
-        },
+        submit_type="donate",
+        success_url=ok_url,
+        cancel_url=cancel_url or (f"{settings.frontend_url}/divinity-guide" if purpose == "divinity_guide" else settings.frontend_url),
+        metadata=metadata,
+        payment_intent_data={"metadata": metadata, "description": label[:200]},
+        idempotency_key=idem_key,
     )
 
-    # Record transaction so webhook can find it and award HI tokens
     if db:
-        tx = PaymentTransaction(
-            transaction_type="divinity_guide_donation",
-            amount_cents=amount_cents,
-            currency="USD",
-            stripe_checkout_session_id=checkout.id,
-            status="pending",
-        )
-        db.add(tx)
-        await db.commit()
+        existing = (await db.execute(
+            select(PaymentTransaction).where(PaymentTransaction.stripe_checkout_session_id == checkout.id)
+        )).scalar_one_or_none()
+        if not isinstance(existing, PaymentTransaction):
+            db.add(PaymentTransaction(
+                transaction_type=tx_type,
+                amount_cents=amount_cents,
+                currency="USD",
+                stripe_checkout_session_id=checkout.id,
+                status="pending",
+                product_line=product_line_for(tx_type),
+                idempotency_key=idem_key,
+                reconcile_status="awaiting_webhook",
+                metadata_json=json.dumps({"purpose": purpose, "source": "api_donate"}),
+            ))
+            await db.commit()
 
-    logger.info(
-        "cube8.payment.divinity_donation_checkout",
-        extra={"amount_cents": amount_cents, "checkout_id": checkout.id},
-    )
+    logger.info("cube8.payment.donation_checkout", purpose=purpose, amount_cents=amount_cents, checkout_id=checkout.id)
 
     return {
         "checkout_url": checkout.url,
         "checkout_id": checkout.id,
         "amount_cents": amount_cents,
+        "purpose": purpose,
     }
 
 
@@ -534,40 +613,70 @@ async def handle_payment_completed(
     event_type = stripe_event["type"]
     obj = stripe_event["data"]["object"]
 
-    if event_type == "checkout.session.completed":
+    if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
         checkout_id = obj["id"]
+        md = obj.get("metadata") or {}
         result = await db.execute(
             select(PaymentTransaction).where(
                 PaymentTransaction.stripe_checkout_session_id == checkout_id
             )
         )
         tx = result.scalar_one_or_none()
+        paid_cents = obj.get("amount_total")
+        if tx is None and md.get("transaction_type") in DONATION_TX_TYPES:
+            # Edge donations (frontend /api/donate) never touch the API until Stripe confirms them — record the
+            # row now. The partial unique index on stripe_checkout_session_id makes a racing duplicate fail safely.
+            tx_type = md.get("transaction_type")
+            if tx_type == "donation" and md.get("purpose") in stripe_catalog.DONATION_PURPOSES:
+                tx_type = stripe_catalog.DONATION_PURPOSES[md["purpose"]][1]
+            tx = PaymentTransaction(
+                transaction_type=tx_type,
+                amount_cents=int(paid_cents or md.get("amount_cents") or 0),
+                currency=(obj.get("currency") or "usd").upper()[:3],
+                stripe_checkout_session_id=checkout_id,
+                stripe_payment_intent_id=obj.get("payment_intent") if isinstance(obj.get("payment_intent"), str) else None,
+                status="pending",
+                product_line=product_line_for(tx_type),
+                reconcile_status="recorded_from_webhook",
+                metadata_json=json.dumps({"source": md.get("source") or "edge_donate", "purpose": md.get("purpose")}),
+            )
+            db.add(tx)
+            await db.flush()
         if tx and tx.status != "completed":  # Idempotency: skip if already processed
             tx.status = "completed"
+            tx.stripe_event_id = stripe_event.get("id")
+            if isinstance(obj.get("payment_intent"), str) and not tx.stripe_payment_intent_id:
+                tx.stripe_payment_intent_id = obj["payment_intent"]
+            if paid_cents is not None and int(paid_cents) != int(tx.amount_cents):
+                tx.reconcile_status = f"amount_mismatch:stripe={int(paid_cents)}"
+            elif tx.reconcile_status in (None, "awaiting_webhook"):
+                tx.reconcile_status = "stripe_confirmed"
 
-            if tx.transaction_type == "divinity_guide_donation":
+            if tx.transaction_type in DONATION_TX_TYPES and not tx.session_id:
                 # Record an inert contribution receipt (mints no 웃)
+                # The receipt runs in a SAVEPOINT: if it fails, the payment row still commits (the old call passed
+                # participant_id/no user_id → TypeError, so receipts were never written; a DB error here would also
+                # have poisoned the outer transaction and 500'd the webhook).
                 from app.cubes.cube8_tokens.service import record_contribution_receipt
                 try:
-                    amount_usd = tx.amount_cents / 100.0
-                    await record_contribution_receipt(
-                        db, session_id=tx.session_id, participant_id=tx.participant_id,
-                        amount_usd=amount_usd, payment_type="donation",
-                    )
-                except Exception as e:
-                    logger.warning("cube8.payment.divinity_receipt_failed", extra={"error": str(e)})
-            elif tx.session_id:
+                    async with db.begin_nested():
+                        await record_contribution_receipt(
+                            db, session_id=tx.session_id, user_id="donor:anonymous",
+                            amount_usd=tx.amount_cents / 100.0, payment_type="donation",
+                            reference_id=checkout_id,
+                        )
+                except Exception as e:  # noqa: BLE001
+                    logger.warning("cube8.payment.donation_receipt_failed", error=str(e)[:300])
+            elif tx.session_id and tx.transaction_type in ("moderator_fee", "cost_split", "usage_billing"):
                 session = await _get_session(db, tx.session_id)
                 session.is_paid = True
 
             await db.commit()
-            logger.info(
-                "cube8.payment.checkout_completed",
-                extra={"checkout_id": checkout_id, "type": tx.transaction_type},
-            )
+            logger.info("cube8.payment.checkout_completed", checkout_id=checkout_id, type=tx.transaction_type)
             await _fire_payment_received(db, tx)
         elif tx and tx.status == "completed":
-            logger.info("cube8.payment.checkout_already_completed", extra={"checkout_id": checkout_id})
+            logger.info("cube8.payment.checkout_already_completed", checkout_id=checkout_id)
+        return tx
 
     elif event_type == "payment_intent.succeeded":
         pi_id = obj["id"]
@@ -579,6 +688,7 @@ async def handle_payment_completed(
         tx = result.scalar_one_or_none()
         if tx and tx.status != "completed":  # Idempotency: skip if already processed
             tx.status = "completed"
+            tx.stripe_event_id = stripe_event.get("id")
             if tx.transaction_type == "cost_split" and tx.participant_id:
                 p_result = await db.execute(
                     select(Participant).where(Participant.id == tx.participant_id)
@@ -594,6 +704,8 @@ async def handle_payment_completed(
             await _fire_payment_received(db, tx)
         elif tx and tx.status == "completed":
             logger.info("cube8.payment.intent_already_completed", extra={"pi_id": pi_id})
+        return tx
+    return None
 
 
 async def _fire_payment_received(db: AsyncSession, tx) -> None:
@@ -636,8 +748,9 @@ async def handle_payment_failed(
             select(PaymentTransaction).where(PaymentTransaction.stripe_checkout_session_id == checkout_id)
         )
         tx = result.scalar_one_or_none()
-    if tx and tx.status not in ("completed", "failed"):
-        tx.status = "failed"
+    if tx and tx.status not in ("completed", "failed", "expired"):
+        tx.status = "expired" if stripe_event.get("type") == "checkout.session.expired" else "failed"
+        tx.stripe_event_id = stripe_event.get("id")
         await db.commit()
         logger.info("cube8.payment.marked_failed", extra={"id": str(tx.id), "type": tx.transaction_type})
 

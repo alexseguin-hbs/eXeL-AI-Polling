@@ -27,3 +27,24 @@ Moderator Settings → Cost Estimate and the session cost ledger.
 
 ## Activation status
 **NOT PERFORMED in this PR.** Config/docs only. Operator must enable cron + secrets.
+
+## BLOCKER (2026-11-08) — official-source HTTP adapters not implemented
+
+`mark_weekly_check` currently **reaffirms the bundled catalog** only. It does **not**
+HTTP-fetch OpenAI / Google / xAI / AWS / Anthropic public pricing pages or APIs.
+
+Required before claiming weekly lookup is live:
+1. Per-provider source adapters with documented official URLs + parse validation
+2. Reject unknown→0; retain prior versioned snapshots on change evidence
+3. Never overwrite negotiated Stripe fees with public list rates
+4. Scheduler activation on supported host (cron/Workers) — not done
+
+Until then: treat weekly refresh as **config/docs + admin reaffirm endpoint only**.
+
+## Adapter readiness (2026-11-08)
+
+See `app.cubes.cube8_tokens.fee_source_adapters.readiness_report()`.
+
+Auto parsers ready: `whisper`, `aws` (US-East batch example), `grok` (xAI STT REST $/hr→/min).
+Manual only: `gemini` STT pin, all Theme02 token tables.
+`weekly_cron_activated` remains **false** until host schedules the admin refresh with adapter wiring reviewed.

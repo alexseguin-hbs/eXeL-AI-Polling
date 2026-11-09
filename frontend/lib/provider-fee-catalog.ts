@@ -1,7 +1,8 @@
 /**
  * Provider fee catalog for Moderator Settings → Cost Estimate.
- * Mirrors backend fee_catalog / cost_ledger rates. UI_ESTIMATE only —
- * not invoice-verified. Weekly refresh is server-side; client shows freshness.
+ *
+ * Prefer GET /payments/provider-fees (server catalog). Offline/unavailable
+ * shows explicitly labeled local UI_ESTIMATE rows — never silent unknown→$0.
  *
  * STT $/min denominator = billable audio minutes (not session wall-clock).
  * Theme02 uses estimated tokens — do not conflate with Financial-2525 MoT $/min.
@@ -50,6 +51,7 @@ export type CostComboRow = {
   totalUsd: number | null;
   v2tStatus: "estimated_from_catalog" | "unknown_rate";
   verification: "UI_ESTIMATE";
+  source: "server" | "offline_local";
 };
 
 export const COST_COMBO_DEFS = [
@@ -62,7 +64,44 @@ export const COST_COMBO_DEFS = [
   { summary: "claude", v2t: "aws", summaryLabel: "Claude", v2tLabel: "AWS", isDefault: false },
 ] as const;
 
-export function buildComboRows(checkedAtIso: string = "2026-04-01T00:00:00Z"): {
+export type FeeLoadStatus =
+  | "idle"
+  | "loading"
+  | "server_ok"
+  | "unavailable"
+  | "offline"
+  | "bad_shape";
+
+export type ProviderFeesPayload = {
+  catalog_version?: string;
+  currency?: string;
+  assumptions?: Record<string, unknown>;
+  freshness?: {
+    checked_at?: string;
+    stale?: boolean;
+    catalog_version?: string;
+    next_refresh_due_at?: string | null;
+  };
+  combos?: Array<{
+    summary_provider?: string;
+    v2t_provider?: string;
+    label?: string;
+    is_default?: boolean;
+    summary_usd?: string | null;
+    v2t_usd?: string | null;
+    total_usd?: string | null;
+    v2t_verification?: string;
+    invoice_accurate?: boolean;
+  }>;
+  free_tier?: { corrected?: string };
+  invoice_accurate?: boolean;
+  pricing_activation_enabled?: boolean;
+};
+
+export function buildComboRows(
+  checkedAtIso: string = "2026-04-01T00:00:00Z",
+  source: "server" | "offline_local" = "offline_local",
+): {
   rows: CostComboRow[];
   freshness: { checkedAt: string; stale: boolean; catalogVersion: string };
 } {
@@ -76,6 +115,7 @@ export function buildComboRows(checkedAtIso: string = "2026-04-01T00:00:00Z"): {
       v2tUsd = Math.round(stt.rate * audioMin * 100) / 100;
       v2tStatus = "estimated_from_catalog";
     }
+    // unknown providers (e.g. azure): leave null — never coerce to 0
     const totalUsd =
       summaryUsd != null && v2tUsd != null ? Math.round((summaryUsd + v2tUsd) * 100) / 100 : null;
     return {
@@ -89,6 +129,7 @@ export function buildComboRows(checkedAtIso: string = "2026-04-01T00:00:00Z"): {
       totalUsd,
       v2tStatus,
       verification: "UI_ESTIMATE",
+      source,
     };
   });
   const checked = Date.parse(checkedAtIso);
@@ -97,6 +138,142 @@ export function buildComboRows(checkedAtIso: string = "2026-04-01T00:00:00Z"): {
     rows,
     freshness: { checkedAt: checkedAtIso, stale, catalogVersion: FEE_CATALOG_VERSION },
   };
+}
+
+function parseUsd(v: string | null | undefined): number | null {
+  if (v == null || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Map server /payments/provider-fees combos → panel rows. Unknown rates stay null. */
+export function rowsFromServerPayload(payload: ProviderFeesPayload): {
+  rows: CostComboRow[];
+  freshness: { checkedAt: string; stale: boolean; catalogVersion: string };
+} | null {
+  if (!payload || !Array.isArray(payload.combos) || payload.combos.length === 0) return null;
+  const checkedAt =
+    payload.freshness?.checked_at ||
+    (typeof payload.assumptions === "object" ? undefined : undefined) ||
+    new Date(0).toISOString();
+  const catalogVersion =
+    payload.freshness?.catalog_version || payload.catalog_version || FEE_CATALOG_VERSION;
+  const stale = Boolean(payload.freshness?.stale);
+  const rows: CostComboRow[] = payload.combos.map((c, i) => {
+    const def = COST_COMBO_DEFS[i];
+    const summary = c.summary_provider || def?.summary || "unknown";
+    const v2t = c.v2t_provider || def?.v2t || "unknown";
+    const label = c.label || `${summary} + ${v2t}`;
+    const parts = label.split("+").map((s) => s.trim());
+    const summaryUsd = parseUsd(c.summary_usd ?? null);
+    const v2tUsd = parseUsd(c.v2t_usd ?? null);
+    const totalUsd = parseUsd(c.total_usd ?? null);
+    const v2tStatus: CostComboRow["v2tStatus"] =
+      c.v2t_verification === "unknown_rate" || v2tUsd == null ? "unknown_rate" : "estimated_from_catalog";
+    return {
+      summary,
+      v2t,
+      summaryLabel: parts[0] || summary,
+      v2tLabel: parts[1] || v2t,
+      isDefault: Boolean(c.is_default ?? def?.isDefault),
+      summaryUsd,
+      v2tUsd,
+      totalUsd: totalUsd ?? (summaryUsd != null && v2tUsd != null ? summaryUsd + v2tUsd : null),
+      v2tStatus,
+      verification: "UI_ESTIMATE",
+      source: "server",
+    };
+  });
+  return {
+    rows,
+    freshness: { checkedAt: String(checkedAt), stale, catalogVersion: String(catalogVersion) },
+  };
+}
+
+export type FeeFetchResult = {
+  status: FeeLoadStatus;
+  payload: ProviderFeesPayload | null;
+  rows: CostComboRow[];
+  freshness: { checkedAt: string; stale: boolean; catalogVersion: string };
+  invoiceAccurate: boolean;
+};
+
+/**
+ * Load fee catalog: server first. On failure, retain labeled offline local estimates.
+ * Never invent rates for unknown providers (null stays null).
+ */
+export async function loadFeeCatalogForPanel(opts: {
+  fetchImpl?: typeof fetch;
+  apiBase?: string;
+  mockMode?: boolean;
+  signal?: AbortSignal;
+}): Promise<FeeFetchResult> {
+  const offline = buildComboRows("2026-04-01T00:00:00Z", "offline_local");
+  const mockMode = opts.mockMode === true;
+  if (mockMode) {
+    return {
+      status: "offline",
+      payload: null,
+      rows: offline.rows,
+      freshness: offline.freshness,
+      invoiceAccurate: false,
+    };
+  }
+  const base = (opts.apiBase || "").replace(/\/$/, "");
+  const url = `${base}/payments/provider-fees`;
+  const fetchImpl = opts.fetchImpl || fetch;
+  try {
+    const res = await fetchImpl(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: opts.signal,
+    });
+    if (!res.ok) {
+      return {
+        status: "unavailable",
+        payload: null,
+        rows: offline.rows,
+        freshness: offline.freshness,
+        invoiceAccurate: false,
+      };
+    }
+    const ct = res.headers.get("content-type") || "";
+    if (!ct.includes("application/json")) {
+      return {
+        status: "bad_shape",
+        payload: null,
+        rows: offline.rows,
+        freshness: offline.freshness,
+        invoiceAccurate: false,
+      };
+    }
+    const payload = (await res.json()) as ProviderFeesPayload;
+    const mapped = rowsFromServerPayload(payload);
+    if (!mapped) {
+      return {
+        status: "bad_shape",
+        payload,
+        rows: offline.rows,
+        freshness: offline.freshness,
+        invoiceAccurate: false,
+      };
+    }
+    return {
+      status: "server_ok",
+      payload,
+      rows: mapped.rows,
+      freshness: mapped.freshness,
+      invoiceAccurate: payload.invoice_accurate === true,
+    };
+  } catch {
+    return {
+      status: "offline",
+      payload: null,
+      rows: offline.rows,
+      freshness: offline.freshness,
+      invoiceAccurate: false,
+    };
+  }
 }
 
 export const FREE_TIER_CORRECTED =

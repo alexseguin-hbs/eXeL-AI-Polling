@@ -5,22 +5,37 @@
 // Theme01→Theme02, and simulate priorities in a ranking round; admin can test 5,000 responses or a
 // new question). Admin-gated in app/sim/page.tsx (cube10Access === "admin"). Runs self-contained
 // (mock pipeline) now; the SAME driver hits the real backend when NEXT_PUBLIC_MOCK_MODE=false.
+//
+// P0 (2026-11-08): presets 12/24/48 → theme2_9|6|3, honest connectivity badge, stage timings,
+// downloadable review JSON. Optional scope_ref keeps Drone/Security feedback separated.
 
-import { useCallback, useMemo, useState } from "react";
-import { Loader2, Play, FlaskConical, Server, MonitorOff, AlertTriangle } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Loader2, Play, FlaskConical, Server, MonitorOff, AlertTriangle, Download, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RankedThemes } from "@/components/flower-of-life/ranked-themes";
 import { THEME01_LABELS } from "@/lib/adapt-live-themes";
 import type { Theme01Label, ThemeInfo } from "@/lib/types";
-import { runSimConsole, type SimConsoleResult } from "@/lib/sim-console-driver";
+import {
+  runSimConsole,
+  buildSimReviewArtifact,
+  SIM_PRESETS,
+  votingLevelForCount,
+  type SimConsoleResult,
+} from "@/lib/sim-console-driver";
+import {
+  probeApiConnectivity,
+  connectivityLabel,
+  type ApiConnectivityReport,
+} from "@/lib/api-connectivity";
 
 type Level = "3" | "6" | "9";
 
 export function SimAdminConsole() {
   const [question, setQuestion] = useState("Should AI systems be governed by shared human intent?");
-  const [count, setCount] = useState(200);
-  const [voters, setVoters] = useState(25);
+  const [count, setCount] = useState(12);
+  const [voters, setVoters] = useState(5);
   const [seed, setSeed] = useState("sim");
+  const [scopeRef, setScopeRef] = useState("");
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [phase, setPhase] = useState("");
@@ -28,12 +43,24 @@ export function SimAdminConsole() {
   const [error, setError] = useState<string | null>(null);
   const [level, setLevel] = useState<Level>("3");
   const [category, setCategory] = useState<Theme01Label>("Risk & Concerns");
+  const [connectivity, setConnectivity] = useState<ApiConnectivityReport | null>(null);
 
-  const run = useCallback(async (q: string, n: number, v: number, s: string) => {
+  useEffect(() => {
+    let cancelled = false;
+    probeApiConnectivity().then((r) => { if (!cancelled) setConnectivity(r); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const run = useCallback(async (q: string, n: number, v: number, s: string, scope?: string) => {
     setRunning(true); setError(null); setResult(null); setProgress(0); setPhase("Starting");
     try {
+      let conn = connectivity;
+      try { conn = await probeApiConnectivity(); setConnectivity(conn); } catch { /* keep prior */ }
       const res = await runSimConsole({
         question: q, count: n, voters: v, seed: s,
+        theme2VotingLevel: votingLevelForCount(n),
+        scopeRef: scope?.trim() || null,
+        connectivity: conn,
         onProgress: (f, p) => { setProgress(f); setPhase(p); },
       });
       setResult(res);
@@ -42,13 +69,32 @@ export function SimAdminConsole() {
     } finally {
       setRunning(false);
     }
-  }, []);
+  }, [connectivity]);
 
   // Preset: the 5,000-response stress run around the current question.
-  const run5000 = () => { setCount(5000); run(question, 5000, Math.min(voters, 50), seed); };
+  const run5000 = () => { setCount(5000); run(question, 5000, Math.min(voters, 50), seed, scopeRef); };
 
-  // The ranking round's order (winner first). Christo (AsM round 1): the round ranks the nine Theme02 of
-  // Risk & Concerns, so its panel shows THOSE themes in that order; Theme01 keeps its own panel by count.
+  const runPreset = (n: number) => {
+    setCount(n);
+    setVoters(Math.min(Math.max(Math.floor(n / 2), 3), 50));
+    run(question, n, Math.min(Math.max(Math.floor(n / 2), 3), 50), seed, scopeRef);
+  };
+
+  const downloadReview = () => {
+    if (!result) return;
+    const artifact = buildSimReviewArtifact(result);
+    (artifact as { requested_n?: number }).requested_n = count;
+    const blob = new Blob([JSON.stringify(artifact, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sim-review-${result.sessionId.slice(0, 8)}-${result.seed}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // The ranking round's order (winner first). Christo (AsM round 1): the round ranks the Theme02 of
+  // Risk & Concerns at the chosen level, so its panel shows THOSE themes in that order; Theme01 keeps its own panel by count.
   const priorityOrder = useMemo(() => (result?.ranking ?? []).map((r) => r.label), [result]);
   const theme1List: ThemeInfo[] = useMemo(
     () => (result ? THEME01_LABELS.map((l) => result.themes.theme1[l]).filter((t) => t && !t.isEmpty) : []),
@@ -78,12 +124,14 @@ export function SimAdminConsole() {
       <header style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <FlaskConical className="h-5 w-5 text-primary" />
         <h2 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>Admin Simulation Console</h2>
-        <ModeBadge />
+        <ModeBadge connectivity={connectivity} />
       </header>
       <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0, lineHeight: 1.5 }}>
         Generate 100–400-word responses around a question, run Theme 01 → Theme 02 grouping through the
-        real pipeline, then simulate a ranking round of priorities. Responses are AI-written supplemental
-        input, labelled as such. Deterministic for a fixed question + count + seed.
+        real pipeline, then simulate a ranking round of priorities. Presets 12 / 24 / 48 map to Theme02
+        voting levels 9 / 6 / 3 (existing session_type=simulation + HP-21). Responses are AI-written
+        supplemental input, labelled as such. Deterministic for a fixed question + count + seed. Optional
+        scope_ref keeps Drone vs Security feedback separated on the same contracts.
       </p>
 
       {/* Controls */}
@@ -106,12 +154,23 @@ export function SimAdminConsole() {
             <input value={seed} onChange={(e) => setSeed(e.target.value)} disabled={running}
               style={{ width: 110, padding: "6px 8px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--background)", color: "var(--foreground)", fontSize: 13, fontFamily: "monospace" }} />
           </label>
+          <label style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", display: "flex", flexDirection: "column", gap: 4 }}>
+            scope_ref
+            <input value={scopeRef} onChange={(e) => setScopeRef(e.target.value)} disabled={running}
+              placeholder="Project→… (optional)"
+              style={{ width: 180, padding: "6px 8px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--background)", color: "var(--foreground)", fontSize: 13, fontFamily: "monospace" }} />
+          </label>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Button size="sm" onClick={() => run(question, count, voters, seed)} disabled={running || !question.trim()} className="gap-1">
+          <Button size="sm" onClick={() => run(question, count, voters, seed, scopeRef)} disabled={running || !question.trim()} className="gap-1">
             {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
             {running ? "Running…" : "Run simulation"}
           </Button>
+          {SIM_PRESETS.map((p) => (
+            <Button key={p.count} size="sm" variant="outline" onClick={() => runPreset(p.count)} disabled={running} className="gap-1">
+              <FlaskConical className="h-4 w-4" /> {p.label}
+            </Button>
+          ))}
           <Button size="sm" variant="outline" onClick={run5000} disabled={running} className="gap-1">
             <FlaskConical className="h-4 w-4" /> Test 5,000 responses
           </Button>
@@ -135,13 +194,22 @@ export function SimAdminConsole() {
       {/* Results */}
       {result && !running && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: "var(--muted-foreground)" }}>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: "var(--muted-foreground)", alignItems: "flex-end" }}>
             <Stat label="Responses" value={result.responseCount.toLocaleString()} />
             {result.summarized != null && <Stat label="Summarized" value={result.summarized.toLocaleString()} />}
             <Stat label="Categories" value={String(theme1List.length)} />
             <Stat label="Top priority" value={result.ranking[0]?.label ?? "—"} />
             {result.replayHash && <Stat label="Replay" value={result.replayHash.slice(0, 10)} mono />}
             <Stat label="Errors" value={String(result.errors.length)} />
+            <Stat label="theme2" value={result.theme2VotingLevel} mono />
+            {result.scopeRef && <Stat label="scope_ref" value={result.scopeRef} mono />}
+            <Stat label="inject ms" value={String(result.timingsMs.inject ?? "—")} />
+            <Stat label="theme ms" value={String(result.timingsMs.theme ?? "—")} />
+            <Stat label="ballot ms" value={String(result.timingsMs.ballot ?? "—")} />
+            <Stat label="agg ms" value={String(result.timingsMs.aggregate ?? "—")} />
+            <Button size="sm" variant="outline" onClick={downloadReview} className="gap-1">
+              <Download className="h-4 w-4" /> Review JSON
+            </Button>
           </div>
 
           {/* Christo (AsM round 1): every failed stage, named with its HTTP status — a failed run never looks clean. */}
@@ -201,13 +269,21 @@ export function SimAdminConsole() {
   );
 }
 
-function ModeBadge() {
-  // Read the same env the driver reads (build-time inlined by Next).
-  const live = process.env.NEXT_PUBLIC_MOCK_MODE === "false";
+function ModeBadge({ connectivity }: { connectivity: ApiConnectivityReport | null }) {
+  // Prefer probed connectivity; fall back to build-time mock fold.
+  const liveConfigured = process.env.NEXT_PUBLIC_MOCK_MODE === "false";
+  const probe = connectivity?.probe;
+  const label = connectivity ? connectivityLabel(connectivity) : (liveConfigured ? "live-configured (probing…)" : "self-contained (mock)");
+  const ok = probe === "live-ok";
+  const mock = probe === "mock-folded" || (!connectivity && !liveConfigured);
+  const Icon = mock ? MonitorOff : ok ? Wifi : probe === "live-unreachable" || probe === "live-non-json" ? WifiOff : Server;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, border: "1px solid var(--border)", color: "var(--muted-foreground)" }}>
-      {live ? <Server className="h-3 w-3" /> : <MonitorOff className="h-3 w-3" />}
-      {live ? "live backend" : "self-contained"}
+    <span
+      title={connectivity?.detail || undefined}
+      style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, border: "1px solid var(--border)", color: "var(--muted-foreground)" }}
+    >
+      <Icon className="h-3 w-3" />
+      {label}
     </span>
   );
 }
