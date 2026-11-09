@@ -66,6 +66,16 @@ async def live_snapshot(db: AsyncSession, session) -> dict:
                        "vote_count": int(head.vote_count or 0)} if head else None),
         "category_rankings": categories,
         "decision": decision,
+        # CRS-36 Round 1 shortlist (empty/inactive when percent+N unset)
+        "auto_select": {
+            "percent": getattr(session, "auto_select_percent", None),
+            "n": getattr(session, "auto_select_n", None),
+            "selected": getattr(session, "auto_select_theme_ids", None) or {},
+            "active": bool(getattr(session, "auto_select_theme_ids", None)) or (
+                getattr(session, "auto_select_percent", None) is not None
+                or getattr(session, "auto_select_n", None) is not None
+            ),
+        },
     }
 
 

@@ -261,12 +261,20 @@ def _ballot_width(rankings: list[list[str]]) -> int:
     return max((len(r) for r in rankings), default=0)
 
 
-def _replay_prefix(seed: str, algorithm: str, theme01_category: str | None, theme_level: str | None) -> str:
+def _replay_prefix(
+    seed: str,
+    algorithm: str,
+    theme01_category: str | None,
+    theme_level: str | None,
+    auto_select_token: str | None = None,
+) -> str:
     """The text `_compute_replay_hash` puts before the ballots (kept in one place so the two paths cannot drift)."""
     parts = [algorithm, seed]
     if theme01_category or theme_level:
         parts.append(f"cat={theme01_category or ''}")
         parts.append(f"lvl={theme_level or ''}")
+    if auto_select_token:
+        parts.append(auto_select_token)  # CRS-36.03
     return ":".join(parts) + ":"
 
 
@@ -311,6 +319,7 @@ async def _tally_top3_points(
     excluded: set[str],
     theme01_category: str | None,
     theme_level: str | None,
+    auto_select_token: str | None = None,
 ) -> dict:
     """Python tally of top3_points ballots (a session's ballots are small: ≤ 9 ids each). Non-top3 rows are skipped."""
     result = await db.execute(
@@ -330,7 +339,7 @@ async def _tally_top3_points(
             pids.append(pid)
     _check_tally(session_id, cycle_id, len(ballots), excluded_count)
     scores, votes = _top3_points_scores(ballots)
-    prefix = _replay_prefix(effective_seed, TOP3_POINTS, theme01_category, theme_level)
+    prefix = _replay_prefix(effective_seed, TOP3_POINTS, theme01_category, theme_level, auto_select_token)
     return {"scores": scores, "vote_counts": votes, "participant_count": len(ballots),
             "excluded_count": excluded_count, "algorithm": TOP3_POINTS,
             "replay_hash": _top3_replay_hash(ballots, prefix), "weights": {}, "participant_ids": pids}
@@ -347,6 +356,7 @@ async def aggregate_rankings(
     theme_level: str | None = None,
     is_final: bool = True,
     ranking_method: str | None = None,
+    auto_select_token: str | None = None,
 ) -> list[AggregatedRanking]:
     """CRS-12.01 + CRS-12.02 + CRS-12.04: Borda count with quadratic weights + anomaly exclusion.
 
@@ -361,6 +371,7 @@ async def aggregate_rankings(
     t = await tally_rankings(
         db, session_id, cycle_id, effective_seed, participant_stakes,
         excluded_participant_ids or set(), theme01_category, theme_level, ranking_method=ranking_method,
+        auto_select_token=auto_select_token,
     )
     return await _write_aggregation(
         db, session_id, cycle_id, t["scores"], t["vote_counts"], t["participant_count"], t["algorithm"],
@@ -380,6 +391,7 @@ async def tally_rankings(
     theme_level: str | None = None,
     hash_algorithm: str | None = None,
     ranking_method: str | None = None,
+    auto_select_token: str | None = None,
 ) -> dict:
     """The read-only half of aggregation, shared by `aggregate_rankings` and `verify_replay` so they cannot drift.
 
@@ -390,9 +402,9 @@ async def tally_rankings(
     if ranking_method == TOP3_POINTS:
         if participant_stakes:
             raise ValueError("top3_points does not take participant_stakes")
-        return await _tally_top3_points(db, session_id, cycle_id, effective_seed, excluded, theme01_category, theme_level)
+        return await _tally_top3_points(db, session_id, cycle_id, effective_seed, excluded, theme01_category, theme_level, auto_select_token)
     algorithm = "quadratic_borda" if participant_stakes else "borda_count"
-    prefix = _replay_prefix(effective_seed, hash_algorithm or algorithm, theme01_category, theme_level)
+    prefix = _replay_prefix(effective_seed, hash_algorithm or algorithm, theme01_category, theme_level, auto_select_token)
 
     if not participant_stakes and _is_postgres(db):
         # HP-05: equal weights on Postgres — tally in the database, stream the replay hash.

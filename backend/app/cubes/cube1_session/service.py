@@ -207,6 +207,8 @@ async def create_session(
     theme2_voting_level: str = "theme2_9",
     theme01_category: str | None = None,
     ranking_method: str | None = None,
+    auto_select_percent: float | None = None,
+    auto_select_n: int | None = None,
     live_feed_enabled: bool = False,
     # Static poll countdown
     polling_mode_type: str = "live_interactive",
@@ -279,6 +281,8 @@ async def create_session(
         theme2_voting_level=theme2_voting_level,
         theme01_category=theme01_category,
         ranking_method=ranking_method,
+        auto_select_percent=auto_select_percent,
+        auto_select_n=auto_select_n,
         live_feed_enabled=live_feed_enabled,
         polling_mode_type=polling_mode_type,
         static_poll_duration_days=static_poll_duration_days,
@@ -327,7 +331,7 @@ async def update_session(
         "max_response_length", "ai_provider", "session_type", "polling_mode",
         "pricing_tier", "max_participants", "fee_amount_cents",
         "cost_splitting_enabled", "reward_enabled", "reward_amount_cents",
-        "cqs_weights", "theme2_voting_level", "theme01_category", "ranking_method", "live_feed_enabled",
+        "cqs_weights", "theme2_voting_level", "theme01_category", "ranking_method", "auto_select_percent", "auto_select_n", "live_feed_enabled",
         "polling_mode_type", "static_poll_duration_days", "timer_display_mode",
         "stt_provider", "realtime_stt_enabled", "realtime_stt_provider",
         "allow_user_stt_choice", "theme_id", "custom_accent_color",
@@ -335,6 +339,9 @@ async def update_session(
     for key, value in updates.items():
         if key in allowed and value is not None:
             setattr(session, key, value)
+    # CRS-36: changing Round 1 config invalidates a previously computed shortlist.
+    if "auto_select_percent" in updates or "auto_select_n" in updates:
+        session.auto_select_theme_ids = None
     await db.commit()
     await db.refresh(session)
     return session

@@ -14,8 +14,8 @@
 | CRS-09.08 | Cube 6 (theming) / Cube 7 (prioritization) | 1M live theming+prioritization; Theme02 <3s; metrics shown | Planned |
 | CRS-15.09 | Cube 3 | Live voice-to-text for Moderator **and** Participants | Planned |
 | CRS-22.04 | Cube 7 | Moderator final decision transparency (show group #1 + reason) | Planned |
-| CRS-36 | Cube 7 | Round 1 variable auto-select (e.g. 40% · 4/10) | Planned |
-| CRS-36.01–.03 | Cube 7 | Auto-select config / ballot subset / replay hash | Planned |
+| CRS-36 | Cube 7 | Round 1 variable auto-select (e.g. 40% · 4/10) | **In progress** |
+| CRS-36.01–.03 | Cube 7 | Auto-select config / ballot subset / replay hash | **In progress** |
 | CRS-37 | Cube 7 | Round 2 top-3 · 3/2/1 (`top3_points`) | **In progress** |
 | CRS-37.01–.04 | Cube 7 | Subset ballot / per-category / aggregate / impl track | **In progress** |
 | CRS-38 | Cube 7 | Round 3 Expert Opinion (3 experts → AI 1-pager) | Planned |
