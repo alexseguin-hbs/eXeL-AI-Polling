@@ -30,10 +30,6 @@ const AFTER_FILL = new Set([
   'cube8.pricing.min_fee',
   // eXeL Polling Cost Estimate panel (2026-11-08 payments QA): new cube1.settings.cost_* keys
   // staged ENGLISH ONLY until operator finalizes English UI — listed never silent; no ×32 fill yet.
-  'cube1.settings.cost_estimate_badge',
-  'cube1.settings.cost_rates_stale',
-  'cube1.settings.cost_unknown_rate',
-  'cube1.settings.cost_audio_denom',
   'cube1.settings.cost_status_loading',
   'cube1.settings.cost_status_server_ok',
   'cube1.settings.cost_status_unavailable',

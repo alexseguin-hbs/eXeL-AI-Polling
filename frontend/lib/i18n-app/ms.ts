@@ -1466,5 +1466,10 @@ const T: Record<string, string> = {
   "fin.add_line": "Tambah baris",
   "fin.remove_line": "Buang baris ini",
   "fin.reset_sheet": "Kembali ke helaian contoh",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "Anggaran UI",
+  "cube1.settings.cost_rates_stale": "Kadar lapuk — kemas kini mingguan perlu dibuat",
+  "cube1.settings.cost_unknown_rate": "kadar tidak diketahui",
+  "cube1.settings.cost_audio_denom": "V2T $/minit = minit audio yang dibilkan (bukan tempoh sesi)",
 };
 export default T;

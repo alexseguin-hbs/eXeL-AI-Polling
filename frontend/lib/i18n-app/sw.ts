@@ -1471,5 +1471,10 @@ const T: Record<string, string> = {
   "fin.add_line": "Ongeza mstari",
   "fin.remove_line": "Ondoa mstari huu",
   "fin.reset_sheet": "Rejesha laha ya mfano",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "Makadirio ya kiolesura",
+  "cube1.settings.cost_rates_stale": "Viwango vimepitwa na wakati — sasisho la kila wiki linahitajika",
+  "cube1.settings.cost_unknown_rate": "kiwango hakijulikani",
+  "cube1.settings.cost_audio_denom": "V2T $/dakika = dakika za sauti zinazotozwa (si muda wa kipindi)",
 };
 export default T;

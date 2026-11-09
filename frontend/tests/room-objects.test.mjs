@@ -257,8 +257,14 @@ ok(PACKED.every((rk) => intendedDefault(rk).length <= (ROOM_ASSETS[rk]?.length ?
 // A room opens with a curated handful — the critical pieces — and the 139-asset library is REACHED, never seeded. Lock it:
 // every room's default is a small set, and the whole house's defaults together are a tiny fraction of the library.
 const ROOM_KEYS9 = ["M", "B", "C", "L", "K", "D", "O", "S", "E"];
-ok(ROOM_KEYS9.every((rk) => { const n = defaultObjectsForRoom(rk).length; return n >= 1 && n <= 10; }), `every room opens with a curated handful (1–10 items), never the library (${ROOM_KEYS9.map((rk) => rk + ":" + defaultObjectsForRoom(rk).length).join(" ")})`);
-ok(ROOM_KEYS9.reduce((s, rk) => s + defaultObjectsForRoom(rk).length, 0) < 60, `the whole house's auto-placed defaults are a small fraction of the 139-asset library (total ${ROOM_KEYS9.reduce((s, rk) => s + defaultObjectsForRoom(rk).length, 0)} ≪ 139 — the library is reached, never seeded)`);
+// R1 (Architect-2525 Round 1, I): NO numeric per-room or per-house cap is binding doctrine unless H.I./MoT approves one —
+// the former "1–10 per room, < 60 per house" gate (unapproved) is withdrawn. What IS locked is the non-numeric truth:
+// a room's auto-placed defaults come ONLY from that room's curated set (decided STANDARD_LAYOUTS / DECOR_DEFAULTS /
+// ROOM_ASSETS), never from the 139-asset library catalog (no library carriers), and a room never opens empty.
+const curatedKinds = (rk) => new Set([...(STANDARD_LAYOUTS[rk] ?? []).map((o) => o.kind), ...(Object.hasOwn(DECOR_DEFAULTS, rk) ? DECOR_DEFAULTS[rk] : []), ...(ROOM_ASSETS[rk] ?? []), "window", "door"]);
+ok(ROOM_KEYS9.every((rk) => defaultObjectsForRoom(rk).length >= 1), "every room opens with its curated defaults (never empty)");
+ok(ROOM_KEYS9.every((rk) => defaultObjectsForRoom(rk).every((o) => o.kind !== "asset" && curatedKinds(rk).has(o.kind))),
+  `every auto-placed default is from the room's curated set, never a 139-library carrier (informational counts, no cap: ${ROOM_KEYS9.map((rk) => rk + ":" + defaultObjectsForRoom(rk).length).join(" ")})`);
 ok(JSON.stringify(dM) === JSON.stringify(STANDARD_LAYOUTS.M) && dM !== STANDARD_LAYOUTS.M, "the Master Bedroom's default IS the decided Layout A (a fresh copy — never the shared array)");
 ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(dM), "defaultObjectsForRoom is deterministic — identical key → identical objects (replay law)");
 const insideRoom = (o) => { const sp = worldSpan(o); return sp.x1 >= -1e-9 && sp.y1 >= -1e-9 && sp.x2 <= ROOM_GRID + 1e-9 && sp.y2 <= ROOM_GRID + 1e-9; };

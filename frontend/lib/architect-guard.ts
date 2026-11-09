@@ -137,6 +137,15 @@ export function sanitizeProgram(raw: unknown): RoomProgram {
   };
 }
 
+/** R1 — the auto-seed fingerprint of the retired Phase-0 "house holds all 139" seed (20a77d61): it wrote every library
+ * asset into a room with the id `${roomKey}-${libraryId with non-alphanumerics → "-"}` (e.g. `C-architect2525-asset-sofa-v1`).
+ * User placements carry an instance id (placed-asset.ts) and never match. Only a cell holding this machine-written clutter
+ * may be re-seated by the one-time declutter migration; anything else is a user arrangement and is preserved. Pure. */
+export function isAutoSeededClutter(roomKey: string, objects: readonly { id: string }[]): boolean {
+  const prefix = `${roomKey}-architect2525-asset-`;
+  return objects.some((o) => typeof o.id === "string" && o.id.startsWith(prefix));
+}
+
 /** Whitelist a stored RoomCell[] — keep only well-formed cells, clamp grid/size/element counts; the
  * clamps in room-layout.ts only guard MUTATIONS, so a maliciously-seeded stored array needs this at the
  * trust boundary. Empty / not-an-array / all-invalid → the default TINY_ROOM_LAYOUT. */
@@ -176,8 +185,13 @@ export function sanitizeRoomLayout(raw: unknown): RoomCell[] {
         // DECLUTTER_REV is re-seated ONCE, for EVERY room, to its curated default (the decided layout, else the feng-shui
         // DECOR_DEFAULTS packer) and stamped; later user edits carry the stamp (setRoomObjects spreads the cell), so the
         // one-time declutter reaches every device and never wipes a real arrangement twice.
+        //
+        // R1 (Architect-2525 Round 1, J/M — "preserve saved layouts"): the migration may ONLY re-seat a cell whose stored
+        // objects are machine-written — no objects at all, or the Phase-0 139-dump auto-seed fingerprint
+        // (isAutoSeededClutter). A cell the USER arranged is never wiped by a DECLUTTER_REV bump: it is kept and stamped.
+        // (Before R1, every bump re-seated every room for every device, erasing real arrangements — 477adbdf regression.)
         const declRev = Math.min(boundInt(c.declutterRev ?? 0, 0, 9999), DECLUTTER_REV);
-        if (declRev < DECLUTTER_REV) {
+        if (declRev < DECLUTTER_REV && (objects === undefined || isAutoSeededClutter(k, objects))) {
           const curated = sanitizeObjects(std ?? defaultObjectsForRoom(k)) ?? [];
           return { objects: curated, layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV };
         }

@@ -1474,5 +1474,10 @@ const T: Record<string, string> = {
   "fin.add_line": "Legg til en linje",
   "fin.remove_line": "Fjern denne linjen",
   "fin.reset_sheet": "Tilbakestill til arket",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "UI-anslag",
+  "cube1.settings.cost_rates_stale": "Satsene er utdaterte — ukentlig oppdatering kreves",
+  "cube1.settings.cost_unknown_rate": "sats ukjent",
+  "cube1.settings.cost_audio_denom": "V2T $/min = fakturerbare lydminutter (ikke øktens varighet)",
 };
 export default T;

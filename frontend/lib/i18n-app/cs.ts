@@ -1468,5 +1468,10 @@ const T: Record<string, string> = {
   "fin.add_line": "Přidat řádek",
   "fin.remove_line": "Odebrat tento řádek",
   "fin.reset_sheet": "Vrátit na vzorový list",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "Odhad rozhraní",
+  "cube1.settings.cost_rates_stale": "Sazby jsou zastaralé — je čas na týdenní aktualizaci",
+  "cube1.settings.cost_unknown_rate": "sazba neznámá",
+  "cube1.settings.cost_audio_denom": "V2T $/min = účtované minuty zvuku (nikoli délka relace)",
 };
 export default T;

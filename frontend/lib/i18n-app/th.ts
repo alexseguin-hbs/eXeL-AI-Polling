@@ -1472,5 +1472,10 @@ const T: Record<string, string> = {
   "fin.add_line": "เพิ่มรายการ",
   "fin.remove_line": "ลบรายการนี้",
   "fin.reset_sheet": "คืนค่าเป็นแผ่นตัวอย่าง",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "ค่าประมาณจาก UI",
+  "cube1.settings.cost_rates_stale": "อัตราล้าสมัย — ถึงกำหนดอัปเดตรายสัปดาห์",
+  "cube1.settings.cost_unknown_rate": "ไม่ทราบอัตรา",
+  "cube1.settings.cost_audio_denom": "V2T $/นาที = นาทีเสียงที่เรียกเก็บเงินได้ (ไม่ใช่เวลาของเซสชัน)",
 };
 export default T;

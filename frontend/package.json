@@ -316,7 +316,10 @@
     "test:architect-wall-system": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-wall-system.test.mjs",
     "test:architect-proforma": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-proforma.test.mjs",
     "test:architect-codes": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-codes.test.mjs",
-    "test:architect-sim-print": "node tests/architect-sim-print.test.mjs"
+    "test:architect-sim-print": "node tests/architect-sim-print.test.mjs",
+    "test:n9-gate": "node ../gates/n9/runner/run-n9.mjs --group n1_baseline_tooling --strict-n1",
+    "test:n9-gate:list": "node ../gates/n9/runner/run-n9.mjs --list",
+    "test:n9-gate:assertions": "node ../gates/n9/runner/run-n9.mjs --assertions-only"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",

@@ -217,7 +217,8 @@ ok(longId.length === 2 && longId[0].id.length === 64, "ids are capped at 64 char
 // curated default for EVERY room — the missing piece behind the reverting clutter (the old re-seat covered only room M).
 const clutteredCloset = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "C"
   ? { ...r, objects: [
-      ...Array.from({ length: 12 }, (_, i) => ({ id: "asset-" + i, kind: "asset", assetId: "sofa.v1", gx: (i % 9), gy: ((i / 9) | 0), rot: 0 })),
+      // R1: the fixture now carries the REAL Phase-0 seed id shape (`${roomKey}-${libraryId → "-"}`, 20a77d61) — the auto-seed fingerprint
+      ...Array.from({ length: 12 }, (_, i) => ({ id: `C-architect2525-asset-sofa-${i}-v1`, kind: "asset", assetId: `architect2525.asset.sofa.${i}.v1`, gx: (i % 9), gy: ((i / 9) | 0), rot: 0 })),
       { id: "wardrobe-x", kind: "wardrobe", gx: 1, gy: 1, rot: 0 }, { id: "dresser-x", kind: "dresser", gx: 3, gy: 3, rot: 0 },
     ] /* NO declutterRev — a pre-migration device */ }
   : r))).find((r) => r.k === "C");
@@ -229,6 +230,18 @@ ok(clutteredCloset.objects.length === curatedC.length && !clutteredCloset.object
 const arrangedAfter = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "C"
   ? { ...r, declutterRev: DECLUTTER_REV, objects: [{ id: "wardrobe-1", kind: "wardrobe", gx: 5, gy: 2, rot: 0 }, { id: "lamp-1", kind: "lamp", gx: 1, gy: 1, rot: 0 }] }
   : r))).find((r) => r.k === "C");
+// R1 (J/M): a pre-stamp room the USER arranged (no auto-seed fingerprint) is PRESERVED by the declutter migration and stamped —
+// a DECLUTTER_REV bump never wipes a real arrangement (the 477adbdf regression).
+const userPreStamp = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "C"
+  ? { ...r, objects: [{ id: "wardrobe-7", kind: "wardrobe", gx: 5, gy: 2, rot: 0 }, { id: "lamp-7", kind: "lamp", gx: 1, gy: 1, rot: 0 }, { id: "inst-1", kind: "asset", assetId: "architect2525.asset.sofa.v1", gx: 3, gy: 5, rot: 0 }] }
+  : r))).find((r) => r.k === "C");
+ok(userPreStamp.objects.length === 3 && userPreStamp.objects.some((o) => o.id === "lamp-7") && userPreStamp.objects.some((o) => o.id === "inst-1") && userPreStamp.declutterRev === DECLUTTER_REV,
+  "R1: a pre-migration room the user ARRANGED (no auto-seed fingerprint, incl. a user-placed library asset) is kept and stamped — the declutter never erases saved work");
+const userOldStamp = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "K"
+  ? { ...r, declutterRev: Math.max(0, DECLUTTER_REV - 1), objects: [{ id: "stove-9", kind: "stove", gx: 3, gy: 3, rot: 0 }] }
+  : r))).find((r) => r.k === "K");
+ok(userOldStamp.objects.length === 1 && userOldStamp.objects[0].id === "stove-9" && userOldStamp.declutterRev === DECLUTTER_REV,
+  "R1: a room stamped at an OLDER declutter edition keeps the user's arrangement when DECLUTTER_REV is bumped");
 ok(arrangedAfter.objects.length === 2 && arrangedAfter.objects.some((o) => o.kind === "lamp") && arrangedAfter.declutterRev === DECLUTTER_REV,
   "a stamped room (declutterRev set) keeps the user's own post-migration arrangement — the one-time declutter never wipes twice");
 

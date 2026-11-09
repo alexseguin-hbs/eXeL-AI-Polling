@@ -1470,5 +1470,10 @@ const T: Record<string, string> = {
   "fin.add_line": "Thêm dòng",
   "fin.remove_line": "Xóa dòng này",
   "fin.reset_sheet": "Khôi phục bảng mẫu",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "Ước tính giao diện",
+  "cube1.settings.cost_rates_stale": "Biểu giá đã cũ — đến hạn cập nhật hằng tuần",
+  "cube1.settings.cost_unknown_rate": "không rõ mức giá",
+  "cube1.settings.cost_audio_denom": "V2T $/phút = số phút âm thanh tính phí (không phải thời lượng phiên)",
 };
 export default T;
