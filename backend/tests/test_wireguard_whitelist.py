@@ -772,11 +772,11 @@ class TestWireGuardCube7SortOrderN99:
 
 
 class TestWireGuardCube7RankingMethodN99:
-    """WireGuard whitelist: ranking_method must be 'borda_count' or 'quadratic_borda'."""
+    """WireGuard whitelist: ranking_method must be 'borda_count', 'quadratic_borda' or 'top3_points' (P1)."""
 
     def test_valid_ranking_method_n99(self):
         for _ in range(99):
-            for method in ("borda_count", "quadratic_borda"):
+            for method in ("borda_count", "quadratic_borda", "top3_points"):
                 assert method in VALID_RANKING_METHODS
 
     def test_invalid_ranking_method_rejected_n99(self):
@@ -792,7 +792,7 @@ class TestWireGuardCube7RankingMethodN99:
                 assert val not in VALID_RANKING_METHODS, f"'{val}' should be rejected"
 
     def test_ranking_method_set_is_exact(self):
-        assert VALID_RANKING_METHODS == {"borda_count", "quadratic_borda"}
+        assert VALID_RANKING_METHODS == {"borda_count", "quadratic_borda", "top3_points"}
 
 
 class TestWireGuardCube7SimModeN99:

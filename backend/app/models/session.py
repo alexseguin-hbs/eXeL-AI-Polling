@@ -116,6 +116,9 @@ class Session(Base):
     # theme01_category: risk / support / neutral (which Cube 6 category to rank)
     theme2_voting_level: Mapped[str] = mapped_column(String(20), default="theme2_9")
     theme01_category: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Ranking method (migration 055): NULL/borda_count = full-rank Borda ballot (existing default);
+    # top3_points = original-design Round 2 — top 1–3 themes per Theme01 category, scored 3/2/1.
+    ranking_method: Mapped[str | None] = mapped_column(String(30), nullable=True)
 
     # API-first scoping — the Project → Differentiator → Specification scope this session
     # (and all its downstream data) inherits, as a canonical scope ref

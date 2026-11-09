@@ -270,6 +270,72 @@ def _replay_prefix(seed: str, algorithm: str, theme01_category: str | None, them
     return ":".join(parts) + ":"
 
 
+# ---------------------------------------------------------------------------
+# P1: top3_points — original design Round 2 (per category: top 3, scored 3/2/1)
+# ---------------------------------------------------------------------------
+
+TOP3_POINTS = "top3_points"
+TOP3_PICK_POINTS = (3, 2, 1)
+
+
+def _top3_category_ballots(stored) -> dict[str, list[str]] | None:
+    """The {category: [ids]} of a stored top3_points ballot, or None for any other shape."""
+    if isinstance(stored, dict) and isinstance(stored.get("category_ballots"), dict):
+        return {str(c): [str(t) for t in ids] for c, ids in stored["category_ballots"].items() if isinstance(ids, list)}
+    return None
+
+
+def _top3_points_scores(ballots: list[dict[str, list[str]]]) -> tuple[dict[str, float], dict[str, int]]:
+    """Sum 3/2/1 points by position within each category ballot; a vote = a ballot that picked the theme."""
+    scores: dict[str, float] = {}
+    votes: dict[str, int] = {}
+    for b in ballots:
+        for ids in b.values():
+            for pos, tid in enumerate(ids[: len(TOP3_PICK_POINTS)]):
+                scores[tid] = scores.get(tid, 0.0) + TOP3_PICK_POINTS[pos]
+                votes[tid] = votes.get(tid, 0) + 1
+    return scores, votes
+
+
+def _top3_replay_hash(ballots: list[dict[str, list[str]]], prefix: str) -> str:
+    """SHA-256 over the prefix + every ballot as "cat:id,id;cat:id" (categories sorted), ballots sorted."""
+    flat = sorted(";".join(f"{c}:{','.join(b[c])}" for c in sorted(b)) for b in ballots)
+    return hashlib.sha256((prefix + "|".join(flat)).encode()).hexdigest()
+
+
+async def _tally_top3_points(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    cycle_id: int,
+    effective_seed: str,
+    excluded: set[str],
+    theme01_category: str | None,
+    theme_level: str | None,
+) -> dict:
+    """Python tally of top3_points ballots (a session's ballots are small: ≤ 9 ids each). Non-top3 rows are skipped."""
+    result = await db.execute(
+        select(Ranking).where(and_(Ranking.session_id == session_id, Ranking.cycle_id == cycle_id))
+    )
+    ballots: list[dict[str, list[str]]] = []
+    pids: list[str] = []
+    excluded_count = 0
+    for ur in result.scalars().all():
+        pid = str(ur.participant_id)
+        if pid in excluded:
+            excluded_count += 1
+            continue
+        b = _top3_category_ballots(ur.ranked_theme_ids)
+        if b:
+            ballots.append(b)
+            pids.append(pid)
+    _check_tally(session_id, cycle_id, len(ballots), excluded_count)
+    scores, votes = _top3_points_scores(ballots)
+    prefix = _replay_prefix(effective_seed, TOP3_POINTS, theme01_category, theme_level)
+    return {"scores": scores, "vote_counts": votes, "participant_count": len(ballots),
+            "excluded_count": excluded_count, "algorithm": TOP3_POINTS,
+            "replay_hash": _top3_replay_hash(ballots, prefix), "weights": {}, "participant_ids": pids}
+
+
 async def aggregate_rankings(
     db: AsyncSession,
     session_id: uuid.UUID,
@@ -280,6 +346,7 @@ async def aggregate_rankings(
     theme01_category: str | None = None,
     theme_level: str | None = None,
     is_final: bool = True,
+    ranking_method: str | None = None,
 ) -> list[AggregatedRanking]:
     """CRS-12.01 + CRS-12.02 + CRS-12.04: Borda count with quadratic weights + anomaly exclusion.
 
@@ -293,7 +360,7 @@ async def aggregate_rankings(
     effective_seed = seed or str(session_id)
     t = await tally_rankings(
         db, session_id, cycle_id, effective_seed, participant_stakes,
-        excluded_participant_ids or set(), theme01_category, theme_level,
+        excluded_participant_ids or set(), theme01_category, theme_level, ranking_method=ranking_method,
     )
     return await _write_aggregation(
         db, session_id, cycle_id, t["scores"], t["vote_counts"], t["participant_count"], t["algorithm"],
@@ -312,6 +379,7 @@ async def tally_rankings(
     theme01_category: str | None = None,
     theme_level: str | None = None,
     hash_algorithm: str | None = None,
+    ranking_method: str | None = None,
 ) -> dict:
     """The read-only half of aggregation, shared by `aggregate_rankings` and `verify_replay` so they cannot drift.
 
@@ -319,6 +387,10 @@ async def tally_rankings(
     Python path) participant_ids. Raises ValueError when no ballot is left. `hash_algorithm` overrides the algorithm
     folded into the replay hash (verify_replay of a quadratic session without its stakes).
     """
+    if ranking_method == TOP3_POINTS:
+        if participant_stakes:
+            raise ValueError("top3_points does not take participant_stakes")
+        return await _tally_top3_points(db, session_id, cycle_id, effective_seed, excluded, theme01_category, theme_level)
     algorithm = "quadratic_borda" if participant_stakes else "borda_count"
     prefix = _replay_prefix(effective_seed, hash_algorithm or algorithm, theme01_category, theme_level)
 

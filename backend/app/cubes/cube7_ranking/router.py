@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 # ---------------------------------------------------------------------------
 VALID_THEME_LEVELS = {"3", "6", "9"}
 VALID_SORT_ORDERS = {"asc", "desc"}
-VALID_RANKING_METHODS = {"borda_count", "quadratic_borda"}
+VALID_RANKING_METHODS = {"borda_count", "quadratic_borda", "top3_points"}
 
 # SIM (Cube 10 checkout) — split-screen + playback whitelists.
 # SIM is easter-egg-gated on the frontend (Cyan→Sunset→Violet + password);
@@ -119,6 +119,42 @@ async def submit_ranking(
     if not participant:
         raise HTTPException(status_code=403, detail="Not a participant in this session")
 
+    method = getattr(session, "ranking_method", None)
+    method = method if isinstance(method, str) else None
+    if method == "top3_points" or payload.category_ballots:
+        # P1: original-design Round 2 ballot — top 1–3 per category, 3/2/1 points.
+        if method != "top3_points":
+            raise HTTPException(status_code=400, detail="This session ranks the full theme list; send ranked_theme_ids")
+        if not payload.category_ballots:
+            raise HTTPException(status_code=400, detail="This session uses top-3 per category; send category_ballots")
+        from app.cubes.cube7_ranking.ranking_submission import submit_top3_ballot
+
+        try:
+            ranking = await submit_top3_ballot(
+                db,
+                session_id=session_id,
+                participant_id=participant.id,
+                category_ballots={k: list(v) for k, v in payload.category_ballots.items()},
+                cycle_id=getattr(session, "current_cycle", 1) or 1,
+                theme2_voting_level=getattr(session, "theme2_voting_level", "theme2_9") or "theme2_9",
+                session_short_code=session.short_code,
+                theme01_category=getattr(session, "theme01_category", None),
+                allow_revote=True,
+            )
+            await db.commit()
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        if session.status == "ranking":
+            from app.cubes.cube7_ranking.ranking_submission import schedule_live_aggregation
+
+            schedule_live_aggregation(session_id, session.short_code, getattr(session, "current_cycle", 1) or 1)
+        stored = ranking.ranked_theme_ids if isinstance(ranking.ranked_theme_ids, dict) else {}
+        return RankingRead(
+            id=ranking.id, session_id=ranking.session_id, cycle_id=ranking.cycle_id,
+            participant_id=ranking.participant_id, ranked_theme_ids=list(stored.get("ranked_theme_ids") or []),
+            category_ballots=stored.get("category_ballots"), submitted_at=ranking.submitted_at,
+        )
+
     try:
         ranking = await service.submit_user_ranking(
             db,
@@ -184,7 +220,11 @@ async def trigger_aggregation(
     request: Request,
     session_id: uuid.UUID,
     seed: str | None = None,
-    ranking_method: str = Query("borda_count", description="Ranking algorithm: 'borda_count' or 'quadratic_borda'"),
+    ranking_method: str | None = Query(
+        None,
+        description="Ranking algorithm: 'borda_count', 'quadratic_borda' or 'top3_points'. Omitted = the session's "
+        "ranking_method (NULL = borda_count, the previous default).",
+    ),
     body: AggregateRequest | None = Body(None),
     live: bool = Query(False, description="True = in-round live tally (is_final=false; no webhook/CQS). Default final."),
     db: AsyncSession = Depends(get_db),
@@ -198,7 +238,7 @@ async def trigger_aggregation(
     `participant_stakes` in the body; without stakes it is refused, never silently run as borda_count.
     """
     # WireGuard: whitelist ranking_method
-    if ranking_method not in VALID_RANKING_METHODS:
+    if ranking_method is not None and ranking_method not in VALID_RANKING_METHODS:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid ranking_method '{ranking_method}'. Must be one of: {sorted(VALID_RANKING_METHODS)}",
@@ -218,6 +258,16 @@ async def trigger_aggregation(
     session = sess_result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    # P1: the ballots' shape follows the session's method, so the tally must too.
+    session_method = getattr(session, "ranking_method", None)
+    session_method = session_method if isinstance(session_method, str) else "borda_count"
+    if (ranking_method == "top3_points") != (session_method == "top3_points") and ranking_method is not None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Session ranking_method is '{session_method}'; its ballots cannot be tallied as '{ranking_method}'.",
+        )
+    if ranking_method is None:
+        ranking_method = session_method
 
     try:
         result = await service.run_ranking_pipeline(
@@ -228,6 +278,7 @@ async def trigger_aggregation(
             cycle_id=int(getattr(session, "current_cycle", 1) or 1),
             participant_stakes=stakes if ranking_method == "quadratic_borda" else None,
             live=live,
+            ranking_method="top3_points" if ranking_method == "top3_points" else None,
         )
         return result
     except ValueError as e:
