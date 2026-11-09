@@ -167,7 +167,11 @@ async def get_themes(
     sess = (await db.execute(select(Session).where(Session.id == session_id))).scalar_one_or_none()
     unlocked = bool(sess is not None and (await resolve_view_entitlement(db, sess, user))["summary_333"])
     if not unlocked:
-        enriched = [{**e, "summary_333": None} if isinstance(e, dict) else e for e in enriched]
+        # CRS-39.02 + t181: withhold paid 333-tier AND the level-sized description (111/222/333).
+        enriched = [
+            {**e, "summary_333": None, "description": None} if isinstance(e, dict) else e
+            for e in enriched
+        ]
     return [ThemeRead.model_validate(e) for e in enriched]
 
 

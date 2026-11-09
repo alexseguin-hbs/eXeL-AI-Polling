@@ -38,6 +38,13 @@ class Theme(Base):
     theme_summary_111: Mapped[str | None] = mapped_column(Text)   # $1.11 paid
     theme_summary_33: Mapped[str | None] = mapped_column(Text)    # FREE
 
+    # t181/t182 (2026-11-09): level-sized description (111@9 / 222@6 / 333@3) + strict Theme02 tree parent.
+    # parent_theme_id stays the Theme01 category; tree_parent_id links 9→6→3 for the bubble UI.
+    description: Mapped[str | None] = mapped_column(Text)
+    tree_parent_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("themes.id")
+    )
+
     session: Mapped["Session"] = relationship(back_populates="themes")
 
     __table_args__ = (

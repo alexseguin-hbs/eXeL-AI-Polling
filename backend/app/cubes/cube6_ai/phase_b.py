@@ -800,9 +800,14 @@ async def _store_results(
     responses: list[dict],
     bin_samples: dict[str, list[list[dict]]],
     reduced: dict[str, dict[str, list[dict]]],
+    summarizer=None,
 ) -> str:
     """Write Theme + ThemeSample records to Postgres, update ResponseSummary.
-    Returns replay_hash."""
+    Returns replay_hash.
+
+    t181/t182: builds a strict Theme02 tree (tree_parent_id) and level-sized descriptions
+    (111@9 / 222@6 / 333@3) when a summarizer is provided.
+    """
     from sqlalchemy.dialects.postgresql import insert as pg_insert
 
     provider_name = session.ai_provider or "openai"
@@ -819,6 +824,43 @@ async def _store_results(
     for r in responses:
         for lvl in ("9", "6", "3"):
             assigned[(lvl, r.get("theme01"), r.get(f"theme2_{lvl}"))] += 1
+
+    from sqlalchemy import update as sa_update
+
+    from app.cubes.cube6_ai.theme_tree import (
+        enforce_count_sums,
+        generate_descriptions,
+        link_strict_tree,
+    )
+
+    # t182: link Theme02 9→6→3 parents + make child counts sum to parents (per category).
+    tree_maps: dict[str, dict[str, dict[str, str | None]]] = {}
+    for category, levels in reduced.items():
+        tree_maps[category] = link_strict_tree(category, levels, responses)
+        enforce_count_sums(levels, tree_maps[category], assigned, category)
+
+    # t181: level-sized descriptions across all vendors (when a live summarizer is available).
+    # Reduce already puts a short 7-12 word blurb in theme["description"]; move it aside first.
+    for levels in reduced.values():
+        for themes in levels.values():
+            for theme in themes:
+                short = (theme.get("description") or "").strip()
+                if short and len(short.split()) <= 20:
+                    theme["short_description"] = short
+                    theme["description"] = ""
+    _pname = getattr(getattr(summarizer, "provider_name", None), "value", None) if summarizer else None
+    if summarizer is not None and _pname and _pname != "offline":
+        async def _summ(prompt: str) -> str:
+            # SummarizationProvider.summarize(texts, instruction) — body in texts[0].
+            return await summarizer.summarize([prompt], instruction="")
+
+        for category, levels in reduced.items():
+            try:
+                await generate_descriptions(levels, responses, category, _summ)
+            except Exception as exc:  # noqa: BLE001 — descriptions are additive; theming must still store
+                logger.warning("cube6.theme_descriptions.failed", category=category, error=str(exc))
+
+    id_by_label: dict[tuple[str, str, str], object] = {}
 
     for category, levels in reduced.items():
         # Create parent Theme01 record
@@ -837,20 +879,29 @@ async def _store_results(
         db.add(parent)
         await db.flush()
 
-        for level, themes in levels.items():
-            for slot_idx, t in enumerate(themes):
-                is_empty = bool(t.get("is_empty", False))
+        # Insert level 3, then 6, then 9 so tree_parent_id can resolve within the category.
+        for level in ("3", "6", "9"):
+            themes = levels.get(level, [])
+            for slot_idx, theme in enumerate(themes):
+                is_empty = bool(theme.get("is_empty", False))
                 # Empty placeholders keep synthetic label out of the DB but
                 # occupy a real row so Flower-of-Life geometry (9/6/3) stays
                 # stable across sessions and replay hashes stay deterministic.
-                label = "" if is_empty else t["label"]
-                response_count = 0 if is_empty else assigned[(level, category, t["label"])]
+                label = "" if is_empty else theme["label"]
+                response_count = 0 if is_empty else int(
+                    theme.get("response_count") or assigned[(level, category, theme["label"])]
+                )
+                short = theme.get("short_description") or ""
+                long_desc = None if is_empty else (theme.get("description") or None)
+                if long_desc is not None and not str(long_desc).strip():
+                    long_desc = None
                 child = Theme(
                     session_id=session.id,
                     cycle_id=session.current_cycle,
                     label=label,
-                    summary=t.get("description", ""),
-                    confidence=t["confidence"],
+                    summary=short,
+                    description=long_desc,
+                    confidence=theme["confidence"],
                     response_count=response_count,
                     parent_theme_id=parent.id,
                     ai_provider=provider_name,
@@ -862,6 +913,28 @@ async def _store_results(
                     },
                 )
                 db.add(child)
+                await db.flush()
+                if label:
+                    id_by_label[(category, level, label)] = child.id
+
+        # Second pass: set tree_parent_id now that all ids exist
+        pmap = tree_maps.get(category, {})
+        for level in ("6", "9"):
+            for theme in levels.get(level, []):
+                lab = theme.get("label") or ""
+                if not lab or theme.get("is_empty"):
+                    continue
+                parent_lab = (pmap.get(level) or {}).get(lab)
+                if not parent_lab:
+                    continue
+                pid = id_by_label.get((category, "6", parent_lab)) or id_by_label.get(
+                    (category, "3", parent_lab)
+                )
+                child_id = id_by_label.get((category, level, lab))
+                if pid and child_id:
+                    await db.execute(
+                        sa_update(Theme).where(Theme.id == child_id).values(tree_parent_id=pid)
+                    )
 
     # Store ThemeSample records (marble groups)
     for category, groups in bin_samples.items():
