@@ -344,6 +344,8 @@ export function pictureInsertRow(input: {
   };
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** Live sensor_fusion_label_corrections insert (append-only). Independent reviewer required. */
 export function correctionInsertRow(input: {
   owner: string;
@@ -361,8 +363,11 @@ export function correctionInsertRow(input: {
   return {
     project_id: input.projectId,
     picture_id: input.pictureId,
-    label_id: input.labelId || null,
+    // label_id is a UUID column; device-local box ids (e.g. "pic-0") are not label rows, so they send null.
+    label_id: input.labelId && UUID_RE.test(input.labelId) ? input.labelId : null,
     corrected_by: input.event.by,
+    // Bound to the signed-in member; migration 054 overwrites it with auth.uid() and refuses a mismatch.
+    corrected_by_uid: input.owner,
     labeled_by: input.labeledBy || null,
     kind: input.event.kind,
     from_box: { ...input.event.from },
