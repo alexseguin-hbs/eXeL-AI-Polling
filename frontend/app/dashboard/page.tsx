@@ -1130,7 +1130,7 @@ function DashboardContent() {
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newType, setNewType] = useState<string>("single_poll");
-  const [newAiProvider, setNewAiProvider] = useState("grok"); // CRS-15.10: xAI is the funded primary; OpenAI/Gemini fall back server-side
+  const [newAiProvider, setNewAiProvider] = useState("grok"); // CRS-09.08.06: xAI is the funded primary; OpenAI/Gemini fall back server-side
   const [newMaxResponse, setNewMaxResponse] = useState("3333");
   const [newPricingTier, setNewPricingTier] = useState<"free" | "moderator_paid" | "cost_split">("free");
   const [newFeeAmountCents, setNewFeeAmountCents] = useState(1111); // $11.11 default

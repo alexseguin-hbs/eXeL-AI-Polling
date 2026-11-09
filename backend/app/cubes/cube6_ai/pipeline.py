@@ -307,7 +307,7 @@ async def run_pipeline(
     # + 1 classify call + N assignment calls
     from app.cubes.cube6_ai.providers.multi_vendor import vendor_cost_rows
 
-    vendor_rows = vendor_cost_rows(summarizer)  # CRS-15.10: measured calls/chars per vendor that was called
+    vendor_rows = vendor_cost_rows(summarizer)  # CRS-09.08.06: measured calls/chars per vendor that was called
     if not vendor_rows:
         total_chars = sum(len(r.get("summary_33", "")) for r in responses)
         cost_tracker.log_call(total_chars * 3, total_chars)  # classify + assign estimate

@@ -1,4 +1,4 @@
-"""CRS-15.10 / CRS-09.08.01-.05 (2026-11-09): xAI primary + multi-vendor failover, Theme02 fast path."""
+"""CRS-09.08.06 / CRS-09.08.01-.05 (2026-11-09): xAI primary + multi-vendor failover, Theme02 fast path."""
 import asyncio
 import json
 

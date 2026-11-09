@@ -2,7 +2,7 @@
   // eXeL AI Polling — hosted FastAPI backend (backend/) on Cloudflare Containers.
   // Deploy: api-host/deploy.sh (packs backend/ into bundle/ then `wrangler deploy`). Secrets live in the Worker secret
   // store (wrangler secret put): DATABASE_URL, GEMINI_API_KEY, SESSION_SECRET, BUNDLE_TOKEN, optional OPENAI_API_KEY,
-  // XAI_API_KEY (primary AI vendor since 2026-11-09, CRS-15.10; OpenAI/Gemini are runtime fallbacks),
+  // XAI_API_KEY (primary AI vendor since 2026-11-09, CRS-09.08.06; OpenAI/Gemini are runtime fallbacks),
   // STRIPE_SECRET_KEY (+ STRIPE_WEBHOOK_SECRET — the key is only passed to the app once the webhook secret exists),
   // SUPABASE_URL + SUPABASE_KEY (public anon key; used only by core/supabase_broadcast.py to publish Realtime
   // events such as ranking_progress / ranking_complete on channel session:{short_code}).

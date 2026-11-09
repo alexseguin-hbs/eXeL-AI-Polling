@@ -1,4 +1,4 @@
-"""Multi-vendor summarizer: primary-first load balancing, hedging, timeouts and failover (CRS-09.08.01, CRS-15.10).
+"""Multi-vendor summarizer: primary-first load balancing, hedging, timeouts and failover (CRS-09.08.01, CRS-09.08.06).
 
 2026-11-09 (owner t159u-t162u): xAI is the primary funded vendor; OpenAI and Gemini stay as fallbacks so a vendor
 outage, a timeout, or an exhausted prepaid balance (HTTP 402/403/429) never stops Phase A or theming.

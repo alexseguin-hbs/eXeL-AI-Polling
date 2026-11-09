@@ -287,7 +287,7 @@ async def _summarize_single_response_inner(
                     instruction=_SUMMARIZE_INSTRUCTION.format(translate="", target=33),
                 )
 
-    # CRS-15.10: record the vendor that actually served (xAI primary; OpenAI/Gemini only on failover), not the request.
+    # CRS-09.08.06: record the vendor that actually served (xAI primary; OpenAI/Gemini only on failover), not the request.
     served_provider = ai_provider
     if cost_tracked is not None:
         from app.cubes.cube6_ai.providers.multi_vendor import dominant_vendor
@@ -327,7 +327,7 @@ async def _summarize_single_response_inner(
         from app.cubes.cube6_ai.providers.multi_vendor import vendor_cost_rows
 
         rows = vendor_cost_rows(cost_tracked._inner)
-        if rows:  # CRS-15.10: one row per vendor that was called, each at its own rate
+        if rows:  # CRS-09.08.06: one row per vendor that was called, each at its own rate
             for row in rows:
                 if row["estimated_cost_usd"] is None:
                     continue  # unknown rate is never written as $0

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     xai_api_key: str = ""
     gemini_api_key: str = ""
     anthropic_api_key: str = ""
-    default_ai_provider: str = "openai"  # openai | gemini | grok | claude (prod Worker var: grok, CRS-15.10)
+    default_ai_provider: str = "openai"  # openai | gemini | grok | claude (prod Worker var: grok, CRS-09.08.06)
     xai_summarization_model: str = "grok-4.20-0309-non-reasoning"  # fast non-reasoning Grok (CRS-09.08)
     # Multi-vendor theming (CRS-09.08.01): per-call timeout, hedge delay and per-vendor in-flight cap before spill-over.
     ai_call_timeout_s: float = 20.0

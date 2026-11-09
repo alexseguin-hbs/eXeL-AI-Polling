@@ -38,7 +38,7 @@ from app.core.exceptions import AIProviderUnavailableError
 
 logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib raised TypeError
 
-# Failover order (CRS-15.10, 2026-11-09): xAI/Grok is the primary funded vendor (owner t159u-t160u), then OpenAI,
+# Failover order (CRS-09.08.06, 2026-11-09): xAI/Grok is the primary funded vendor (owner t159u-t160u), then OpenAI,
 # then Gemini (credits may be low — its circuit opens after a credit/auth error), then Claude. The requested provider
 # always goes first; this order fills in the rest of the chain.
 _FAILOVER_ORDER = [
