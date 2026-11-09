@@ -30,7 +30,7 @@
     "BACKEND_URL": "https://exel-ai-polling-api.explore-096.workers.dev",
     "BEHIND_CLOUDFLARE": "true",
     "LOG_LEVEL": "INFO",
-    "API_INSTANCE": "api-v1s"
+    "API_INSTANCE": "api-v1x"
   },
   "observability": { "enabled": true }
 }
