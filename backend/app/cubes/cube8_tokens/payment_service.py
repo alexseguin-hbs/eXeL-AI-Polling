@@ -151,7 +151,6 @@ async def create_usage_billing_checkout(
         nonce=new_attempt_nonce(),
     )
     checkout = stripe.checkout.Session.create(
-        payment_method_types=["card"],
         line_items=[{
             "price_data": {
                 "currency": "usd",
@@ -279,7 +278,6 @@ async def create_moderator_checkout(
         "catalog_version": quote["catalog_version"],
     }
     checkout = stripe.checkout.Session.create(
-        payment_method_types=["card"],
         line_items=[{
             "price_data": stripe_catalog.price_data(
                 line, final_amount,
@@ -557,7 +555,6 @@ async def create_divinity_donation_checkout(
         "source": "api_donate",
     }
     checkout = stripe.checkout.Session.create(
-        payment_method_types=["card"],
         line_items=[{
             "price_data": stripe_catalog.price_data(line, amount_cents, name=label, description=description),
             "quantity": 1,
