@@ -99,17 +99,63 @@ def release_phase_a_semaphore(session_id: uuid.UUID) -> None:
 
 _SUMMARIZE_INSTRUCTION = (
     "You are a summarizer. {translate}"
-    "Condense the text to approximately {target} words, preserving key points "
-    "and meaning. Ensure the final summary is in English."
+    "Condense the text to AT MOST {target} words (aim close to {target}), preserving key points "
+    "and meaning. Ensure the final summary is in English. Output only the summary."
 )
+
+# Word-limit contract (shared with the frontend tokenizer `text.trim().split(/\s+/).filter(Boolean).length`):
+# Python's str.split() with no argument is the same tokenizer. Tiers are upper bounds, enforced after the model.
+SUMMARY_TIERS = (333, 111, 33)
+
+
+def word_count(text: str) -> int:
+    """Same count as the repo tokenizer: trim, split on any whitespace run, drop empties."""
+    return len((text or "").split())
+
+
+def cap_words(text: str, limit: int) -> str:
+    """Hard upper bound: keep the first `limit` words (whitespace-normalised). Shorter text is returned unchanged."""
+    words = (text or "").split()
+    if len(words) <= limit:
+        return (text or "").strip()
+    return " ".join(words[:limit])
+
+
+class _CostTracked:
+    """Wraps a summarizer so each call's chars feed an AICostTracker (same ~4 chars/token estimate as Phase B)."""
+
+    def __init__(self, inner, provider: str):
+        from app.cubes.cube6_ai.providers.base import AICostTracker
+
+        self._inner = inner
+        self.tracker = AICostTracker(provider)
+
+    async def summarize(self, texts: list[str], instruction: str = "") -> str:
+        out = await self._inner.summarize(texts, instruction=instruction)
+        self.tracker.log_call(len(instruction) + sum(len(t) for t in texts), len(out or ""))
+        return out
+
+
+def _parse_json_reply(reply: str) -> dict:
+    """Models often wrap JSON in ```json fences; strip them before json.loads (raises JSONDecodeError/TypeError)."""
+    t = (reply or "").strip()
+    if t.startswith("```"):
+        t = t.split("\n", 1)[1] if "\n" in t else t[3:]
+        if t.rstrip().endswith("```"):
+            t = t.rstrip()[:-3]
+    start, end = t.find("{"), t.rfind("}")
+    parsed = json.loads(t[start : end + 1] if start >= 0 and end > start else t)
+    if not isinstance(parsed, dict):
+        raise TypeError("summary reply is not a JSON object")
+    return parsed
 
 
 _SINGLE_PROMPT_INSTRUCTION = (
     "You are a summarizer. {translate}"
     "Given the following text, produce three summaries at different lengths. "
     "Return ONLY valid JSON with exactly these three keys:\n"
-    '{{"summary_333": "~333 word summary", "summary_111": "~111 word summary", "summary_33": "~33 word summary"}}\n'
-    "All summaries must be in English. Preserve key points and meaning."
+    '{{"summary_333": "at most 333 words", "summary_111": "at most 111 words", "summary_33": "at most 33 words"}}\n'
+    "Each summary must not exceed its word limit. All summaries must be in English. Preserve key points and meaning."
 )
 
 
@@ -165,6 +211,7 @@ async def _summarize_single_response_inner(
     from app.core.supabase_broadcast import broadcast_event
 
     word_count = len(raw_text.split())
+    cost_tracked = None
 
     # --- Task A0: Short-circuit ≤33 words (BR-1) ---
     # Text already at or below target summary length — no AI call needed.
@@ -183,7 +230,8 @@ async def _summarize_single_response_inner(
         # in dev/test/CI so a single response never crashes Phase A (prod raises).
         # Addendum 4: a simulation session never silently reaches a paid provider.
         ai_provider = await resolve_phase_a_provider(db, session_id, ai_provider)
-        summarizer = get_summarization_provider_or_offline(ai_provider)
+        summarizer = _CostTracked(get_summarization_provider_or_offline(ai_provider), ai_provider)
+        cost_tracked = summarizer
 
         translate = (
             "If the text is not in English, translate it to English first. "
@@ -203,7 +251,7 @@ async def _summarize_single_response_inner(
                     [summary_333],
                     instruction=_SINGLE_PROMPT_INSTRUCTION.format(translate=""),
                 )
-                parsed = json.loads(combined)
+                parsed = _parse_json_reply(combined)
                 summary_111 = parsed.get("summary_111", summary_333[:500])
                 summary_33 = parsed.get("summary_33", " ".join(summary_333.split()[:33]))
             except (json.JSONDecodeError, TypeError):
@@ -223,7 +271,7 @@ async def _summarize_single_response_inner(
                     [raw_text],
                     instruction=_SINGLE_PROMPT_INSTRUCTION.format(translate=translate),
                 )
-                parsed = json.loads(combined)
+                parsed = _parse_json_reply(combined)
                 summary_333 = parsed.get("summary_333", raw_text)
                 summary_111 = parsed.get("summary_111", raw_text)
                 summary_33 = parsed.get("summary_33", " ".join(raw_text.split()[:33]))
@@ -238,6 +286,11 @@ async def _summarize_single_response_inner(
                     [summary_111],
                     instruction=_SUMMARIZE_INSTRUCTION.format(translate="", target=33),
                 )
+
+    # Enforce the 333/111/33 upper bounds whatever the model returned (word_count == repo tokenizer).
+    summary_333 = cap_words(str(summary_333), 333)
+    summary_111 = cap_words(str(summary_111), 111)
+    summary_33 = cap_words(str(summary_33), 33)
 
     # Store in PostgreSQL (response_summaries) for immediate display
     from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -260,6 +313,17 @@ async def _summarize_single_response_inner(
         },
     )
     await db.execute(stmt)
+    # Per-session cost ledger: every paid Phase A call lands in ai_cost_logs (phase "phase_a"); the ≤33-word
+    # short-circuit and the OFFLINE provider cost nothing and write no row.
+    if cost_tracked is not None and cost_tracked.tracker.total_calls and ai_provider != "offline":
+        from app.models.ai_cost_log import AICostLog
+
+        t = cost_tracked.tracker
+        db.add(AICostLog(
+            session_id=session_id, phase="phase_a", provider=ai_provider, total_calls=t.total_calls,
+            total_input_chars=t.total_input_chars, total_output_chars=t.total_output_chars,
+            estimated_cost_usd=round(t.estimated_cost_usd, 6), response_count=1, duration_sec=0.0,
+        ))
     await db.commit()
 
     logger.info(

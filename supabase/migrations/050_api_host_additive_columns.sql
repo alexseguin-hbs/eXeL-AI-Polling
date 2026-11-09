@@ -1,0 +1,45 @@
+-- Applied to ppgfjplawtlrfqpnszyb 2026-11-09 via apply_migration as "045_api_host_additive_columns" (renumbered 50 here: 045-048 are taken in this dir).
+-- 045: additive columns so the hosted FastAPI ORM matches live Supabase. ADD COLUMN IF NOT EXISTS only (nullable, no FKs),
+-- plus defaults on two legacy NOT NULL columns the ORM never writes (both tables have 0 rows). No drops, no data changes.
+ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+ALTER TABLE public.audit_logs ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+ALTER TABLE public.differentiators ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+ALTER TABLE public.questions ADD COLUMN IF NOT EXISTS cycle_id INTEGER;
+ALTER TABLE public.questions ADD COLUMN IF NOT EXISTS order_index INTEGER;
+ALTER TABLE public.questions ADD COLUMN IF NOT EXISTS parent_theme_id UUID;
+ALTER TABLE public.questions ADD COLUMN IF NOT EXISTS question_text VARCHAR(500);
+ALTER TABLE public.questions ADD COLUMN IF NOT EXISTS status VARCHAR(20);
+ALTER TABLE public.questions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS model_id VARCHAR(100);
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS provider VARCHAR(30);
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS response_meta_id UUID;
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS session_id UUID;
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS theme01 VARCHAR(100);
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS theme01_confidence FLOAT;
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS theme2_3 VARCHAR(200);
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS theme2_3_confidence FLOAT;
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS theme2_6 VARCHAR(200);
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS theme2_6_confidence FLOAT;
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS theme2_9 VARCHAR(200);
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS theme2_9_confidence FLOAT;
+ALTER TABLE public.response_summaries ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS pipeline_stage VARCHAR(50);
+ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS scope_ref VARCHAR(255);
+ALTER TABLE public.sessions ADD COLUMN IF NOT EXISTS theme01_category VARCHAR(20);
+ALTER TABLE public.specifications ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+ALTER TABLE public.themes ADD COLUMN IF NOT EXISTS ai_model VARCHAR(100);
+ALTER TABLE public.themes ADD COLUMN IF NOT EXISTS ai_provider VARCHAR(50);
+ALTER TABLE public.themes ADD COLUMN IF NOT EXISTS cluster_metadata JSON;
+ALTER TABLE public.themes ADD COLUMN IF NOT EXISTS cycle_id INTEGER;
+ALTER TABLE public.themes ADD COLUMN IF NOT EXISTS exemplar_response_ids JSON;
+ALTER TABLE public.themes ADD COLUMN IF NOT EXISTS label VARCHAR(255);
+ALTER TABLE public.themes ADD COLUMN IF NOT EXISTS parent_theme_id UUID;
+ALTER TABLE public.themes ADD COLUMN IF NOT EXISTS summary TEXT;
+ALTER TABLE public.token_ledger ADD COLUMN IF NOT EXISTS settlement_jurisdiction VARCHAR(80);
+ALTER TABLE public.token_ledger ADD COLUMN IF NOT EXISTS settlement_rate FLOAT;
+ALTER TABLE public.trend_snapshots ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+ALTER TABLE public.usage_records ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+ALTER TABLE public.webhook_deliveries ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+ALTER TABLE public.questions ALTER COLUMN text SET DEFAULT '';
+ALTER TABLE public.response_summaries ALTER COLUMN session_code SET DEFAULT '';
