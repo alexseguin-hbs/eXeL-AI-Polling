@@ -62,7 +62,7 @@
  "revisions": [
   {
    "rev": 1,
-   "commit": "93f60d40bd81c609d785b3f6e20d61a097cd2b35",
+   "commit": "a5e35e03df78256c99da73ede3457f4d553ddbb1",
    "commitSource": "ledger-row",
    "status": "recorded",
    "areas": [
@@ -81,13 +81,13 @@
      "files": [
       {
        "path": "docs/traceability/exel-ai-polling.ledger.json",
-       "blob": "055b004fc670003725eb783b22b8c0db4820d074"
+       "blob": "043da3829afe84226bfc35c3b04828b75263b0e4"
       }
      ],
-     "add": 84,
+     "add": 7,
      "del": 0,
-     "bytes": 5098,
-     "lines": 94,
+     "bytes": 1982,
+     "lines": 17,
      "status": "recorded"
     }
    ]
@@ -259,6 +259,38 @@
      "del": 0,
      "bytes": 5098,
      "lines": 94,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 17,
+   "commit": "a5e35e03df78256c99da73ede3457f4d553ddbb1",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      8,
+      14
+     ],
+     "files": [
+      {
+       "path": "docs/traceability/exel-ai-polling.ledger.json",
+       "blob": "043da3829afe84226bfc35c3b04828b75263b0e4"
+      }
+     ],
+     "add": 7,
+     "del": 0,
+     "bytes": 1982,
+     "lines": 17,
      "status": "recorded"
     }
    ]
