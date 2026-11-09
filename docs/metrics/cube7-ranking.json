@@ -49,6 +49,39 @@
       "latency_ms": 86157,
       "pass": false,
       "notes": "asyncpg TimeoutError on startup; endpoint not reachable"
+    },
+    {
+      "cst": "2026-11-09 16:01:50 CST",
+      "crs": "CRS-36",
+      "check": "live_api_health",
+      "merge_sha": "c18942dac918a91cecb9e988419f6b0ab28ddf37",
+      "cloudflare_version": "0dc86b67-f3cb-4b39-938d-fa25b550810c",
+      "n": 1,
+      "latency_ms": 30923,
+      "pass": true,
+      "notes": "health ok after recovery"
+    },
+    {
+      "cst": "2026-11-09 16:02:23 CST",
+      "crs": "CRS-36",
+      "check": "create_session_auto_select_config",
+      "merge_sha": "0534b2f9772aa160cb3f4367dca0908648c2ccbd",
+      "cloudflare_version": "0dc86b67-f3cb-4b39-938d-fa25b550810c",
+      "n": 1,
+      "latency_ms": 1421,
+      "pass": true,
+      "notes": "cnceUhx3 percent=40 n=4"
+    },
+    {
+      "cst": "2026-11-09 16:02:23 CST",
+      "crs": "CRS-36",
+      "check": "post_rankings_auto_select",
+      "merge_sha": "0534b2f9772aa160cb3f4367dca0908648c2ccbd",
+      "cloudflare_version": "0dc86b67-f3cb-4b39-938d-fa25b550810c",
+      "n": 1,
+      "latency_ms": 1551,
+      "pass": true,
+      "notes": "200 theme_order empty themes OK"
     }
   ]
 }
