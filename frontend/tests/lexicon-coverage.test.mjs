@@ -54,6 +54,15 @@ const AFTER_FILL = new Set([
   // Architect-2525 IMG-05 (operator 2026-10-24, "drag drop on phone + computer"): the armed-banner line for the
   // tap-to-place path. ENGLISH ONLY until the operator says the Architect UI/UX is final — staged, never filled early.
   'arch.layertree.tapHouseToAdd',
+  // eXeL AI Polling public R-CORE page (2026-11-09): ENGLISH ONLY — staged until HI-tested; ×32 fill unverified.
+  'polling.rcore.kicker',
+  'polling.rcore.title',
+  'polling.rcore.subtitle',
+  'polling.rcore.open_dashboard',
+  'polling.rcore.join_session',
+  'polling.rcore.history_hint',
+  'rcore.commit_link',
+
   'arch.design.tapToAddToHouse',
   // Architect-2525 first-person walkthrough controls (operator 2026-11-06): MOVE/LOOK stick labels, the look hint, the
   // caption. ENGLISH ONLY — staged until the Architect UI/UX is final; no fill dispatched.
