@@ -24,6 +24,7 @@ const BOOT = [
   "if ! boot > /tmp/diag/api/v1/bootlog 2>&1; then echo BOOT_FAILED >> /tmp/diag/api/v1/bootlog; cat /tmp/diag/api/v1/bootlog; exec python -m http.server 8000 -d /tmp/diag; fi",
   "unset BUNDLE_TOKEN",
   "cd /srv/backend",
+  "(cd /tmp/diag && python -m http.server 8001 --bind 127.0.0.1 >/dev/null 2>&1 &) ",
   "uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips '*' --timeout-keep-alive 75 >> /tmp/diag/api/v1/bootlog 2>&1 || true",
   "echo APP_EXITED >> /tmp/diag/api/v1/bootlog; tail -n 60 /tmp/diag/api/v1/bootlog | sed -E 's#(postgres(ql)?(\\+asyncpg)?://)[^@ ]*@#\\1***@#g' > /tmp/diag/api/v1/bootlog.tail; mv /tmp/diag/api/v1/bootlog.tail /tmp/diag/api/v1/bootlog",
   "exec python -m http.server 8000 -d /tmp/diag",
@@ -50,13 +51,19 @@ export class ExelApi extends DurableObject {
     // Proof instance (token-gated by the Worker): same image/DB/keys, ENVIRONMENT=test so the API's dev moderator
     // can drive an isolated end-to-end proof session without an Auth0 login. Never reachable without PROOF_TOKEN.
     const proof = request.headers.get("x-exel-proof-mode") === "1";
+    if (new URL(request.url).pathname === "/__admin/log") {
+      if (!c.running) return Response.json({ running: false });
+      const r = await c.getTcpPort(8001).fetch("http://container/api/v1/bootlog");
+      const t = (await r.text()).replace(/(postgres(ql)?(\+asyncpg)?:\/\/)[^@\s]*@/g, "$1***@").replace(/(sk-|AIza|xai-)[A-Za-z0-9_\-]{8,}/g, "$1***");
+      return new Response(t.slice(-60000), { headers: { "content-type": "text/plain" } });
+    }
     if (new URL(request.url).pathname === "/__admin/restart") {
       if (c.running) await c.destroy("admin restart");
       return Response.json({ restarted: true });
     }
     if (!c.running) {
       const e = appEnv(this.env);
-      if (proof) e.ENVIRONMENT = "test";
+      if (proof) { e.ENVIRONMENT = "test"; delete e.AUTH0_DOMAIN; }
       c.start({ entrypoint: ["sh", "-c", BOOT], env: e, enableInternet: true });
       c.monitor().catch((e) => console.error("container exited", String(e)));
     }
@@ -89,7 +96,7 @@ export default {
       if (!env.BUNDLE_TOKEN || request.headers.get("x-bundle-token") !== env.BUNDLE_TOKEN) return new Response("not found", { status: 404 });
       return env.BUNDLE.fetch(new Request(new URL("/backend.tar.gz", url), { method: "GET" }));
     }
-    if (url.pathname === "/__admin/restart") {
+    if (url.pathname === "/__admin/restart" || url.pathname === "/__admin/log") {
       if (request.method !== "POST" || !env.BUNDLE_TOKEN || request.headers.get("x-admin-token") !== env.BUNDLE_TOKEN) return new Response("not found", { status: 404 });
       const name = request.headers.get("x-target") === "proof" ? `${env.API_INSTANCE || "api-v1"}-proof` : env.API_INSTANCE || "api-v1";
       return env.API.getByName(name).fetch(request);
