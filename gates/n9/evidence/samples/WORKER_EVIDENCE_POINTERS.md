@@ -19,3 +19,8 @@ These paths live on the shared agent box; they are **inputs** to N5–N8, not pr
 ## Payments QA (N2/N3)
 - `/cursor/stores/store-4ff5b235-5045-41af-8897-1124f2ebc55e/qa/BASELINE-QA-t71-t72.md`
 - main typecheck red; PR3 hotfix `1dcd2ae` Workers green OPEN; weekly fetch absent; panel not API; idempotency unused
+
+## Updates (same evening)
+- Payments: PR3 `1dcd2ae` + PR7 `6fc16a2` — see FAIL_FIX_RETEST.md; weekly HTTP still blocked
+- Pod: PR4 head `dd36f71` (key `3a3c96a`) — keyed UI; 13×32 PENDING; save still BLOCKED
+- SensorFusion: PR5 head `7c63647` (lex `ae99d95`, rev79) — sf.collab.* keyed; non-en unverified; payment cost_* AFTER_FILL is payment debt

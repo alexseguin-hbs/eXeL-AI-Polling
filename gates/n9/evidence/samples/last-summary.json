@@ -1,8 +1,8 @@
 {
   "suite": "gates/n9",
-  "suite_run_fingerprint": "a4f938a113154fc9d3c333821e5e1387ff5a1e2284712d8749f01c0a95b3cb3b",
-  "source_sha": "4c2761a6618a4f24c9c940cedee93a98b7938c58",
-  "run_id": "75548a830a42fbc8",
+  "suite_run_fingerprint": "4ea498918fe7c7c7a8b18acaee22d635baf1da6f546f498c7380b1a7f57fe611",
+  "source_sha": "1ca50541292c351067e913239c8b2da96548c3bb",
+  "run_id": "2ca02b0aadccc823",
   "america_chicago_note": "box clock = America/Chicago",
   "minted_nine_from_one_run": false,
   "html_allowed": false,
@@ -21,79 +21,63 @@
   ],
   "results": [
     {
-      "group": "n2_payments_costs",
-      "round_hint": 2,
-      "id": "weekly-fee-official-fetch",
-      "command": "assert_absent_fetch:backend/app/cubes/cube8_tokens/fee_catalog.py",
-      "status": "fail",
-      "exit_code": null,
-      "stdout_sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa",
-      "note": "QA: weekly refresh is docs/config only — official fetch ABSENT; do NOT treat as pass",
-      "failure_class": "docs_only_weekly_lookup"
+      "group": "n1_baseline_tooling",
+      "round_hint": 1,
+      "id": "gate-wordcount-self",
+      "command": "node tests/wordcount.test.mjs",
+      "cwd": "/workspace/research-exel/eXeL-AI-Polling/gates/n9",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 30,
+      "stdout_sha256": "28e26685d67a0ca80f243355a71f60bd649725b8b010c05074209ba19e760882",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "evidence_files": [
+        "gate-wordcount-self-2026-11-09T03-00-43-253Z.stdout.txt",
+        "gate-wordcount-self-2026-11-09T03-00-43-253Z.stderr.txt"
+      ],
+      "timed_out": false,
+      "error": null
     },
     {
-      "group": "n2_payments_costs",
-      "round_hint": 2,
-      "id": "cost-panel-api-wired",
-      "command": "assert_contains:frontend/components/moderator-settings.tsx",
-      "status": "fail",
-      "exit_code": null,
-      "stdout_sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa",
-      "note": "QA: CostEstimateTable uses static buildComboRows — not API-wired",
-      "failure_class": "panel_not_api_wired"
+      "group": "n1_baseline_tooling",
+      "round_hint": 1,
+      "id": "gate-validate-round-self",
+      "command": "node tests/validate-round.test.mjs",
+      "cwd": "/workspace/research-exel/eXeL-AI-Polling/gates/n9",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 47,
+      "stdout_sha256": "8f20956be1b010fb4b2dae821ef01c2ffb28e29999f4950d8326e2880dd212b8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "evidence_files": [
+        "gate-validate-round-self-2026-11-09T03-00-43-284Z.stdout.txt",
+        "gate-validate-round-self-2026-11-09T03-00-43-284Z.stderr.txt"
+      ],
+      "timed_out": false,
+      "error": null
     },
     {
-      "group": "n2_payments_costs",
-      "round_hint": 2,
-      "id": "stripe-idempotency-used",
-      "command": "assert:stripe-idempotency-used",
-      "status": "fail",
-      "exit_code": null,
-      "stdout_sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa",
-      "note": "QA: stripe_idempotency_key helper unused from PaymentIntent.create",
-      "detail": {
-        "found": false,
-        "expect_status": "fail"
-      },
-      "failure_class": "product_gap_assert"
-    },
-    {
-      "group": "n6_pod_supabase",
-      "round_hint": 6,
-      "id": "pod-persist-status-lexicon",
-      "command": "policy:pod-persist-status-lexicon",
-      "status": "fail",
-      "exit_code": null,
-      "stdout_sha256": null,
-      "note": "New English persist-status literal => lexicon FAIL/UNVERIFIED — not 100; do not score Succinctness/Stability 100 from local unit greens",
-      "failure_class": "policy_unverified"
-    },
-    {
-      "group": "n7_sensorfusion",
-      "round_hint": 7,
-      "id": "sf-33lang-lexicon",
-      "command": "policy:sf-33lang-lexicon",
-      "status": "fail",
-      "exit_code": null,
-      "stdout_sha256": null,
-      "note": "SF has no t()/useLexicon; new English strings follow preexisting pattern. User gate still FAIL/UNVERIFIED for 33-lang — do NOT convert no-regression into a 33-lang pass.",
-      "failure_class": "policy_unverified"
-    },
-    {
-      "group": "n8_rcore_lexicon",
-      "round_hint": 8,
-      "id": "session-rcore-badge",
-      "command": "policy:session-rcore-badge",
-      "status": "fail",
-      "exit_code": null,
-      "stdout_sha256": null,
-      "note": "QA: app/session/page.tsx no RCoreBadge — gap remains unverified/fail until inventory proves otherwise",
-      "failure_class": "policy_unverified"
+      "group": "n1_baseline_tooling",
+      "round_hint": 1,
+      "id": "gate-runner-safety-self",
+      "command": "node tests/runner-safety.test.mjs",
+      "cwd": "/workspace/research-exel/eXeL-AI-Polling/gates/n9",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 40,
+      "stdout_sha256": "7e8b204ad26b99d8ec9d0a7d08b19c09cb68d86f338fe13eb8702652b01c23e1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "evidence_files": [
+        "gate-runner-safety-self-2026-11-09T03-00-43-332Z.stdout.txt",
+        "gate-runner-safety-self-2026-11-09T03-00-43-332Z.stderr.txt"
+      ],
+      "timed_out": false,
+      "error": null
     }
   ],
   "counts": {
-    "pass": 0,
-    "fail": 6,
+    "pass": 3,
+    "fail": 0,
     "blocked": 0,
     "not_available": 0,
     "unverified": 0

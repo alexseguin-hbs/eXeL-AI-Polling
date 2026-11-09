@@ -98,7 +98,7 @@
             "urllib.request"
           ],
           "expect_status": "fail",
-          "note": "QA: weekly refresh is docs/config only — official fetch ABSENT; do NOT treat as pass"
+          "note": "STILL BLOCKED on PR7 — weekly_http_lookup_ready=False; adapters empty; NOT genuine official HTTP fetch. Frontier unstable until payments worker reports otherwise."
         },
         {
           "id": "cost-panel-api-wired",
@@ -108,7 +108,7 @@
             "/payments/provider-fees"
           ],
           "expect_status": "fail",
-          "note": "QA: CostEstimateTable uses static buildComboRows — not API-wired"
+          "note": "BASELINE main@4c2761a: fail (static). PR7 6fc16a2: FIXED fetches GET /payments/provider-fees with offline/badshape statuses — verify only on PR7 checkout, never claim from main run."
         },
         {
           "id": "stripe-idempotency-used",
@@ -117,9 +117,13 @@
           "glob_must_contain": "idempotency_key",
           "in_files_matching": "*payment_service*",
           "expect_status": "fail",
-          "note": "QA: stripe_idempotency_key helper unused from PaymentIntent.create"
+          "note": "BASELINE main: fail (unused). PR7: FIXED 5/5 PaymentIntent creates — verify only on PR7 checkout."
         }
-      ]
+      ],
+      "sha_scope": {
+        "baseline_main": "4c2761a — assertion fails below are EXPECTED on main",
+        "combined_tree": "PR7 6fc16a2 stacked on PR3 — may resolve panel-API + idempotency asserts; weekly HTTP still fail; do not execute suite on main and attribute PR7 greens"
+      }
     },
     "n3_settings_hotfix_retest": {
       "round_hint": 3,
@@ -137,14 +141,21 @@
           ],
           "availability": "always",
           "expect_on_main_4c2761a": "fail",
-          "note": "S0: unclosed SettingsLanguageSelector — main red until PR3 merged"
+          "note": "S0 BEFORE — main red until PR3 merged"
         },
         {
           "id": "pr3-hotfix-typecheck",
           "kind": "external_ref",
           "ref": "PR3 1dcd2ae",
-          "note": "Workers green + local tsc 0 on hotfix — record as fail→fix→retest evidence when checked out; not auto-merged",
-          "availability": "opt_in_checkout"
+          "availability": "opt_in_checkout",
+          "note": "AFTER: tsc0 + Workers green on PR3; fail→fix→retest evidence in workers/payments/PR3-verification.md"
+        },
+        {
+          "id": "pr7-payments-stack",
+          "kind": "external_ref",
+          "ref": "PR7 6fc16a2",
+          "availability": "opt_in_checkout",
+          "note": "AFTER stacked on PR3: idempotency+fee panel client+settings rev7; weekly HTTP still blocked; CI checks may be pending"
         }
       ]
     },
@@ -201,7 +212,7 @@
     "n5_pod_local": {
       "round_hint": 5,
       "worker_evidence": "/workspace/research-exel/artifacts/workers/pod/",
-      "worker_sha": "787bfb522f5be34b6468dd69feef42a0f4751488",
+      "worker_sha": "dd36f71edcbe5af80e43430d741f7835ae386854",
       "commands": [
         {
           "id": "soi-pod-flow",
@@ -247,6 +258,13 @@
           "kind": "external_ref",
           "availability": "opt_in_checkout",
           "note": "PR4 Workers FAIL = preexisting moderator-settings from PR2 on main — NOT pod regression (CI_WORKERS_BUILDS_DIAGNOSIS.md)"
+        },
+        {
+          "id": "pod-lexicon-keyed-retest",
+          "kind": "external_ref",
+          "ref": "PR4 dd36f71 / key 3a3c96a",
+          "availability": "opt_in_checkout",
+          "note": "AFTER keying: persist 40 + lexicon 87 + invariant/flow/sim/si-pod/sign-i18n greens on PR4 tree — see workers/pod/SCREEN_INVENTORY_after_keyed_ui.md"
         }
       ]
     },
@@ -283,7 +301,13 @@
           "id": "pod-persist-status-lexicon",
           "kind": "assert_policy",
           "expect_status": "fail",
-          "note": "New English persist-status literal => lexicon FAIL/UNVERIFIED — not 100; do not score Succinctness/Stability 100 from local unit greens"
+          "note": "BASELINE main / pre-keying: English literals = fail. AFTER 3a3c96a: t() keys exist but AFTER_FILL 13×32 PENDING — still NOT 33-lang pass. Never score as Supabase save."
+        },
+        {
+          "id": "pod-lexicon-not-supabase",
+          "kind": "assert_policy",
+          "expect_status": "fail",
+          "note": "Policy: wording/keying fix MUST NOT be counted as team Supabase save. E2E BLOCKED; DB transitions NONE."
         }
       ]
     },
@@ -351,7 +375,7 @@
           ],
           "availability": "if_script",
           "script": "test:sf-collab",
-          "note": "PR5 7150bcc only — main: not_available; local on PR5: 40 passed"
+          "note": "PR5: collab 48 on keyed head; main not_available"
         },
         {
           "id": "sf-workers-build-pr5",
@@ -364,7 +388,7 @@
           "id": "sf-33lang-lexicon",
           "kind": "assert_policy",
           "expect_status": "fail",
-          "note": "SF has no t()/useLexicon; new English strings follow preexisting pattern. User gate still FAIL/UNVERIFIED for 33-lang — do NOT convert no-regression into a 33-lang pass."
+          "note": "AFTER 7c63647: 12 sf.collab.* keyed + AFTER_FILL staged; non-en UNVERIFIED — still FAIL/not 33-pass. Shared lexicon-coverage also fails payment cost_* AFTER_FILL (payment owns)."
         },
         {
           "id": "sf-realtime-db-transitions",
@@ -375,8 +399,22 @@
           "id": "sf-live-rls-probe",
           "kind": "blocked",
           "reason": "RLS_PROBE_* unset; live anon probe not run"
+        },
+        {
+          "id": "sf-lexicon-unit",
+          "kind": "external_ref",
+          "ref": "PR5 ae99d95 / 7c63647",
+          "availability": "opt_in_checkout",
+          "note": "sensor-fusion-lexicon 10 passed; ledger 158/79 rows; rev79 cites ae99d95"
+        },
+        {
+          "id": "sf-vs-payment-lexicon-ownership",
+          "kind": "assert_policy",
+          "expect_status": "fail",
+          "note": "cube1.settings.cost_* missing AFTER_FILL is payment-worker staging debt — do not attribute to SF keying iteration"
         }
-      ]
+      ],
+      "worker_sha": "7c6364710dc765efcdc05d21362797c0f2d4ac7a"
     },
     "n8_rcore_lexicon": {
       "round_hint": 8,
@@ -506,5 +544,60 @@
     "/cursor/stores/store-4ff5b235-5045-41af-8897-1124f2ebc55e/qa/BASELINE-QA-t71-t72.md",
     "/workspace/research-exel/artifacts/workers/sensorfusion/ACCEPTANCE_CHECKLIST.md",
     "/workspace/research-exel/artifacts/workers/pod/"
-  ]
+  ],
+  "fail_fix_retest": {
+    "note": "Substantive iterations recorded by SHA. Suite assertions on main@4c2761a still describe BASELINE gaps. Do NOT run assertions on main and claim PR3/PR4/PR5/PR7 green.",
+    "payments_n2_n3": {
+      "before_main": "4c2761a — tsc TS1005/1128; Workers red; panel static; idempotency unused; weekly HTTP absent",
+      "pr3_fix": {
+        "sha": "1dcd2ae0423afceb4b39b839d71f380c264c3491",
+        "evidence": "tsc0 + Workers green; SettingsLanguageSelector closed only",
+        "pr": 3,
+        "merged": false
+      },
+      "pr7_fix": {
+        "sha": "6fc16a21aa9c5c0405da1e210d70c1e0aee449f8",
+        "stacked_on": "1dcd2ae",
+        "evidence": "5/5 Stripe creates idempotency_key; GET /payments/provider-fees client statuses; t() englishDefault for cost status; settings ledger rev7; 21 pytest + 14 provider-fee-client; tsc0",
+        "still_blocked": "weekly official HTTP — adapters empty; weekly_http_lookup_ready=False (NOT a genuine fetch pass)",
+        "lexicon_33": "UNVERIFIED — englishDefault only",
+        "pr": 7,
+        "merged": false,
+        "checks": "pending/in_progress at last report"
+      },
+      "worker_dir": "/workspace/research-exel/artifacts/workers/payments/"
+    },
+    "pod_n5_n6": {
+      "before": {
+        "sha": "787bfb5",
+        "gap": "PERSIST_STATUS_COPY + RECORD_METHODS.hint + FREE_TOOLS_NOTE English literals → lexicon FAIL"
+      },
+      "keying_fix": {
+        "key_commit": "3a3c96a8504190e0351507c299f0b390df1d659d",
+        "head": "dd36f71edcbe5af80e43430d741f7835ae386854",
+        "keys": "soi.pod.persist.* (9) + record.hint.* (3) + free_tools_note (1) via existing useLexicon/t()",
+        "after_tests": "pod-persist 40; pod-persist-lexicon 87; invariant 463; flow 27; sim 66; si-pod 126; sign-i18n-all 129",
+        "translation_gap": "AFTER_FILL/AFTER_BATCH PENDING 13×32 — NOT a 33-lang pass",
+        "not_supabase_save": "wording/keying fix ≠ team Supabase save; E2E still BLOCKED; DB transitions NONE"
+      },
+      "worker_dir": "/workspace/research-exel/artifacts/workers/pod/"
+    },
+    "sensorfusion_n7": {
+      "before": {
+        "sha": "7150bcc",
+        "gap": "collab UI notes hardcoded English"
+      },
+      "keying_fix": {
+        "head": "7c6364710dc765efcdc05d21362797c0f2d4ac7a",
+        "lexicon_code": "ae99d9532058206fd34cfe165d27537db0eeda34",
+        "collab_code": "d5592fab93ecb3a30cd8c6332d4a95563b1718b0",
+        "ledger": "rev78 cites d5592fa; rev79 cites ae99d95",
+        "keys": "12 sf.collab.* via cube81 / useLexicon / t() / AFTER_FILL",
+        "after_tests": "lexicon 10; collab 48; ledger 158 (79 rows); r4a 26 (live RLS skipped)",
+        "translation": "non-en AFTER_FILL explicitly UNVERIFIED — not 33-lang pass",
+        "shared_lexicon_coverage": "FAIL on payment cube1.settings.cost_* missing AFTER_FILL — payment worker owns staging, not SF"
+      },
+      "worker_dir": "/workspace/research-exel/artifacts/workers/sensorfusion/"
+    }
+  }
 }

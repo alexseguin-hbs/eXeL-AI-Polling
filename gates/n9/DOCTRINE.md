@@ -36,3 +36,6 @@ Exactly **12×111** before and after each round (Aset…Thor lenses). MoT **333*
 
 ## Fail→fix→retest pattern
 Example: main typecheck S0 → PR3 `1dcd2ae` hotfix Workers green — record both; do not wait for a perfect system to run the suite.
+
+## Fail→fix→retest (2026-11-08 worker iterations)
+See `evidence/samples/FAIL_FIX_RETEST.md`. Weekly HTTP lookup remains blocked even after PR7. Pod/SF t() keying is not a 33-language pass and not a Supabase save.
