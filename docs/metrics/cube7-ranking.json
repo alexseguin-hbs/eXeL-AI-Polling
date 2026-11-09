@@ -1,0 +1,63 @@
+{
+ "cube": "cube7",
+ "name": "ranking",
+ "append_only": true,
+ "note": "Append new rows only. Never edit or delete past rows. All rows are SIMULATED sessions (no real people).",
+ "rows": [
+  {
+   "run": "cube7-live-001",
+   "cst_time": "2026-11-09 15:41\u201315:42 CST",
+   "utc_start": "2026-11-09T21:41:01Z",
+   "label": "SIMULATED",
+   "merge_sha": "ae9975dcb (PR #35); served main 46efc6b91",
+   "cloudflare_worker": "exel-ai-polling-api",
+   "cloudflare_version": "9a798de6",
+   "api_instance": "api-v1t",
+   "session_short_code": "qAtsB4qj",
+   "session_type": "simulation",
+   "ranking_method": "top3_points",
+   "participants": 5,
+   "spectators": 1,
+   "votes": 5,
+   "latency_p50_ms": null,
+   "latency_p95_ms": null,
+   "latency_note": "not measured in this run (listener timestamps not captured)",
+   "hand_count_match": true,
+   "hand_count_detail": "9 of 9 theme score rows equal hand-computed 3/2/1 points",
+   "checks_passed": 21,
+   "checks_total": 21,
+   "evidence": "fleet box: /workspace/fleet/voting-live/proof/gaps/run1/gaps-proof-evidence.json"
+  },
+  {
+   "run": "cube7-live-002",
+   "cst_time": "2026-11-09 16:05\u201316:07 CST",
+   "utc_start": "2026-11-09T22:05:30Z",
+   "label": "SIMULATED",
+   "merge_sha": "ae9975dcb (PR #35); served main 340a9a8e3",
+   "cloudflare_worker": "exel-ai-polling-api",
+   "cloudflare_version": "3a35ad5f-0888-44f4-a491-89ae23ef792a",
+   "api_instance": "api-v1w",
+   "session_short_code": "BGD2sdDR",
+   "session_type": "simulation",
+   "ranking_method": "top3_points",
+   "participants": 5,
+   "spectators": 1,
+   "votes": 5,
+   "latency_p50_ms": 3992,
+   "latency_p95_ms": 4999,
+   "latency_samples_ms": [
+    4883,
+    403,
+    4999,
+    3929,
+    3992
+   ],
+   "latency_note": "time from the k-th vote's HTTP response to the listener receiving the first live ranking_complete broadcast with participant_count>=k (same box clock). 5 samples, so p95 is the max.",
+   "hand_count_match": true,
+   "hand_count_detail": "9 of 9 theme score rows equal hand-computed 3/2/1 points",
+   "checks_passed": 21,
+   "checks_total": 21,
+   "evidence": "fleet box: /workspace/fleet/voting-live/proof/gaps/run2/gaps-proof-evidence.json + listener-events.jsonl"
+  }
+ ]
+}

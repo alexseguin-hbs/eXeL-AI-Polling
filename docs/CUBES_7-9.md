@@ -32,6 +32,8 @@
 > **Spiral order:** 7th cube (bottom-left, after Cube 6 AI at bottom-center)
 > **MVP scope:** MVP1 (basic ranking + aggregation), MVP2 (live WebSocket), MVP3 (governance overrides)
 
+> **Live metrics (append-only):** [docs/metrics/cube7-ranking.md](metrics/cube7-ranking.md) · [json](metrics/cube7-ranking.json)
+
 ### Cube 7 — Overview
 
 Cube 7 provides the ranking UI and backend aggregation engine. After Cube 6 generates AI themes, participants rank those themes by importance. The system deterministically aggregates all rankings into a final prioritized list. The #1 most-voted Theme2 cluster ID feeds into the CQS reward pipeline (Cube 5 -> Cube 6 -> Cube 8).
