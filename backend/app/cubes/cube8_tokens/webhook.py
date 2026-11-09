@@ -30,8 +30,8 @@ async def stripe_webhook(
 ):
     """Receive Stripe webhook events.
 
-    Handles: checkout.session.completed, payment_intent.succeeded,
-    payment_intent.payment_failed
+    Handles: checkout.session.completed / async_payment_succeeded / async_payment_failed / expired,
+    payment_intent.succeeded / payment_failed, charge.refunded, charge.dispute.created (t193u)
     """
     payload = await request.body()
 
@@ -92,6 +92,10 @@ async def stripe_webhook(
             tx = await payment_service.handle_payment_completed(db, event)
             outcome = "completed" if tx is not None else "no_matching_transaction"
             logger.info("cube8.webhook.processed", type=event_type, event_id=event_id, outcome=outcome)
+
+    elif event_type in ("charge.refunded", "charge.dispute.created"):
+        tx = await payment_service.handle_charge_reversal(db, event)
+        outcome = ("refunded" if event_type == "charge.refunded" else "disputed") if tx is not None else "no_matching_transaction"
 
     elif event_type in ("payment_intent.payment_failed", "checkout.session.async_payment_failed", "checkout.session.expired"):
         await payment_service.handle_payment_failed(db, event)

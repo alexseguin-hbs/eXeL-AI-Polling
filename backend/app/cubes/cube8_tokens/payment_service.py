@@ -943,6 +943,39 @@ async def handle_payment_failed(
         logger.info("cube8.payment.marked_failed", extra={"id": str(tx.id), "type": tx.transaction_type})
 
 
+async def handle_charge_reversal(db: AsyncSession, stripe_event: dict):
+    """t193u: charge.refunded / charge.dispute.created → mark the ledger row (append-only: nothing is deleted).
+
+    Full refund → status "refunded" (paid views stop counting it: entitlements read status == "completed").
+    Partial refund / dispute → status kept, reconcile_status records it for the operator. Idempotent: the
+    webhook's event-id table already drops replays; re-applying the same marker is a no-op.
+    """
+    etype = stripe_event.get("type", "")
+    obj = (stripe_event.get("data") or {}).get("object") or {}
+    pi_id = obj.get("payment_intent") if isinstance(obj.get("payment_intent"), str) else None
+    if not pi_id:
+        return None
+    tx = (await db.execute(
+        select(PaymentTransaction).where(PaymentTransaction.stripe_payment_intent_id == pi_id)
+    )).scalar_one_or_none()
+    if tx is None:
+        logger.warning("cube8.payment.reversal_without_ledger_row", type=etype, payment_intent=pi_id)
+        return None
+    if etype == "charge.refunded":
+        refunded = int(obj.get("amount_refunded") or 0)
+        if obj.get("refunded") or refunded >= int(obj.get("amount") or tx.amount_cents or 0):
+            tx.status = "refunded"
+            tx.reconcile_status = f"refunded:{refunded}"
+        else:
+            tx.reconcile_status = f"partially_refunded:{refunded}"
+    elif etype == "charge.dispute.created":
+        tx.reconcile_status = f"disputed:{str(obj.get('reason') or 'unknown')[:40]}"
+    tx.stripe_event_id = stripe_event.get("id")
+    await db.commit()
+    logger.warning("cube8.payment.reversal", type=etype, tx=str(tx.id), product_line=tx.product_line)
+    return tx
+
+
 # ---------------------------------------------------------------------------
 # Session Payment Status
 # ---------------------------------------------------------------------------
