@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Architect-2525 append-only traceability ledger — 40 entries, extracted at build time. */
+/** Architect-2525 append-only traceability ledger — 41 entries, extracted at build time. */
 export const ARCHITECT_LEDGER: LedgerInput = {
   "section": "Architect-2525",
   "route": "/Architect-2525",
@@ -289,6 +289,13 @@ export const ARCHITECT_LEDGER: LedgerInput = {
       "kind": "release",
       "text": "R2g — THE DINING ROOM GETS ITS TABLE AND WINDOW (operator LIVE 2026-11-09, from the 2D plan: \"dining room needs table and window\"). Authored an expert STANDARD_LAYOUTS.D: the dining TABLE is the anchor, centred, with its four chairs tucked to each edge; the Dining Room's one exterior wall (E — it sits at row 1 · col 2 of the 3×3) carries the WINDOW; the entry door is on the S wall, off-centre so the walk-in is clear of the seating. Same feng-shui pattern as the Living Room (R2f): only the function is placed — the table + its seating — nothing else auto-seeded. Rollout: DECLUTTER_REV→3 re-seats every device to the new curated defaults once on load, so the Dining table + window reach the device; STANDARD_LAYOUT_REV stays 3 (edition 3 is the current expert-layout edition, grown room by room — A′ Master Bedroom + Living Room + Dining Room — and bumps only when an already-shipped layout is re-decided). Gates: room-standard-layout 100/100 (new §3.6: table-centred / window-on-E-exterior / door-on-S / ≥1 chair / zero overlap), room-objects 136/136 (zero overlap across all rooms; 6 packed rooms, M+L+D decided), architect-walk-mep 43/43, mep-runs re-snapshotted (Dining objectCount), architect-consistency 39/0, tsc 0 new, full build exit 0. Carried by commit 7d204e708.",
       "commit": "7d204e708"
+    },
+    {
+      "rev": 41,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Architect-2525 R1 cloud-save follow-up (HI decision Q4 2026.10.31 ask; SSSES Security; VISION_2525_REUSE_CATALOG cloud-saved-files). (1) Repo migration 053_architect_saved_files_rpc renumbered to 056 — live history row 20261109131322 / name 053_architect_saved_files_rpc is NOT rewritten; 053_revoke stays the sole 053_*; 054 SensorFusion and 055 ranking already taken. (2) Migration 057 adds user_id/created_at and rewrites get/put with auth.uid claim bind: when a Supabase JWT is present p_owner must equal auth.uid()::text; a claimed row is off-limits to anon and to any other account; first signed-in write stamps user_id and never un-claims. Justified alternative to authenticated-only today: Auth0 login does not mint a Supabase JWT (lib/supabase.ts anon client), so revoking anon EXECUTE would kill cloud save — same trade-off innovation_state took in 030. Capability preserved. Corrective 057 applied live only after merge. Gate: owner-key-store-security extended for 056/057; sim 057_*.sim.sql. Evidence labels: DERIVED (anon client, live grants, dual-053 history); USER_STATED (OAuth active / HI Q4); ASSUMED none for the bind shape.",
+      "commit": "dd08c099"
     }
   ]
 };

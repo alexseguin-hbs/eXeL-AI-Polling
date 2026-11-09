@@ -76,5 +76,38 @@ for (const st of STORES) {
     "architect_saved_files uses the shared classifier rather than its own copy");
 }
 
+
+// 6 · migration half (Architect) — repo numbering + claim bind (HI Q4 / SSSES; sibling of 030)
+{
+  const root = path.resolve(FRONTEND, "..");
+  const migDir = path.join(root, "supabase/migrations");
+  const files = fs.readdirSync(migDir).filter((f) => f.endsWith(".sql"));
+  const architectRpc = files.filter((f) => /architect_saved_files_rpc/.test(f));
+  ok(architectRpc.length === 1 && architectRpc[0].startsWith("056_"),
+    `architect_saved_files_rpc is a single 056_* file (got ${architectRpc.join(",") || "none"}) — no duplicate 053 clash`);
+  ok(files.includes("053_revoke_internal_definer_fn_execute.sql"),
+    "053_revoke_internal_definer_fn_execute remains the sole 053_* (live history mapping preserved in 056 header)");
+  const m056 = fs.readFileSync(path.join(migDir, architectRpc[0]), "utf8");
+  ok(/LIVE HISTORY MAPPING/.test(m056) && /20261109131322/.test(m056),
+    "056 header documents live history version 20261109131322 / name 053_architect_saved_files_rpc");
+  ok(/SECURITY DEFINER/.test(m056) && /search_path\s*=\s*public,\s*pg_temp/.test(m056),
+    "056 pins SECURITY DEFINER + search_path");
+  ok(/REVOKE ALL ON TABLE public\.architect_saved_files FROM anon, authenticated/.test(m056),
+    "056 revokes direct table access from anon/authenticated");
+
+  ok(files.includes("057_architect_saved_files_auth_bind.sql"),
+    "057_architect_saved_files_auth_bind.sql ships the claim-bind hardening");
+  const m057 = fs.readFileSync(path.join(migDir, "057_architect_saved_files_auth_bind.sql"), "utf8");
+  ok(/ADD COLUMN IF NOT EXISTS user_id/.test(m057), "057 adds user_id for accounts cutover");
+  ok(/auth\.uid\(\)/.test(m057) && /claimed by another account/.test(m057),
+    "057 binds claimed rows to auth.uid() and refuses foreign claims");
+  ok(/p_owner IS DISTINCT FROM uid::text/.test(m057),
+    "057 requires p_owner = auth.uid()::text when a JWT is present");
+  ok(/justified alternative|Auth0/.test(m057),
+    "057 documents why anon EXECUTE is kept (Auth0 ≠ Supabase JWT today)");
+  const sim = path.join(root, "supabase/tests/057_architect_saved_files_auth_bind.sim.sql");
+  ok(fs.existsSync(sim), "057 rolled-back sim proof file exists");
+}
+
 console.log(`\nowner-key-store-security: ${pass} passed, ${fail} failed · ${STORES.length} stores`);
 process.exit(fail ? 1 : 0);
