@@ -1004,7 +1004,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 
 ---
 
-## Cube 3 — Voice-to-Text Engine: **~87% SSSES** (CRS-08, CRS-15 complete; SSSES Phase 1-3 audit done 2026-04-07; Tasks A0-A7 COMPLETE)
+## Cube 3 — Voice-to-Text Engine: **~87% SSSES** (CRS-08, CRS-15 complete; SSSES Phase 1-3 audit done 2026-04-07; Tasks A0-A7 COMPLETE; CRS-15.09 dual-role live voice path added 2026-11-09)
 
 **Code location:** `backend/app/cubes/cube3_voice/` (modular, self-contained)
 
@@ -1110,6 +1110,7 @@ The following gaps exist ONLY in the **real-time WebSocket STT path** (paid feat
 | **CRS-15.06** | **Complete** | P2.7+P4.2 | `factory.py:31,72-77` `get_stt_provider_safe()` | Thread-safe async singleton; prevents race on concurrent init |
 | **CRS-15.07** | **Complete** | P2.6 | `realtime.py:176` 5-min timeout; `realtime.py:212-221` recovery | WebSocket: 300s max; push_audio + stt.stop() error caught; payment gate |
 | **CRS-15.08** | Deferred | RT-1→4 | Documented in Known Gaps section | 4 realtime gaps deferred to paid feature launch |
+| **CRS-15.09** | **Planned** | Original-design / scale | Dual-role live voice input (Moderator + Participants); Date added 2026-11-09 | Same STT pipeline as CRS-15.03; role-gated UI on dashboard + join; does not claim live proof |
 
 ### Cube 3 — SSSES Task Traceability (Phases 1-5)
 | Task | CRS Link | Status | Phase | Evidence |
@@ -1398,12 +1399,14 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 | CRS-15.01 | CRS-15.01.IN.WRS | CRS-15.01.OUT.WRS | **Implemented** | 2 | Batch STT transcription: 4 providers (OpenAI Whisper, Grok, Gemini, AWS Transcribe), 6 audio formats (webm/wav/mp3/ogg/m4a/flac), 25 MB max, confidence threshold 0.3 | All 4 providers tested; confidence < 0.3 returns `TranscriptLowConfidenceError` | Per-language STT model tuning for accuracy improvement | Each provider returns `TranscriptionResult` with `text`, `confidence`, `language`, `model_id`; confidence < 0.3 raises `TranscriptLowConfidenceError`; all 6 formats accepted; unknown formats rejected; file size > 25 MB rejected with 413 |
 | CRS-15.02 | CRS-15.02.IN.WRS | CRS-15.02.OUT.WRS | **Implemented** | 2 | Circuit breaker failover: whisper → grok → gemini → aws; skips failed provider, retries remaining; logs per-provider failure | Zero silent failures; every provider outage is logged with `cube3.stt.failover` event | Auto-recovery: failed provider re-tested after 60s cooldown | Failover order: whisper→grok→gemini→aws; failed provider raises `STTProviderError`, skipped to next; all 4 fail returns 422 `ResponseValidationError`; each failure logged with `cube3.stt.failover` structured event; zero silent failures |
 | CRS-15.03 | CRS-15.03.IN.WRS | CRS-15.03.OUT.WRS | **Implemented** (paid) | 2 | Real-time STT: Azure Speech Services (primary) + AWS Transcribe Streaming (fallback) via WebSocket; word-by-word display | WebSocket endpoint at `/ws/sessions/{id}/voice`; latency < 500ms per word | Live confidence meter displayed per word during real-time transcription | WebSocket endpoint at `/ws/sessions/{id}/voice`; Azure Speech primary, AWS Streaming fallback; word-by-word JSON messages delivered to client; latency < 500ms per word measured; connection auto-recovers on provider failure |
+| CRS-15.09 | CRS-15.09.IN.WRS | CRS-15.09.OUT.WRS | **Planned** | 2 | Live voice-to-text input path for **Moderator and Participants** (Date added 2026-11-09); extends CRS-15.03 dual-role coverage | Moderator dashboard + participant session both expose live STT entry; transcripts enter Cube 2 pipeline with `source=voice` + role tag | Device picker + language hints per role | Both roles can start/stop live STT; unpaid free tier may remain batch-only per CRS-15.03 paid gate |
 
 ### Cube 3 — DesignMatrix VOC (Voice of Customer)
 | CRS | Customer Need | VOC Comment |
 |-----|---------------|-------------|
 | CRS-08 | Voice responses need the same integrity guarantees as text | "If we accept voice input, we need to prove the transcript wasn't altered — same audit standard as typed responses." |
 | CRS-15 | Users who cannot or prefer not to type need an equally reliable voice input option | "In a room of 200 people, some will want to speak instead of type — especially on phones. It has to just work." |
+| CRS-15.09 | Moderator and participants both need voice as a first-class input | "The host should be able to speak notes live the same way participants speak responses." |
 
 ---
 

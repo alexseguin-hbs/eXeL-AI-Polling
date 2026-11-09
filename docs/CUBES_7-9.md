@@ -41,7 +41,7 @@ Key behaviors:
 - **Progressive theme reveal (paid tiers):** For paid sessions, themes appear one-by-one on the hosting PC screen as they are generated, creating engagement. Once all themes at the selected level are ready, voting opens.
 - **CQS winner input:** After ranking completes, Cube 7 provides the #1 most-voted Theme2 cluster ID to Cube 5/6 for CQS reward selection -- the winner is the highest-CQS response within that cluster.
 
-### Cube 7 — Current Implementation Status (SPIRAL v14, 2026-04-09)
+### Cube 7 — Current Implementation Status (SPIRAL v14, 2026-04-09; CRS original-design rounds added 2026-11-09)
 
 **SSSES: 96/100 | 164 tests | 10 endpoints | All MVP1+MVP2 CRS complete**
 
@@ -204,7 +204,7 @@ Key behaviors:
 
 ### Cube 7 — CRS Traceability
 
-> **CRS Alignment Note:** Cube 7 owns CRS-11 (ranking), CRS-12 (deterministic aggregation), CRS-13 (Lead review), CRS-16/17 (live ranking — MVP2), and CRS-22 (governance override — MVP3). Requirements.txt is canonical. See SSSES Plan at end of this doc.
+> **CRS Alignment Note:** Cube 7 owns CRS-11 (ranking), CRS-12 (deterministic aggregation), CRS-13 (Lead review), CRS-16/17 (live ranking — MVP2), CRS-22 (governance override — MVP3), and **CRS-36..38** (original Round 1 auto-select / Round 2 `top3_points` / Round 3 Expert Opinion — Date added 2026-11-09). Requirements.txt is canonical. See SSSES Plan at end of this doc.
 
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target | Design Output: Definable / Measurable |
 |-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|---------------------------------------|
@@ -229,6 +229,20 @@ Key behaviors:
 | CRS-22 | CRS-22.IN.SRS.022 | CRS-22.OUT.SRS.022 | **Implemented** | 3 | Lead overrides rankings with documented justification | Justification required and logged for every override; full audit trail with original vs. new rank | Bias detection on overrides, peer review workflow, override impact analysis | Override rejected if justification is empty; audit entry contains original_rank, new_rank, actor_id, timestamp for 100% of overrides |
 | CRS-22.01 | CRS-22.01.IN | CRS-22.01.OUT | **Implemented** | 3 | Override UI requires mandatory justification text; logged to immutable audit trail | Original ranking preserved; override shown as delta with actor + timestamp | Peer review workflow: override requires second Lead approval | Justification text required (min 10 chars); audit entry immutable (no UPDATE/DELETE on governance_overrides table) |
 | CRS-22.02 | CRS-22.02.IN | CRS-22.02.OUT | **Implemented** | 3 | `validate_override_permission()` checks RBAC — only Lead/Developer can override; returns 403 for other roles | 100% RBAC enforcement on override endpoint | Role escalation request workflow for edge cases | 100% of non-Lead/Developer override attempts return 403; verified with Moderator and User roles in N=5 test runs |
+| CRS-22.04 | CRS-22.04.IN | CRS-22.04.OUT | **Planned** | 3 | Moderator final-decision transparency: when group #1 is not adopted, participants see group #1 + Moderator reason (Date added 2026-11-09) | Group #1 theme id/label + non-empty justification always shown to participants when final pick ≠ group #1 | Bias alerts when overrides repeatedly displace group #1 | 100% of non-#1 final picks expose group_rank_1 + justification to participant results; empty reason rejected |
+| CRS-36 | CRS-36.IN.SRS.036 | CRS-36.OUT.SRS.036 | **Planned** | 2 | Round 1 variable auto-select (e.g. 40% · 4/10) builds the ranking ballot per category (Date added 2026-11-09) | Ballot subset = configured % or N-of-M of Theme02 at voting level per Support/Concerns/Neutral | Adaptive auto-select from live confidence | Auto-select config persisted on session; ballot set size matches config |
+| CRS-36.01 | CRS-36.01.IN | CRS-36.01.OUT | **Planned** | 2 | Moderator sets percent and/or N-of-M auto-select per Theme01 category (Date added 2026-11-09) | Config validated (N ≤ M; percent in (0,100]) | Per-category presets library | Invalid configs return 400 |
+| CRS-36.02 | CRS-36.02.IN | CRS-36.02.OUT | **Planned** | 2 | Non-selected themes stay reviewable but out of Round 2 ballot (Date added 2026-11-09) | Round 2 only accepts ids from auto-select set | Soft-include with zero weight | Out-of-set ids rejected 400 |
+| CRS-36.03 | CRS-36.03.IN | CRS-36.03.OUT | **Planned** | 2 | Auto-select parameters folded into replay hash (Date added 2026-11-09) | Identical config + inputs → identical ballot set hash | Diff UI for config changes | Replay hash changes iff percent/N/method changes |
+| CRS-37 | CRS-37.IN.SRS.037 | CRS-37.OUT.SRS.037 | **In progress** | 2 | Round 2 per-category top-3 ranking scored 3/2/1 (`top3_points`) (Date added 2026-11-09) | Subset ballot ≤3; points 3/2/1; per-category aggregation | Mixed methods in one session with clear labels | `ranking_method=top3_points` accepted; Borda path unchanged |
+| CRS-37.01 | CRS-37.01.IN | CRS-37.01.OUT | **In progress** | 2 | Ballot = up to 3 distinct theme ids ⊂ category valid set at voting level (Date added 2026-11-09) | Dup/extra/missing validation; points by position | Weighted top-k | Invalid subset → 400 |
+| CRS-37.02 | CRS-37.02.IN | CRS-37.02.OUT | **In progress** | 2 | One ballot per (participant, cycle, theme01_category) for Support/Concerns/Neutral (Date added 2026-11-09) | Re-vote replaces last; three category ballots per round | Cross-category drag board | Unique constraint enforced |
+| CRS-37.03 | CRS-37.03.IN | CRS-37.03.OUT | **In progress** | 2 | Aggregate sums 3/2/1 points; seeded tie-break; replay_hash includes method+category (Date added 2026-11-09) | Deterministic N=5 replay | Condorcet side report | Hash stable across reruns |
+| CRS-37.04 | CRS-37.04.IN | CRS-37.04.OUT | **In progress** | 2 | Product implementation of `top3_points` tracked by parallel worker (Date added 2026-11-09) | Docs CRS only here; no false Implemented claim | — | Status remains In progress until green product PR merges |
+| CRS-38 | CRS-38.IN.SRS.038 | CRS-38.OUT.SRS.038 | **Planned** | 3 | Round 3 Expert Opinion: 3 experts summarize Concerns/Neutral/Support for a chosen theme (Date added 2026-11-09) | Three expert packets stored; AI 1-pager of the three | Expert marketplace routing | Expert count=3 required before 1-pager ready |
+| CRS-38.01 | CRS-38.01.IN | CRS-38.01.OUT | **Planned** | 3 | Expert UI: three columns Concerns / Neutral / Support + summary each (Date added 2026-11-09) | Required fields validated | Rich media attachments | Empty column rejected |
+| CRS-38.02 | CRS-38.02.IN | CRS-38.02.OUT | **Planned** | 3 | AI 1-page summary of the three experts (Date added 2026-11-09) | Single pager artifact linked to theme + experts | Multi-language 1-pager | Artifact length ≤ 1 page target |
+| CRS-38.03 | CRS-38.03.IN | CRS-38.03.OUT | **Planned** | 3 | Expert assignment + audit trail before 1-pager ready (Date added 2026-11-09) | actor_id, theme_id, timestamps immutable | Peer challenge of expert summary | Ready flag false until 3/3 + audit |
 
 ### Cube 7 — DesignMatrix VOC (Voice of Customer)
 
@@ -240,6 +254,10 @@ Key behaviors:
 | CRS-16 | Faster decision-making during live meetings | "We want decisions before the meeting ends. Live updates keep momentum going." |
 | CRS-17 | Immediate feedback that my input matters | "Live updates increase engagement and trust -- people stay invested when they see impact." |
 | CRS-22 | Balance between group input and leadership responsibility | "Leaders must own final decisions but group input provides legitimacy and buy-in." |
+| CRS-22.04 | See group #1 even when Moderator picks differently | "If leadership chooses another priority, we still need to see what the group ranked #1 and why it was overridden." |
+| CRS-36 | Fair shortlist before ranking | "Don't make everyone rank 10 themes — auto-select the top slice first." |
+| CRS-37 | Express top-3 priorities with clear points | "3/2/1 per category matches how we already decide in workshops." |
+| CRS-38 | Expert second opinion before paywalled detail | "Three experts + one AI pager beats a single anonymous summary." |
 
 ### Cube 7 — Architectural Constraints
 
@@ -761,7 +779,7 @@ Key responsibilities:
 - **Talent recommendation:** In project mode, recommends talent based on CQS + skills, with execution separation enforcement
 - **Data destruction:** After Pixelated Token delivery, user token data is purged from the system
 
-### Cube 9 — Current Implementation Status
+### Cube 9 — Current Implementation Status (Pay-to-View CRS-39 added 2026-11-09)
 
 **Backend service:** `backend/app/cubes/cube9_reports/service.py` (135 lines)
 - `export_session_csv()` -- builds 19-column CSV from PostgreSQL (ResponseMeta, ResponseSummary, Question, themes, Theme_Descriptions)
@@ -963,7 +981,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 ### Cube 9 — CRS Traceability
 
-> **CRS Alignment Note:** Cube 9 owns CRS-14 (export), CRS-19 (analytics dashboard, shared with Cube 5/8), CRS-20/21 (deep dive reports — MVP3). CRS-15 (voice export) shared with Cube 3. Requirements.txt is canonical.
+> **CRS Alignment Note:** Cube 9 owns CRS-14 (export), CRS-19 (analytics dashboard, shared with Cube 5/8), CRS-20/21 (deep dive reports — MVP3), and **CRS-39** (Pay to View details 1/2/3 — Date added 2026-11-09). CRS-15 (voice export) shared with Cube 3. Requirements.txt is canonical.
 
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target | Design Output: Definable / Measurable |
 |-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|---------------------------------------|
@@ -973,6 +991,10 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 | CRS-14.03 | CRS-14.03.IN | CRS-14.03.OUT | **Not implemented** | 3 | `destroy_token_data()` Moderator-triggered secure wipe of all session data with audit log entry | Irreversible; `data_destroyed = True` on session record; audit entry created | Scheduled auto-destruction after configurable retention period | data_destroyed=True set on session; all token data inaccessible post-destruction; audit entry contains actor_id + timestamp; operation irreversible (re-destruction returns 409) |
 | CRS-14.04 | CRS-14.04.IN | CRS-14.04.OUT | **Not implemented** | 3 | Pixelated Token image: `generate_pixelated_token()` encodes token data in pixel borders, QR center | DNA-style integrity: top/bottom pixel lines mirror; left/right keys required to decode | Animated token reveal with Seed of Life branding | PNG generated < 3s; top pixel line reversed = bottom pixel line (DNA mirror verified); QR center scannable and decodes to valid token payload |
 | CRS-14.05 | CRS-14.05.IN | CRS-14.05.OUT | **Not implemented** | 1 | `distribute_results()` delivers to eligible participants (paid + Lead-exempt); checks `results_opt_in` + `payment_status` | Results gating enforced: unpaid non-Lead users excluded | Tiered results: basic (free) vs full (paid) export levels | Results delivered only to participants where results_opt_in=True AND (payment_status=paid OR payment_status=lead_exempt); zero leaks to ineligible users |
+| CRS-39 | CRS-39.IN.SRS.039 | CRS-39.OUT.SRS.039 | **Planned** | 2 | Pay to View output details 1 / 2 / 3 (Date added 2026-11-09) | Three unlockable detail tiers with clear labels; unpaid users see locked placeholders | Bundled unlock of all three | Detail 1/2/3 gates enforced; no content leak without unlock |
+| CRS-39.01 | CRS-39.01.IN | CRS-39.01.OUT | **Planned** | 2 | Map Detail 1/2/3 to depth ladder (e.g. 111 / 333 / Original+expert 1-pager) pending pricing decision (Date added 2026-11-09) | Single config map shared by drawer, ranked view, and export | Dynamic price cards | One map drives all three UI surfaces |
+| CRS-39.02 | CRS-39.02.IN | CRS-39.02.OUT | **Planned** | 2 | Unifyменты: unify inconsistent free/paid locks into one Pay-to-View map (Date added 2026-11-09) | Drawer vs ranked-theme vs export donation ladder converge | A/B price tests | No contradictory lock for the same tier across surfaces |
+| CRS-39.03 | CRS-39.03.IN | CRS-39.03.OUT | **Planned** | 2 | No real charges in test; live Stripe stays behind payment safety rules (Date added 2026-11-09) | Test mode never captures live funds | Receipt UX | Zero live charges from docs/sim paths |
 | CRS-15 | CRS-15.IN.WRS.015 | CRS-15.OUT.WRS.015 | **Not implemented** | 2 | Export includes voice transcripts with STT metadata | Voice responses included in CSV with transcript text and confidence scores | Audio playback links in PDF export | Voice responses appear in CSV with source_type=voice, transcript_text non-null, stt_provider, confidence_score >= 0.0; unified with text responses |
 | CRS-15.01 | CRS-15.01.IN | CRS-15.01.OUT | **Not implemented** | 2 | Voice responses included in CSV with `source_type: voice`, transcript text, STT provider, confidence score | All voice responses appear alongside text responses in unified export | Per-provider accuracy comparison report | 100% of voice responses included in export; source_type field distinguishes voice from text; confidence_score present on all voice rows |
 | CRS-19 | CRS-19.IN.SRS.019 | CRS-19.OUT.SRS.019 | **Stub** | 2 | System tracks and displays engagement analytics | Participation rate, completion rate, time-to-decision, token distribution | Cross-session trend analytics, cohort analysis, predictive engagement | Analytics payload includes participation_rate, completion_rate, avg_time_to_decision, token_distribution; loads < 2s |

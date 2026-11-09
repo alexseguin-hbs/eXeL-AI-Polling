@@ -668,7 +668,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 | `test_router_endpoints.py` | 3 | 5 | Router endpoints (run AI theming, get status, get themes) |
 | `test_live_pipeline.py` | 5 | 11 | Live pipeline (classification, marble sampling, theme generation, theme reduction, CSV data integrity) |
 
-### Cube 6 — Files (Updated 2026-04-09)
+### Cube 6 — Files (Updated 2026-04-09; scale CRS-09.08 planned 2026-11-09)
 | File | Lines | Purpose |
 |------|-------|---------|
 | `cubes/cube6_ai/service.py` | 1430 | Two-phase pipeline (Phase A live + Phase B parallel theming + CQS scoring) |
@@ -874,6 +874,15 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 **Moderator CQS Weight Override:** Moderator can customize the 6 metric weights at session creation via `cqs_weights` JSONB field on the session. Default weights used if not overridden.
 
 ### Cube 6 — Theme Compression Engine
+
+
+### Cube 6 — Scale CRS (Requirements CRS-09.08) — Date added 2026-11-09
+
+> Requirements.txt is canonical. Cube 6's local CRS-11→14 table remains the Phase A/B engineering map; this block records the **1M / Theme02 <3s / metrics shown** scale target without claiming Implemented.
+
+| CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target | Design Output: Definable / Measurable |
+|-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|---------------------------------------|
+| CRS-09.08 | CRS-09.08.IN | CRS-09.08.OUT | **Planned** | 2 | Live theming + prioritization for up to 1M participants; Theme02 theming under 3 seconds; metrics shown (Date added 2026-11-09) | Theme02 path (sampling/centroid) p95 < 3s at 1M with PipelineMetrics visible to Moderator | Sub-second Theme02 at 1M with live burn-down chart | Metrics panel shows theme02_latency_ms, participant_count, budget_remaining_s; Theme02 complete event < 3000ms p95 in labeled scale SIM |
 
 **Centroid Summarizer:** At scale (1M+ responses), the centroid summarizer achieves **1000x cost reduction** ($55 → $1 at 1M responses) by summarizing cluster centroids instead of individual responses. The pipeline uses Cochran sampling to select statistically representative subsets, then generates themes from centroid summaries rather than processing every response through the LLM. This is implemented in `cube6_ai/scale_pipeline.py` via `ThemeLibrary` and `PipelineMetrics` classes, with a 60-second budget constraint for the full pipeline.
 

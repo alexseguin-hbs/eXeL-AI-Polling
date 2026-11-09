@@ -1761,6 +1761,7 @@ Use these exactly as “build targets” for website + backend.
 - **CRS-09.07** `ResponseRead` schema includes `summary_33: str | None` field so frontend can receive it from API response. *(GAP — Task C6-8/A4; field does not exist in schema; frontend always gets `undefined`)*
 - **CRS-09.05** Response aggregation (Cube 4): PostgreSQL storage per response via ResponseMeta in Web_Results format (q_number, question, user, detailed_results, response_language).
 - **CRS-09.06** Pipeline orchestration (Cube 5): `orchestrate_post_polling()` fires Cube 6 `run_pipeline()` as background asyncio task on polling→ranking transition; `PipelineTrigger` record tracks status.
+- **CRS-09.08** Scale target (Cube 6 / Cube 7): live theming and prioritization for up to **1,000,000 participants**; Theme02 theming completes in **under 3 seconds** at that scale (sampling/centroid path); live **metrics shown** to Moderator (throughput, pipeline budget remaining, Theme02 latency). *(Planned — Date added 2026-11-09; extends burst/1M claims; does not claim current hosted proof.)*
 
 **CRS-10** User views summarized themes to understand collective patterns.
 - **CRS-10.01** Theme dashboard shows Theme01 (Risk/Supporting/Neutral) + Theme2_9/6/3 hierarchy with confidence scores per theme and per response.
@@ -1797,6 +1798,7 @@ Use these exactly as “build targets” for website + backend.
 - **CRS-15.01** Batch STT: 4 providers (OpenAI Whisper, Grok, Gemini, AWS Transcribe), 6 audio formats (webm/wav/mp3/ogg/m4a/flac), 25 MB max; confidence threshold 0.3.
 - **CRS-15.02** Circuit breaker failover: whisper → grok → gemini → aws; skips failed provider, retries remaining; logs `cube3.stt.failover` per failure.
 - **CRS-15.03** Real-time STT (paid tier): Azure Speech Services (primary) + AWS Transcribe Streaming (fallback) via WebSocket; word-by-word display < 500ms latency.
+- **CRS-15.09** Live voice-to-text as an **input path for both Moderator and Participants** (same STT pipeline; role-gated UI on dashboard + session join). Extends CRS-15.03 realtime capability to explicit dual-role coverage; does not replace batch CRS-15.01. *(Planned — Date added 2026-11-09; Cube 3 CRS-15.04–.08 already used for circuit breaker / semaphore / WS gaps.)*
 
 **CRS-16** Moderator enables live prioritization during sessions. *(Cube 7)*
 - **CRS-16.01** Live ranking widget visible to Moderator during active polling; updates as responses arrive.
@@ -1834,6 +1836,7 @@ Use these exactly as “build targets” for website + backend.
 **CRS-22** Lead/Developer overrides rankings with documented justification.
 - **CRS-22.01** Override UI requires mandatory justification text; logged to immutable audit trail.
 - **CRS-22.02** Original ranking preserved; override shown as delta with actor + timestamp.
+- **CRS-22.04** Moderator final-decision transparency: if the Moderator (or Lead) does **not** adopt group #1, participants see **(a)** the group's #1 theme and **(b)** the Moderator's written reason. Extends CRS-22 justification so the group ranking stays visible. *(Planned — Date added 2026-11-09.)*
 
 **CRS-23** System supports multi-cycle polling logic (structured phases).
 - **CRS-23.01** Session can be configured as phase 1 of N; phase N+1 auto-creates after close.
@@ -1903,6 +1906,35 @@ Use these exactly as “build targets” for website + backend.
 **CRS-35** Business Owner sees standardized token definitions + valuation rules per session.
 - **CRS-35.01** Session-level token config: `hi_enabled` flag, `hi_rate_override` (optional), `ai_multiplier`, CQS bonus pool amount.
 - **CRS-35.02** Token summary dashboard: total ♡/웃/◬ awarded per session, per participant, per cube action type — exportable to CSV.
+
+---
+
+
+### Original Polling Design Rounds — Cubes 7 & 9 *(Date added 2026-11-09)*
+
+> Source: operator sketches + SoI brief (pre-AI polling design). Map first; status is **Planned** or **In progress** only — never claim implemented until code + green checks prove it.
+> Numbering note: CRS-36..39 continue the polling Requirements.txt sequence after CRS-35. Vision Innovation Project ids in `frontend/lib/innovation-data.ts` (CRS-36→93) are a **separate product surface** and are not these rows.
+
+**CRS-36** Round 1 — Variable auto-select of themes per category for the ranking ballot. *(Cube 7)* · **Planned** · Date added 2026-11-09
+- **CRS-36.01** Moderator configures auto-select as a percentage and/or N-of-M (example from original sketch: **40% · 4 of 10**) per Theme01 category (Support / Concerns / Neutral).
+- **CRS-36.02** Selected subset becomes the Round 2 ballot set for that category; non-selected themes remain visible in review but are not ranked in Round 2.
+- **CRS-36.03** Setting is session-scoped, auditable, and replay-hash relevant (method + percent/N recorded).
+
+**CRS-37** Round 2 — Per-category top-3 ranking with 3/2/1 points (`top3_points`). *(Cube 7)* · **In progress** · Date added 2026-11-09
+- **CRS-37.01** Participant picks up to **3** distinct themes that are a **subset** of the category's valid set at the voting level (default L9 → pick 3 of 9); points **3 / 2 / 1** by rank position.
+- **CRS-37.02** One ballot per (participant, cycle, theme01_category) for Support, Concerns, and Neutral (default 3 each); re-vote replaces.
+- **CRS-37.03** Aggregation per category sums points with seeded tie-break; `ranking_method=top3_points` whitelisted alongside existing `borda_count` (Borda unchanged). Replay hash includes method + category.
+- **CRS-37.04** Implementation track: backend/worker marking method `top3_points` — **In progress** (docs-only CRS entry; product code owned by parallel worker).
+
+**CRS-38** Round 3 — Expert Opinion on a chosen theme. *(Cube 7; AI 1-pager may hand off to Cube 6/9)* · **Planned** · Date added 2026-11-09
+- **CRS-38.01** Three experts each submit Concerns / Neutral / Support summaries for the chosen theme (UI: three columns + per-column summary).
+- **CRS-38.02** System produces an AI **1-page summary of the three experts** (single combined pager).
+- **CRS-38.03** Expert role assignment, theme selection, and audit trail (who summarized what, when) are required before the 1-pager is marked ready.
+
+**CRS-39** Output — Pay to View details 1 / 2 / 3. *(Cube 9; session pricing / donations)* · **Planned** · Date added 2026-11-09
+- **CRS-39.01** Three purchasable (or unlockable) detail tiers labeled Detail 1, Detail 2, Detail 3 (map to existing depth ladder — e.g. 111 / 333 / Original+expert 1-pager — pending operator pricing decision).
+- **CRS-39.02** Gate unifies today's inconsistent free/paid locks (drawer tabs vs ranked-theme toggles vs export donation ladder) into one Pay-to-View map.
+- **CRS-39.03** No real charges in test/docs; live Stripe paths stay behind existing payment safety rules.
 
 ---
 
