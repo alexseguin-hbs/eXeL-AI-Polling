@@ -14,6 +14,9 @@ import { ThemeCircle } from "./theme-circle";
 import { RotaryKnob } from "./rotary-knob";
 import { ResponseDrawer } from "./response-drawer";
 import { RankedThemes } from "./ranked-themes";
+import { ThemeDetailSheet } from "./theme-detail-sheet";
+import { ThemeDescriptionList } from "./theme-description-list";
+import { buildTreeLayout, slotColor } from "@/lib/theme-tree";
 import { PollingRevisionHistory } from "@/components/polling-revision-history";
 import { normalizeRankings } from "@/lib/ranking-shape";
 import {
@@ -85,6 +88,8 @@ interface FlowerVisualizationProps {
   /** Session short code — the seeded 5,000-response showcase renders ONLY for the
    *  demo codes; every real session fetches live Cube 6 themes (GET /themes). */
   sessionShortCode?: string;
+  /** t181: payment prompt for the locked theme description (e.g. this poll's Stripe Checkout). */
+  onUnlock?: () => void;
 }
 
 export function FlowerVisualization({
@@ -93,6 +98,7 @@ export function FlowerVisualization({
   isPaidTier = false,
   unlockOriginal,
   sessionShortCode,
+  onUnlock,
 }: FlowerVisualizationProps) {
   const { t } = useLexicon();
   const isDemo = !!sessionShortCode && DEMO_SHOWCASE_CODES.has(sessionShortCode.toUpperCase());
@@ -156,6 +162,8 @@ export function FlowerVisualization({
     animating: false,
   });
 
+  // t181: a bubble tap opens the detail sheet; "View responses" in the sheet opens the response drawer.
+  const [showResponses, setShowResponses] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPortrait, setIsPortrait] = useState(false);
@@ -172,7 +180,9 @@ export function FlowerVisualization({
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+    // Re-attach once live themes are ready: the loading placeholder renders without the container, so a mount-only
+    // effect never observed it and live sessions never switched to the phone layout (t181 readability).
+  }, [liveStatus]);
 
   // Positions
   const theme1Positions = THEME1_POSITIONS;
@@ -228,6 +238,7 @@ export function FlowerVisualization({
   const handleTheme2Click = useCallback(
     (label: string) => {
       if (state.animating) return;
+      setShowResponses(false);
       setState((s) => ({
         ...s,
         selectedTheme2: s.selectedTheme2 === label ? null : label,
@@ -237,6 +248,7 @@ export function FlowerVisualization({
   );
 
   const handleDrawerClose = useCallback(() => {
+    setShowResponses(false);
     setState((s) => ({ ...s, selectedTheme2: null }));
   }, []);
 
@@ -254,6 +266,13 @@ export function FlowerVisualization({
         return t2.level9;
     }
   }, [data.theme2, state.selectedTheme1, state.theme2Level]);
+
+  // t182: strict tree (level-3 parents keep fixed slots; children split inside them). null → free layout fallback.
+  const treeLayout = useMemo(() => {
+    if (!state.selectedTheme1) return null;
+    const t2 = data.theme2[state.selectedTheme1];
+    return buildTreeLayout(t2.level3, currentTheme2Themes, state.theme2Level, [...t2.level3, ...t2.level6, ...t2.level9]);
+  }, [data.theme2, state.selectedTheme1, currentTheme2Themes, state.theme2Level]);
 
   const drawerResponses = useMemo(() => {
     if (!state.selectedTheme2 || !state.selectedTheme1) return [];
@@ -352,18 +371,18 @@ export function FlowerVisualization({
                 className="flower-fade-in"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" />
-                Back
+                {t("flower.detail.back")}
               </Button>
             )}
             <CardTitle className="text-base">
               {state.view === "theme1"
-                ? "Theme Analysis"
-                : `${state.selectedTheme1} — Sub-themes`}
+                ? t("flower.flower_visualization.theme_analysis")
+                : t("flower.detail.subthemes_title").replace("{0}", state.selectedTheme1 ?? "")}
             </CardTitle>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground">
-              {data.totalResponses.toLocaleString()} responses
+              {t("flower.detail.total_responses").replace("{0}", data.totalResponses.toLocaleString())}
             </span>
             <Button
               variant="ghost"
@@ -447,8 +466,31 @@ export function FlowerVisualization({
                   />
                 </g>
 
-                {/* Theme2 circles */}
-                {currentTheme2Themes.map((theme, i) => {
+                {/* t182: tree layout — each level-3 parent's slot splits 1 → 2 → 3 in the parent's colour */}
+                {treeLayout && selectedTheme1Color && treeLayout.map((b, i) => (
+                  <SplitBubble
+                    key={`${state.theme2Level}-${b.theme.id ?? b.theme.label}`}
+                    from={b.parentPos}
+                    to={b.pos}
+                    animate={state.theme2Level !== 3}
+                  >
+                    <ThemeCircle
+                      cx={b.pos.cx}
+                      cy={b.pos.cy}
+                      r={b.pos.r}
+                      theme={b.theme}
+                      fill={slotColor(selectedTheme1Color.stroke, b.slot, 0.14 + (b.theme.avgConfidence / 100) * 0.16)}
+                      stroke={slotColor(selectedTheme1Color.stroke, b.slot)}
+                      onClick={() => handleTheme2Click(b.theme.label)}
+                      compact={isPortrait}
+                      bloom={state.theme2Level === 3}
+                      bloomDelay={i * 80}
+                    />
+                  </SplitBubble>
+                ))}
+
+                {/* Theme2 circles — free layout (no parent_id yet) */}
+                {!treeLayout && currentTheme2Themes.map((theme, i) => {
                   if (i >= theme2Positions.length) return null;
                   const pos = theme2Positions[i];
                   // Vary saturation based on confidence
@@ -467,6 +509,7 @@ export function FlowerVisualization({
                       fill={fillRgba}
                       stroke={selectedTheme1Color!.stroke}
                       onClick={() => handleTheme2Click(theme.label)}
+                      compact={isPortrait}
                       bloom
                       bloomDelay={i * 80}
                     />
@@ -509,6 +552,16 @@ export function FlowerVisualization({
             </div>
           )}
 
+          {/* t181: readable list of the current level's themes — first line of each description, expandable. */}
+          {state.view === "theme2" && (
+            <ThemeDescriptionList
+              themes={currentTheme2Themes}
+              accentColor={selectedTheme1Color?.stroke ?? "#00E5CC"}
+              isPaidTier={isPaidTier}
+              onOpen={handleTheme2Click}
+            />
+          )}
+
           {/* Default ranked-priorities panel with per-theme 33/111/333 descriptions.
               Theme2 view ranks the current level's sub-themes; Theme1 view ranks the
               three categories. Ranks by count until a live Cube-7 order is wired in. */}
@@ -529,8 +582,22 @@ export function FlowerVisualization({
             />
           )}
 
-          {/* Response Drawer */}
-          {state.selectedTheme2 && selectedTheme2Info && (
+          {/* t181: theme detail sheet (bottom sheet on phones, side panel on desktop) */}
+          {state.selectedTheme2 && selectedTheme2Info && !showResponses && state.selectedTheme1 && (
+            <ThemeDetailSheet
+              theme={selectedTheme2Info}
+              level={state.theme2Level}
+              category={state.selectedTheme1}
+              accentColor={selectedTheme1Color?.stroke ?? "#00E5CC"}
+              isPaidTier={isPaidTier}
+              onClose={handleDrawerClose}
+              onViewResponses={() => setShowResponses(true)}
+              onUnlock={onUnlock}
+            />
+          )}
+
+          {/* Response Drawer (from the detail sheet's "View responses") */}
+          {state.selectedTheme2 && selectedTheme2Info && showResponses && (
             <ResponseDrawer
               theme={selectedTheme2Info}
               responses={drawerResponses}
@@ -547,5 +614,35 @@ export function FlowerVisualization({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/** t182: a child bubble that starts at its level-3 parent's slot (scaled down) and glides out to its own spot, so a
+ *  dial turn reads as the parent splitting rather than a reshuffle. Pure CSS transition; respects reduced motion. */
+function SplitBubble({ from, to, animate, children }: {
+  from: { cx: number; cy: number }; to: { cx: number; cy: number }; animate: boolean; children: React.ReactNode;
+}) {
+  const [settled, setSettled] = useState(!animate);
+  useEffect(() => {
+    if (!animate) return;
+    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { setSettled(true); return; }
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setSettled(true)));
+    return () => cancelAnimationFrame(id);
+  }, [animate]);
+  const dx = from.cx - to.cx, dy = from.cy - to.cy;
+  return (
+    <g
+      data-split-bubble
+      style={{
+        transformBox: "view-box",
+        transformOrigin: `${to.cx}px ${to.cy}px`,
+        transform: settled ? "translate(0px, 0px) scale(1)" : `translate(${dx}px, ${dy}px) scale(0.5)`,
+        opacity: settled ? 1 : 0.4,
+        transition: "transform 0.5s cubic-bezier(0.34, 1.3, 0.64, 1), opacity 0.4s ease-out",
+      }}
+    >
+      {children}
+    </g>
   );
 }

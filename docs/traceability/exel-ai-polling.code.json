@@ -306,6 +306,56 @@
    "commit": "f5d215e",
    "status": "no-code-change",
    "areas": []
+  },
+  {
+   "rev": 20,
+   "commit": "0b62f14",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 21,
+   "commit": "46efc6b",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 22,
+   "commit": "3b38994",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 23,
+   "commit": "9796bbcda54409127fabea83845ceb9cdc942e54",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      8,
+      14
+     ],
+     "files": [
+      {
+       "path": "docs/traceability/exel-ai-polling.ledger.json",
+       "blob": "966555b3b81c5b83d399343bb8586c60ccae10e0"
+      }
+     ],
+     "add": 28,
+     "del": 0,
+     "bytes": 2566,
+     "lines": 38,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }

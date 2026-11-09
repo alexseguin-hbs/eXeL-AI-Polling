@@ -828,7 +828,7 @@ export const CRS_MATRIX: CrsEntry[] = [
     "testDesc": "IN PROGRESS — CRS-39.02 server-enforced unlock (webhook-confirmed payment) + poll-scoped donation ladder; CRS-39.03 tests make no live charges. Updated 2026-11-09",
     "transfer": "",
     "transferConfirm": "",
-    "change": "14fdbfa6f, 8c58371be (merged #23 937d1725e, API api-v1p); f96858755, 6c41f63a8 (merged #29 0b62f1496, API api-v1q)",
+    "change": "14fdbfa6f, 8c58371be (merged #23 937d1725e, API api-v1p); f96858755, 6c41f63a8 (merged #29 0b62f1496, API api-v1q); 2a55ea5af, 74164c699 (merged #38 46efc6b91, API api-v1t/v1w)",
     "changeDesc": "fix(cube8/9) Pay to View unlock on webhook-confirmed payment, server-enforced; poll-scoped donations; Cost Split share via creator pricing (CRS-39.02, CRS-14.05, CRS-01.01, CRS-39.03)"
   },
   {

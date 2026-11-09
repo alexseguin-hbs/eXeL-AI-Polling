@@ -15,6 +15,13 @@ Per call:
 Prompts and parsing are untouched: every vendor receives the same (texts, instruction), so summary/theme semantics
 are the caller's, unchanged. `usage` records calls/chars per vendor that actually served (or were billed for a
 cancelled hedge's input), so the cost ledger prices each vendor at its own rate instead of the primary's.
+
+2026-11-09 (owner t186u, 4:07 PM CST): NO vendor preference. `mode="speed_rr"` (the default) spreads every call —
+Phase A 333/111/33 summaries, Theme01 batches, samples of 10, reductions — across ALL keyed vendors at once with a
+speed-weighted smooth round-robin: each vendor's weight is 1 / its live p50 latency (seeded equal until 3 samples),
+a vendor whose pacing queue is backed up or whose inflight cap is full is skipped for that pick. A hedge goes to the
+FASTEST vendor not yet tried (first reply wins); the fixed vendor-list order is used only after an error.
+`mode="primary"` keeps the old primary-first behaviour (tests / single-vendor debugging).
 """
 
 from __future__ import annotations
@@ -88,6 +95,38 @@ def hedge_delay(kind: str, default: float | None) -> float | None:
     return max(1.0, 1.1 * p95)
 
 
+# Per-vendor successful-call latencies (all kinds) → p50 weight for the speed-weighted round-robin.
+_VLAT: dict[str, list[float]] = {}
+_RR_CREDIT: dict[str, float] = {}
+_RR_MIN_SAMPLES = 3
+
+
+def _record_vendor_latency(vendor: str, seconds: float) -> None:
+    xs = _VLAT.setdefault(vendor, [])
+    xs.append(seconds)
+    if len(xs) > _LAT_KEEP:
+        del xs[0]
+
+
+def _pct(xs: list[float], q: float) -> float | None:
+    if not xs:
+        return None
+    ys = sorted(xs)
+    return ys[min(len(ys) - 1, int(q * len(ys)))]
+
+
+def vendor_p50(vendor: str) -> float | None:
+    xs = _VLAT.get(vendor, [])
+    return _pct(xs, 0.5) if len(xs) >= _RR_MIN_SAMPLES else None
+
+
+def speed_weights(vendors: list[str]) -> dict[str, float]:
+    """1/p50 per vendor; vendors without enough samples get the mean known weight (or 1.0) so they are explored."""
+    known = {v: 1.0 / max(0.001, p) for v in vendors if (p := vendor_p50(v)) is not None}
+    seed = (sum(known.values()) / len(known)) if known else 1.0
+    return {v: known.get(v, seed) for v in vendors}
+
+
 def circuit_open(vendor: str) -> bool:
     return _CB_OPEN_UNTIL.get(vendor, 0.0) > time.monotonic()
 
@@ -122,6 +161,8 @@ def reset_circuits() -> None:
     _CB_FAILS.clear()
     _CB_OPEN_UNTIL.clear()
     _LAT.clear()
+    _VLAT.clear()
+    _RR_CREDIT.clear()
 
 
 class AllVendorsFailed(Exception):
@@ -143,6 +184,7 @@ class MultiVendorSummarizer(SummarizationProvider):
         timeout_s: float = 20.0,
         hedge_after_s: float | None = 2.5,
         max_inflight: int = 48,
+        mode: str = "speed_rr",
     ) -> None:
         if not vendors:
             raise ValueError("MultiVendorSummarizer needs at least one vendor")
@@ -153,6 +195,10 @@ class MultiVendorSummarizer(SummarizationProvider):
         self.max_inflight = max(1, int(max_inflight))
         self._inflight: dict[str, int] = {v.provider_name.value: 0 for v in vendors}
         self.usage: dict[str, dict[str, int]] = {}
+        self.mode = mode if mode in ("speed_rr", "primary") else "speed_rr"
+        self.latencies: dict[str, list[float]] = {}
+        self._sent_at: dict[asyncio.Task, float] = {}
+        self.last_error: dict[str, dict] = {}  # this summarizer's served-call latencies (metrics p50/p95)
 
     @property
     def vendor_names(self) -> list[str]:
@@ -166,10 +212,29 @@ class MultiVendorSummarizer(SummarizationProvider):
                                            "failures": 0, "hedges": 0, "cancelled": 0})
         u[key] = u.get(key, 0) + n
 
+    def _rr_pick(self, healthy: list[SummarizationProvider]) -> SummarizationProvider:
+        """Smooth weighted round-robin (nginx style) over vendors with headroom, weights = 1/p50."""
+        now = time.monotonic()
+        names = [v.provider_name.value for v in healthy]
+        ok = [v for v in healthy if self._inflight.get(v.provider_name.value, 0) < self.max_inflight
+              and _NEXT_SLOT.get(v.provider_name.value, 0.0) - now <= 0.25]
+        cand = ok or healthy
+        w = speed_weights(names)
+        total = sum(w[v.provider_name.value] for v in cand)
+        for v in cand:
+            n = v.provider_name.value
+            _RR_CREDIT[n] = _RR_CREDIT.get(n, 0.0) + w[n]
+        best = max(cand, key=lambda v: _RR_CREDIT.get(v.provider_name.value, 0.0))
+        _RR_CREDIT[best.provider_name.value] -= total
+        return best
+
     def _order(self) -> list[SummarizationProvider]:
         healthy = [v for v in self._vendors if not circuit_open(v.provider_name.value)]
         if not healthy:  # every circuit open: still try everything rather than fail without a call
             healthy = list(self._vendors)
+        if self.mode == "speed_rr" and len(healthy) > 1:
+            first = self._rr_pick(healthy)
+            return [first] + [v for v in healthy if v is not first]  # rest in fixed order (error failover)
         primary = healthy[0]
         if self._inflight.get(primary.provider_name.value, 0) >= self.max_inflight and len(healthy) > 1:
             spill = min(healthy[1:], key=lambda v: self._inflight.get(v.provider_name.value, 0))
@@ -184,6 +249,7 @@ class MultiVendorSummarizer(SummarizationProvider):
         self._inflight[name] = self._inflight.get(name, 0) + 1
         try:
             await _pace(name)
+            self._sent_at[asyncio.current_task()] = time.monotonic()  # latency excludes our own pacing wait
             return await asyncio.wait_for(vendor.summarize(texts, instruction=instruction), timeout=self.timeout_s)
         finally:
             self._inflight[name] -= 1
@@ -216,6 +282,11 @@ class MultiVendorSummarizer(SummarizationProvider):
             nonlocal nxt
             if nxt >= len(order):
                 return False
+            if reason == "hedge" and self.mode == "speed_rr" and len(order) - nxt > 1:
+                rest = order[nxt:]
+                w = speed_weights([x.provider_name.value for x in rest])
+                fastest = max(rest, key=lambda x: w[x.provider_name.value])
+                order[nxt:] = [fastest] + [x for x in rest if x is not fastest]
             v = order[nxt]
             name = v.provider_name.value
             if reason == "hedge" and _NEXT_SLOT.get(name, 0.0) - time.monotonic() > 0.25:
@@ -244,6 +315,8 @@ class MultiVendorSummarizer(SummarizationProvider):
                     continue
                 for task in done:
                     name = pending.pop(task)
+                    if task.exception() is not None:
+                        self._sent_at.pop(task, None)
                     self._bump(name, "calls")
                     self._bump(name, "input_chars", in_chars)
                     exc = task.exception()
@@ -252,11 +325,17 @@ class MultiVendorSummarizer(SummarizationProvider):
                         self._bump(name, "served")
                         self._bump(name, "output_chars", len(out))
                         _record_success(name)
-                        _record_latency(kind, time.monotonic() - started.get(task, time.monotonic()))
+                        dt_s = time.monotonic() - self._sent_at.pop(task, started.get(task, time.monotonic()))
+                        _record_latency(kind, dt_s)
+                        _record_vendor_latency(name, dt_s)
+                        self.latencies.setdefault(name, []).append(dt_s)
+                        self._bump(name, "served_ms", int(dt_s * 1000))
                         return out
                     errors.append(exc)
                     self._bump(name, "failures")
                     _record_failure(name, exc)
+                    self.last_error[name] = {"error": type(exc).__name__, "status": _status_code(exc),
+                                             "key_or_credit": _is_hard(exc)}  # never the message (may echo a key)
                     logger.warning("cube6.provider.call_failed", provider=name,
                                    error=type(exc).__name__, status=_status_code(exc))
                 if not pending:
@@ -265,6 +344,7 @@ class MultiVendorSummarizer(SummarizationProvider):
         finally:
             for task, name in pending.items():  # hedge losers: input is billed by the vendor even if we cancel
                 task.cancel()
+                self._sent_at.pop(task, None)
                 self._bump(name, "cancelled")
                 self._bump(name, "calls")
                 self._bump(name, "input_chars", in_chars)
@@ -275,6 +355,7 @@ def vendor_cost_rows(summarizer) -> list[dict]:
     from app.cubes.cube6_ai.providers.base import AICostTracker
 
     rows = []
+    lat = getattr(summarizer, "latencies", None) or {}
     for vendor, u in sorted((getattr(summarizer, "usage", None) or {}).items()):
         if not u.get("calls"):
             continue
@@ -286,6 +367,10 @@ def vendor_cost_rows(summarizer) -> list[dict]:
             "failures": int(u.get("failures", 0)), "hedges": int(u.get("hedges", 0)),
             "total_input_chars": int(u.get("input_chars", 0)), "total_output_chars": int(u.get("output_chars", 0)),
             "estimated_cost_usd": s["estimated_cost_usd"], "rate_unknown": s["rate_unknown"],
+            "served_ms": int(u.get("served_ms", 0)),
+            "last_error": (getattr(summarizer, "last_error", None) or {}).get(vendor),
+            "p50_ms": round(1000 * p50) if (p50 := _pct(lat.get(vendor, []), 0.5)) is not None else None,
+            "p95_ms": round(1000 * p95) if (p95 := _pct(lat.get(vendor, []), 0.95)) is not None else None,
         })
     return rows
 

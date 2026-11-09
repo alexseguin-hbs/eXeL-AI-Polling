@@ -135,6 +135,34 @@
       "kind": "release",
       "text": "Verified \u2014 PR #37 (merge f5d215e4): API_INSTANCE api-v1r; API deployed (CF version f164261f) and live-verified on isolated SIMULATED session (offline AI, no charge): 21/21 checks \u2014 top3 ballots accepted, live points = hand count, spectator read before/after votes, forged token 403, participant cannot decide (401), non-#1 without reason 400, decision differs \u2192 participant + spectator see group #1 and reason, final_decision broadcast received. Evidence: fleet/voting-live/proof/gaps/gaps-proof-evidence.json. Status: verified.",
       "commit": "f5d215e"
+    },
+    {
+      "rev": 20,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified \u2014 PR #29 (merge 0b62f149): CRS-39.02 / CRS-14.05 \u2014 GET /themes, response list/detail and /collected withhold summary_333 until Stripe webhook-confirmed payment (view_entitlement). Live on api-v1q: anonymous /themes returns no 333; owner routes 401 without auth. Status: verified.",
+      "commit": "0b62f14"
+    },
+    {
+      "rev": 21,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified \u2014 PR #38 (merge 46efc6b9): CRS-01.01 / CRS-14.05 / CRS-39.02 \u2014 Cost Split participant share via hosted Stripe Checkout priced from the creator's quote (margin \u00d71.5); a participant share webhook marks only that seat paid, never the poll; participant pay/donate panel. Live on api-v1t (SIMULATED 10-seat poll): join on draft 409, open 200, join 201, share Checkout 56\u00a2 live page 200 then expired, Stripe-signed expired events recorded, seat and poll stay unpaid. No charge. Status: verified.",
+      "commit": "46efc6b"
+    },
+    {
+      "rev": 22,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified \u2014 PR #44 (merge 3b389940): CRS-01.01 \u2014 Create Poll Cost Split quote states the $11.11 floor rule (creator covers the full price when each share would be under Stripe's $0.50) via t('cube8.pricing.quote_split_floor'). Status: verified.",
+      "commit": "3b38994"
+    },
+    {
+      "rev": 23,
+      "date": "2026-11-09",
+      "kind": "decision",
+      "text": "R-CORE payments tip: public /eXeL-AI-Polling badge advanced through PR #29, #38, #44; billing SECURE live proof in docs/metrics/cube8-billing.md (api-v1w 3a35ad5f, main 340a9a8e3). Commit recovered from the row-adding commit (Stage 2 newest-revision code-record bar).",
+      "commit": ""
     }
   ]
 }
