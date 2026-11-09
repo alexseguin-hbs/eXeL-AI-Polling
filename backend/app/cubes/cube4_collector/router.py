@@ -55,13 +55,34 @@ async def list_collected_responses(
     CRS-09: Session validated to prevent enumeration.
     """
     await validate_session_exists(db, session_id)
-    return await get_collected_responses(
+    out = await get_collected_responses(
         db, session_id,
         include_summaries=include_summaries,
         include_themes=include_themes,
         page=page,
         page_size=page_size,
     )
+    if include_summaries and not await _unlocked_333(db, session_id, user):
+        _redact_333(out)
+    return out
+
+
+async def _unlocked_333(db: AsyncSession, session_id: uuid.UUID, user) -> bool:
+    """CRS-39.02: 333 tier only after webhook-confirmed payment (cube8 view_entitlement, per user + poll)."""
+    from sqlalchemy import select
+
+    from app.cubes.cube8_tokens.view_entitlement import resolve_view_entitlement
+    from app.models.session import Session
+
+    session = (await db.execute(select(Session).where(Session.id == session_id))).scalar_one_or_none()
+    return bool(session is not None and (await resolve_view_entitlement(db, session, user))["summary_333"])
+
+
+def _redact_333(payload) -> None:
+    items = payload.get("items") if isinstance(payload, dict) else payload
+    for it in items or []:
+        if isinstance(it, dict) and "summary_333" in it:
+            it["summary_333"] = None
 
 
 @router.get("/collected/{response_id}")
@@ -79,6 +100,8 @@ async def get_collected_response(
     result = await get_single_response(db, session_id, response_id)
     if result is None:
         raise ResponseNotFoundError(str(response_id))
+    if not await _unlocked_333(db, session_id, user):
+        _redact_333([result])
     return result
 
 

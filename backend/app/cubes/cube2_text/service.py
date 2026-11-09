@@ -543,16 +543,15 @@ async def publish_submission_event(
 
 
 def apply_response_paid_view_gate(item: dict, *, unlocked_333: bool | None = None) -> dict:
-    """Pass-through for cube2 list/detail.
+    """CRS-39.02 Pay-to-View redaction for response read APIs.
 
-    CRS-39 Pay-to-View is enforced on GET /sessions/{id}/drilldown via
-    ``cube8_tokens.view_entitlement.resolve_view_entitlement`` (W2 — do not
-    duplicate payment logic here). List/detail remain additive exposes of stored
-    summary_111/333 for owners; unpaid redaction for those routes should call
-    the same helper when a user context is threaded through (TODO: wire router
-    user → entitlement → null summary_333/clean_text). Do not edit payment modules.
+    `unlocked_333` comes from cube8_tokens.view_entitlement (webhook-confirmed payment, per user + poll);
+    the routers pass it. False → summary_333 is withheld (None). None → unchanged (service-level call sites
+    that have no caller identity). Original text on these owner-only routes is unchanged: the moderator
+    already sees raw responses in the live feed and the collected/Web_Results APIs (existing flow).
     """
-    _ = unlocked_333  # reserved when router threads entitlement
+    if unlocked_333 is False and isinstance(item, dict) and "summary_333" in item:
+        item = {**item, "summary_333": None}
     return item
 
 
