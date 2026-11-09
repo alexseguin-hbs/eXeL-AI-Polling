@@ -53,6 +53,13 @@ class RankingSubmit(BaseModel):
         return self
 
 
+class FinalDecisionSubmit(BaseModel):
+    """CRS-22.04: the moderator's final pick. `reason` is required (≥10 chars) when it is not the group's #1."""
+
+    theme_id: uuid.UUID
+    reason: str | None = Field(None, max_length=2000)
+
+
 class AggregateRequest(BaseModel):
     """Optional body of POST /rankings/aggregate. quadratic_borda needs each voter's stake (weight = sqrt(stake))."""
 

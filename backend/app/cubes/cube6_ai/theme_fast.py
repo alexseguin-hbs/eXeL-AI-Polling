@@ -42,6 +42,8 @@ from app.cubes.cube6_ai.phase_b import (
     _generate_themes_for_group,
     _pad_themes_to_target,
     _parse_reduced_themes,
+    _plain_label,
+    _normalize_theme01,
 )
 from app.cubes.cube6_ai.providers.base import SummarizationProvider
 
@@ -162,10 +164,12 @@ async def classify_theme01_batched(summarizer: SummarizationProvider, responses:
         results = await summarizer.batch_summarize(items)
         for r, res in zip(chunk, results):
             m = _CLASSIFY_PATTERN.match(res or "")
-            if m:
-                _apply_theme01(r, m.group(1), int(m.group(2)))
+            # Same normalisation as phase_b._classify_theme01 (quotes/markdown/"and" tolerated; unknown → Neutral).
+            label = _normalize_theme01(m.group(1) if m else (res or ""))
+            if label is None:  # unrecognised reply: Neutral at confidence 0, as phase_b does
+                _apply_theme01(r, "Neutral Comments", 0)
             else:
-                _apply_theme01(r, (res or "").strip(), 0)
+                _apply_theme01(r, label, int(m.group(2)) if m else 0)
 
     await asyncio.gather(*(one(c) for c in chunks))
     return stats
@@ -216,7 +220,7 @@ async def generate_themes_streaming(
                     for line in (text or "").splitlines():
                         m = _MULTI_LINE_RE.match(line)
                         if m and 1 <= int(m.group(1)) <= len(groups):
-                            name = html.escape(m.group(2).strip())
+                            name = _plain_label(m.group(2))
                             if name and len(parsed.setdefault(int(m.group(1)), [])) < 3:
                                 parsed[int(m.group(1))].append(name)
                 except Exception as e:  # noqa: BLE001
@@ -289,7 +293,7 @@ async def reduce_themes_tree(summarizer, all_themes: dict[str, list[str]], chunk
                 try:
                     text = await summarizer.summarize(["Reduce these themes to 9:\n" + "\n".join(part)],
                                                       instruction=_TREE_INSTRUCTION.format(type_str=type_str))
-                    names = [html.escape(re.sub(r"^\s*(?:[-*\d.)]+\s*)?", "", ln).strip().strip(",")) for ln in
+                    names = [_plain_label(re.sub(r"^\s*(?:[-*\d.)]+\s*)?", "", ln).strip().strip(",")) for ln in
                              (text or "").splitlines() if ln.strip()]
                     return [n for n in names if n][:9] or part[:9]
                 except Exception:  # noqa: BLE001

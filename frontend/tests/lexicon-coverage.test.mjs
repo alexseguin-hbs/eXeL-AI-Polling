@@ -20,6 +20,9 @@ const AFTER_FILL = new Set([
   // Live 9-theme prioritization panel (2026-11-09, user #1 priority): ENGLISH ONLY — staged until the operator HI-tests the
   // live panel; listed never silent; ×32 fill owed.
   ...['title','final','ballots','updating','waiting','tallying','points','votes','refresh','refresh_failed','other','your_ballot'].map((k) => `cube7.live.${k}`),
+  // CRS-22.04 moderator decision + CRS-37.01 top-3 ballot (2026-11-09): ENGLISH ONLY — staged; ×32 fill owed.
+  ...['title','help','pick','option_top','reason_label','reason_placeholder','reason_required','submit','failed','adopted','group_top','reason_shown','matches_group'].map((k) => `cube7.decision.${k}`),
+  ...['method_label','method_borda','method_top3','instructions','pick_one','submit','update','done'].map((k) => `cube7.top3.${k}`),
   // SensorFusion-2525 collab UI notes (2026-11-08): ENGLISH ONLY — staged until HI-tested; ×32 fill unverified / not claimed.
   ...['auth_required','reviewer_needs_labeler','reviewer_needs_name','reviewer_must_differ','progress_not_connected','progress_save_failed','settings_save_failed','pair_name_mismatch','sync_waiting_tables','json_needs_pictures','json_needs_level1','json_needs_level2','correction_save_failed','correction_needs_indep'].map((k) => `sf.collab.${k}`),
 

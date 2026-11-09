@@ -67,7 +67,8 @@ import { runMoTExport, type MoTExportProgress } from "@/lib/mot-export-orchestra
 import { useLexicon } from "@/lib/lexicon-context";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
-import { useSessionBroadcast, type RankingCompletePayload } from "@/lib/use-session-broadcast";
+import { useSessionBroadcast, type LiveRankingSnapshot, type RankingCompletePayload } from "@/lib/use-session-broadcast";
+import { FinalDecisionBanner, FinalDecisionForm } from "@/components/final-decision";
 import { LiveRankingPanel } from "@/components/live-ranking-panel";
 import { useViewEntitlement } from "@/lib/use-view-entitlement";
 import { supabase } from "@/lib/supabase";
@@ -352,6 +353,23 @@ function SessionDetail({
     return () => { cancelled = true; };
   }, [session.id, session.status]);
 
+  // CRS-22.04: the moderator's final decision (stored + broadcast as final_decision). On open, restore the live
+  // snapshot (group ranking + any decision) so a reload mid-round or after close shows the current state.
+  const [finalDecision, setFinalDecision] = useState<LiveRankingSnapshot["decision"]>(null);
+  const onFinalDecision = useCallback((snap: LiveRankingSnapshot) => {
+    if (!snap) return;
+    setFinalDecision(snap.decision ?? null);
+    if (snap.category_rankings) setLiveRanking((prev) => ({ ...(prev ?? {}), ...snap }));
+  }, []);
+  useEffect(() => {
+    if (!["ranking", "closed", "archived"].includes(session.status)) return;
+    let cancelled = false;
+    api.get<LiveRankingSnapshot>(`/sessions/${session.id}/rankings/live`)
+      .then((snap) => { if (!cancelled && snap?.group_top) onFinalDecision(snap); })
+      .catch(() => { /* broadcasts keep it live; mock mode refuses (501) */ });
+    return () => { cancelled = true; };
+  }, [session.id, session.status, onFinalDecision]);
+
   // Moderator fallback: tally the ballots now (live — no webhook/CQS; the close still finalizes).
   const refreshLiveRanking = useCallback(async () => {
     setLiveRefreshing(true);
@@ -375,6 +393,7 @@ function SessionDetail({
     onThemeChange,      // Channel A: color scheme change
     onRankingProgress,  // Cube 7: ranking submissions counter
     onRankingComplete,  // Cube 7: aggregation done + winning theme
+    onFinalDecision,    // CRS-22.04: moderator's adopted theme (+ group #1 and reason)
   );
 
   // ── Channels B, C, D: Non-broadcast redundancy paths ──
@@ -722,6 +741,12 @@ function SessionDetail({
               onRefresh={session.status === "ranking" ? refreshLiveRanking : undefined}
               refreshing={liveRefreshing}
             />
+            {liveRanking && (
+              <div className="mt-3 space-y-3">
+                <FinalDecisionBanner decision={finalDecision} />
+                <FinalDecisionForm sessionId={session.id} ranking={liveRanking} onDecided={onFinalDecision} />
+              </div>
+            )}
           </div>
         )}
 
@@ -1131,6 +1156,7 @@ function DashboardContent() {
   const [newDescription, setNewDescription] = useState("");
   const [newType, setNewType] = useState<string>("single_poll");
   const [newAiProvider, setNewAiProvider] = useState("grok"); // CRS-09.08.06: xAI is the funded primary; OpenAI/Gemini fall back server-side
+  const [newRankingMethod, setNewRankingMethod] = useState<"borda_count" | "top3_points">("borda_count");
   const [newMaxResponse, setNewMaxResponse] = useState("3333");
   const [newPricingTier, setNewPricingTier] = useState<"free" | "moderator_paid" | "cost_split">("free");
   const [newFeeAmountCents, setNewFeeAmountCents] = useState(1111); // $11.11 default
@@ -1178,6 +1204,7 @@ function DashboardContent() {
         description: newDescription.trim() || null,
         cycle_mode: newType === "project_series" ? "multi" : "single",
         ai_provider: newAiProvider,
+        ranking_method: newRankingMethod,
         max_response_length: parseInt(newMaxResponse) || 3333,
         pricing_tier: newPricingTier,
         fee_amount_cents: newPricingTier === "moderator_paid" ? newFeeAmountCents : 0,
@@ -1220,6 +1247,7 @@ function DashboardContent() {
       setNewDescription("");
       setNewType("single_poll");
       setNewAiProvider("grok");
+      setNewRankingMethod("borda_count");
       setNewMaxResponse("3333");
       setNewPricingTier("free");
       setNewMaxParticipants("");
@@ -1452,6 +1480,19 @@ function DashboardContent() {
                         <SelectItem value="grok">Grok (xAI)</SelectItem>
                         <SelectItem value="openai">OpenAI</SelectItem>
                         <SelectItem value="gemini">Gemini</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>{t("cube7.top3.method_label")}</Label>
+                    <Select value={newRankingMethod} onValueChange={(v) => setNewRankingMethod(v as "borda_count" | "top3_points")}>
+                      <SelectTrigger data-ranking-method>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="borda_count">{t("cube7.top3.method_borda")}</SelectItem>
+                        <SelectItem value="top3_points">{t("cube7.top3.method_top3")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

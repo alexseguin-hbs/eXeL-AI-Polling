@@ -141,6 +141,20 @@ async def _fetch_summaries(
     return responses
 
 
+_TAG_CHARS = re.compile(r"[<>\x00-\x1f\x7f]")
+
+
+def _plain_label(text: str) -> str:
+    """A theme label/description as PLAIN text (the UI renders it as text, so React escapes it on display).
+
+    Theme labels used to be stored html.escape()d, so participants saw "Drones&#x27; privacy" (the escape was meant
+    as XSS hardening but React already escapes text, so it double-encoded). Now: decode any entities the model
+    emitted, drop angle brackets / control characters (no markup can survive), collapse whitespace. Legacy rows that
+    were stored escaped still match via _snap_label / the CQS whitelist, which accept both forms.
+    """
+    return " ".join(_TAG_CHARS.sub(" ", html.unescape(text or "")).split())
+
+
 # ---------------------------------------------------------------------------
 # Step 2: Classify Theme01 (batch parallel)
 # ---------------------------------------------------------------------------
@@ -153,6 +167,27 @@ _CLASSIFY_INSTRUCTION = (
 )
 
 _CLASSIFY_PATTERN = re.compile(r"(.+?)\s*\(Confidence:\s*(\d+)%\)")
+
+
+def _normalize_theme01(reply: str) -> str | None:
+    """Map the model's Theme01 wording onto one of THEME01_CATEGORIES, or None when it names none.
+
+    Live finding (TEST session bgYtjNeF, 2026-11-09): replies like "'Risk & Concerns'", "**Risk & Concerns**",
+    "THEME: Risk and Concerns" missed the exact-string bins and were silently re-binned as Neutral while KEEPING the
+    model's 85-90% confidence — so "I worry about privacy…" and "Battery fires … safety risk" became Neutral and a
+    "Privacy Concerns" Theme02 was generated under Neutral. Quotes, markdown, a "THEME:" prefix, case and "and"/"&"
+    no longer matter; a reply naming two categories (or none) is not guessed.
+    """
+    t = html.unescape(reply or "").casefold()
+    t = re.sub(r"^\s*(theme\s*0?1?\s*[:\-]\s*)", "", t)
+    t = re.sub(r"[\"'`*_\[\]().:]", " ", t).replace(" and ", " & ")
+    t = " ".join(t.split())
+    for cat in THEME01_CATEGORIES:
+        if t == cat.casefold():
+            return cat
+    hits = {cat for cat, keys in (("Risk & Concerns", ("risk", "concern")), ("Supporting Comments", ("support",)),
+                                   ("Neutral Comments", ("neutral",))) if any(k in t for k in keys)}
+    return hits.pop() if len(hits) == 1 else None
 
 
 async def _classify_theme01(
@@ -171,11 +206,15 @@ async def _classify_theme01(
     for i, r in enumerate(responses):
         match = _CLASSIFY_PATTERN.match(results[i])
         if match:
-            theme01 = match.group(1).strip()
+            theme01 = _normalize_theme01(match.group(1))
             confidence = int(match.group(2))
         else:
-            theme01 = results[i].strip()
+            theme01 = _normalize_theme01(results[i])
             confidence = 0
+        if theme01 is None:
+            # Unrecognised reply: Neutral at confidence 0 (never a silently confident Neutral — see _normalize_theme01).
+            logger.warning("cube6.classify.unrecognised_theme01", reply=str(results[i])[:60])
+            theme01, confidence = "Neutral Comments", 0
 
         # Apply <65% confidence -> Neutral rule (monolith line 127)
         if theme01 in ("Risk & Concerns", "Supporting Comments") and confidence < _CONFIDENCE_THRESHOLD:
@@ -296,12 +335,12 @@ async def _generate_themes_for_group(
         instruction=instruction,
     )
 
-    # Parse theme names from response — sanitize to prevent XSS
+    # Parse theme names from response — plain text, no markup (see _plain_label)
     themes = []
     for line in result_text.strip().split("\n"):
         parts = line.split(",")
         if len(parts) >= 2:
-            theme_name = html.escape(parts[1].strip())
+            theme_name = _plain_label(parts[1].strip())
             if theme_name:
                 themes.append(theme_name)
 
@@ -386,14 +425,14 @@ def _parse_reduced_themes(text: str) -> list[dict]:
         match = _THEME_LINE_PATTERN.match(line.strip())
         if not match:
             continue
-        label = html.escape(match.group(1).strip())
+        label = _plain_label(match.group(1).strip())
         norm = label.lower()
         if norm in seen_labels:
             continue
         seen_labels.add(norm)
         themes.append({
             "label": label,
-            "description": html.escape(match.group(2).strip()),
+            "description": _plain_label(match.group(2).strip()),
             "confidence": int(match.group(3)) / 100.0,
         })
     return themes

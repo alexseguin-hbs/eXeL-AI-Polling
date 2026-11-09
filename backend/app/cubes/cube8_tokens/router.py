@@ -255,6 +255,34 @@ async def create_cost_split_payment(
     )
 
 
+class CostSplitShareCheckoutRequest(BaseModel):
+    session_id: uuid.UUID
+    participant_id: uuid.UUID
+    success_url: str = Field("", max_length=500)
+    cancel_url: str = Field("", max_length=500)
+    client_key: str | None = Field(None, pattern=r"^[A-Za-z0-9_-]{8,64}$")
+
+
+@router.post("/payments/cost-split-checkout")
+async def create_cost_split_share_checkout(
+    payload: CostSplitShareCheckoutRequest,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """CRS-01.01 / CRS-14.05: hosted Stripe Checkout for a Cost Split participant's share (same quote as creator)."""
+    if not (_own_site(payload.success_url) and _own_site(payload.cancel_url)):
+        raise HTTPException(status_code=400, detail="Redirect URLs must return to this site")
+    return await payment_service.create_cost_split_share_checkout(
+        db,
+        session_id=payload.session_id,
+        participant_id=payload.participant_id,
+        user_id=user.user_id,
+        success_url=payload.success_url,
+        cancel_url=payload.cancel_url,
+        client_key=payload.client_key,
+    )
+
+
 @router.post("/payments/donate")
 async def create_donation(
     payload: DonationRequest,
