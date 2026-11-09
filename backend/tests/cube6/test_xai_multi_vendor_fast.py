@@ -143,7 +143,7 @@ def test_tree_reduce_chunks_large_pools():
 
     v = _V(AIProviderName.GROK, reply)
     pool = {"Supporting Comments": [f"t{i}" for i in range(95)], "Risk & Concerns": [], "Neutral Comments": ["x"]}
-    red, st = _run(tf.reduce_themes_tree(v, pool, chunk=30))
+    red, st = _run(tf.reduce_themes_tree(v, pool, chunk=30))  # tree rounds get names-only replies
     assert st["tree_rounds"]["Supporting Comments"] >= 1
     assert [len(red["Supporting Comments"][k]) for k in ("9", "6", "3")] == [9, 6, 3]
     assert red["Risk & Concerns"]["3"][0]["is_empty"]

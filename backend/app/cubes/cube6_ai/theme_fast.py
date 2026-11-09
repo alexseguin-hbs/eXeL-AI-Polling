@@ -48,8 +48,8 @@ from app.cubes.cube6_ai.providers.base import SummarizationProvider
 logger = structlog.get_logger(__name__)
 
 CLASSIFY_BATCH = 25
-SAMPLES_PER_CALL = 5  # samples of 10 themed per request (each sample still gets its own 3 themes)
-REDUCE_CHUNK = 30
+SAMPLES_PER_CALL = 2  # samples of 10 themed per request (each sample still gets its own 3 themes)
+REDUCE_CHUNK = 60
 _GEN_MAX_CONCURRENT = 96
 
 # Output tokens dominate latency, so the batch reply is one short line per input; the stored value is always the exact
@@ -74,6 +74,13 @@ _MULTI_GEN_INSTRUCTION = (
     "S2, T001, ..."
 )
 _MULTI_LINE_RE = re.compile(r"^\s*S(\d+)\s*,\s*T?\d+\s*,\s*([^,]+?)\s*,", re.I)
+
+# Intermediate tree rounds only feed names to the next round (as the monolith's reduce steps do), so they ask for names
+# only — a quarter of the output tokens; the final 9/6/3 keeps names + descriptions + confidence.
+_TREE_INSTRUCTION = (
+    "You are an AI expert at reducing {type_str} themes. Reduce the list to exactly 9 unique distinct themes, each a "
+    "5-word name. Reply with ONLY the 9 theme names, one per line, nothing else."
+)
 
 _REDUCE_ALL_INSTRUCTION = (
     "You are an AI expert at reducing {type_str} themes. Step 1: reduce the list to exactly 9 unique themes. "
@@ -280,7 +287,11 @@ async def reduce_themes_tree(summarizer, all_themes: dict[str, list[str]], chunk
 
             async def red(part: list[str]) -> list[str]:
                 try:
-                    return [t["label"] for t in await _reduce_to(summarizer, part, type_str, 9)] or part[:9]
+                    text = await summarizer.summarize(["Reduce these themes to 9:\n" + "\n".join(part)],
+                                                      instruction=_TREE_INSTRUCTION.format(type_str=type_str))
+                    names = [html.escape(re.sub(r"^\s*(?:[-*\d.)]+\s*)?", "", ln).strip().strip(",")) for ln in
+                             (text or "").splitlines() if ln.strip()]
+                    return [n for n in names if n][:9] or part[:9]
                 except Exception:  # noqa: BLE001
                     return part[:9]
 

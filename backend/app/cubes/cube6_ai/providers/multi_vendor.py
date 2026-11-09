@@ -217,8 +217,10 @@ class MultiVendorSummarizer(SummarizationProvider):
             if nxt >= len(order):
                 return False
             v = order[nxt]
-            nxt += 1
             name = v.provider_name.value
+            if reason == "hedge" and _NEXT_SLOT.get(name, 0.0) - time.monotonic() > 0.25:
+                return False  # the vendor's pacing queue is backed up: a hedge there only adds cost, not speed
+            nxt += 1
             if reason == "hedge":
                 self._bump(name, "hedges")
             if nxt > 1:
@@ -237,7 +239,8 @@ class MultiVendorSummarizer(SummarizationProvider):
                     return_when=asyncio.FIRST_COMPLETED,
                 )
                 if not done:  # hedge window passed with no answer
-                    start_next("hedge")
+                    if not start_next("hedge"):
+                        hedge_after = None  # wait for the running call instead
                     continue
                 for task in done:
                     name = pending.pop(task)
