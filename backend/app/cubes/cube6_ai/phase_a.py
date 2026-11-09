@@ -99,17 +99,48 @@ def release_phase_a_semaphore(session_id: uuid.UUID) -> None:
 
 _SUMMARIZE_INSTRUCTION = (
     "You are a summarizer. {translate}"
-    "Condense the text to approximately {target} words, preserving key points "
-    "and meaning. Ensure the final summary is in English."
+    "Condense the text to AT MOST {target} words (aim close to {target}), preserving key points "
+    "and meaning. Ensure the final summary is in English. Output only the summary."
 )
+
+# Word-limit contract (shared with the frontend tokenizer `text.trim().split(/\s+/).filter(Boolean).length`):
+# Python's str.split() with no argument is the same tokenizer. Tiers are upper bounds, enforced after the model.
+SUMMARY_TIERS = (333, 111, 33)
+
+
+def word_count(text: str) -> int:
+    """Same count as the repo tokenizer: trim, split on any whitespace run, drop empties."""
+    return len((text or "").split())
+
+
+def cap_words(text: str, limit: int) -> str:
+    """Hard upper bound: keep the first `limit` words (whitespace-normalised). Shorter text is returned unchanged."""
+    words = (text or "").split()
+    if len(words) <= limit:
+        return (text or "").strip()
+    return " ".join(words[:limit])
+
+
+def _parse_json_reply(reply: str) -> dict:
+    """Models often wrap JSON in ```json fences; strip them before json.loads (raises JSONDecodeError/TypeError)."""
+    t = (reply or "").strip()
+    if t.startswith("```"):
+        t = t.split("\n", 1)[1] if "\n" in t else t[3:]
+        if t.rstrip().endswith("```"):
+            t = t.rstrip()[:-3]
+    start, end = t.find("{"), t.rfind("}")
+    parsed = json.loads(t[start : end + 1] if start >= 0 and end > start else t)
+    if not isinstance(parsed, dict):
+        raise TypeError("summary reply is not a JSON object")
+    return parsed
 
 
 _SINGLE_PROMPT_INSTRUCTION = (
     "You are a summarizer. {translate}"
     "Given the following text, produce three summaries at different lengths. "
     "Return ONLY valid JSON with exactly these three keys:\n"
-    '{{"summary_333": "~333 word summary", "summary_111": "~111 word summary", "summary_33": "~33 word summary"}}\n'
-    "All summaries must be in English. Preserve key points and meaning."
+    '{{"summary_333": "at most 333 words", "summary_111": "at most 111 words", "summary_33": "at most 33 words"}}\n'
+    "Each summary must not exceed its word limit. All summaries must be in English. Preserve key points and meaning."
 )
 
 
@@ -203,7 +234,7 @@ async def _summarize_single_response_inner(
                     [summary_333],
                     instruction=_SINGLE_PROMPT_INSTRUCTION.format(translate=""),
                 )
-                parsed = json.loads(combined)
+                parsed = _parse_json_reply(combined)
                 summary_111 = parsed.get("summary_111", summary_333[:500])
                 summary_33 = parsed.get("summary_33", " ".join(summary_333.split()[:33]))
             except (json.JSONDecodeError, TypeError):
@@ -223,7 +254,7 @@ async def _summarize_single_response_inner(
                     [raw_text],
                     instruction=_SINGLE_PROMPT_INSTRUCTION.format(translate=translate),
                 )
-                parsed = json.loads(combined)
+                parsed = _parse_json_reply(combined)
                 summary_333 = parsed.get("summary_333", raw_text)
                 summary_111 = parsed.get("summary_111", raw_text)
                 summary_33 = parsed.get("summary_33", " ".join(raw_text.split()[:33]))
@@ -238,6 +269,11 @@ async def _summarize_single_response_inner(
                     [summary_111],
                     instruction=_SUMMARIZE_INSTRUCTION.format(translate="", target=33),
                 )
+
+    # Enforce the 333/111/33 upper bounds whatever the model returned (word_count == repo tokenizer).
+    summary_333 = cap_words(str(summary_333), 333)
+    summary_111 = cap_words(str(summary_111), 111)
+    summary_33 = cap_words(str(summary_33), 33)
 
     # Store in PostgreSQL (response_summaries) for immediate display
     from sqlalchemy.dialects.postgresql import insert as pg_insert

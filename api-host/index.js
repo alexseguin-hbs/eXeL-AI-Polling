@@ -15,13 +15,18 @@ const APP_ENV_KEYS = [
 ];
 
 const BOOT = [
-  "set -e",
-  'python -c "import os,io,tarfile,urllib.request as u; r=u.Request(os.environ[\'BUNDLE_URL\'], headers={\'x-bundle-token\': os.environ[\'BUNDLE_TOKEN\']}); tarfile.open(fileobj=io.BytesIO(u.urlopen(r, timeout=60).read())).extractall(\'/srv\')"',
+  "mkdir -p /tmp/diag/api/v1",
+  "boot() {",
+  '  python -c "import os,io,tarfile,urllib.request as u; r=u.Request(os.environ[\'BUNDLE_URL\'], headers={\'x-bundle-token\': os.environ[\'BUNDLE_TOKEN\'], \'user-agent\': \'exel-api-boot/1.0\'}); tarfile.open(fileobj=io.BytesIO(u.urlopen(r, timeout=60).read())).extractall(\'/srv\')" &&',
+  "  pip install -q --no-cache-dir --root-user-action=ignore uv &&",
+  "  uv pip install --system -q -r /srv/backend/requirements-api.txt",
+  "}",
+  "if ! boot > /tmp/diag/api/v1/bootlog 2>&1; then echo BOOT_FAILED >> /tmp/diag/api/v1/bootlog; cat /tmp/diag/api/v1/bootlog; exec python -m http.server 8000 -d /tmp/diag; fi",
   "unset BUNDLE_TOKEN",
-  "pip install -q --no-cache-dir --root-user-action=ignore uv",
-  "uv pip install --system -q -r /srv/backend/requirements-api.txt",
   "cd /srv/backend",
-  "exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips '*' --timeout-keep-alive 75",
+  "uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips '*' --timeout-keep-alive 75 >> /tmp/diag/api/v1/bootlog 2>&1 || true",
+  "echo APP_EXITED >> /tmp/diag/api/v1/bootlog; tail -n 60 /tmp/diag/api/v1/bootlog | sed -E 's#(postgres(ql)?(\\+asyncpg)?://)[^@ ]*@#\\1***@#g' > /tmp/diag/api/v1/bootlog.tail; mv /tmp/diag/api/v1/bootlog.tail /tmp/diag/api/v1/bootlog",
+  "exec python -m http.server 8000 -d /tmp/diag",
 ].join("\n");
 
 function appEnv(env) {
@@ -42,8 +47,17 @@ function appEnv(env) {
 export class ExelApi extends DurableObject {
   async fetch(request) {
     const c = this.ctx.container;
+    // Proof instance (token-gated by the Worker): same image/DB/keys, ENVIRONMENT=test so the API's dev moderator
+    // can drive an isolated end-to-end proof session without an Auth0 login. Never reachable without PROOF_TOKEN.
+    const proof = request.headers.get("x-exel-proof-mode") === "1";
+    if (new URL(request.url).pathname === "/__admin/restart") {
+      if (c.running) await c.destroy("admin restart");
+      return Response.json({ restarted: true });
+    }
     if (!c.running) {
-      c.start({ entrypoint: ["sh", "-c", BOOT], env: appEnv(this.env), enableInternet: true });
+      const e = appEnv(this.env);
+      if (proof) e.ENVIRONMENT = "test";
+      c.start({ entrypoint: ["sh", "-c", BOOT], env: e, enableInternet: true });
       c.monitor().catch((e) => console.error("container exited", String(e)));
     }
     await this.ctx.storage.put("lastSeen", Date.now());
@@ -75,8 +89,21 @@ export default {
       if (!env.BUNDLE_TOKEN || request.headers.get("x-bundle-token") !== env.BUNDLE_TOKEN) return new Response("not found", { status: 404 });
       return env.BUNDLE.fetch(new Request(new URL("/backend.tar.gz", url), { method: "GET" }));
     }
+    if (url.pathname === "/__admin/restart") {
+      if (request.method !== "POST" || !env.BUNDLE_TOKEN || request.headers.get("x-admin-token") !== env.BUNDLE_TOKEN) return new Response("not found", { status: 404 });
+      const name = request.headers.get("x-target") === "proof" ? `${env.API_INSTANCE || "api-v1"}-proof` : env.API_INSTANCE || "api-v1";
+      return env.API.getByName(name).fetch(request);
+    }
     if (url.pathname === "/" ) return Response.json({ service: "exel-ai-polling-api", health: "/api/v1/health" });
     if (!url.pathname.startsWith("/api/v1/") && url.pathname !== "/api/v1") return new Response("not found", { status: 404 });
-    return env.API.getByName("api-v1").fetch(request);
+    const headers = new Headers(request.headers);
+    headers.delete("x-exel-proof-mode");
+    const proofTok = headers.get("x-exel-proof-token");
+    headers.delete("x-exel-proof-token");
+    if (proofTok && env.PROOF_TOKEN && proofTok === env.PROOF_TOKEN) {
+      headers.set("x-exel-proof-mode", "1");
+      return env.API.getByName(`${env.API_INSTANCE || "api-v1"}-proof`).fetch(new Request(request, { headers }));
+    }
+    return env.API.getByName(env.API_INSTANCE || "api-v1").fetch(new Request(request, { headers }));
   },
 };
