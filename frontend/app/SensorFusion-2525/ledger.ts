@@ -584,6 +584,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Live Supabase labeling schema: review columns (level, labeled_by, reviewed_by, codex) and collab tables (progress, settings, XML provenance, append-only corrections) applied additively with membership RLS. Independent-reviewer check is on. Anon cannot read label tables. Real member seats still require verified auth users — none were invented.",
       commit: "288cae1",
     },
+    {
+      rev: 81,
+      date: "2026-11-08",
+      kind: "release",
+      text: "L1→L2 source close: label/picture/correction row builders match live columns; Accept/Reject gate on independent reviewer; reject/adjust append corrections (device-local always, cloud when member session exists). Upload carries XML/pair provenance. No invented membership — auth.users empty remains the browser E2E blocker.",
+      commit: "cac0f7f",
+    },
   ],
 };
 
