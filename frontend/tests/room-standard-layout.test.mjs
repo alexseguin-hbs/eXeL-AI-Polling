@@ -35,7 +35,7 @@ ok(STANDARD_LAYOUTS.M && JSON.stringify(M) === JSON.stringify(STANDARD_LAYOUTS.M
 ok(standardLayoutFor("M") !== STANDARD_LAYOUTS.M && JSON.stringify(standardLayoutFor("M")) === JSON.stringify(STANDARD_LAYOUTS.M), "standardLayoutFor returns a fresh copy (a saved edit never mutates the decided layout)");
 ok(standardLayoutFor("K") === null && standardLayoutFor("ZZZ") === null, "rooms without a decided layout fall back to the packer (null)");
 ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(M), "deterministic (replay law)");
-ok(STANDARD_LAYOUT_REV === 3, "the standard-layout edition is 3 (A′ Master Bedroom + the Living Room sofa-faces-TV) — bump it when a decided layout changes again");
+ok(STANDARD_LAYOUT_REV === 3, "the standard-layout edition is 3 (A′ Master Bedroom + Living Room sofa-faces-TV + Dining table+window) — REV stays while rooms are ADDED; bump it only when an already-shipped layout is re-decided");
 
 // ── 2. Layout A′, piece by piece (HI: bed centred on the back wall · two nightstands · vanity + mirror OPPOSITE the bed · 2 windows · door · NO rug) ──
 ok(count(M, "bed") === 1 && count(M, "nightstand") === 2 && count(M, "desk") === 1 && count(M, "mirror") === 1 && count(M, "window") === 2 && count(M, "door") === 1, `Layout A′ = 1 bed · 2 nightstands · 1 desk (vanity) · 1 mirror · 2 windows · 1 door (got ${kinds(M).join(",")})`);
@@ -98,6 +98,22 @@ let lworst = 0; for (let i = 0; i < lfloor.length; i++) for (let j = i + 1; j < 
 ok(lworst < 0.01 && L.every(inside), `the Living Room has zero floor overlap and sits inside the room (worst ${lworst.toFixed(3)} ft²)`);
 const lCell = TINY_ROOM_LAYOUT.find((r) => r.k === "L");
 ok(lCell && lCell.row === 1 && lCell.col === 0, "the canonical 3×3 puts the Living Room at row 1 · col 0 (W is its one exterior wall)");
+
+// ── 3.6 THE DINING ROOM (R2g · operator 2026-11-09 "dining room needs table and window"). The dining table is the
+//     anchor, centred, with its chairs; the one exterior wall (E) carries the window. ──
+const D = defaultObjectsForRoom("D");
+ok(STANDARD_LAYOUTS.D && JSON.stringify(D) === JSON.stringify(STANDARD_LAYOUTS.D), "the Dining Room default IS the decided STANDARD_LAYOUTS.D — never the greedy packer");
+ok(count(D, "table") === 1 && count(D, "window") === 1 && count(D, "door") === 1, `the Dining Room has a table AND a window (and a door): ${kinds(D).join(",")}`);
+ok(count(D, "chair") >= 1, `the dining table has its seating (${count(D, "chair")} chairs)`);
+const dtable = D.find((o) => o.kind === "table"), dts = worldSpan(dtable);
+ok(near((dts.x1 + dts.x2) / 2, ROOM_GRID / 2) && near((dts.y1 + dts.y2) / 2, ROOM_GRID / 2), `the dining table is centred (centre ${((dts.x1 + dts.x2) / 2).toFixed(1)},${((dts.y1 + dts.y2) / 2).toFixed(1)})`);
+ok(D.filter((o) => o.kind === "window").every((w) => wallOfObject(w) === "E"), "the Dining-Room window is on the one EXTERIOR wall (E — D sits at row 1 · col 2)");
+ok(wallOfObject(D.find((o) => o.kind === "door")) === "S", "the Dining-Room entry door is on the S wall, clear of the seating");
+const dfloor = D.filter(isFloor);
+let dworst = 0; for (let i = 0; i < dfloor.length; i++) for (let j = i + 1; j < dfloor.length; j++) dworst = Math.max(dworst, overlap(dfloor[i], dfloor[j]));
+ok(dworst < 0.01 && D.every(inside), `the Dining Room has zero floor overlap and sits inside the room (worst ${dworst.toFixed(3)} ft²)`);
+const dCell = TINY_ROOM_LAYOUT.find((r) => r.k === "D");
+ok(dCell && dCell.row === 1 && dCell.col === 2, "the canonical 3×3 puts the Dining Room at row 1 · col 2 (E is its one exterior wall)");
 
 // ── 4. the palette: no dresser / wardrobe / rug offered in the bedroom; desk + mirror are; the closet keeps the clothes storage ──
 ok(!ROOM_ASSETS.M.includes("dresser") && !ROOM_ASSETS.M.includes("wardrobe"), "ROOM_ASSETS.M offers no dresser and no wardrobe");

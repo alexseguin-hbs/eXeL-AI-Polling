@@ -824,6 +824,19 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
     { id: "window-2", kind: "window", gx: 0,   gy: 6.5, rot: 90 },          // W (exterior) · y 6–9 (clear of the SW corner)
     { id: "door-1",   kind: "door",   gx: 6,   gy: 9,   rot: 0 },           // S wall · the entry · x 5–8, clear of the sofa
   ],
+  // R2g — DINING ROOM (operator LIVE 2026-11-09: "dining room needs table and window"). The dining TABLE is the anchor,
+  // centred, with its chairs tucked to it; the room's one exterior wall (E — D sits at row 1 · col 2) carries the window;
+  // the entry door is on the S wall, off-centre so the walk-in is clear of the seating. N→Closet, W→Kitchen, S→Entry are
+  // interior. Feng shui: the table + its seating are the function, nothing else is auto-placed.
+  D: [
+    { id: "table-1",  kind: "table",  gx: 4.5, gy: 4.5, rot: 0 },           // the dining table, centred — the anchor (x 3–7 · y 3–7)
+    { id: "chair-1",  kind: "chair",  gx: 4.5, gy: 1.65, rot: 0 },          // N seat, tucked to the table edge
+    { id: "chair-2",  kind: "chair",  gx: 4.5, gy: 7.35, rot: 0 },          // S seat
+    { id: "chair-3",  kind: "chair",  gx: 1.65, gy: 4.5, rot: 0 },          // W seat
+    { id: "chair-4",  kind: "chair",  gx: 7.35, gy: 4.5, rot: 0 },          // E seat
+    { id: "window-1", kind: "window", gx: 9,   gy: 2,   rot: 90 },          // E (exterior) wall · y 1–4 (clear of the corner)
+    { id: "door-1",   kind: "door",   gx: 1.5, gy: 9,   rot: 0 },           // S wall · entry · x 0.5–3.5, clear of the seating
+  ],
 };
 /** The standard layouts' edition. A stored room whose `layoutRev` is older is re-seated to the decided layout on load
  * (the WireGuard, lib/architect-guard.ts) — "stop reverting" reaches the devices that saved the earlier edition too. */
@@ -834,7 +847,7 @@ export const STANDARD_LAYOUT_REV = 3;
  * working layout was auto-seeded with clutter by an old build. The WireGuard (lib/architect-guard.ts) stamps a cell's
  * declutterRev when it re-seats; later user edits carry the stamp, so the one-time declutter never wipes a real arrangement
  * twice. Bump this (not the default alone) whenever a declutter must reach devices that already saved the old clutter. */
-export const DECLUTTER_REV = 2;
+export const DECLUTTER_REV = 3;
 /** The decided layout for a room key (a fresh copy), or null when the room has none (→ the packer). */
 export function standardLayoutFor(roomKey: string): PlacedObject[] | null {
   // R5b (Thor): OWN keys only — STANDARD_LAYOUTS["constructor"] is Object, and `.map` on it threw through the guard.
@@ -875,7 +888,9 @@ export const STANDARD_LAYOUT_EDITIONS: Record<number, Record<string, PlacedObjec
       { id: "door-1",       kind: "door",       gx: 1,   gy: 9,   rot: 0 },
     ],
   },
-  // edition 3 = R2f — the Master Bedroom A′ (unchanged) + the Living Room (sofa faces the TV). The live set.
+  // edition 3 = the current expert-layout edition, grown room by room on the LIVE set: Master Bedroom A′ (R5b) +
+  // Living Room (R2f, sofa faces the TV) + Dining Room (R2g, table + window). STANDARD_LAYOUT_REV stays 3 while rooms
+  // are ADDED (nothing already-shipped is re-decided); DECLUTTER_REV is bumped to roll each new room to every device.
   3: STANDARD_LAYOUTS,
 };
 /** The decided layout of a room key at a given edition (a fresh copy), or null. */
