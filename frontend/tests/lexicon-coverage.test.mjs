@@ -20,6 +20,14 @@ const AFTER_FILL = new Set([
   // SensorFusion-2525 collab UI notes (2026-11-08): ENGLISH ONLY — staged until HI-tested; ×32 fill unverified / not claimed.
   ...['auth_required','reviewer_needs_labeler','reviewer_needs_name','reviewer_must_differ','progress_not_connected','progress_save_failed','settings_save_failed','pair_name_mismatch','sync_waiting_tables','json_needs_pictures','json_needs_level1','json_needs_level2','correction_save_failed','correction_needs_indep'].map((k) => `sf.collab.${k}`),
 
+  // Payments go-live (2026-11-08, t110u): Create Poll live price quote — staged ENGLISH ONLY until the operator
+  // finalizes the English (addendum 32 lock); listed never silent; no ×32 fill yet.
+  'cube8.pricing.quote_loading',
+  'cube8.pricing.quote_unavailable',
+  'cube8.pricing.quote_total',
+  'cube8.pricing.quote_split',
+  'cube8.pricing.quote_basis',
+  'cube8.pricing.min_fee',
   // eXeL Polling Cost Estimate panel (2026-11-08 payments QA): new cube1.settings.cost_* keys
   // staged ENGLISH ONLY until operator finalizes English UI — listed never silent; no ×32 fill yet.
   'cube1.settings.cost_estimate_badge',

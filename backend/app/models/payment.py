@@ -38,6 +38,13 @@ class PaymentTransaction(Base):
         # pending / completed / failed / refunded
     )
     metadata_json: Mapped[str | None] = mapped_column(Text)
+    # 046_payments_live_ledger (additive)
+    product_line: Mapped[str | None] = mapped_column(Text, nullable=True)
+    idempotency_key: Mapped[str | None] = mapped_column(Text, nullable=True)
+    stripe_event_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reconcile_status: Mapped[str | None] = mapped_column(Text, nullable=True)
+    scope_ref: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attempt_count: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
 
     __table_args__ = (
         Index("ix_payment_tx_session", "session_id"),

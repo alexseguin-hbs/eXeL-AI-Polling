@@ -1773,6 +1773,7 @@ function DivinityGuidePage() {
         successUrl: `${window.location.origin}/divinity-guide/?donated=true`,
         cancelUrl: window.location.href,
         clientKey: donateKey.current,
+        purpose: "divinity_guide",
       });
       if (url) { window.location.href = url; return; }
       setShowDonationPrompt(false);

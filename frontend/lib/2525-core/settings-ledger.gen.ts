@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Settings append-only traceability ledger — 7 entries, extracted at build time. */
+/** Settings append-only traceability ledger — 8 entries, extracted at build time. */
 export const SETTINGS_LEDGER: LedgerInput = {
   "section": "Settings",
   "route": "Settings slide-over",
@@ -57,6 +57,13 @@ export const SETTINGS_LEDGER: LedgerInput = {
       "date": "2026-11-08",
       "kind": "release",
       "text": "Cost Estimate panel loads GET /payments/provider-fees when available; shows honest loading/server_ok/unavailable/offline/bad_shape status; retains labeled offline local UI estimates when server unreachable (never unknown→$0). New status/assumption strings routed through t() englishDefault keys (33-language validation not claimed). Stripe PaymentIntent/Checkout creates now pass Idempotency-Key via stripe_idempotency_key. Weekly official-source HTTP fee adapters remain an explicit blocker (fee_source_adapters interface only).",
+      "commit": ""
+    },
+    {
+      "rev": 8,
+      "date": "2026-11-08",
+      "kind": "release",
+      "text": "Payments go live. Create Poll prices the chosen options server-side (POST /payments/poll-quote): tracked AI/STT cost from the same provider catalog as the Cost Estimate panel × ONE margin setting (PRICING_MARGIN_MULTIPLIER, default 1.5 = cost + 50% markup; 2.0 = 50% gross margin — owner decision pending) + Stripe card fee, minimum $11.11; Cost Split = creator 50% at Checkout, participants 50%/N. Moderator Paid and Cost Split both open Stripe Checkout on live Products; Divinity Guide, DeRisking Strategies and community donations book to their own live Products. Signed Stripe webhooks complete ledger rows exactly once (durable stripe_webhook_events, migration 046/047). New strings via t() englishDefault keys (cube8.pricing.*; 33-language validation not claimed).",
       "commit": ""
     }
   ]

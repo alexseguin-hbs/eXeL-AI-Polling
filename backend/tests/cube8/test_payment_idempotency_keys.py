@@ -30,8 +30,13 @@ def test_payment_service_passes_idempotency_key_on_creates():
     src = Path(__file__).resolve().parents[2] / "app/cubes/cube8_tokens/payment_service.py"
     text = src.read_text()
     assert "from app.cubes.cube8_tokens.payment_idempotency import stripe_idempotency_key" in text
-    # Five Stripe create call sites must pass the key
-    assert text.count("idempotency_key=idem_key") == 5
+    # Every Stripe create call site (5) must pass the key — counted per call, not per string occurrence
+    # (the 046 ledger also stores the key on PaymentTransaction rows).
+    import re
+
+    calls = re.findall(r"stripe\.(?:checkout\.Session|PaymentIntent)\.create\((.*?)\n    \)", text, re.S)
+    assert len(calls) == 5
+    assert all("idempotency_key=idem_key" in c for c in calls)
     assert "stripe.PaymentIntent.create" in text
     assert "stripe.checkout.Session.create" in text
 

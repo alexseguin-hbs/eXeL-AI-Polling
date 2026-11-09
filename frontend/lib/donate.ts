@@ -8,6 +8,8 @@
  *   null    → no Stripe key configured on this deployment (caller shows a demo state)
  *   throws  → a real error (e.g. Stripe rejected the request) with a user-safe message
  */
+export type DonationPurpose = "divinity_guide" | "derisking_strategies" | "community";
+
 export async function startDonation(opts: {
   amountCents: number;
   label?: string;
@@ -16,6 +18,8 @@ export async function startDonation(opts: {
   cancelUrl?: string;
   /** One key per modal open — a double-tap replays the same Checkout instead of minting two. */
   clientKey?: string;
+  /** Which live Stripe Product the donation books to (default community). */
+  purpose?: DonationPurpose;
 }): Promise<string | null> {
   const res = await fetch("/api/donate", {
     method: "POST",
@@ -27,6 +31,7 @@ export async function startDonation(opts: {
       success_url: opts.successUrl,
       cancel_url: opts.cancelUrl,
       client_key: opts.clientKey,
+      purpose: opts.purpose || "community",
     }),
   });
 
