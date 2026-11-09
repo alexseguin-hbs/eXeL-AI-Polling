@@ -1,0 +1,23 @@
+{
+  "cube": "cube9_pay_to_view",
+  "crs": [
+    "CRS-39",
+    "CRS-39.01",
+    "CRS-39.02"
+  ],
+  "append_only": true,
+  "rows": [
+    {
+      "cst": "2026-11-09 15:58:36 CST",
+      "crs": "CRS-39.02",
+      "check": "leak_probe_unpaid_themes_333",
+      "merge_sha": "0534b2f9772aa160cb3f4367dca0908648c2ccbd",
+      "cloudflare_version": "0dc86b67-f3cb-4b39-938d-fa25b550810c",
+      "n": 1,
+      "latency_ms": null,
+      "pass": false,
+      "leak_probe": "blocked",
+      "notes": "API container down; probe deferred"
+    }
+  ]
+}

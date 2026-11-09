@@ -204,7 +204,7 @@ Key behaviors:
 
 ### Cube 7 — CRS Traceability
 
-> **CRS Alignment Note:** Cube 7 owns CRS-11 (ranking), CRS-12 (deterministic aggregation), CRS-13 (Lead review), CRS-16/17 (live ranking — MVP2), CRS-22 (governance override — MVP3), and **CRS-36..38** (original Round 1 auto-select / Round 2 `top3_points` / Round 3 Expert Opinion — Date added 2026-11-09). Requirements.txt is canonical. See SSSES Plan at end of this doc.
+> **CRS Alignment Note:** Cube 7 owns CRS-11 (ranking), CRS-12 (deterministic aggregation), CRS-13 (Lead review), CRS-16/17 (live ranking — MVP2), CRS-22 (governance override — MVP3), and **CRS-36..38** (original Round 1 auto-select / Round 2 `top3_points` / Round 3 Expert Opinion — Date added 2026-11-09). Live metrics (append-only): [`docs/metrics/cube7-ranking.md`](../metrics/cube7-ranking.md) / `.json`. Requirements.txt is canonical. See SSSES Plan at end of this doc.
 
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target | Design Output: Definable / Measurable |
 |-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|---------------------------------------|
@@ -981,7 +981,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 ### Cube 9 — CRS Traceability
 
-> **CRS Alignment Note:** Cube 9 owns CRS-14 (export), CRS-19 (analytics dashboard, shared with Cube 5/8), CRS-20/21 (deep dive reports — MVP3), and **CRS-39** (Pay to View details 1/2/3 — Date added 2026-11-09). CRS-15 (voice export) shared with Cube 3. Requirements.txt is canonical.
+> **CRS Alignment Note:** Cube 9 owns CRS-14 (export), CRS-19 (analytics dashboard, shared with Cube 5/8), CRS-20/21 (deep dive reports — MVP3), and **CRS-39** (Pay to View details 1/2/3 — Date added 2026-11-09). Live metrics (append-only): [`docs/metrics/cube9-pay-to-view.md`](../metrics/cube9-pay-to-view.md) / `.json`. CRS-15 (voice export) shared with Cube 3. Requirements.txt is canonical.
 
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target | Design Output: Definable / Measurable |
 |-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|---------------------------------------|
