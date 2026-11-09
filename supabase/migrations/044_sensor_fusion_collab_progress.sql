@@ -1,6 +1,6 @@
 -- SensorFusion-2525 collaborative progress, per-project settings, XML provenance, and append-only label corrections.
--- REVIEW ONLY until an operator applies this migration. Frontend helpers fail honestly when auth or these tables are missing.
--- Builds on 040–043: members-only RLS (sensor_fusion_is_member), independent Level 2, device-local XML until shared.
+-- Applied live 2026-11-08 as migration sensor_fusion_collab_progress (history version 20261109030808).
+-- Builds on 040–042 + review label fields: members-only RLS (sensor_fusion_is_member), independent Level 2, device-local XML until shared.
 
 -- Team progress (clock + level counts) per member, scoped by project membership.
 CREATE TABLE IF NOT EXISTS sensor_fusion_progress (
@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS sensor_fusion_progress (
 ALTER TABLE sensor_fusion_progress ENABLE ROW LEVEL SECURITY;
 
 REVOKE ALL ON sensor_fusion_progress FROM anon;
+GRANT SELECT, INSERT, UPDATE ON sensor_fusion_progress TO authenticated;
 
 DROP POLICY IF EXISTS "Members read their project progress" ON sensor_fusion_progress;
 CREATE POLICY "Members read their project progress"
@@ -45,6 +46,7 @@ CREATE TABLE IF NOT EXISTS sensor_fusion_project_settings (
 ALTER TABLE sensor_fusion_project_settings ENABLE ROW LEVEL SECURITY;
 
 REVOKE ALL ON sensor_fusion_project_settings FROM anon;
+GRANT SELECT, INSERT, UPDATE ON sensor_fusion_project_settings TO authenticated;
 
 DROP POLICY IF EXISTS "Members read their project settings" ON sensor_fusion_project_settings;
 CREATE POLICY "Members read their project settings"
@@ -92,6 +94,7 @@ CREATE TABLE IF NOT EXISTS sensor_fusion_label_corrections (
 ALTER TABLE sensor_fusion_label_corrections ENABLE ROW LEVEL SECURITY;
 
 REVOKE ALL ON sensor_fusion_label_corrections FROM anon;
+GRANT SELECT, INSERT ON sensor_fusion_label_corrections TO authenticated;
 
 DROP POLICY IF EXISTS "Members read their project corrections" ON sensor_fusion_label_corrections;
 CREATE POLICY "Members read their project corrections"
