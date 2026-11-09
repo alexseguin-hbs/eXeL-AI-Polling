@@ -68,6 +68,12 @@ function storedParticipantToken(sessionId: string): { pid: string; token: string
 /** The token for a participant write: responses/voice name the participant in the body (the token
  *  must be theirs); a ballot and a time entry name nobody (the token says who). */
 export const PARTICIPANT_WRITE = /^\/sessions\/([^/]+)\/(responses|voice|rankings|time\/start|time\/stop)$/;
+/** CRS-22.04 / S4: a participant reads the live group ranking + decision with their join token (no login). */
+export const PARTICIPANT_READ = /^\/sessions\/([^/]+)\/rankings\/live$/;
+function participantReadTokenFor(path: string): string | null {
+  const m = path.match(PARTICIPANT_READ);
+  return m ? storedParticipantToken(m[1])?.token ?? null : null;
+}
 function participantTokenFor(path: string, body: unknown): string | null {
   const m = path.match(PARTICIPANT_WRITE);
   if (!m) return null;
@@ -133,7 +139,7 @@ async function request<T>(
   }
 
   // HP-07: a participant's text and ballot carry the join-issued participant token.
-  const participantToken = method === "POST" ? participantTokenFor(path, body) : null;
+  const participantToken = method === "POST" ? participantTokenFor(path, body) : method === "GET" ? participantReadTokenFor(path) : null;
   if (participantToken) headers[PARTICIPANT_TOKEN_HEADER] = participantToken;
 
   const url = buildUrl(path, params);

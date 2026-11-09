@@ -476,6 +476,10 @@ async def transition_session(
                     f"re-open polling (cycle {current} of {limit} already used; raise max_cycles)",
                 )
             session.current_cycle = current + 1
+            # CRS-22.04: a moderator decision belongs to the round it was made on — a new round starts undecided.
+            for f in ("final_theme_id", "final_group_top_theme_id", "final_decision_reason", "final_decided_at"):
+                if hasattr(session, f):
+                    setattr(session, f, None)
     elif new_status == "closed":
         session.closed_at = now
         # G3 fix: compute replay hash for determinism verification

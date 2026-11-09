@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Index, Integer, String, Text
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -119,6 +119,12 @@ class Session(Base):
     # Ranking method (migration 055): NULL/borda_count = full-rank Borda ballot (existing default);
     # top3_points = original-design Round 2 — top 1–3 themes per Theme01 category, scored 3/2/1.
     ranking_method: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    # CRS-22.04 (migration 056): moderator final decision with transparency — the adopted theme, the group's #1 at
+    # decision time, and the stated reason (required when the two differ), shown to participants.
+    final_theme_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    final_group_top_theme_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    final_decision_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    final_decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # API-first scoping — the Project → Differentiator → Specification scope this session
     # (and all its downstream data) inherits, as a canonical scope ref

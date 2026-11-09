@@ -204,4 +204,4 @@ class TestMVP2RouterEndpoints:
         """Cube 7 should now have 13 endpoints (Q4 /rankings/metrics; Q3 /rankings/readiness)."""
         from app.cubes.cube7_ranking.router import router
         routes = [r for r in router.routes if hasattr(r, "methods")]
-        assert len(routes) == 13
+        assert len(routes) == 15  # + /rankings/live (S4), /rankings/decision (CRS-22.04)

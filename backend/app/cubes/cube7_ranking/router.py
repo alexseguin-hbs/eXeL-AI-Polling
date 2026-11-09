@@ -53,6 +53,7 @@ from app.schemas.ranking import (
     GovernanceOverrideSubmit,
     RankingRead,
     AggregateRequest,
+    FinalDecisionSubmit,
     RankingSubmit,
 )
 
@@ -509,3 +510,66 @@ async def get_overrides(
     cycle_id = await _resolve_cycle(db, session_id, cycle_id)  # default = the current cycle (Thoth, round 6)
     overrides = await service.get_governance_overrides(db, session_id, cycle_id)
     return [GovernanceOverrideRead.model_validate(o) for o in overrides]
+
+
+# ---------------------------------------------------------------------------
+# S4 / CRS-22.04: participant-readable live snapshot + moderator final decision (transparency)
+# ---------------------------------------------------------------------------
+
+
+async def _session_or_404(db: AsyncSession, session_id: uuid.UUID):
+    from app.models.session import Session
+    from sqlalchemy import select
+
+    session = (await db.execute(select(Session).where(Session.id == session_id))).scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return session
+
+
+@router.get("/rankings/live")
+@limiter.limit("120/minute")
+async def get_live_ranking_snapshot(
+    request: Request,
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
+    participant_token: str | None = Header(default=None, alias=PARTICIPANT_TOKEN_HEADER),
+):
+    """The group's current ranking (per category), the overall #1, counts and the moderator's decision.
+
+    Readable by a participant of THIS session (X-Participant-Token from join — no login) or a signed-in user, the
+    same audience as GET /rankings. Carries theme labels, scores and counts only — never ballots or participant ids.
+    """
+    if participant_token:
+        if verify_participant_token(session_id, participant_token) is None:
+            raise HTTPException(status_code=403, detail="Invalid participant token")
+    elif user is None:
+        raise HTTPException(status_code=401, detail="Join the session (participant token) or log in")
+    from app.cubes.cube7_ranking.live_ranking import live_snapshot
+
+    return await live_snapshot(db, await _session_or_404(db, session_id))
+
+
+@router.post("/rankings/decision")
+@limiter.limit("20/minute")
+async def post_final_decision(
+    request: Request,
+    session_id: uuid.UUID,
+    payload: FinalDecisionSubmit,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
+):
+    """CRS-22.04: the moderator's final decision. A pick other than the group's #1 needs a reason (≥10 chars); the
+    group's #1 and the reason are stored and broadcast as `final_decision` so every participant sees both."""
+    from app.core.supabase_broadcast import broadcast_event
+    from app.cubes.cube7_ranking.live_ranking import record_final_decision
+
+    session = await _session_or_404(db, session_id)
+    try:
+        snap = await record_final_decision(db, session, payload.theme_id, payload.reason)
+        await db.commit()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    await broadcast_event(channel=f"session:{session.short_code}", event="final_decision", payload=snap)
+    return snap
