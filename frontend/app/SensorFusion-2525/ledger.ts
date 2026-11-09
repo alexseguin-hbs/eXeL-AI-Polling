@@ -628,6 +628,25 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
         "is recovered from the commit that added this row (Stage 2 code-record bar).",
       commit: "",
     },
+    {
+      rev: 86,
+      date: "2026-11-09",
+      kind: "decision",
+      text:
+        "PR #25 (merge 62f73048): docs/crs proposal only — SensorFusion anonymous ♡ seats, class reuse, and " +
+        "WORK TRACEABILITY proposal (2026-11-09). NOT implemented in product code; recorded here so the public " +
+        "badge shows the proposal was filed. Status: proposal / not implemented.",
+      commit: "62f7304",
+    },
+    {
+      rev: 87,
+      date: "2026-11-09",
+      kind: "decision",
+      text:
+        "R-CORE catch-up tip after recording PR #25 proposal. Commit recovered from the row-adding commit " +
+        "(Stage 2 newest-revision code-record bar).",
+      commit: "",
+    },
   ],
 };
 
