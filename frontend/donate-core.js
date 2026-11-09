@@ -139,7 +139,11 @@ export async function handleDonate(request, env) {
   const apiBase = String((env && env.LEDGER_API_URL) || DEFAULT_LEDGER_API).replace(/\/+$/, "");
   let res;
   try {
-    res = await fetch(`${apiBase}/payments/divinity-donate`, {
+    // Same-account workers.dev → workers.dev fetch is refused by Cloudflare (error 1042), so the live site
+    // reaches the API through the LEDGER_API service binding (wrangler.jsonc); plain fetch is the fallback.
+    const doFetch = env && env.LEDGER_API && typeof env.LEDGER_API.fetch === "function"
+      ? (u, i) => env.LEDGER_API.fetch(new Request(u, i)) : fetch;
+    res = await doFetch(`${apiBase}/payments/divinity-donate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

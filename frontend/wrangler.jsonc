@@ -16,6 +16,9 @@
     // for everything else, preserving the SPA behavior.
     "run_worker_first": true
   },
+  // t193u ledger-first donations: /api/donate calls the API Worker (which writes payment_transactions before the
+  // Checkout redirect). A workers.dev → workers.dev fetch on the same account is refused (1042), so bind it.
+  "services": [{ "binding": "LEDGER_API", "service": "exel-ai-polling-api" }],
   // KV binding for cross-device session + response storage.
   // DISABLED: worker.js (the only code that runs in this Workers Static Assets
   // deploy) never touches env.RESPONSES — the short-link route uses Supabase,

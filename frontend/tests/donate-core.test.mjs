@@ -51,6 +51,13 @@ ok(r.status === 503, "API unreachable → 503");
 globalThis.fetch = async () => new Response(JSON.stringify({ detail: "Redirect URLs must return to this site" }), { status: 400, headers: { "Content-Type": "application/json" } });
 r = await J(await handleDonate(req({ amount_cents: 333 }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" }));
 ok(r.status === 400 && /this site/.test(r.body.error), "API 400 detail surfaces");
+// the LEDGER_API service binding is preferred over a public fetch (Cloudflare 1042 on same-account workers.dev)
+{
+  let bound = 0; globalThis.fetch = async () => { throw new Error("public fetch must not be used"); };
+  const env = { STRIPE_SECRET_KEY: "sk_test_x", LEDGER_API: { fetch: async (rq) => { bound++; ok(rq.url === API && rq.method === "POST", "binding gets the ledger route"); return new Response(JSON.stringify({ checkout_url: "https://checkout.stripe.com/c/pay/cs_b" }), { status: 200, headers: { "Content-Type": "application/json" } }); } } };
+  r = await J(await handleDonate(req({ amount_cents: 333 }, { origin: SITE }), env));
+  ok(r.status === 200 && bound === 1, "service binding used");
+}
 console.log(`donate-core: ${pass} passed, ${fail} failed`); if (fail) process.exit(1);
 
 // ── verified return (Odin, wave 2) ─────────────────────────────────────────────────
