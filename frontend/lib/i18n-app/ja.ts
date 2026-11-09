@@ -1469,5 +1469,10 @@ const T: Record<string, string> = {
   "fin.add_line": "行を追加",
   "fin.remove_line": "この行を削除",
   "fin.reset_sheet": "サンプルシートに戻す",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "UI上の見積もり",
+  "cube1.settings.cost_rates_stale": "料金が古くなっています — 週次更新が必要です",
+  "cube1.settings.cost_unknown_rate": "料金不明",
+  "cube1.settings.cost_audio_denom": "V2T $/分 = 課金対象の音声分数（セッション時間ではありません）",
 };
 export default T;

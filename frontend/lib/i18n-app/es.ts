@@ -1464,5 +1464,10 @@ const T: Record<string, string> = {
   "fin.add_line": "Añadir una línea",
   "fin.remove_line": "Quitar esta línea",
   "fin.reset_sheet": "Restablecer a la hoja",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "Estimación de la interfaz",
+  "cube1.settings.cost_rates_stale": "Tarifas desactualizadas — toca la actualización semanal",
+  "cube1.settings.cost_unknown_rate": "tarifa desconocida",
+  "cube1.settings.cost_audio_denom": "V2T $/min = minutos de audio facturables (no el tiempo de la sesión)",
 };
 export default T;

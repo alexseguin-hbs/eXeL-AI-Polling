@@ -1467,5 +1467,10 @@ const T: Record<string, string> = {
   "fin.add_line": "एउटा लाइन थप्नुहोस्",
   "fin.remove_line": "यो लाइन हटाउनुहोस्",
   "fin.reset_sheet": "सिटमा फर्काउनुहोस्",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "UI अनुमान",
+  "cube1.settings.cost_rates_stale": "दरहरू पुराना छन् — साप्ताहिक अद्यावधिक बाँकी छ",
+  "cube1.settings.cost_unknown_rate": "दर अज्ञात",
+  "cube1.settings.cost_audio_denom": "V2T $/मिनेट = बिल योग्य अडियो मिनेट (सत्रको अवधि होइन)",
 };
 export default T;

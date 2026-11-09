@@ -2502,5 +2502,10 @@ const T: Record<string, string> = {
   "innovation.notes.sub": "Nhwehwɛmu kuw no dadwen a ɛba daa wɔ ɛpono biara ne ano aduru a wɔde yi no.",
   "innovation.notes.risk": "Asiane",
   "innovation.notes.cm": "Ano aduru",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "UI nsusuiɛ",
+  "cube1.settings.cost_rates_stale": "Ka no adi akyi — ɛsɛ sɛ wɔyɛ no foforɔ dapɛn biara",
+  "cube1.settings.cost_unknown_rate": "ka no nnim",
+  "cube1.settings.cost_audio_denom": "V2T $/simma = nnyegyeɛ simma a wɔtua ho ka (ɛnyɛ nhyiamu no berɛ)",
 };
 export default T;

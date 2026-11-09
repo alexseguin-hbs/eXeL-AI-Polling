@@ -1614,5 +1614,10 @@ const T: Record<string, string> = {
   "fin.add_line": "Magdagdag ng linya",
   "fin.remove_line": "Alisin ang linyang ito",
   "fin.reset_sheet": "Ibalik sa halimbawang sheet",
+  // Cost Estimate panel (2026-11-09 payments): fill of the 4 original cube1.settings.cost_* keys flagged by lexicon-coverage.
+  "cube1.settings.cost_estimate_badge": "Tantiya ng UI",
+  "cube1.settings.cost_rates_stale": "Luma na ang mga singil — kailangan na ang lingguhang pag-update",
+  "cube1.settings.cost_unknown_rate": "hindi alam ang singil",
+  "cube1.settings.cost_audio_denom": "V2T $/min = mga minuto ng audio na sinisingil (hindi ang tagal ng sesyon)",
 };
 export default T;
