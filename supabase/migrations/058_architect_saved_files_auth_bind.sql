@@ -1,6 +1,6 @@
--- 057 · Architect-2525 cloud-save — auth claim bind (030 sibling; HI Q4 / SSSES Security).
+-- 058 · Architect-2525 cloud-save — auth claim bind (030 sibling; HI Q4 / SSSES Security).
 -- ============================================================================
--- SECURITY REVIEW (2026-11-09) of architect_saved_files_get/_put from 053/056:
+-- SECURITY REVIEW (2026-11-09) of architect_saved_files_get/_put from 053/057:
 --   Who can call: anon + authenticated + service_role (EXECUTE granted). SECURITY DEFINER.
 --   Read/write scope: exact equality on caller-supplied (p_owner, p_name); no list/scan RPC.
 --   search_path: pinned to public, pg_temp (no hijack). RLS: enabled, no policies (deny-all on
@@ -15,16 +15,16 @@
 --   silently disable cloud save (capability at risk; construction method UNDECIDED for the
 --   Auth0→Supabase bridge). Same trade-off innovation_state took in 030.
 --
--- MINIMAL SAFE FIX (preserve capability; close the accounts-cutover hole 056 left open):
+-- MINIMAL SAFE FIX (preserve capability; close the accounts-cutover hole 057 left open):
 --   1. Add nullable user_id (+ created_at) so a signed-in write can claim a row.
 --   2. Rewrite get/put: a row with user_id set is readable/writable ONLY by that auth.uid();
 --      first authenticated write stamps user_id; anonymous writes never un-claim.
 --   3. Keep anon EXECUTE (bearer UUID) so current Architect cloud save keeps working.
 --   4. When auth.uid() IS present, p_owner must equal auth.uid()::text (owner binding).
 --      (Inactive until Auth0↔Supabase lands; then it binds without a further migration.)
--- Applied live: ONLY after this PR merges (corrective). SIM rolled-back proof: tests/057_*.sim.sql.
+-- Applied live: ONLY after this PR merges (corrective). SIM rolled-back proof: tests/058_*.sim.sql.
 -- Idempotent. No rows deleted. CRS: HI Q4 2026.10.31 ask; SSSES Security; ARC cloud-saved-files
--- (VISION_2525_REUSE_CATALOG); migration lineage 022 → 023 → 053(live)/056(repo) → 057.
+-- (VISION_2525_REUSE_CATALOG); migration lineage 022 → 023 → 053(live)/057(repo) → 058.
 
 -- 1 · org-cutover columns (nullable — existing bearer rows stay reachable)
 ALTER TABLE public.architect_saved_files

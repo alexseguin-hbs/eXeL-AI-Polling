@@ -1,10 +1,10 @@
--- 056 (renumbered from 053 in the repo) · Architect-2525 cloud-save RPCs.
+-- 057 (renumbered from 053 in the repo; was briefly 056 until 056_session_final_decision took that number) · Architect-2525 cloud-save RPCs.
 -- ============================================================================
 -- LIVE HISTORY MAPPING (do not rewrite supabase_migrations rows):
 --   Applied live 2026-11-09 as version 20261109131322 / name 053_architect_saved_files_rpc
 --   (13:13:22Z). Repo file was also numbered 053, colliding with 053_revoke_internal_definer_fn_execute
---   (live version 20261109131219). SensorFusion took 054; ranking took 055; this file is 056.
---   Fresh environments apply this file as 056; the live project already has the same SQL under the
+--   (live version 20261109131219). SensorFusion took 054; ranking took 055; session final decision took 056; this file is 057.
+--   Fresh environments apply this file as 057; the live project already has the same SQL under the
 --   053_* history name — CREATE OR REPLACE makes a re-apply idempotent. No live history row is edited.
 --
 -- CRS / decisions cited:
@@ -14,7 +14,7 @@
 --
 -- Round 1 (M — capability at risk): RPCs the client already calls (lib/architect-saved-files.ts).
 -- ADDITIVE: SECURITY DEFINER get/put, fixed search_path, one (owner_key,name) row; table path revoked
--- for anon/authenticated. Bearer owner_key until accounts — claim bind lands in 057.
+-- for anon/authenticated. Bearer owner_key until accounts — claim bind lands in 058.
 --
 CREATE OR REPLACE FUNCTION public.architect_saved_files_get(p_owner text, p_name text)
 RETURNS jsonb
