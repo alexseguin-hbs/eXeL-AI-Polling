@@ -66,12 +66,18 @@ async def creator_payment_confirmed(db: AsyncSession, session_id: uuid.UUID) -> 
 
 
 def _result(viewer: str, basis: str, paid_cents: int, s333: bool, orig: bool, participant_id=None) -> dict[str, Any]:
+    # CRS-39.01 Detail 1/2/3 map — same payment path, no parallel checkout:
+    # Detail 1 = summary_111 (free in drawer), Detail 2 = summary_333, Detail 3 = Original + expert 1-pager.
     return {
         "viewer": viewer,
         "basis": basis,
         "confirmed_paid_cents": paid_cents,
         "summary_333": bool(s333),
         "original": bool(orig),
+        "detail_1": True,
+        "detail_2": bool(s333),
+        "detail_3": bool(orig),
+        "detail_map": {"detail_1": "summary_111", "detail_2": "summary_333", "detail_3": "original+expert_pager"},
         "participant_id": str(participant_id) if participant_id else None,
         "thresholds": {"summary_333_cents": SUMMARY_333_CENTS, "original_cents": ORIGINAL_CENTS},
     }

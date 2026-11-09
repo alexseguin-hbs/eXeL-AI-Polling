@@ -648,3 +648,167 @@ async def post_auto_select(
         raise HTTPException(status_code=400, detail=str(e))
     await broadcast_event(channel=f"session:{session.short_code}", event="auto_select", payload=payload)
     return payload
+
+
+# ---------------------------------------------------------------------------
+# CRS-38 Round 3 — Expert Opinion (moderator invites; experts submit; participants read)
+# ---------------------------------------------------------------------------
+
+
+@router.post("/experts")
+@limiter.limit("30/minute")
+async def post_invite_expert(
+    request: Request,
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
+    display_name: str = "",
+    expert_user_id: str | None = None,
+    expert_participant_id: uuid.UUID | None = None,
+    theme_id: uuid.UUID | None = None,
+):
+    """CRS-38.03: moderator designates an expert for this poll (and optionally a theme)."""
+    from app.cubes.cube7_ranking.expert_opinion import invite_expert
+
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    display_name = (body.get("display_name") or display_name or "").strip()
+    expert_user_id = body.get("expert_user_id", expert_user_id)
+    raw_pid = body.get("expert_participant_id", expert_participant_id)
+    expert_participant_id = uuid.UUID(str(raw_pid)) if raw_pid else None
+    raw_tid = body.get("theme_id", theme_id)
+    theme_id = uuid.UUID(str(raw_tid)) if raw_tid else None
+    try:
+        row = await invite_expert(
+            db, session_id,
+            invited_by=user.user_id,
+            display_name=display_name,
+            expert_user_id=expert_user_id,
+            expert_participant_id=expert_participant_id,
+            theme_id=theme_id,
+        )
+        await db.commit()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {
+        "id": str(row.id), "session_id": str(row.session_id), "display_name": row.display_name,
+        "status": row.status, "theme_id": str(row.theme_id) if row.theme_id else None,
+    }
+
+
+@router.get("/experts")
+@limiter.limit("60/minute")
+async def get_experts(
+    request: Request,
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
+    participant_token: str | None = Header(default=None, alias=PARTICIPANT_TOKEN_HEADER),
+):
+    """List expert assignments for the session (participants + signed-in)."""
+    if participant_token:
+        if verify_participant_token(session_id, participant_token) is None:
+            raise HTTPException(status_code=403, detail="Invalid participant token")
+    elif user is None:
+        raise HTTPException(status_code=401, detail="Join the session (participant token) or log in")
+    from app.cubes.cube7_ranking.expert_opinion import list_assignments
+
+    rows = await list_assignments(db, session_id)
+    return [
+        {
+            "id": str(a.id), "display_name": a.display_name, "status": a.status,
+            "theme_id": str(a.theme_id) if a.theme_id else None,
+            "invited_at": a.invited_at.isoformat() if a.invited_at else None,
+        }
+        for a in rows
+    ]
+
+
+@router.post("/experts/{assignment_id}/opinions")
+@limiter.limit("30/minute")
+async def post_expert_opinion(
+    request: Request,
+    session_id: uuid.UUID,
+    assignment_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
+):
+    """CRS-38.01: expert submits Supporting / Risk & Concerns / Neutral summaries for a theme."""
+    from app.cubes.cube7_ranking.expert_opinion import build_pager_if_ready, submit_expert_opinion
+
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="JSON body required")
+    theme_id = body.get("theme_id")
+    if not theme_id:
+        raise HTTPException(status_code=400, detail="theme_id is required")
+    submitted_by = (user.user_id if user else None) or body.get("submitted_by") or "expert"
+    try:
+        opinion = await submit_expert_opinion(
+            db,
+            session_id=session_id,
+            theme_id=uuid.UUID(str(theme_id)),
+            assignment_id=assignment_id,
+            submitted_by=str(submitted_by),
+            support_summary=str(body.get("support_summary") or ""),
+            risk_summary=str(body.get("risk_summary") or ""),
+            neutral_summary=str(body.get("neutral_summary") or ""),
+        )
+        pager = await build_pager_if_ready(db, session_id, uuid.UUID(str(theme_id)), use_simulated=True)
+        await db.commit()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {
+        "opinion_id": str(opinion.id),
+        "pager_ready": bool(pager.ready) if pager else False,
+    }
+
+
+@router.get("/themes/{theme_id}/expert-opinion")
+@limiter.limit("60/minute")
+async def get_theme_expert_opinion(
+    request: Request,
+    session_id: uuid.UUID,
+    theme_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
+    participant_token: str | None = Header(default=None, alias=PARTICIPANT_TOKEN_HEADER),
+):
+    """CRS-38: show expert packets + ready 1-pager to participants. Pager text is Pay-to-View Detail 3
+    (CRS-39.01) — withheld unless view_entitlement.original (existing payment path)."""
+    if participant_token:
+        if verify_participant_token(session_id, participant_token) is None:
+            raise HTTPException(status_code=403, detail="Invalid participant token")
+    elif user is None:
+        raise HTTPException(status_code=401, detail="Join the session (participant token) or log in")
+    from app.cubes.cube7_ranking.expert_opinion import theme_expert_bundle
+    from app.cubes.cube8_tokens.view_entitlement import resolve_view_entitlement
+
+    session = await _session_or_404(db, session_id)
+    bundle = await theme_expert_bundle(db, session_id, theme_id)
+    entitlement = await resolve_view_entitlement(db, session, user)
+    # CRS-39.01 Detail map via existing entitlement: Detail1=111(free), Detail2=333, Detail3=Original+expert pager
+    detail_map = {
+        "detail_1": True,  # 111-word depth — free in drawer
+        "detail_2": bool(entitlement.get("summary_333")),
+        "detail_3": bool(entitlement.get("original")),
+        "map": {"detail_1": "summary_111", "detail_2": "summary_333", "detail_3": "original+expert_pager"},
+    }
+    if not detail_map["detail_3"] and bundle.get("pager"):
+        bundle["pager"]["pager_text"] = None  # withhold until paid (existing entitlement path)
+        bundle["pager"]["locked"] = True
+    else:
+        if bundle.get("pager"):
+            bundle["pager"]["locked"] = False
+    bundle["pay_to_view"] = detail_map
+    bundle["view_entitlement"] = {
+        "summary_333": entitlement.get("summary_333"),
+        "original": entitlement.get("original"),
+        "viewer": entitlement.get("viewer"),
+        "basis": entitlement.get("basis"),
+    }
+    return bundle

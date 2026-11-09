@@ -6,6 +6,7 @@ from app.models.audit_log import AuditLog
 from app.models.code_submission import Challenge, CodeSubmission, DeploymentLog, SubmissionVote
 from app.models.cqs_score import CQSScore
 from app.models.desired_outcome import DesiredOutcome
+from app.models.expert_opinion import ExpertAssignment, ExpertOpinion, ExpertOpinionPager
 from app.models.participant import Participant
 from app.models.payment import PaymentTransaction
 from app.models.pipeline_trigger import PipelineTrigger
@@ -43,6 +44,9 @@ __all__ = [
     "CQSScore",
     "DeploymentLog",
     "DesiredOutcome",
+    "ExpertAssignment",
+    "ExpertOpinion",
+    "ExpertOpinionPager",
     "Differentiator",
     "GovernanceOverride",
     "Participant",

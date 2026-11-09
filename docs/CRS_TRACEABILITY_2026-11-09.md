@@ -18,10 +18,10 @@
 | CRS-36.01–.03 | Cube 7 | Auto-select config / ballot subset / replay hash | **In progress** |
 | CRS-37 | Cube 7 | Round 2 top-3 · 3/2/1 (`top3_points`) | **In progress** |
 | CRS-37.01–.04 | Cube 7 | Subset ballot / per-category / aggregate / impl track | **In progress** |
-| CRS-38 | Cube 7 | Round 3 Expert Opinion (3 experts → AI 1-pager) | Planned |
-| CRS-38.01–.03 | Cube 7 | Expert UI / AI 1-pager / audit | Planned |
+| CRS-38 | Cube 7 | Round 3 Expert Opinion (3 experts → AI 1-pager) | **In progress** |
+| CRS-38.01–.03 | Cube 7 | Expert UI / AI 1-pager / audit | **In progress** |
 | CRS-39 | Cube 9 | Pay to View details 1 / 2 / 3 | **In progress** (2026-11-09, see Implementation evidence) |
-| CRS-39.01 | Cube 9 | Detail 1/2/3 tier map (pricing decision) | Planned |
+| CRS-39.01 | Cube 9 | Detail 1/2/3 tier map (pricing decision) | **In progress** |
 | CRS-39.02 | Cube 9 / Cube 8 | Unify gates: one server rule for drawer / ranked / export | **In progress** — code + local tests (14fdbfa6f) |
 | CRS-39.03 | Cube 8 | No live charges in test | **In progress** — tests patch Stripe create calls (14fdbfa6f) |
 

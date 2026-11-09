@@ -1927,13 +1927,13 @@ Use these exactly as “build targets” for website + backend.
 - **CRS-37.03** Aggregation per category sums points with seeded tie-break; `ranking_method=top3_points` whitelisted alongside existing `borda_count` (Borda unchanged). Replay hash includes method + category.
 - **CRS-37.04** Implementation track: backend/worker marking method `top3_points` — **In progress** (docs-only CRS entry; product code owned by parallel worker).
 
-**CRS-38** Round 3 — Expert Opinion on a chosen theme. *(Cube 7; AI 1-pager may hand off to Cube 6/9)* · **Planned** · Date added 2026-11-09
+**CRS-38** Round 3 — Expert Opinion on a chosen theme. *(Cube 7; AI 1-pager may hand off to Cube 6/9)* · **In progress** · Date added 2026-11-09
 - **CRS-38.01** Three experts each submit Concerns / Neutral / Support summaries for the chosen theme (UI: three columns + per-column summary).
 - **CRS-38.02** System produces an AI **1-page summary of the three experts** (single combined pager).
 - **CRS-38.03** Expert role assignment, theme selection, and audit trail (who summarized what, when) are required before the 1-pager is marked ready.
 
-**CRS-39** Output — Pay to View details 1 / 2 / 3. *(Cube 9; session pricing / donations)* · **Planned** · Date added 2026-11-09
-- **CRS-39.01** Three purchasable (or unlockable) detail tiers labeled Detail 1, Detail 2, Detail 3 (map to existing depth ladder — e.g. 111 / 333 / Original+expert 1-pager — pending operator pricing decision).
+**CRS-39** Output — Pay to View details 1 / 2 / 3. *(Cube 9; session pricing / donations)* · **In progress** · Date added 2026-11-09
+- **CRS-39.01** Three purchasable (or unlockable) detail tiers labeled Detail 1, Detail 2, Detail 3 (map to existing depth ladder — 111 / 333 / Original+expert 1-pager). **In progress** 2026-11-09 — map shipped on view_entitlement; prices still use existing 999¢/1111¢ ladder.
 - **CRS-39.02** Gate unifies today's inconsistent free/paid locks (drawer tabs vs ranked-theme toggles vs export donation ladder) into one Pay-to-View map.
 - **CRS-39.03** No real charges in test/docs; live Stripe paths stay behind existing payment safety rules.
 
