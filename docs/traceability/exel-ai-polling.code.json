@@ -62,7 +62,7 @@
  "revisions": [
   {
    "rev": 1,
-   "commit": "93f60d40bd81c609d785b3f6e20d61a097cd2b35",
+   "commit": "d896d9ab1cb8fb0a87752fc1c11e89937dd1270b",
    "commitSource": "ledger-row",
    "status": "recorded",
    "areas": [
@@ -81,13 +81,13 @@
      "files": [
       {
        "path": "docs/traceability/exel-ai-polling.ledger.json",
-       "blob": "055b004fc670003725eb783b22b8c0db4820d074"
+       "blob": "50c4ccf7d861e9c058fa49188d8e3d356e975377"
       }
      ],
-     "add": 84,
+     "add": 14,
      "del": 0,
-     "bytes": 5098,
-     "lines": 94,
+     "bytes": 1889,
+     "lines": 24,
      "status": "recorded"
     }
    ]
