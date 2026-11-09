@@ -1552,6 +1552,10 @@ export async function handleMockRequest<T>(
   }
 
   const [rankPath, rankQuery] = path.split("?");
+  // CRS-22.04 / S4: the live snapshot and the moderator decision exist only on the live backend — refuse, never fake.
+  if (/^\/sessions\/[0-9a-f-]{36}\/rankings\/(live|decision)$/.test(rankPath)) {
+    return { __status: 501, detail: "Live ranking snapshot and final decision need the live backend." } as T;
+  }
   const rankMatch = rankPath.match(/^\/sessions\/([0-9a-f-]{36})\/rankings(\/progress|\/aggregate)?$/);
   if (rankMatch) {
     const sid = rankMatch[1];

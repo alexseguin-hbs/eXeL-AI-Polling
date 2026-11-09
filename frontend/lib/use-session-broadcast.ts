@@ -28,6 +28,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
  *   "theme_change"   — moderator changed session color scheme
  *   "ranking_progress" — participant submitted a ranking (Cube 7 CRS-17)
  *   "ranking_complete" — aggregation done + top theme picked (Cube 7)
+ *   "final_decision"   — moderator adopted a theme; group #1 + reason when it differs (CRS-22.04)
  */
 
 export interface SessionBroadcastPayload {
@@ -102,6 +103,25 @@ export interface RankingCompletePayload {
   category_rankings?: Record<string, CategoryRankingRow[]> | null;
 }
 
+/** CRS-22.04 — the moderator's adopted theme; when it differs from the group's #1, the #1 and the stated reason. */
+export interface FinalDecision {
+  final_theme_id: string;
+  final_theme_label?: string | null;
+  group_top_theme_id?: string | null;
+  group_top_theme_label?: string | null;
+  differs_from_group: boolean;
+  reason?: string | null;
+  decided_at?: string | null;
+}
+
+/** final_decision broadcast / GET /rankings/live — the live group ranking snapshot plus the decision. */
+export interface LiveRankingSnapshot extends RankingCompletePayload {
+  submissions?: number;
+  live?: boolean;
+  group_top?: { theme_id: string; label?: string | null; score: number; vote_count: number } | null;
+  decision?: FinalDecision | null;
+}
+
 export interface SessionBroadcastCallbacks {
   onStatusChange?: (payload: SessionBroadcastPayload) => void;
   onPresenceChange?: (count: number) => void;
@@ -111,6 +131,7 @@ export interface SessionBroadcastCallbacks {
   onThemeChange?: (payload: ThemeChangePayload) => void;
   onRankingProgress?: (payload: RankingProgressPayload) => void;
   onRankingComplete?: (payload: RankingCompletePayload) => void;
+  onFinalDecision?: (payload: LiveRankingSnapshot) => void;
 }
 
 /**
@@ -130,6 +151,7 @@ export function useSessionBroadcast(
   onThemeChange?: (payload: ThemeChangePayload) => void,
   onRankingProgress?: (payload: RankingProgressPayload) => void,
   onRankingComplete?: (payload: RankingCompletePayload) => void,
+  onFinalDecision?: (payload: LiveRankingSnapshot) => void,
 ) {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const [connected, setConnected] = useState(false);
@@ -152,6 +174,8 @@ export function useSessionBroadcast(
   onRankingProgressRef.current = onRankingProgress;
   const onRankingCompleteRef = useRef(onRankingComplete);
   onRankingCompleteRef.current = onRankingComplete;
+  const onFinalDecisionRef = useRef(onFinalDecision);
+  onFinalDecisionRef.current = onFinalDecision;
 
   useEffect(() => {
     if (!shortCode || !supabase) return;
@@ -193,6 +217,9 @@ export function useSessionBroadcast(
       })
       .on("broadcast", { event: "ranking_complete" }, ({ payload }) => {
         onRankingCompleteRef.current?.(payload as RankingCompletePayload);
+      })
+      .on("broadcast", { event: "final_decision" }, ({ payload }) => {
+        onFinalDecisionRef.current?.(payload as LiveRankingSnapshot);
       })
       .subscribe((status) => {
         setConnected(status === "SUBSCRIBED");

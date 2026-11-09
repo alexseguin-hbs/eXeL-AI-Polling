@@ -43,7 +43,7 @@ ok(/useSessionBallotThemes\(/.test(sv), "session-view loads the real ballot with
 ok(!/themes=\{simThemes\.length > 0 \? simThemes : SIM_THEMES\}/.test(sv), "the ranking UI no longer falls back to SIM_THEMES for a real session");
 ok(/simulationMode\s*\?\s*\(simThemes\.length > 0 \? simThemes : SIM_THEMES\)\s*:\s*\(liveBallot\.themes \?\? \[\]\)/.test(sv), "SIM_THEMES only in simulation mode");
 const drv = readFileSync(new URL("../lib/sim-console-driver.ts", import.meta.url), "utf8");
-ok(/ballotThemeRows\(rows, "9", "risk"\)/.test(drv), "the Admin Console driver builds its ballot with the same rule");
+ok(/ballotThemeRows\(rows, ballotLevel, theme01Category\)/.test(drv), "the Admin Console driver builds its ballot with the same rule");
 
 // Round 3 (Odin + Enki): a failed or empty load is never an empty ballot; it retries with backoff and jitter.
 const bt = readFileSync(new URL("../lib/ballot-themes.ts", import.meta.url), "utf8");

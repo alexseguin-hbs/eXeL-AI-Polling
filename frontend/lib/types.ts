@@ -39,6 +39,13 @@ export interface Session {
   max_cycles: number;
   current_cycle: number;
   ranking_mode: RankingMode;
+  /** Ballot scoring (CRS-37.01): borda_count = rank every theme (default); top3_points = top 3 per category, 3/2/1. */
+  ranking_method?: "borda_count" | "top3_points" | null;
+  /** CRS-22.04 moderator decision (see components/final-decision.tsx). */
+  final_theme_id?: string | null;
+  final_group_top_theme_id?: string | null;
+  final_decision_reason?: string | null;
+  final_decided_at?: string | null;
   language: string;
   max_response_length: number;
   ai_provider: AIProvider;

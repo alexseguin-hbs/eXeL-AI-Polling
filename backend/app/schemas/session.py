@@ -132,6 +132,10 @@ class SessionRead(BaseModel):
     theme2_voting_level: str = "theme2_9"
     theme01_category: str | None = None
     ranking_method: str | None = None
+    final_theme_id: uuid.UUID | None = None
+    final_group_top_theme_id: uuid.UUID | None = None
+    final_decision_reason: str | None = None
+    final_decided_at: datetime | None = None
     # Live feed
     live_feed_enabled: bool = False
     # Static poll countdown
