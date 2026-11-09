@@ -1,0 +1,29 @@
+{
+  "prod_VavRfQV5WrXfet": {
+    "name": "eXeL AI Polling \u2014 Moderator Paid poll",
+    "default_price": "price_1UZjarAiPbve9Sotk8khk9SF",
+    "desc": "Price = tracked AI/STT cost x margin, minimum $11.11"
+  },
+  "prod_VavRP8VVmVPxhe": {
+    "name": "eXeL AI Polling \u2014 Cost Split poll (moderator 50%)",
+    "default_price": "price_1UZjatAiPbve9Sot1W0ywXpM",
+    "desc": "creator pays 50%"
+  },
+  "prod_VavRscDoQJfvGJ": {
+    "name": "eXeL AI Polling \u2014 Cost Split poll (participant share)",
+    "default_price": "price_1UZjawAiPbve9SotM2vNE37H",
+    "desc": "50%/N"
+  },
+  "prod_VavR1Xy18Cyu43": {
+    "name": "The Divinity Guide \u2014 Donation",
+    "default_price": "price_1UZjalAiPbve9Sotyu8nGrt9"
+  },
+  "prod_VavRWTGbsPbrLx": {
+    "name": "DeRisking Strategies \u2014 Donation",
+    "default_price": "price_1UZjanAiPbve9SotbtIZfqV2"
+  },
+  "prod_VavRF4QMRRsden": {
+    "name": "eXeL AI Polling \u2014 Community Contribution",
+    "default_price": "price_1UZjapAiPbve9Sot6CHQ4mWC"
+  }
+}

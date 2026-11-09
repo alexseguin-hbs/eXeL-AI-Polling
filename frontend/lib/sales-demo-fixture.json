@@ -1,0 +1,748 @@
+{
+  "meta": {
+    "label": "SIMULATED",
+    "demo": true,
+    "source": "owner benchmark CSV 60 short responses",
+    "question": "What are your thoughts on AI, both good and bad?",
+    "response_count": 60,
+    "classifier": "SIMULATED keyword rules (not live AI). Confidence <65% \u2192 Neutral Comments.",
+    "theme02_note": "Theme labels derived from SIMULATED keyword clusters of the same 60 responses. Not a claim of live Theme02 latency.",
+    "isolation": "Static fixture. No live session, votes, or Stripe. Cannot contaminate real polls.",
+    "csv_sha256": "2fa0f84e47455486fb024568ff1954330726925a54f18b76c01d2f0b396835fc",
+    "generated_at": "2026-11-09T15:45:00-05:00",
+    "measured_theme02_evidence": {
+      "live_api_w3_ms": 24624,
+      "evidence": "/workspace/fleet/voting-live/theme02-latency-w3-20261109.md",
+      "fast_pipeline_n60_time_to_final_themes_ms_best": 8313,
+      "fast_pipeline_evidence": "/workspace/fleet/xai-speed/evidence/bench-fast-n60-153342.json",
+      "target_ms": 3000,
+      "status": "NOT YET under 3s \u2014 planned (xAI worker)"
+    }
+  },
+  "bins": {
+    "Supporting Comments": 19,
+    "Risk & Concerns": 19,
+    "Neutral Comments": 22
+  },
+  "themes": {
+    "Supporting Comments": {
+      "theme2_9": [
+        "Automation Benefits",
+        "General Benefits",
+        "Personalized Experiences",
+        "Healthcare Advances",
+        "Accessibility Gains",
+        "Creative Enablement",
+        "Education & Learning",
+        "Efficiency & Productivity",
+        "Scientific Discovery"
+      ],
+      "theme2_6": [
+        "Automation Benefits",
+        "General Benefits",
+        "Personalized Experiences",
+        "Healthcare Advances",
+        "Accessibility Gains",
+        "Creative Enablement"
+      ],
+      "theme2_3": [
+        "Automation Benefits",
+        "General Benefits",
+        "Personalized Experiences"
+      ],
+      "counts": {
+        "Automation Benefits": 4,
+        "General Benefits": 4,
+        "Personalized Experiences": 3,
+        "Healthcare Advances": 2,
+        "Accessibility Gains": 1,
+        "Creative Enablement": 1,
+        "Education & Learning": 1,
+        "Efficiency & Productivity": 1,
+        "Scientific Discovery": 1,
+        "Sustainability Gains": 1
+      }
+    },
+    "Risk & Concerns": {
+      "theme2_9": [
+        "Bias & Fairness Risks",
+        "Loss of Human Control",
+        "Job Displacement",
+        "Privacy & Surveillance",
+        "Security & Fraud Threats",
+        "Accountability Gaps",
+        "Critical Thinking Erosion",
+        "Ethical Decision Risks",
+        "Inequality Amplification"
+      ],
+      "theme2_6": [
+        "Bias & Fairness Risks",
+        "Loss of Human Control",
+        "Job Displacement",
+        "Privacy & Surveillance",
+        "Security & Fraud Threats",
+        "Accountability Gaps"
+      ],
+      "theme2_3": [
+        "Bias & Fairness Risks",
+        "Loss of Human Control",
+        "Job Displacement"
+      ],
+      "counts": {
+        "Bias & Fairness Risks": 4,
+        "Loss of Human Control": 3,
+        "Job Displacement": 2,
+        "Privacy & Surveillance": 2,
+        "Security & Fraud Threats": 2,
+        "Accountability Gaps": 1,
+        "Critical Thinking Erosion": 1,
+        "Ethical Decision Risks": 1,
+        "Inequality Amplification": 1,
+        "Misinformation Risks": 1,
+        "Weaponization Risks": 1
+      }
+    },
+    "Neutral Comments": {
+      "theme2_9": [
+        "Mixed Observations",
+        "Dual Nature of AI",
+        "Human-AI Partnership",
+        "Regulation Needed"
+      ],
+      "theme2_6": [
+        "Mixed Observations",
+        "Dual Nature of AI",
+        "Human-AI Partnership",
+        "Regulation Needed"
+      ],
+      "theme2_3": [
+        "Mixed Observations",
+        "Dual Nature of AI",
+        "Human-AI Partnership"
+      ],
+      "counts": {
+        "Mixed Observations": 16,
+        "Dual Nature of AI": 4,
+        "Human-AI Partnership": 1,
+        "Regulation Needed": 1
+      }
+    }
+  },
+  "ranking": {
+    "is_final": true,
+    "participant_count": 60,
+    "category_rankings": {
+      "support": [
+        {
+          "theme_id": "sim-4623fb98ddaa",
+          "label": "Automation Benefits",
+          "rank": 1,
+          "score": 4.0,
+          "vote_count": 4
+        },
+        {
+          "theme_id": "sim-1444b6d84874",
+          "label": "General Benefits",
+          "rank": 2,
+          "score": 4.0,
+          "vote_count": 4
+        },
+        {
+          "theme_id": "sim-cf82b8b486c8",
+          "label": "Personalized Experiences",
+          "rank": 3,
+          "score": 3.0,
+          "vote_count": 3
+        }
+      ],
+      "risk": [
+        {
+          "theme_id": "sim-357df46128e7",
+          "label": "Bias & Fairness Risks",
+          "rank": 1,
+          "score": 4.0,
+          "vote_count": 4
+        },
+        {
+          "theme_id": "sim-e114597713c5",
+          "label": "Loss of Human Control",
+          "rank": 2,
+          "score": 3.0,
+          "vote_count": 3
+        },
+        {
+          "theme_id": "sim-2bec3a0a394e",
+          "label": "Job Displacement",
+          "rank": 3,
+          "score": 2.0,
+          "vote_count": 2
+        }
+      ],
+      "neutral": [
+        {
+          "theme_id": "sim-a69a7ff316c9",
+          "label": "Mixed Observations",
+          "rank": 1,
+          "score": 16.0,
+          "vote_count": 16
+        },
+        {
+          "theme_id": "sim-d09aa28927ee",
+          "label": "Dual Nature of AI",
+          "rank": 2,
+          "score": 4.0,
+          "vote_count": 4
+        },
+        {
+          "theme_id": "sim-1c7aa35f3a07",
+          "label": "Human-AI Partnership",
+          "rank": 3,
+          "score": 1.0,
+          "vote_count": 1
+        }
+      ]
+    }
+  },
+  "responses": [
+    {
+      "id": "sim-r-001",
+      "user": "User_001",
+      "text": "AI can perpetuate existing biases- making decisions that favor certain groups over others.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Bias & Fairness Risks",
+      "summary_33": "AI can perpetuate existing biases- making decisions that favor certain groups over others."
+    },
+    {
+      "id": "sim-r-002",
+      "user": "User_002",
+      "text": "Over-reliance on AI may reduce human critical thinking and problem-solving abilities.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Critical Thinking Erosion",
+      "summary_33": "Over-reliance on AI may reduce human critical thinking and problem-solving abilities."
+    },
+    {
+      "id": "sim-r-003",
+      "user": "User_003",
+      "text": "AI could replace jobs- leading to unemployment and economic disparity.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.85,
+      "theme02_label": "Job Displacement",
+      "summary_33": "AI could replace jobs- leading to unemployment and economic disparity."
+    },
+    {
+      "id": "sim-r-004",
+      "user": "User_004",
+      "text": "The ethics of AI decision-making remain questionable- especially in healthcare and criminal justice.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Dual Nature of AI",
+      "summary_33": "The ethics of AI decision-making remain questionable- especially in healthcare and criminal justice."
+    },
+    {
+      "id": "sim-r-005",
+      "user": "User_005",
+      "text": "AIs decision-making process is often opaque- leading to a -black box- phenomenon.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "AIs decision-making process is often opaque- leading to a -black box- phenomenon."
+    },
+    {
+      "id": "sim-r-006",
+      "user": "User_006",
+      "text": "Without proper regulations- AI might be used in harmful ways by malicious actors.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Regulation Needed",
+      "summary_33": "Without proper regulations- AI might be used in harmful ways by malicious actors."
+    },
+    {
+      "id": "sim-r-007",
+      "user": "User_007",
+      "text": "AI technologies can be prone to errors- especially when interpreting complex data.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "AI technologies can be prone to errors- especially when interpreting complex data."
+    },
+    {
+      "id": "sim-r-008",
+      "user": "User_008",
+      "text": "There's a potential for AI to be used in surveillance- infringing on privacy rights.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Privacy & Surveillance",
+      "summary_33": "There's a potential for AI to be used in surveillance- infringing on privacy rights."
+    },
+    {
+      "id": "sim-r-009",
+      "user": "User_009",
+      "text": "Autonomous AI weapons could make warfare even more unpredictable and deadly.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Weaponization Risks",
+      "summary_33": "Autonomous AI weapons could make warfare even more unpredictable and deadly."
+    },
+    {
+      "id": "sim-r-010",
+      "user": "User_010",
+      "text": "AI may reinforce societal stereotypes if trained on biased data.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Bias & Fairness Risks",
+      "summary_33": "AI may reinforce societal stereotypes if trained on biased data."
+    },
+    {
+      "id": "sim-r-011",
+      "user": "User_011",
+      "text": "Deepfake technologies can manipulate media- potentially spreading misinformation.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Misinformation Risks",
+      "summary_33": "Deepfake technologies can manipulate media- potentially spreading misinformation."
+    },
+    {
+      "id": "sim-r-012",
+      "user": "User_012",
+      "text": "AI can be expensive to implement and maintain- potentially widening the technological divide.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "AI can be expensive to implement and maintain- potentially widening the technological divide."
+    },
+    {
+      "id": "sim-r-013",
+      "user": "User_013",
+      "text": "Without proper safeguards- AI can be hacked and misused.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "Without proper safeguards- AI can be hacked and misused."
+    },
+    {
+      "id": "sim-r-014",
+      "user": "User_014",
+      "text": "AIs rapid advancement might outpace our ability to establish ethical guidelines.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Ethical Decision Risks",
+      "summary_33": "AIs rapid advancement might outpace our ability to establish ethical guidelines."
+    },
+    {
+      "id": "sim-r-015",
+      "user": "User_015",
+      "text": "The potential misuse of AI in predictive policing can target innocent individuals.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "The potential misuse of AI in predictive policing can target innocent individuals."
+    },
+    {
+      "id": "sim-r-016",
+      "user": "User_016",
+      "text": "Over-automation might lead to a loss of essential human skills.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Automation Benefits",
+      "summary_33": "Over-automation might lead to a loss of essential human skills."
+    },
+    {
+      "id": "sim-r-017",
+      "user": "User_017",
+      "text": "AI might develop unintended behaviors if not properly trained or controlled.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Loss of Human Control",
+      "summary_33": "AI might develop unintended behaviors if not properly trained or controlled."
+    },
+    {
+      "id": "sim-r-018",
+      "user": "User_018",
+      "text": "There's a risk of AI monopolies- with a few companies controlling AIs future.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Loss of Human Control",
+      "summary_33": "There's a risk of AI monopolies- with a few companies controlling AIs future."
+    },
+    {
+      "id": "sim-r-019",
+      "user": "User_019",
+      "text": "AI systems can become overly complex- making them hard to manage or correct.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "AI systems can become overly complex- making them hard to manage or correct."
+    },
+    {
+      "id": "sim-r-020",
+      "user": "User_020",
+      "text": "Emotional AI might lead to manipulative technologies- affecting user decisions.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "Emotional AI might lead to manipulative technologies- affecting user decisions."
+    },
+    {
+      "id": "sim-r-021",
+      "user": "User_021",
+      "text": "AI can be used to spread propaganda or biased news at scale.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Bias & Fairness Risks",
+      "summary_33": "AI can be used to spread propaganda or biased news at scale."
+    },
+    {
+      "id": "sim-r-022",
+      "user": "User_022",
+      "text": "The environmental impact of training large AI models is a growing concern.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Dual Nature of AI",
+      "summary_33": "The environmental impact of training large AI models is a growing concern."
+    },
+    {
+      "id": "sim-r-023",
+      "user": "User_023",
+      "text": "AI might be used to impersonate individuals- leading to fraud.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Security & Fraud Threats",
+      "summary_33": "AI might be used to impersonate individuals- leading to fraud."
+    },
+    {
+      "id": "sim-r-024",
+      "user": "User_024",
+      "text": "Data privacy concerns arise when AI analyzes vast amounts of personal information.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Privacy & Surveillance",
+      "summary_33": "Data privacy concerns arise when AI analyzes vast amounts of personal information."
+    },
+    {
+      "id": "sim-r-025",
+      "user": "User_025",
+      "text": "Without human oversight- AI decisions might lack empathy or moral reasoning.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Accountability Gaps",
+      "summary_33": "Without human oversight- AI decisions might lack empathy or moral reasoning."
+    },
+    {
+      "id": "sim-r-026",
+      "user": "User_026",
+      "text": "AI can magnify existing social inequalities if not developed inclusively.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Inequality Amplification",
+      "summary_33": "AI can magnify existing social inequalities if not developed inclusively."
+    },
+    {
+      "id": "sim-r-027",
+      "user": "User_027",
+      "text": "The fast pace of AI development might lead to unforeseen societal impacts.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "The fast pace of AI development might lead to unforeseen societal impacts."
+    },
+    {
+      "id": "sim-r-028",
+      "user": "User_028",
+      "text": "AIs potential to become too autonomous raises concerns about human control.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Loss of Human Control",
+      "summary_33": "AIs potential to become too autonomous raises concerns about human control."
+    },
+    {
+      "id": "sim-r-029",
+      "user": "User_029",
+      "text": "AI in healthcare might make incorrect diagnoses- impacting patient treatment.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Healthcare Advances",
+      "summary_33": "AI in healthcare might make incorrect diagnoses- impacting patient treatment."
+    },
+    {
+      "id": "sim-r-030",
+      "user": "User_030",
+      "text": "There's a risk that AIs recommendations might be biased towards commercial interests.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Bias & Fairness Risks",
+      "summary_33": "There's a risk that AIs recommendations might be biased towards commercial interests."
+    },
+    {
+      "id": "sim-r-031",
+      "user": "User_031",
+      "text": "Efficiency: AI automates repetitive tasks- increasing productivity- reducing errors- and allowing faster decision-making.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.8,
+      "theme02_label": "Efficiency & Productivity",
+      "summary_33": "Efficiency: AI automates repetitive tasks- increasing productivity- reducing errors- and allowing faster decision-making."
+    },
+    {
+      "id": "sim-r-032",
+      "user": "User_032",
+      "text": "Data Analysis: AI can process vast amounts of data- uncovering patterns and insights beyond human capabilities.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Human-AI Partnership",
+      "summary_33": "Data Analysis: AI can process vast amounts of data- uncovering patterns and insights beyond human capabilities."
+    },
+    {
+      "id": "sim-r-033",
+      "user": "User_033",
+      "text": "Personalization: AI customizes user experiences- tailoring services and content to individual preferences.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Personalized Experiences",
+      "summary_33": "Personalization: AI customizes user experiences- tailoring services and content to individual preferences."
+    },
+    {
+      "id": "sim-r-034",
+      "user": "User_034",
+      "text": "Medical Advancements: AI aids in diagnosis- drug discovery- and personalized treatment plans- enhancing healthcare outcomes.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.9,
+      "theme02_label": "Healthcare Advances",
+      "summary_33": "Medical Advancements: AI aids in diagnosis- drug discovery- and personalized treatment plans- enhancing healthcare outcomes."
+    },
+    {
+      "id": "sim-r-035",
+      "user": "User_035",
+      "text": "Safety: AI-driven surveillance and anomaly detection enhance security in public spaces and digital platforms.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Dual Nature of AI",
+      "summary_33": "Safety: AI-driven surveillance and anomaly detection enhance security in public spaces and digital platforms."
+    },
+    {
+      "id": "sim-r-036",
+      "user": "User_036",
+      "text": "Accessibility: AI tools help differently-abled individuals- enabling voice-to-text solutions and visual recognition for the blind.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Accessibility Gains",
+      "summary_33": "Accessibility: AI tools help differently-abled individuals- enabling voice-to-text solutions and visual recognition for the blind."
+    },
+    {
+      "id": "sim-r-037",
+      "user": "User_037",
+      "text": "Economic Growth: AI generates new job categories- boosting industries and contributing to economic expansion.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Job Displacement",
+      "summary_33": "Economic Growth: AI generates new job categories- boosting industries and contributing to economic expansion."
+    },
+    {
+      "id": "sim-r-038",
+      "user": "User_038",
+      "text": "Environment: AI optimizes energy usage- predicts environmental threats- and aids in conservation efforts.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Dual Nature of AI",
+      "summary_33": "Environment: AI optimizes energy usage- predicts environmental threats- and aids in conservation efforts."
+    },
+    {
+      "id": "sim-r-039",
+      "user": "User_039",
+      "text": "Transportation: AI powers autonomous vehicles- ensuring safer roads and efficient traffic management.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "Transportation: AI powers autonomous vehicles- ensuring safer roads and efficient traffic management."
+    },
+    {
+      "id": "sim-r-040",
+      "user": "User_040",
+      "text": "Learning: AI personalizes education- helping students learn at their own pace and optimizing curriculum delivery.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.85,
+      "theme02_label": "Education & Learning",
+      "summary_33": "Learning: AI personalizes education- helping students learn at their own pace and optimizing curriculum delivery."
+    },
+    {
+      "id": "sim-r-041",
+      "user": "User_041",
+      "text": "Agriculture: AI predicts crop yields- automates farming tasks- and monitors soil health- revolutionizing agriculture.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Automation Benefits",
+      "summary_33": "Agriculture: AI predicts crop yields- automates farming tasks- and monitors soil health- revolutionizing agriculture."
+    },
+    {
+      "id": "sim-r-042",
+      "user": "User_042",
+      "text": "Communication: AI-driven translators break language barriers- fostering global collaboration and understanding.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "Communication: AI-driven translators break language barriers- fostering global collaboration and understanding."
+    },
+    {
+      "id": "sim-r-043",
+      "user": "User_043",
+      "text": "Entertainment: AI recommends content- enhances graphics- and creates music- revolutionizing entertainment industries.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "General Benefits",
+      "summary_33": "Entertainment: AI recommends content- enhances graphics- and creates music- revolutionizing entertainment industries."
+    },
+    {
+      "id": "sim-r-044",
+      "user": "User_044",
+      "text": "Financial Services: AI detects fraud- manages risks- and personalizes banking for better financial management.",
+      "theme01": "Risk & Concerns",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Security & Fraud Threats",
+      "summary_33": "Financial Services: AI detects fraud- manages risks- and personalizes banking for better financial management."
+    },
+    {
+      "id": "sim-r-045",
+      "user": "User_045",
+      "text": "Research: AI accelerates scientific discoveries by processing complex datasets and simulating experiments.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Scientific Discovery",
+      "summary_33": "Research: AI accelerates scientific discoveries by processing complex datasets and simulating experiments."
+    },
+    {
+      "id": "sim-r-046",
+      "user": "User_046",
+      "text": "Resource Management: AI optimizes supply chain- inventory- and energy utilization- reducing waste.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "Resource Management: AI optimizes supply chain- inventory- and energy utilization- reducing waste."
+    },
+    {
+      "id": "sim-r-047",
+      "user": "User_047",
+      "text": "E-commerce: AI enhances user experience- predicting preferences- and streamlining shopping processes.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "General Benefits",
+      "summary_33": "E-commerce: AI enhances user experience- predicting preferences- and streamlining shopping processes."
+    },
+    {
+      "id": "sim-r-048",
+      "user": "User_048",
+      "text": "Manufacturing: AI-driven robots increase precision- reduce defects- and automate assembly lines.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Automation Benefits",
+      "summary_33": "Manufacturing: AI-driven robots increase precision- reduce defects- and automate assembly lines."
+    },
+    {
+      "id": "sim-r-049",
+      "user": "User_049",
+      "text": "Disaster Response: AI predicts natural disasters- optimizing emergency response and resource allocation.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "Disaster Response: AI predicts natural disasters- optimizing emergency response and resource allocation."
+    },
+    {
+      "id": "sim-r-050",
+      "user": "User_050",
+      "text": "Customer Service: AI-driven chatbots provide 24/7 support- resolving queries promptly.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "Customer Service: AI-driven chatbots provide 24/7 support- resolving queries promptly."
+    },
+    {
+      "id": "sim-r-051",
+      "user": "User_051",
+      "text": "Social Media: AI filters harmful content- recommends posts- and enhances user engagement online.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "General Benefits",
+      "summary_33": "Social Media: AI filters harmful content- recommends posts- and enhances user engagement online."
+    },
+    {
+      "id": "sim-r-052",
+      "user": "User_052",
+      "text": "Space Exploration: AI aids in satellite data interpretation and autonomous space mission operations.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "Space Exploration: AI aids in satellite data interpretation and autonomous space mission operations."
+    },
+    {
+      "id": "sim-r-053",
+      "user": "User_053",
+      "text": "Gaming: AI creates challenging opponents- develops realistic environments- and enhances gameplay experiences.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Sustainability Gains",
+      "summary_33": "Gaming: AI creates challenging opponents- develops realistic environments- and enhances gameplay experiences."
+    },
+    {
+      "id": "sim-r-054",
+      "user": "User_054",
+      "text": "Home Automation: AI-driven smart homes optimize energy- enhance security- and provide personalized experiences.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.8,
+      "theme02_label": "Automation Benefits",
+      "summary_33": "Home Automation: AI-driven smart homes optimize energy- enhance security- and provide personalized experiences."
+    },
+    {
+      "id": "sim-r-055",
+      "user": "User_055",
+      "text": "Travel: AI suggests personalized travel plans- predicts prices- and enhances booking experiences.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Personalized Experiences",
+      "summary_33": "Travel: AI suggests personalized travel plans- predicts prices- and enhances booking experiences."
+    },
+    {
+      "id": "sim-r-056",
+      "user": "User_056",
+      "text": "Shopping: AI-driven virtual try-ons- personalized suggestions- and price predictions enhance online shopping.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.75,
+      "theme02_label": "Personalized Experiences",
+      "summary_33": "Shopping: AI-driven virtual try-ons- personalized suggestions- and price predictions enhance online shopping."
+    },
+    {
+      "id": "sim-r-057",
+      "user": "User_057",
+      "text": "Weather Forecasting: AI predicts weather with higher accuracy- benefiting agriculture- travel- and daily activities.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "General Benefits",
+      "summary_33": "Weather Forecasting: AI predicts weather with higher accuracy- benefiting agriculture- travel- and daily activities."
+    },
+    {
+      "id": "sim-r-058",
+      "user": "User_058",
+      "text": "Art: AI creates artworks- music compositions- and assists artists in creative processes.",
+      "theme01": "Supporting Comments",
+      "theme01_confidence": 0.7,
+      "theme02_label": "Creative Enablement",
+      "summary_33": "Art: AI creates artworks- music compositions- and assists artists in creative processes."
+    },
+    {
+      "id": "sim-r-059",
+      "user": "User_059",
+      "text": "Maintenance: AI predicts machinery wear and tear- scheduling timely maintenance and preventing breakdowns.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "Maintenance: AI predicts machinery wear and tear- scheduling timely maintenance and preventing breakdowns."
+    },
+    {
+      "id": "sim-r-060",
+      "user": "User_060",
+      "text": "Real Estate: AI predicts property values- recommends listings- and virtual tours- revolutionizing property buying.",
+      "theme01": "Neutral Comments",
+      "theme01_confidence": 0.65,
+      "theme02_label": "Mixed Observations",
+      "summary_33": "Real Estate: AI predicts property values- recommends listings- and virtual tours- revolutionizing property buying."
+    }
+  ]
+}

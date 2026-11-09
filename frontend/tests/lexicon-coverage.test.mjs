@@ -66,6 +66,9 @@ const AFTER_FILL = new Set([
   'polling.rcore.history_hint',
   'rcore.commit_link',
 
+  // Sales public demo /demo (2026-11-09): ENGLISH ONLY — staged; ×32 fill owed.
+  ...['banner','title','question_label','responses_label','theme01_title','theme02_title','level9','level6','level3','ranking_title','responses_title','show_all','show_less','isolation_note','pricing_link','cta_dashboard','cta_brief','classifier_note','latency_note'].map((k) => `sales.demo.${k}`),
+
   'arch.design.tapToAddToHouse',
   // Architect-2525 first-person walkthrough controls (operator 2026-11-06): MOVE/LOOK stick labels, the look hint, the
   // caption. ENGLISH ONLY — staged until the Architect UI/UX is final; no fill dispatched.

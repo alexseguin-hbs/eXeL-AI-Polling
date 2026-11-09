@@ -582,27 +582,29 @@ export function PricingTierSelector({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quote, value]);
   const minFee = value === "moderator_paid" && quote ? Math.max(quote.creator_due_cents, MODERATOR_MIN_FEE_CENTS) : MODERATOR_MIN_FEE_CENTS;
+  // Tier card copy via t() — lexicon keys cube8.pricing.* (filled ×33). Prices are labels only;
+  // the live amount comes from POST /payments/poll-quote (cost × PRICING_MARGIN_MULTIPLIER 1.5 + fee, floor $11.11).
   const tiers = [
     {
       id: "free" as const,
-      name: "Free",
+      name: t("cube8.pricing.free"),
       price: "$0",
-      desc: "Up to 19 participants",
-      detail: "Donation prompt after results",
+      desc: t("cube8.pricing.free_desc"),
+      detail: t("cube8.pricing.free_detail"),
     },
     {
       id: "moderator_paid" as const,
-      name: "Moderator Paid",
+      name: t("cube8.pricing.moderator_paid"),
       price: "$11.11+",
-      desc: "Unlimited participants",
-      detail: "You pay upfront, participants join free",
+      desc: t("cube8.pricing.unlimited_desc"),
+      detail: t("cube8.pricing.moderator_detail"),
     },
     {
       id: "cost_split" as const,
-      name: "Cost Split",
+      name: t("cube8.pricing.cost_split"),
       price: "50/50",
-      desc: "Unlimited participants",
-      detail: "50% you + 50% split among users",
+      desc: t("cube8.pricing.unlimited_desc"),
+      detail: t("cube8.pricing.cost_split_detail"),
     },
   ];
 
@@ -658,7 +660,7 @@ export function PricingTierSelector({
 
       {value === "moderator_paid" && (
         <div className="flex items-center gap-2 mt-2">
-          <label className="text-sm text-muted-foreground">Amount: $</label>
+          <label className="text-sm text-muted-foreground">{t("cube8.pricing.amount_label")}</label>
           <input
             type="number"
             min={minFee / 100}
