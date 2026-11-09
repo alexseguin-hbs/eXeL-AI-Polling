@@ -28,7 +28,11 @@
 
 -- 1 · org-cutover columns (nullable — existing bearer rows stay reachable)
 ALTER TABLE public.architect_saved_files
-  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL;
+  ADD COLUMN IF NOT EXISTS user_id UUID;
+-- No FK to auth.users yet: Auth0≠Supabase JWT today, so claim stamps use auth.uid()
+-- values that may not exist in auth.users until the bridge lands. Claim logic does not
+-- need the FK; add REFERENCES auth.users(id) ON DELETE SET NULL in a follow-up when
+-- real Supabase users exist (preserves capability + sim-testability).
 ALTER TABLE public.architect_saved_files
   ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
