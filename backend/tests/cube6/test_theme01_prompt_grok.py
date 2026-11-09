@@ -20,3 +20,14 @@ def test_example_reply_parses_to_risk():
 def test_literal_placeholder_reply_is_not_binned_confidently():
     m = pb._CLASSIFY_PATTERN.match("THEME (Confidence: 40%)")
     assert m and pb._normalize_theme01(m.group(1)) is None
+
+
+def test_batch_classify_asks_for_independent_judgement_with_code_meanings():
+    from app.cubes.cube6_ai import theme_fast as tf
+
+    ins = tf._BATCH_CLASSIFY_INSTRUCTION
+    assert "independently" in ins
+    for cat, code in (("Supporting Comments", "S"), ("Risk & Concerns", "R"), ("Neutral Comments", "N")):
+        assert f"'{cat}' (code {code}:" in ins
+    assert tf._parse_batch("1|S|87\n2|R|90\n3|N|70", 3) == [
+        ("Supporting Comments", 87), ("Risk & Concerns", 90), ("Neutral Comments", 70)]
