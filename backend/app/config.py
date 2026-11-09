@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     ai_call_timeout_s: float = 20.0
     ai_hedge_after_s: float = 2.5  # until 5 samples exist for a call kind; then 1.1 × observed p95 (min 1 s)
     ai_vendor_max_inflight: int = 48
+    ai_race_when_idle: bool = True  # t186u: spare capacity → send to the 2 fastest vendors, first reply wins
     ai_vendor_mode: str = "speed_rr"  # t186u: no vendor preference — speed-weighted round-robin over ALL keyed vendors
     theme_fast_path: bool = True  # CRS-09.08.01: batched Theme01 + streamed samples + tree reduce + cosine assign
 
