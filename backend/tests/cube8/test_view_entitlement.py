@@ -7,7 +7,7 @@ stripe.*.create is patched; nothing is charged.
 import json
 import uuid
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -403,3 +403,25 @@ async def test_get_themes_withholds_theme_333_until_paid(db, api):
         assert (await c.get(f"/api/v1/sessions/{s.id}/themes")).json()[0]["summary_333"] == "T333"
         who["user"] = ALICE  # the creator paid; participants keep their own ladder
         assert (await c.get(f"/api/v1/sessions/{s.id}/themes")).json()[0]["summary_333"] is None
+
+
+async def test_collected_withholds_333_until_creator_paid(db):
+    """CRS-39.02: owner /collected (Web_Results) carries summary_333 only after confirmed creator payment."""
+    from app.cubes.cube4_collector import router as col
+
+    s, _, _ = await _poll(db, "moderator_paid")
+
+    async def fake_collected(*a, **k):
+        return {"items": [{"detailed_results": "raw", "summary_111": "b", "summary_333": "c"}], "total": 1}
+
+    async def call():
+        return await col.list_collected_responses(s.id, include_summaries=True, include_themes=False, page=1,
+                                                  page_size=100, db=db, user=CREATOR)
+
+    with patch.object(col, "get_collected_responses", new=fake_collected), \
+         patch.object(col, "validate_session_exists", new=AsyncMock()):
+        item = (await call())["items"][0]
+        assert item["summary_333"] is None and item["summary_111"] == "b" and item["detailed_results"] == "raw"
+        db.add(_tx(s, 1111, ttype="moderator_fee"))
+        await db.commit()
+        assert (await call())["items"][0]["summary_333"] == "c"
