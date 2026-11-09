@@ -8,7 +8,7 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { api } from "@/lib/api";
+import { api, IS_MOCK_MODE } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { startDonation } from "@/lib/donate";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -629,6 +629,11 @@ export function PricingTierSelector({
         ))}
       </div>
 
+      {value !== "free" && IS_MOCK_MODE && (
+        <p className="rounded-md border border-destructive/50 p-3 text-xs text-destructive" data-testid="paid-needs-live-backend">
+          {t("cube8.payment.live_backend_required")}
+        </p>
+      )}
       {value !== "free" && quoteParams && (
         <div className="rounded-md border border-input bg-muted/30 p-3 text-xs space-y-1" data-testid="poll-quote">
           {quoteState === "loading" && <p className="text-muted-foreground">{t("cube8.pricing.quote_loading")}</p>}
