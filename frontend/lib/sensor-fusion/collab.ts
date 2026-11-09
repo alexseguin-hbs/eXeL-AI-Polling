@@ -7,18 +7,33 @@
 import { pngSet, pictureStem } from "./frames";
 import { sameMember, type WorkClock, type WorkBox, emptyClock } from "./workflow";
 
+/** Lexicon keys for newly introduced collab UI notes. English lives in lexicon-data; ×32 fill is AFTER_FILL / unverified. */
+export const SF_NOTE_KEYS = {
+  authRequired: "sf.collab.auth_required",
+  reviewerNeedsLabeler: "sf.collab.reviewer_needs_labeler",
+  reviewerNeedsName: "sf.collab.reviewer_needs_name",
+  reviewerMustDiffer: "sf.collab.reviewer_must_differ",
+  progressNotConnected: "sf.collab.progress_not_connected",
+  progressSaveFailed: "sf.collab.progress_save_failed",
+  settingsSaveFailed: "sf.collab.settings_save_failed",
+  pairNameMismatch: "sf.collab.pair_name_mismatch",
+  syncWaitingTables: "sf.collab.sync_waiting_tables",
+  jsonNeedsPictures: "sf.collab.json_needs_pictures",
+  jsonNeedsLevel1: "sf.collab.json_needs_level1",
+  jsonNeedsLevel2: "sf.collab.json_needs_level2",
+} as const;
+
+export type SfNoteKey = (typeof SF_NOTE_KEYS)[keyof typeof SF_NOTE_KEYS];
+
 export type AuthGate =
   | { ok: true; owner: string }
-  | { ok: false; note: string };
+  | { ok: false; noteKey: SfNoteKey };
 
 /** Fail honestly when the signed-in Supabase member session is missing. */
 export function requireMemberSession(session: { user?: { id?: string | null } | null } | null | undefined): AuthGate {
   const owner = session?.user?.id?.trim() || "";
   if (!owner) {
-    return {
-      ok: false,
-      note: "Sign in as a member of the sensor-fusion project. Local device copies stayed on this device; nothing was marked saved to the team project.",
-    };
+    return { ok: false, noteKey: SF_NOTE_KEYS.authRequired };
   }
   return { ok: true, owner };
 }
@@ -65,13 +80,13 @@ export function pairsMatch(pngName: string, xmlName: string): boolean {
 /** Independent Level-2 reviewer: never the same person as the Level-1 labeler. */
 export function authorizeReviewer(labeler: string | undefined, reviewer: string | undefined):
   | { ok: true }
-  | { ok: false; note: string } {
+  | { ok: false; noteKey: SfNoteKey } {
   const by = (labeler || "").trim();
   const who = (reviewer || "").trim();
-  if (!by) return { ok: false, note: "Level 1 must name who labeled the box before Level 2." };
-  if (!who) return { ok: false, note: "Level 2 must name a different reviewer." };
+  if (!by) return { ok: false, noteKey: SF_NOTE_KEYS.reviewerNeedsLabeler };
+  if (!who) return { ok: false, noteKey: SF_NOTE_KEYS.reviewerNeedsName };
   if (sameMember(by, who)) {
-    return { ok: false, note: "Level 2 must be a different person than the Level 1 labeler." };
+    return { ok: false, noteKey: SF_NOTE_KEYS.reviewerMustDiffer };
   }
   return { ok: true };
 }
@@ -209,16 +224,16 @@ export function distributeAssignments(files: string[], members: string[]): { fil
 /** Project JSON is allowed only after every picture has independent Level 1 + Level 2. */
 export function projectJsonAllowed(
   images: { boxes: { level?: number; by?: string; reviewer?: string }[] }[],
-): { ok: true } | { ok: false; note: string } {
-  if (!images.length) return { ok: false, note: "Open the project's pictures first. Level 1 and Level 2 stay XML." };
+): { ok: true } | { ok: false; noteKey: SfNoteKey } {
+  if (!images.length) return { ok: false, noteKey: SF_NOTE_KEYS.jsonNeedsPictures };
   for (const image of images) {
     if (!image.boxes?.length) {
-      return { ok: false, note: "Every picture needs a Level 1 box first. Both levels stay XML." };
+      return { ok: false, noteKey: SF_NOTE_KEYS.jsonNeedsLevel1 };
     }
     for (const box of image.boxes) {
       const gate = authorizeReviewer(box.by, box.reviewer);
       if (box.level !== 2 || !gate.ok) {
-        return { ok: false, note: "JSON waits. Every picture in this project still needs Level 2 by a different person, saved as XML." };
+        return { ok: false, noteKey: SF_NOTE_KEYS.jsonNeedsLevel2 };
       }
     }
   }

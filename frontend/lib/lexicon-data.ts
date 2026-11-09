@@ -3551,7 +3551,25 @@ const drone2525: TranslationEntry[] = [
   { key: "drone.deck.act.capture", englishDefault: "Capture", context: "Drone-2525 control deck: keyboard map: the action a key performs — photographs the door in view", cubeId: 0 },
 ];
 
+
+// SensorFusion-2525 collaborative persistence notes (2026-11-08). ENGLISH ONLY — staged in AFTER_FILL; ×32 fill unverified / not claimed.
+const sensorFusion2525: TranslationEntry[] = [
+  { key: "sf.collab.auth_required", englishDefault: "Sign in as a member of the sensor-fusion project. Local device copies stayed on this device; nothing was marked saved to the team project.", context: "SensorFusion upload/progress: missing signed-in member session", cubeId: 81 },
+  { key: "sf.collab.reviewer_needs_labeler", englishDefault: "Level 1 must name who labeled the box before Level 2.", context: "SensorFusion Level-2 gate: labeler missing", cubeId: 81 },
+  { key: "sf.collab.reviewer_needs_name", englishDefault: "Level 2 must name a different reviewer.", context: "SensorFusion Level-2 gate: reviewer missing", cubeId: 81 },
+  { key: "sf.collab.reviewer_must_differ", englishDefault: "Level 2 must be a different person than the Level 1 labeler.", context: "SensorFusion Level-2 gate: same person refused", cubeId: 81 },
+  { key: "sf.collab.progress_not_connected", englishDefault: "The project is not connected from this page. Team progress stayed on this device only.", context: "SensorFusion progress sync: supabase client missing", cubeId: 81 },
+  { key: "sf.collab.progress_save_failed", englishDefault: "Team progress could not be saved to the project. It stayed on this device.", context: "SensorFusion progress sync: upsert failed", cubeId: 81 },
+  { key: "sf.collab.settings_save_failed", englishDefault: "Project settings could not be saved to the project. They stayed on this device.", context: "SensorFusion settings sync: upsert failed", cubeId: 81 },
+  { key: "sf.collab.pair_name_mismatch", englishDefault: "Picture and XML must share one name", context: "SensorFusion PNG/XML association refusal prefix; filenames appended by UI", cubeId: 81 },
+  { key: "sf.collab.sync_waiting_tables", englishDefault: "Team progress/settings sync is waiting on the collaborative tables (migration 044) or membership.", context: "SensorFusion upload success + sync deferred note", cubeId: 81 },
+  { key: "sf.collab.json_needs_pictures", englishDefault: "Open the project's pictures first. Level 1 and Level 2 stay XML.", context: "SensorFusion project JSON gate: empty set", cubeId: 81 },
+  { key: "sf.collab.json_needs_level1", englishDefault: "Every picture needs a Level 1 box first. Both levels stay XML.", context: "SensorFusion project JSON gate: missing Level 1", cubeId: 81 },
+  { key: "sf.collab.json_needs_level2", englishDefault: "JSON waits. Every picture in this project still needs Level 2 by a different person, saved as XML.", context: "SensorFusion project JSON gate: missing independent Level 2", cubeId: 81 },
+];
+
 export const CUBE_GROUPS: CubeGroup[] = [
+  { cubeId: 81, label: "SensorFusion-2525 — collaborative persistence", keys: sensorFusion2525 },
   { cubeId: 78, label: "Drone-2525 — wireframe arena", keys: drone2525 },
   { cubeId: 79, label: "Financial-2525 — the MoT Financial System", keys: financial2525 },
   { cubeId: 77, label: "Polling results UI (2026-09-14)", keys: pollUi },

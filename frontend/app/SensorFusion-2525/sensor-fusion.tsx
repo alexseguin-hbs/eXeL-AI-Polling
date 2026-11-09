@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useLexicon } from "@/lib/lexicon-context";
 import { Settings } from "lucide-react";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 import { SENSORFUSION_2525_CODE } from "@/lib/2525-core/sensorfusion-2525-code.gen";   // DD-80: every R-CORE carries the </> unlock
@@ -19,6 +20,7 @@ import {
   requireMemberSession,
   serializeTeamProgress,
   settingsUpsertRow,
+  SF_NOTE_KEYS,
   type ProjectSettings,
 } from "@/lib/sensor-fusion/collab";
 import { supabase } from "@/lib/supabase";
@@ -1217,6 +1219,7 @@ function paint(id: SchemeId | "custom", hex: string) {
 export default function SensorFusion() {
   const { user, isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
   const operator = user?.name || user?.email || "";
+  const { t } = useLexicon();
   const videoRef = useRef<HTMLVideoElement>(null);
   const video2Ref = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -2137,8 +2140,8 @@ export default function SensorFusion() {
 
   async function syncTeamProgressToProject(owner: string, noteOnFail = false) {
     if (!supabase) {
-      if (noteOnFail) setUploadNote("The project is not connected from this page. Team progress stayed on this device only.");
-      return { ok: false as const, note: "not connected" };
+      if (noteOnFail) setUploadNote(t(SF_NOTE_KEYS.progressNotConnected));
+      return { ok: false as const, noteKey: SF_NOTE_KEYS.progressNotConnected };
     }
     const metrics = levelMetrics(
       shots.map((shot) => {
@@ -2162,14 +2165,14 @@ export default function SensorFusion() {
     const row = progressUpsertRow(owner, snap);
     const written = await supabase.from("sensor_fusion_progress").upsert(row);
     if (written.error) {
-      if (noteOnFail) setUploadNote(written.error.message || "Team progress could not be saved to the project. It stayed on this device.");
-      return { ok: false as const, note: written.error.message || "progress upsert failed" };
+      if (noteOnFail) setUploadNote(written.error.message || t(SF_NOTE_KEYS.progressSaveFailed));
+      return { ok: false as const, noteKey: SF_NOTE_KEYS.progressSaveFailed };
     }
     return { ok: true as const };
   }
 
   async function syncProjectSettingsToProject(owner: string) {
-    if (!supabase) return { ok: false as const, note: "not connected" };
+    if (!supabase) return { ok: false as const, noteKey: SF_NOTE_KEYS.progressNotConnected };
     const projectSettings: ProjectSettings = {
       projectId: SENSOR_FUSION_PROJECT,
       scheme: scheme === "custom" ? `custom:${customHex}` : scheme,
@@ -2180,7 +2183,7 @@ export default function SensorFusion() {
     };
     const row = settingsUpsertRow(owner, projectSettings);
     const written = await supabase.from("sensor_fusion_project_settings").upsert(row);
-    if (written.error) return { ok: false as const, note: written.error.message || "settings upsert failed" };
+    if (written.error) return { ok: false as const, noteKey: SF_NOTE_KEYS.settingsSaveFailed };
     return { ok: true as const };
   }
 
@@ -2205,7 +2208,7 @@ export default function SensorFusion() {
       for (const box of page.boxes) {
         const gate = authorizeReviewer(box.by, box.reviewer);
         if (!gate.ok) {
-          setUploadNote(gate.note);
+          setUploadNote(t(gate.noteKey));
           setTrainStatus("");
           return;
         }
@@ -2213,7 +2216,7 @@ export default function SensorFusion() {
       const linked = associatePngXml(page.file || "picture.png");
       const stem = (page.file || linked.png).replace(/\.[^.]+$/, "");
       if (stem !== linked.stem) {
-        setUploadNote(`Picture and XML must share one name (${linked.png} + ${linked.xml}).`);
+        setUploadNote(`${t(SF_NOTE_KEYS.pairNameMismatch)} (${linked.png} + ${linked.xml}).`);
         return;
       }
     }
@@ -2224,7 +2227,7 @@ export default function SensorFusion() {
     const { data: session } = await supabase.auth.getSession();
     const gated = requireMemberSession(session.session);
     if (!gated.ok) {
-      setUploadNote(gated.note);
+      setUploadNote(t(gated.noteKey));
       return;
     }
     const owner = gated.owner;
@@ -2282,7 +2285,7 @@ export default function SensorFusion() {
     const progress = await syncTeamProgressToProject(owner, false);
     const settings = await syncProjectSettingsToProject(owner);
     if (!progress.ok || !settings.ok) {
-      setUploadNote(`${line} Team progress/settings sync is waiting on the collaborative tables (migration 044) or membership.`);
+      setUploadNote(`${line} ${t(SF_NOTE_KEYS.syncWaitingTables)}`);
     }
   }
 

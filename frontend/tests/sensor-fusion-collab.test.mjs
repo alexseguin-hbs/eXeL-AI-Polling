@@ -18,7 +18,9 @@ import {
   serializeProjectSettings,
   serializeTeamProgress,
   settingsUpsertRow,
+  SF_NOTE_KEYS,
 } from "../lib/sensor-fusion/collab.ts";
+import { DEFAULT_ENGLISH_TRANSLATIONS } from "../lib/lexicon-data.ts";
 import { emptyClock, noteWork, startClock } from "../lib/sensor-fusion/workflow.ts";
 
 let pass = 0;
@@ -42,17 +44,17 @@ ok(moved.sourceDevice === "pixel-7" && moved.renamedFrom === "bird_0001.png", "d
 ok(moved.png === "bird_0012.png" && moved.xml === "bird_0012.xml", "renamed pair keeps png/xml association");
 
 // Auth gate — never treat local cache as cloud success
-ok(requireMemberSession(null).ok === false, "null session fails honestly");
+ok(requireMemberSession(null).ok === false && requireMemberSession(null).noteKey === SF_NOTE_KEYS.authRequired, "null session fails honestly with auth noteKey");
 ok(requireMemberSession({}).ok === false, "empty session fails honestly");
 ok(requireMemberSession({ user: { id: "" } }).ok === false, "blank user id fails honestly");
 const gated = requireMemberSession({ user: { id: "11111111-2222-3333-4444-555555555555" } });
 ok(gated.ok === true && gated.owner.startsWith("1111"), "signed-in member passes the gate");
 
 // Independent reviewer
-ok(authorizeReviewer("Alex", "Alex").ok === false, "same labeler cannot review");
+ok(authorizeReviewer("Alex", "Alex").ok === false && authorizeReviewer("Alex", "Alex").noteKey === SF_NOTE_KEYS.reviewerMustDiffer, "same labeler cannot review");
 ok(authorizeReviewer("Alex", "alex").ok === false, "case-insensitive same person is refused");
 ok(authorizeReviewer("Alex", "Jordan").ok === true, "a different person may review");
-ok(authorizeReviewer("", "Jordan").ok === false, "missing labeler is refused");
+ok(authorizeReviewer("", "Jordan").ok === false && authorizeReviewer("", "Jordan").noteKey === SF_NOTE_KEYS.reviewerNeedsLabeler, "missing labeler is refused");
 
 // Append-only corrections
 const c1 = appendCorrection(undefined, {
@@ -127,7 +129,7 @@ ok(assigns.length === 3 && assigns[0].labeler === "Alex" && assigns[0].reviewer 
 ok(assigns.every((a) => a.labeler !== a.reviewer), "no assignment reviews itself");
 
 // Project JSON only when full independent Level 2 set is complete
-ok(projectJsonAllowed([]).ok === false, "empty set cannot emit project JSON");
+ok(projectJsonAllowed([]).ok === false && projectJsonAllowed([]).noteKey === SF_NOTE_KEYS.jsonNeedsPictures, "empty set cannot emit project JSON");
 ok(
   projectJsonAllowed([{ boxes: [{ level: 1, by: "Alex", reviewer: undefined }] }]).ok === false,
   "Level 1 alone cannot emit project JSON",
@@ -158,6 +160,19 @@ ok(/No UPDATE or DELETE policies on corrections/.test(sql), "migration states co
 const page = fs.readFileSync(path.resolve(import.meta.dirname, "../app/SensorFusion-2525/sensor-fusion.tsx"), "utf8");
 ok(/<RCoreBadge\b/.test(page) && /SENSOR_FUSION_RCORE_HISTORY/.test(page), "SensorFusion mounts RCoreBadge over its own ledger history");
 ok(/requireMemberSession|authorizeReviewer|associatePngXml|serializeTeamProgress/.test(page), "page wires collab helpers (auth/progress/pair/reviewer)");
+ok(/useLexicon/.test(page) && /t\(SF_NOTE_KEYS\./.test(page) && /t\(gate\.noteKey\)/.test(page) && /t\(gated\.noteKey\)/.test(page), "new collab UI notes go through t()/lexicon keys");
+ok(!/setUploadNote\("Sign in as a member of the sensor-fusion project/.test(page), "auth note is not a hardcoded English string in the page");
+ok(!/setUploadNote\(`Picture and XML must share one name/.test(page), "pair mismatch uses t() prefix, not a hardcoded full English template");
+
+
+// Lexicon key/lookup/source: every SF_NOTE_KEYS value has englishDefault; non-en coverage stays AFTER_FILL / unverified
+const noteKeys = Object.values(SF_NOTE_KEYS);
+ok(noteKeys.length >= 12, `SF_NOTE_KEYS covers the new collab notes (${noteKeys.length})`);
+ok(noteKeys.every((k) => DEFAULT_ENGLISH_TRANSLATIONS[k]?.englishDefault?.trim()), "every SF_NOTE_KEYS entry has an englishDefault in lexicon-data");
+ok(noteKeys.every((k) => DEFAULT_ENGLISH_TRANSLATIONS[k]?.cubeId === 81), "SF collab keys are cubeId 81 (SensorFusion-2525 collaborative persistence)");
+const cov = fs.readFileSync(path.resolve(import.meta.dirname, "./lexicon-coverage.test.mjs"), "utf8");
+ok(noteKeys.every((k) => cov.includes(`'${k}'`) || cov.includes(k.replace("sf.collab.", "")) || /sf\.collab\.\$\{k\}/.test(cov) || cov.includes("sf.collab.")), "lexicon-coverage stages sf.collab.* in AFTER_FILL (English-only until fill)");
+ok(/sf\.collab\./.test(cov) && /AFTER_FILL/.test(cov), "AFTER_FILL lists SensorFusion collab keys — ×32 fill explicitly unverified");
 
 console.log(fail ? `${pass} passed, ${fail} failed` : `${pass} passed`);
 process.exit(fail ? 1 : 0);
