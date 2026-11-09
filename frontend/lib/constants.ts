@@ -11,8 +11,12 @@ export const AUTH0_REDIRECT_URI =
     : "";
 
 // API configuration
+// Production builds (Workers Builds has no NEXT_PUBLIC_API_URL set) default to the hosted backend on Cloudflare
+// Containers (api-host/); local dev keeps localhost. NEXT_PUBLIC_API_URL always wins.
+export const HOSTED_API_URL = "https://exel-ai-polling-api.explore-096.workers.dev/api/v1";
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === "production" ? HOSTED_API_URL : "http://localhost:8000/api/v1");
 
 // Stripe (publishable key — safe for browser, not a secret).
 // Comes from NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (see frontend/.env.example).
