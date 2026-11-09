@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card";
 import { Navbar } from "@/components/navbar";
 import { api, ApiClientError, IS_MOCK_MODE } from "@/lib/api";
+import { createActiveInputTracker, type ActiveInputTracker } from "@/lib/active-input-tracker";
 import { fetchSessionFromKV } from "@/lib/mock-data";
 import { fetchStatusFromSupabase } from "@/lib/supabase-session-sync";
 import { toast } from "@/components/ui/use-toast";
@@ -352,6 +353,7 @@ export function SessionView() {
 
   // Timer integration
   const { start: startTimer, stop: stopTimer, restart: restartTimer, earnTokens } = useTimer();
+  const activeInputRef = useRef<ActiveInputTracker>(createActiveInputTracker());
 
   // Simulation mode — use sample data instead of API calls
   // Two entry paths: (1) Easter egg sequence → context, (2) QR scan → ?sim=1 in URL
@@ -866,28 +868,40 @@ export function SessionView() {
 
     setSubmitting(true);
     try {
+      const active = activeInputRef.current.snapshot();
       const result = await api.submitTextResponse(
         sessionId,
         currentQuestion.id,
         participantId,
         responseText.trim(),
         languageCode,
+        {
+          active_ms: active.active_ms,
+          paste_detected: active.paste_detected,
+          input_opened_at: active.input_opened_at,
+        },
       );
 
       // Mark question as submitted
       setSubmittedQuestions((prev) => new Set(prev).add(currentQuestion.id));
       setResponseText("");
+      activeInputRef.current = createActiveInputTracker();
 
       // Stop active-response timer — tokens only accrue while typing/recording
       stopTimer();
 
-      // Token earn animation — use server-reported values when available
-      const heartsEarned = result?.heart_tokens_earned ?? 1;
-      earnTokens(heartsEarned);
+      // Token earn animation — server value only (0 if idle/paste/empty); do not invent ♡1
+      const heartsEarned = Number(result?.heart_tokens_earned ?? 0);
+      if (heartsEarned > 0) earnTokens(heartsEarned);
       setShowTokenEarn(true);
       setTimeout(() => setShowTokenEarn(false), 1200);
 
-      toast({ title: t("cube10.sim.response_submitted") });
+      toast({
+        title: t("cube10.sim.response_submitted"),
+        description: heartsEarned > 0
+          ? `${t("cube2.input.si_earned_label")} ♡ ${heartsEarned}`
+          : t("cube2.input.si_none"),
+      });
 
       // Push response to dashboard via THREE parallel paths (Trinity redundancy):
       // Path A: Supabase Broadcast (WebSocket, ~50ms) → Dashboard Channel A
@@ -1324,7 +1338,7 @@ export function SessionView() {
                     <textarea
                       placeholder={t("cube2.input.placeholder")}
                       value={responseText}
-                      onChange={(e) => { startTimerOnActivity(); setResponseText(e.target.value); }}
+                      onChange={(e) => { startTimerOnActivity(); activeInputRef.current.onInput(); setResponseText(e.target.value); }} onPaste={() => { activeInputRef.current.onPaste(); }} onKeyDown={() => { activeInputRef.current.onKey(); }}
                       maxLength={session.max_response_length || 3333}
                       rows={4}
                       disabled={simulationMode && simPhase !== "polling"}

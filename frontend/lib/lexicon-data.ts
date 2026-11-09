@@ -527,6 +527,8 @@ const cube2: TranslationEntry[] = [
   { key: "cube2.input.submission_failed", englishDefault: "Submission failed", context: "Error toast title on submission failure", cubeId: 2 },
   { key: "cube2.input.submitted", englishDefault: "Response submitted!", context: "Success confirmation", cubeId: 2 },
   { key: "cube2.input.tokens_earned", englishDefault: "Tokens earned:", context: "Post-submit token display label", cubeId: 2 },
+  { key: "cube2.input.si_earned_label", englishDefault: "♡ S.I. earned for active input:", context: "Post-submit active typing/speaking credit", cubeId: 2 },
+  { key: "cube2.input.si_none", englishDefault: "No ♡ S.I. this time — credit only while actively typing or speaking.", context: "Post-submit when active_ms credited zero", cubeId: 2 },
   { key: "cube2.feed.title", englishDefault: "Live Responses", context: "Live feed heading (host PC)", cubeId: 2 },
   { key: "cube2.feed.toggle", englishDefault: "Show live feed", context: "Toggle live feed on/off", cubeId: 2 },
   { key: "cube2.feed.empty", englishDefault: "No responses yet", context: "Empty feed state", cubeId: 2 },

@@ -412,22 +412,7 @@ async def submit_voice_response(
     await validate_question(db, question_id, session_id)
     participant = await validate_participant(db, participant_id, session_id)
 
-    # --- 2. Start time tracking (Cube 5) — non-fatal on failure ---
-    from app.cubes.cube5_gateway.service import start_time_tracking, stop_time_tracking
-
-    time_entry = None
-    try:
-        time_entry = await start_time_tracking(
-            db,
-            session_id=session_id,
-            participant_id=participant_id,
-            action_type="voice_responding",
-            reference_id=str(question_id),
-            cube_id="cube3",
-        )
-    except Exception as e:
-        logger.warning("cube3.time_tracking.start_failed", error=str(e), session_id=str(session_id))
-
+    # --- 2. CRS-19.09: active-input credit after store (audio duration = speaking ms) ---
     # --- 3. Resolve STT provider (Moderator default → User override if allowed) ---
     stt_provider_name = getattr(session, "stt_provider", None) or session.ai_provider
     if getattr(session, "allow_user_stt_choice", False):
@@ -477,19 +462,28 @@ async def submit_voice_response(
         response_hash=response_hash,
     )
 
-    # --- 6. Stop time tracking → tokens (non-fatal on failure) ---
+    # --- 6. CRS-19.09: credit ♡ for speaking time (STT audio duration), not idle ---
     heart_earned = 0.0
     unity_earned = 0.0
-    if time_entry is not None:
-        try:
-            time_entry = await stop_time_tracking(
-                db,
-                time_entry_id=time_entry.id,
-            )
-            heart_earned = time_entry.heart_tokens_earned
-            unity_earned = time_entry.unity_tokens_earned
-        except Exception as e:
-            logger.warning("cube3.time_tracking.stop_failed", error=str(e), session_id=str(session_id))
+    try:
+        from app.cubes.cube5_gateway.active_input_credit import credit_active_input
+
+        voice_ms = int(max(0.0, float(stt_result.audio_duration_sec or 0.0)) * 1000)
+        decision = await credit_active_input(
+            db,
+            session_id=session_id,
+            participant_id=participant_id,
+            response_id=response_meta.id,
+            text=clean_text,
+            claimed_ms=0,  # typing not claimed on pure voice path
+            paste_detected=False,
+            voice_ms=voice_ms,
+            cube_id="cube3",
+        )
+        heart_earned = decision.heart
+        unity_earned = decision.unity
+    except Exception as e:
+        logger.warning("cube3.active_input.credit_failed", error=str(e), session_id=str(session_id))
 
     # --- 7. Broadcast event via Supabase ---
     await publish_submission_event(

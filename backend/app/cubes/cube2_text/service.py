@@ -563,6 +563,10 @@ async def submit_text_response(
     participant_id: uuid.UUID,
     raw_text: str,
     language_code: str = "en",
+    active_ms: int | None = None,
+    paste_detected: bool = False,
+    input_opened_at=None,
+    voice_active_ms: int | None = None,
     **kwargs,
 ) -> dict:
     """Main orchestrator: validate, process, store, and return response with tokens.
@@ -608,6 +612,10 @@ async def submit_text_response(
             question_id=question_id,
             participant_id=participant_id,
             language_code=language_code,
+            active_ms=active_ms,
+            paste_detected=paste_detected,
+            input_opened_at=input_opened_at,
+            voice_active_ms=voice_active_ms,
         )
     finally:
         sem.release()
@@ -622,6 +630,10 @@ async def _submit_text_inner(
     question_id: uuid.UUID,
     participant_id: uuid.UUID,
     language_code: str,
+    active_ms: int | None = None,
+    paste_detected: bool = False,
+    input_opened_at=None,
+    voice_active_ms: int | None = None,
 ) -> dict:
     """Inner text submission pipeline — 154 lines, 7 sequential steps.
 
@@ -648,22 +660,7 @@ async def _submit_text_inner(
             text_preview=text[:50],
         )
 
-    # --- 3. Start time tracking (Cube 5) — non-fatal on failure ---
-    from app.cubes.cube5_gateway.service import start_time_tracking, stop_time_tracking
-
-    time_entry = None
-    try:
-        time_entry = await start_time_tracking(
-            db,
-            session_id=session_id,
-            participant_id=participant_id,
-            action_type="responding",
-            reference_id=str(question_id),
-            cube_id="cube2",
-        )
-    except Exception as e:
-        logger.warning("cube2.time_tracking.start_failed", error=str(e), session_id=str(session_id))
-
+    # --- 3. (CRS-19.09) Active-input credit happens AFTER store — see step 7 ---
     # --- 4+5. PII + Profanity pipeline (shared with Cube 3 via core/text_pipeline) ---
     from app.core.text_pipeline import run_text_pipeline  # noqa: E402 — circular dep
     pipeline = await run_text_pipeline(db, text, language_code)
@@ -690,19 +687,29 @@ async def _submit_text_inner(
         clean_text=clean_text,
     )
 
-    # --- 7. Stop time tracking, calculate tokens (non-fatal on failure) ---
+    # --- 7. CRS-19.09: credit ♡ only for validated active typing/speaking ---
     heart_earned = 0.0
     unity_earned = 0.0
-    if time_entry is not None:
-        try:
-            time_entry = await stop_time_tracking(
-                db,
-                time_entry_id=time_entry.id,
-            )
-            heart_earned = time_entry.heart_tokens_earned
-            unity_earned = time_entry.unity_tokens_earned
-        except Exception as e:
-            logger.warning("cube2.time_tracking.stop_failed", error=str(e), session_id=str(session_id))
+    try:
+        from app.cubes.cube5_gateway.active_input_credit import credit_active_input
+
+        decision = await credit_active_input(
+            db,
+            session_id=session_id,
+            participant_id=participant_id,
+            response_id=response_meta.id,
+            text=clean_text,
+            claimed_ms=active_ms,
+            paste_detected=bool(paste_detected),
+            voice_ms=int(voice_active_ms or 0),
+            input_opened_at=input_opened_at,
+            cube_id="cube2",
+            anon_hash=anon_hash,
+        )
+        heart_earned = decision.heart
+        unity_earned = decision.unity
+    except Exception as e:
+        logger.warning("cube2.active_input.credit_failed", error=str(e), session_id=str(session_id))
 
     # --- 8. Broadcast event via Supabase ---
     await publish_submission_event(

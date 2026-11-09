@@ -83,6 +83,10 @@ async def submit_response(
         participant_id=payload.participant_id,
         raw_text=payload.raw_text,
         language_code=payload.language_code,
+        active_ms=payload.active_ms,
+        paste_detected=payload.paste_detected,
+        input_opened_at=payload.input_opened_at,
+        voice_active_ms=payload.voice_active_ms,
     )
     return result
 
