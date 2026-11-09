@@ -82,6 +82,17 @@
       "latency_ms": 1551,
       "pass": true,
       "notes": "200 theme_order empty themes OK"
+    },
+    {
+      "cst": "2026-11-09 16:02:54 CST",
+      "crs": "CRS-36",
+      "check": "get_rankings_auto_select_participant",
+      "merge_sha": "0534b2f9772aa160cb3f4367dca0908648c2ccbd",
+      "cloudflare_version": "0dc86b67-f3cb-4b39-938d-fa25b550810c",
+      "n": 1,
+      "latency_ms": 513,
+      "pass": true,
+      "notes": "participant token GET 200 active"
     }
   ]
 }
