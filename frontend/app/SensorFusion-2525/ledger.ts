@@ -563,6 +563,14 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
         "and only these seven.",
       commit: "",
     },
+    {
+      rev: 78,
+      date: "2026-11-08",
+      kind: "release",
+      text: "Collaborative persistence contracts: PNG and XML share one stem across member devices; team progress and per-project settings serialize for Supabase membership sync; Level 2 must be a different person; corrections are append-only; project JSON still waits until every picture has independent Level 1 and Level 2. Migration 044 is review-only and not applied live. Missing auth fails honestly and does not claim a local cache as a team save. R-CORE history badge remains the SensorFusion ledger surface.",
+      commit: "d5592fa",
+    },
+
   ],
 };
 
