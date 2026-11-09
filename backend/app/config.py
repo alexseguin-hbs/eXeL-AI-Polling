@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     auth0_domain: str = ""
     auth0_api_audience: str = ""
     auth0_client_id: str = ""
+    # t189u: SPA (public) client id — when set, Auth0 ID tokens for this client are accepted
+    # as creator identity (role fixed "moderator") until the Auth0 API audience exists.
+    auth0_spa_client_id: str = ""
     auth0_client_secret: str = ""
 
     # AI Providers (launch: OpenAI, Grok/xAI, Gemini/Google, Claude/Anthropic)

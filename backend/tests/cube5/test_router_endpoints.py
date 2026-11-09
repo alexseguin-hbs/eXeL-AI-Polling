@@ -196,6 +196,8 @@ class TestTriggerTheming:
         assert resp.status_code == 202
         mock_fn.assert_called_once()
 
+    @pytest.mark.usefixtures("not_owner")
+
     @pytest.mark.asyncio
     async def test_requires_moderator_or_admin(self, client, regular_user):
         """Dev mode returns moderator, so this passes. But a real user role would 403."""
@@ -359,6 +361,8 @@ class TestRegisterWebhook:
             },
         )
         assert resp.status_code == 400
+
+    @pytest.mark.usefixtures("not_owner")
 
     @pytest.mark.asyncio
     async def test_requires_moderator_or_admin(self, client, regular_user):

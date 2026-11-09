@@ -24,6 +24,7 @@
     "ENVIRONMENT": "production",
     "AUTH0_DOMAIN": "exel-ai-polling.us.auth0.com",
     "AUTH0_API_AUDIENCE": "https://api.exel-ai-polling",
+    "AUTH0_SPA_CLIENT_ID": "H8wuT6P2nfm87bvbRjaegoOliLyhPw4K",
     "DEFAULT_AI_PROVIDER": "grok",
     "FRONTEND_URL": "https://exel-ai-polling.explore-096.workers.dev",
     "ALLOWED_ORIGINS": "https://exel-ai-polling.explore-096.workers.dev",

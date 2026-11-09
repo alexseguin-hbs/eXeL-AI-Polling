@@ -248,6 +248,8 @@ class TestGetMetrics:
         data = resp.json()
         assert "system" in data
 
+    @pytest.mark.usefixtures("not_owner")
+
     @pytest.mark.asyncio
     async def test_metrics_forbidden_for_non_privileged_user(self, client, regular_user):
         """CC-1: a plain participant (role='user') must be BLOCKED from the

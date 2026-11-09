@@ -187,7 +187,7 @@ async def list_sessions(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """List sessions created by the current moderator (paginated).
 
@@ -226,7 +226,7 @@ async def create_session(
     request: Request,
     payload: SessionCreate,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """CRS-01: Moderator creates a new polling session. Per-IP ceiling (SSSES Security) — additive
     anti-abuse cap mirroring the join endpoint's limiter; moderators create far fewer than 30 sessions/min."""
@@ -266,7 +266,38 @@ async def create_session(
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+    await _record_creator(db, user)
     return await _return_session(db, session)
+
+
+async def _record_creator(db: AsyncSession, user: CurrentUser) -> None:
+    """t189u: sessions.created_by is the creator's real OAuth `sub`; keep their email/name in
+    `users` (auth0_id = sub) so every session joins to a real identity. Best-effort — a failed
+    upsert never fails the create (savepoint keeps the outer transaction clean)."""
+    if not user.user_id or user.role == "api_key":
+        return
+    try:
+        from datetime import datetime, timezone
+
+        from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+        from app.models.user import User
+
+        now = datetime.now(timezone.utc)
+        values = {"auth0_id": user.user_id, "email": user.email, "last_login": now}
+        if user.display_name:
+            values["display_name"] = user.display_name
+        update = {k: v for k, v in values.items() if k != "auth0_id" and v is not None}
+        stmt = pg_insert(User).values(**values).on_conflict_do_update(
+            index_elements=[User.auth0_id], set_=update,
+        )
+        async with db.begin_nested():
+            await db.execute(stmt)
+        await db.commit()
+    except Exception:  # pragma: no cover — identity bookkeeping must not block poll creation
+        import logging
+
+        logging.getLogger(__name__).warning("creator upsert failed", exc_info=True)
 
 
 @router.get("/{session_id}", response_model=SessionRead)
@@ -298,7 +329,7 @@ async def update_session(
     session_id: uuid.UUID,
     payload: SessionUpdate,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """Update session configuration (draft state only)."""
     session = await service.get_session_by_id(db, session_id)
@@ -317,7 +348,7 @@ async def update_ranking_config(
     theme01_category: str,
     theme2_voting_level: str,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """Moderator selects which Cube 6 category to rank + level (3/6/9).
 
@@ -353,7 +384,7 @@ async def update_ranking_config(
 async def start_session(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """Quick-start: transitions draft→open (then moderator can manually advance to polling)."""
     session = await service.get_session_by_id(db, session_id)
@@ -367,7 +398,7 @@ async def start_session(
 async def open_session(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """CRS-06: Moderator opens session for participants to join."""
     return await _transition_and_return(db, session_id, "open", user)
@@ -377,7 +408,7 @@ async def open_session(
 async def start_polling(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """Moderator starts polling phase (participants can submit responses)."""
     return await _transition_and_return(db, session_id, "polling", user)
@@ -387,7 +418,7 @@ async def start_polling(
 async def start_ranking(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """Moderator starts ranking phase — fires Cube 5 orchestrator for AI theming."""
     return await _transition_and_return(db, session_id, "ranking", user)
@@ -397,7 +428,7 @@ async def start_ranking(
 async def reopen_polling(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """LIVING VOTE: re-open a ranking round into the NEXT cycle (ranking → polling).
 
@@ -411,7 +442,7 @@ async def reopen_polling(
 async def close_session(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """CRS-06: Moderator closes the session."""
     return await _transition_and_return(db, session_id, "closed", user)
@@ -421,7 +452,7 @@ async def close_session(
 async def archive_session(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """Archive a closed session. Clears in-memory presence data."""
     return await _transition_and_return(db, session_id, "archived", user)
@@ -510,7 +541,7 @@ async def create_question(
     session_id: uuid.UUID,
     payload: QuestionCreate,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """Add a question to a session."""
     session = await service.get_session_by_id(db, session_id)
