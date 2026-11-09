@@ -39,10 +39,12 @@ import { SimModeratorExperience } from "@/components/sim-moderator-experience";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, Question, SimTheme } from "@/lib/types";
 import { useRealtimeStatus } from "@/lib/use-realtime-status";
-import { useSessionBroadcast, type SessionBroadcastPayload, type RankingCompletePayload } from "@/lib/use-session-broadcast";
+import { useSessionBroadcast, type SessionBroadcastPayload, type RankingCompletePayload, type LiveRankingSnapshot } from "@/lib/use-session-broadcast";
+import { FinalDecisionBanner } from "@/components/final-decision";
 import { STATUS_ORDER, statusRank, statusAdvances } from "@/lib/session-utils";
 import { supabase } from "@/lib/supabase";
 import { ThemeRankingDnD } from "@/components/theme-ranking-dnd";
+import { Top3Ballot } from "@/components/top3-ballot";
 import { ThemeResultsChart } from "@/components/theme-results-chart";
 import { LiveRankingPanel } from "@/components/live-ranking-panel";
 import { getSimPollBySessionId, resolveThemesForLevel } from "@/lib/sim-data";
@@ -814,7 +816,14 @@ export function SessionView() {
     if (typeof p?.submissions === "number") setGroupSubmissions(p.submissions);
   }, []);
   const onGroupRanking = useCallback((p: RankingCompletePayload) => { if (p) setGroupRanking(p); }, []);
-  useEffect(() => { if (session?.status === "polling") { setGroupRanking(null); setGroupSubmissions(null); } }, [session?.status]);
+  // CRS-22.04: the moderator's decision — when it differs from the group's #1, participants see the #1 and the reason.
+  const [groupDecision, setGroupDecision] = useState<LiveRankingSnapshot["decision"]>(null);
+  const onGroupDecision = useCallback((snap: LiveRankingSnapshot) => {
+    if (!snap) return;
+    setGroupDecision(snap.decision ?? null);
+    if (snap.category_rankings) setGroupRanking((prev) => ({ ...(prev ?? {}), ...snap }));
+  }, []);
+  useEffect(() => { if (session?.status === "polling") { setGroupRanking(null); setGroupSubmissions(null); setGroupDecision(null); } }, [session?.status]);
   const { broadcast: broadcastToSession } = useSessionBroadcast(
     simulationMode ? null : session?.short_code,
     onBroadcastStatus,
@@ -825,7 +834,17 @@ export function SessionView() {
     undefined,
     onGroupProgress,
     onGroupRanking,
+    onGroupDecision,
   );
+  // A phone that joins late or reloads reads the current group ranking + decision once (participant token, no login).
+  useEffect(() => {
+    if (simulationMode || IS_MOCK_MODE || !session?.id || !["ranking", "closed", "archived"].includes(session.status)) return;
+    let cancelled = false;
+    api.get<LiveRankingSnapshot>(`/sessions/${session.id}/rankings/live`)
+      .then((snap) => { if (!cancelled && snap?.group_top) onGroupDecision(snap); })
+      .catch(() => { /* broadcasts keep it live */ });
+    return () => { cancelled = true; };
+  }, [simulationMode, session?.id, session?.status, onGroupDecision]);
 
   // Supabase Realtime postgres_changes (secondary — activates when DB tables exist). Same rule: a hint.
   const onRealtimeStatus = useCallback(
@@ -1391,7 +1410,16 @@ export function SessionView() {
             <Button variant="outline" size="sm" onClick={liveBallot.retry}>{t("shared.error.retry")}</Button>
           </div>
         )}
-        {session?.status === "ranking" && !ballotDone && (simulationMode || (liveBallot.status === "ready" && ballotThemes.length > 0)) && (
+        {/* CRS-37.01: a top3_points session gets the top-3-per-category ballot (3/2/1); borda sessions rank every theme. */}
+        {session?.status === "ranking" && !ballotDone && !simulationMode && session?.ranking_method === "top3_points" && liveBallot.status === "ready" && ballotThemes.length > 0 && (
+          <Top3Ballot
+            key={ballotThemes.map((th) => th.id).join("|")}
+            themes={ballotThemes}
+            sessionId={sessionId}
+            onDone={() => { setBallotDone(true); setSimPhase("results"); }}
+          />
+        )}
+        {session?.status === "ranking" && !ballotDone && (simulationMode || (session?.ranking_method !== "top3_points" && liveBallot.status === "ready" && ballotThemes.length > 0)) && (
           <ThemeRankingDnD
             key={ballotThemes.map((th) => th.id).join("|")}
             themes={ballotThemes}
@@ -1411,6 +1439,15 @@ export function SessionView() {
           />
         )}
 
+        {/* Spectators / non-voters (G4): once the round is closed, anyone in the session sees the group ranking and the
+            moderator's decision. While voting is open a non-voter does not see it (no anchoring before they vote). */}
+        {!simulationMode && !ballotDone && simPhase !== "results" && (session?.status === "closed" || session?.status === "archived") && (groupRanking || groupDecision) && (
+          <div className="w-full max-w-lg space-y-3" data-spectator-ranking>
+            <LiveRankingPanel variant="participant" submissions={groupSubmissions} ranking={groupRanking} />
+            <FinalDecisionBanner decision={groupDecision} />
+          </div>
+        )}
+
         {/* Results Phase — ranked themes summary after ranking */}
         {simPhase === "results" && (session?.status === "closed" || session?.status === "archived" || (ballotDone && session?.status === "ranking")) && (
           <Card className="w-full max-w-lg">
@@ -1423,6 +1460,7 @@ export function SessionView() {
               {!simulationMode && (
                 <LiveRankingPanel variant="participant" submissions={groupSubmissions} ranking={groupRanking} />
               )}
+              {!simulationMode && <FinalDecisionBanner decision={groupDecision} />}
               {!simulationMode && myRankedOrder && (
                 <p className="text-xs font-medium text-muted-foreground pt-1">{t("cube7.live.your_ballot")}</p>
               )}

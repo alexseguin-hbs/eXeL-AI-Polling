@@ -302,6 +302,7 @@ PARTICIPANT_SESSION_ROUTES = {
     "cube5_gateway.get_pipeline_status": "participants wait on theming status",
     "cube6_ai.get_themes": "participants vote on the themes",
     "cube7_ranking.submit_ranking": "participant ballot; identity = X-Participant-Token or owning JWT (HP-07)",
+    "cube7_ranking.get_live_ranking_snapshot": "group ranking + decision read; X-Participant-Token of THIS session or a signed-in user (S4/CRS-22.04)",
     "cube7_ranking.get_rankings": "live results shown to participants",
     "cube7_ranking.get_personal_rank": "caller's own rank",
     "cube7_ranking.verify_ranking_replay": "public determinism proof (transparency)",

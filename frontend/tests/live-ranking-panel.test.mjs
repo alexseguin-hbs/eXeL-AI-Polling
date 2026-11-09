@@ -19,7 +19,7 @@ ok(/setLiveRanking\(payload\)/.test(dash), 'ranking_complete → live panel');
 ok(/<LiveRankingPanel[\s\S]{0,80}variant="moderator"/.test(dash), 'moderator panel rendered');
 ok(/rankings\/aggregate\?live=true/.test(dash), 'moderator fallback button tallies live');
 ok(/<LiveRankingPanel variant="participant"/.test(view), 'participant results card shows the group ranking');
-ok(/onGroupProgress,\s*onGroupRanking,?\s*\)/.test(view), 'participant reuses the single session:{code} channel (no second channel)');
+ok(/onGroupProgress,\s*onGroupRanking,(\s*onGroupDecision,)?\s*\)/.test(view), 'participant reuses the single session:{code} channel (no second channel)');
 ok(!/supabase\.channel\(/.test(panel), 'panel opens no channel of its own');
 console.log(`live-ranking-panel: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
