@@ -42,7 +42,10 @@ class TranscriptionResult:
 
 
 # Per-provider cost rates (USD per minute of audio)
-# Source: provider pricing pages as of 2026-04
+# Sources (do not invent):
+#   whisper $0.006/min — https://developers.openai.com/api/docs/pricing (Whisper row; verified 2026-11-09)
+#   gemini / aws — in-repo historical pins (CRS-15.02); refresh when vendor pages move
+# Source note date: 2026-11-09
 STT_COST_RATES: dict[str, float] = {
     "whisper": 0.006,    # OpenAI Whisper: $0.006/min
     "grok": 0.006,       # xAI Grok (Whisper-compatible): $0.006/min

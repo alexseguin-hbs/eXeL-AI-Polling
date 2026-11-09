@@ -69,6 +69,7 @@ import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
 import { useSessionBroadcast, type LiveRankingSnapshot, type RankingCompletePayload } from "@/lib/use-session-broadcast";
 import { FinalDecisionBanner, FinalDecisionForm } from "@/components/final-decision";
+import { LiveVoiceDictate } from "@/components/live-voice-dictate";
 import { LiveRankingPanel } from "@/components/live-ranking-panel";
 import { useViewEntitlement } from "@/lib/use-view-entitlement";
 import { supabase } from "@/lib/supabase";
@@ -1355,22 +1356,40 @@ function DashboardContent() {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">{t("cube1.moderator.session_title")}</Label>
-                  <Input
-                    id="title"
-                    placeholder="e.g., Q1 Strategy Feedback"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                  />
+                  <div className="flex gap-2 items-center" data-moderator-dictate-title>
+                    <Input
+                      id="title"
+                      placeholder="e.g., Q1 Strategy Feedback"
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                    />
+                    <LiveVoiceDictate
+                      role="moderator"
+                      value={newTitle}
+                      onChange={setNewTitle}
+                      disabled={creating}
+                      size="icon"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="description">{t("cube1.moderator.description_label")}</Label>
-                  <Input
-                    id="description"
-                    placeholder="What outcome do you want from this session?"
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                  />
+                  <div className="flex gap-2 items-center" data-moderator-dictate-description>
+                    <Input
+                      id="description"
+                      placeholder="What outcome do you want from this session?"
+                      value={newDescription}
+                      onChange={(e) => setNewDescription(e.target.value)}
+                    />
+                    <LiveVoiceDictate
+                      role="moderator"
+                      value={newDescription}
+                      onChange={setNewDescription}
+                      disabled={creating}
+                      size="icon"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">

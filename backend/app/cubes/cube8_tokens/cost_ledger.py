@@ -46,11 +46,12 @@ def money(value: Any, places: Decimal = TWOPLACE) -> Decimal:
 # Rate catalog (versioned). Unknown keys → RateLookup.unknown, never 0.
 # ---------------------------------------------------------------------------
 
-RATE_CATALOG_VERSION = "2026-04.v1"  # mirrors provider pricing notes already in-repo
+RATE_CATALOG_VERSION = "2026-11.v3"  # STT whisper $0.006/min per https://developers.openai.com/api/docs/pricing (2026-11-09)
 CURRENCY_USD = "USD"
 
 
 # STT: USD per minute of audio (from cube3 providers/base.py STT_COST_RATES)
+# whisper source: https://developers.openai.com/api/docs/pricing (verified 2026-11-09)
 STT_RATES_USD_PER_MIN: dict[str, Decimal] = {
     "whisper": D("0.006"),
     "grok": D("0.006"),

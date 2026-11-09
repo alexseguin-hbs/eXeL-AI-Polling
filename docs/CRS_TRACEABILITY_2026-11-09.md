@@ -12,7 +12,7 @@
 | CRS | Cube | Title | Status |
 |-----|------|-------|--------|
 | CRS-09.08 | Cube 6 (theming) / Cube 7 (prioritization) | 1M live theming+prioritization; Theme02 <3s; metrics shown | Planned |
-| CRS-15.09 | Cube 3 | Live voice-to-text for Moderator **and** Participants | Planned |
+| CRS-15.09 | Cube 3 | Live voice-to-text for Moderator **and** Participants | **Implemented (code)** 2026-11-09 |
 | CRS-22.04 | Cube 7 | Moderator final decision transparency (show group #1 + reason) | Planned |
 | CRS-36 | Cube 7 | Round 1 variable auto-select (e.g. 40% · 4/10) | Planned |
 | CRS-36.01–.03 | Cube 7 | Auto-select config / ballot subset / replay hash | Planned |
@@ -67,3 +67,9 @@ Status is recorded **only as verified**. "Local" = run on the build box, not CI 
 | CRS-39.03 | No live charges from tests: Stripe create calls patched; real-SQL ledger tests on in-memory SQLite | 14fdbfa6f | as above | same | In progress |
 | CRS-39.02 / CRS-14.05 | Paid-tier (Moderator Paid / Cost Split) creator CSV export returns the full tier only after the creator Checkout is webhook-confirmed (Cost Split can open unpaid); Free poll moderator export unchanged | 8c58371be | `test_view_entitlement.py::test_moderator_export_follows_creator_payment_on_paid_tiers` + cube8/cube9 suites (local) | `/workspace/fleet/payments-supabase/WORKFLOW_MAP.md` | In progress |
 | CRS-39.02 / CRS-14.05 | Read APIs exposed by #27 now withhold `summary_333` unless `view_entitlement` grants it: `GET /sessions/{id}/themes`, cube2 response list/detail (`apply_response_paid_view_gate` wired), cube4 `/collected` list/single. 33/111 and moderator raw text unchanged (existing live-feed flow) | f96858755, 6c41f63a8 | `test_view_entitlement.py` 21 passed incl. `test_get_themes_withholds_theme_333_until_paid`, `test_collected_withholds_333_until_creator_paid`; `tests/cube2/test_summary_tiers_expose.py`; cube2/4/6/7/8/9 + contract gates 1166 passed, 3 pre-existing failures (local) | PR #29; live `/workspace/research-exel/artifacts/payments-live/w2-readgate-verify.json` | In progress — merged #29 (0b62f1496), API deployed api-v1q (Worker version 64c8f9bd); live 2026-11-09 08:19 CST: anonymous GET /themes returns no non-null summary_333, /responses and /collected 401 without auth. No production theme row has a stored 333 yet (read-only SQL), so redaction of a real value is shown by tests only |
+
+## Implementation evidence (CRS-15.09 live voice) — updated 2026-11-09
+
+| CRS | Change | Commit | Tests (verified) | Evidence | Status |
+|-----|--------|--------|------------------|----------|--------|
+| CRS-15.09 | LiveVoiceDictate (browser Web Speech + `/voice/transcribe` Whisper/Gemini/AWS fallback); mic on participant response, moderator create title/description, decision reason; STT cost/min → AICostLog `phase=stt`; rates from https://developers.openai.com/api/docs/pricing (Whisper $0.006/min, verified 2026-11-09). xAI STT still unavailable (403). | (pending PR merge) | `frontend/tests/live-voice-dictate.test.mjs`; `backend/tests/cube3/test_transcribe_only.py` | Browser Web Speech **unverifiable headless**; server path live-verified with short audio sample after deploy | In progress — code on branch |

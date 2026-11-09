@@ -378,6 +378,98 @@ async def store_voice_response(
 # Phase A via core/phase_a_retry.py → summarize_single_response().
 
 
+
+async def transcribe_only(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    audio_bytes: bytes,
+    language_code: str = "en",
+    audio_format: str = "webm",
+    *,
+    preferred_provider: str | None = None,
+    role: str = "participant",
+) -> dict:
+    """CRS-15.09: STT only — return transcript for editable UI; do not create a response.
+
+    Records an AICostLog row with phase="stt" (estimate from published rate × duration).
+    Browser Web Speech path is free and never hits this function.
+    """
+    from app.cubes.cube3_voice.providers.base import STT_COST_RATES, compute_stt_cost
+    from app.models.ai_cost_log import AICostLog
+    from app.models.session import Session
+
+    session = await db.get(Session, session_id)
+    if session is None:
+        from app.core.exceptions import SessionNotFoundError
+        raise SessionNotFoundError(str(session_id))
+
+    stt_provider_name = preferred_provider or getattr(session, "stt_provider", None) or session.ai_provider
+    # Prefer whisper for server fallback when session still points at grok (no STT permission).
+    if stt_provider_name in (None, "", "grok", "xai"):
+        stt_provider_name = "whisper"
+
+    sem = _stt_semaphore_pool.get(session_id)
+    async with sem:
+        stt_result = await transcribe_audio(
+            db, audio_bytes, language_code, audio_format,
+            preferred_provider=stt_provider_name,
+        )
+
+    provider = stt_result.provider
+    duration = float(stt_result.audio_duration_sec or 0.0)
+    cost = stt_result.cost_usd
+    if cost is None or cost == 0.0:
+        computed = compute_stt_cost(provider, duration)
+        cost = float(computed) if computed is not None else 0.0
+    rate = STT_COST_RATES.get(provider)
+    # Published OpenAI Whisper rate: https://developers.openai.com/api/docs/pricing (Whisper $0.006/min, verified 2026-11-09)
+    rate_source = (
+        "https://developers.openai.com/api/docs/pricing#transcription"
+        if provider == "whisper"
+        else f"in-repo STT_COST_RATES[{provider}]"
+    )
+
+    cost_logged = False
+    try:
+        log = AICostLog(
+            session_id=session_id,
+            phase="stt",
+            provider=provider,
+            total_calls=1,
+            total_input_chars=0,
+            total_output_chars=len(stt_result.transcript or ""),
+            estimated_cost_usd=float(cost or 0.0),
+            response_count=0,
+            duration_sec=duration,
+        )
+        db.add(log)
+        await db.commit()
+        cost_logged = True
+        logger.info(
+            "cube3.stt.dictate_cost_logged",
+            session_id=str(session_id),
+            provider=provider,
+            duration_sec=duration,
+            cost_usd=cost,
+            role=role,
+        )
+    except Exception as exc:  # noqa: BLE001 — cost log must never fail dictate
+        await db.rollback()
+        logger.warning("cube3.stt.dictate_cost_log_failed", error=str(exc))
+
+    return {
+        "transcript_text": stt_result.transcript or "",
+        "transcript_confidence": float(stt_result.confidence or 0.0),
+        "language_detected": stt_result.language_detected or language_code,
+        "stt_provider": provider,
+        "audio_duration_sec": duration,
+        "cost_usd": float(cost or 0.0),
+        "rate_usd_per_min": float(rate) if rate is not None else None,
+        "rate_source": rate_source,
+        "cost_logged": cost_logged,
+    }
+
+
 async def submit_voice_response(
     db: AsyncSession,
     *args,

@@ -98,3 +98,23 @@ class PaginatedVoiceResponseList(BaseModel):
     page: int
     page_size: int
     pages: int
+
+
+# ---------------------------------------------------------------------------
+# Transcribe-only (CRS-15.09) — fills editable text; does NOT create a response
+# ---------------------------------------------------------------------------
+
+
+class VoiceTranscribeRead(BaseModel):
+    """Result of POST /sessions/{id}/voice/transcribe (dictate path)."""
+
+    transcript_text: str
+    transcript_confidence: float
+    language_detected: str
+    stt_provider: str
+    audio_duration_sec: float
+    cost_usd: float = 0.0
+    rate_usd_per_min: float | None = None
+    rate_source: str | None = None
+    cost_logged: bool = False
+

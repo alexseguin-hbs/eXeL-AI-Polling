@@ -2,6 +2,7 @@
 
 Endpoints:
   POST /sessions/{session_id}/voice                   — Submit voice (multipart audio upload)
+  POST /sessions/{session_id}/voice/transcribe        — Dictate only (CRS-15.09; no response create)
   WS   /sessions/{session_id}/voice/realtime          — Real-time streaming STT (paid feature)
   GET  /sessions/{session_id}/voice                   — List voice responses with pagination
   GET  /sessions/{session_id}/voice/metrics           — System/User/Outcome metrics for Cube 10
@@ -31,6 +32,7 @@ from app.schemas.voice import (
     PaginatedVoiceResponseList,
     VoiceResponseDetail,
     VoiceSubmissionRead,
+    VoiceTranscribeRead,
 )
 
 router = APIRouter(
@@ -127,6 +129,76 @@ async def submit_voice(
         audio_format=fmt,
     )
     return result
+
+
+
+
+@router.post("/transcribe", response_model=VoiceTranscribeRead, status_code=200)
+@limiter.limit("60/minute")
+async def transcribe_voice(
+    request: Request,
+    session_id: uuid.UUID,
+    audio: UploadFile = File(..., description="Audio recording from browser mic (dictate path)"),
+    language_code: str = Form(default="en"),
+    audio_format: str = Form(default="webm"),
+    participant_id: uuid.UUID | None = Form(default=None),
+    role: str = Form(default="participant"),
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
+    participant_token: str | None = Header(default=None, alias=PARTICIPANT_TOKEN_HEADER),
+):
+    """CRS-15.09: Transcribe audio into editable text without submitting a response.
+
+    Auth: authenticated session owner (moderator) OR participant token matching participant_id.
+    Browser Web Speech is preferred client-side; this is the server fallback (Whisper → Gemini → AWS).
+    Provider API keys stay in Worker/env secrets and are never logged.
+    """
+    from app.core.exceptions import ResponseValidationError
+    from app.core.session_access import session_owner_of
+    from app.core.permissions import canonical_role
+
+    _validate_language_code(language_code)
+    if role not in {"participant", "moderator"}:
+        raise HTTPException(status_code=400, detail="role must be participant or moderator")
+
+    fmt = audio_format.lower()
+    if fmt not in _ACCEPTED_FORMATS:
+        raise ResponseValidationError(
+            f"Unsupported audio format '{fmt}'. Accepted: {', '.join(sorted(_ACCEPTED_FORMATS))}"
+        )
+
+    is_owner = False
+    if user is not None:
+        owner = await session_owner_of(db, session_id)
+        if owner is None:
+            from app.core.exceptions import SessionNotFoundError
+            raise SessionNotFoundError(str(session_id))
+        role_name = canonical_role(getattr(user, "role", "") or "")
+        if role_name == "admin" or owner == getattr(user, "user_id", None):
+            is_owner = True
+
+    if not is_owner:
+        if participant_id is None:
+            raise HTTPException(status_code=403, detail="Participant token or session owner required")
+        await require_participant_identity(db, session_id, participant_id, participant_token, user)
+
+    audio_bytes = await audio.read()
+    if len(audio_bytes) == 0:
+        raise ResponseValidationError("Audio file is empty")
+    if len(audio_bytes) > _MAX_AUDIO_SIZE:
+        raise ResponseValidationError(
+            f"Audio file too large ({len(audio_bytes) / 1024 / 1024:.1f} MB). "
+            f"Maximum: {_MAX_AUDIO_SIZE / 1024 / 1024:.0f} MB"
+        )
+
+    return await service.transcribe_only(
+        db,
+        session_id=session_id,
+        audio_bytes=audio_bytes,
+        language_code=language_code,
+        audio_format=fmt,
+        role=role,
+    )
 
 
 @router.websocket("/realtime")

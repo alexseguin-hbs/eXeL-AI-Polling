@@ -34,6 +34,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 // r.T2 — the device is the third independent source; a completed response is never discarded.
 import { queueResponse, dropResponse, recordAttempt, describeAttempt, anyDelivered, pendingFor } from "@/lib/response-outbox";
 import { VoiceInput } from "@/components/voice-input";
+import { LiveVoiceDictate } from "@/components/live-voice-dictate";
 import { PollCountdownTimer } from "@/components/poll-countdown-timer";
 import { SimModeratorExperience } from "@/components/sim-moderator-experience";
 import { useTheme } from "@/lib/theme-context";
@@ -1353,7 +1354,19 @@ export function SessionView() {
                         : t("cube1.session.submit_btn")}
                     </Button>
                     {/* Voice input (Cube 3 STT) — dictation + direct submit mode */}
-                    <VoiceInput
+                                        <div className="flex items-center gap-2">
+                      <LiveVoiceDictate
+                        sessionId={sessionId}
+                        participantId={participantId}
+                        languageCode={languageCode}
+                        role="participant"
+                        value={responseText}
+                        onChange={(next) => { startTimerOnActivity(); setResponseText(next); }}
+                        disabled={submitting || (simulationMode && simPhase !== "polling")}
+                      />
+                      <span className="text-[11px] text-muted-foreground">{t("cube3.voice.edit_before_submit")}</span>
+                    </div>
+<VoiceInput
                       sessionId={sessionId}
                       questionId={currentQuestion?.id ?? ""}
                       participantId={participantId}

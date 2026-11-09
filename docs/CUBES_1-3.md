@@ -1004,12 +1004,13 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 
 ---
 
-## Cube 3 — Voice-to-Text Engine: **~87% SSSES** (CRS-08, CRS-15 complete; SSSES Phase 1-3 audit done 2026-04-07; Tasks A0-A7 COMPLETE; CRS-15.09 dual-role live voice path added 2026-11-09)
+## Cube 3 — Voice-to-Text Engine: **~87% SSSES** (CRS-08, CRS-15 complete; SSSES Phase 1-3 audit done 2026-04-07; Tasks A0-A7 COMPLETE; CRS-15.09 dual-role live voice path added 2026-11-09; implemented code 2026-11-09)
 
 **Code location:** `backend/app/cubes/cube3_voice/` (modular, self-contained)
 
 ### Cube 3 — Implemented
 - **Browser mic capture:** MediaRecorder API (webm default), audio blob → FormData upload
+- **CRS-15.09 LiveVoiceDictate:** browser Web Speech → editable field; server `/sessions/{id}/voice/transcribe` fallback (no auto-submit); moderator create + decision reason + participant response
 - **STT providers (3 batch at launch):** OpenAI Whisper, Gemini (Google), AWS Transcribe. *(Grok removed — 403 permission error; still available for AI theming in Cube 6.)*
 - **Provider abstraction:** `STTProvider` ABC with `transcribe()`, `supports_language()`, `model_id()`
 - **Circuit breaker failover:** whisper → gemini → aws (skips failed provider, retries remaining). *(Grok removed from chain.)*
@@ -1110,7 +1111,7 @@ The following gaps exist ONLY in the **real-time WebSocket STT path** (paid feat
 | **CRS-15.06** | **Complete** | P2.7+P4.2 | `factory.py:31,72-77` `get_stt_provider_safe()` | Thread-safe async singleton; prevents race on concurrent init |
 | **CRS-15.07** | **Complete** | P2.6 | `realtime.py:176` 5-min timeout; `realtime.py:212-221` recovery | WebSocket: 300s max; push_audio + stt.stop() error caught; payment gate |
 | **CRS-15.08** | Deferred | RT-1→4 | Documented in Known Gaps section | 4 realtime gaps deferred to paid feature launch |
-| **CRS-15.09** | **Planned** | Original-design / scale | Dual-role live voice input (Moderator + Participants); Date added 2026-11-09 | Same STT pipeline as CRS-15.03; role-gated UI on dashboard + join; does not claim live proof |
+| **CRS-15.09** | **Implemented (code)** | Original-design / scale · updated 2026-11-09 | Dual-role live voice: browser Web Speech first + server `/voice/transcribe` fallback (Whisper→Gemini→AWS); Date added 2026-11-09 | `live-voice-dictate.tsx` on participant response, moderator create title/description, decision reason; cost/min → AICostLog phase=stt; browser path unverifiable headless |
 
 ### Cube 3 — SSSES Task Traceability (Phases 1-5)
 | Task | CRS Link | Status | Phase | Evidence |

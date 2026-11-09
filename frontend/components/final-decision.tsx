@@ -13,6 +13,7 @@
 import { useMemo, useState } from "react";
 import { Gavel, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LiveVoiceDictate } from "@/components/live-voice-dictate";
 import { useLexicon } from "@/lib/lexicon-context";
 import { api } from "@/lib/api";
 import type { FinalDecision, LiveRankingSnapshot, RankingCompletePayload } from "@/lib/use-session-broadcast";
@@ -119,15 +120,25 @@ export function FinalDecisionForm({
         ))}
       </select>
       {chosen !== groupTop && (
-        <textarea
-          className="w-full rounded-md border bg-background px-2 py-1 text-sm"
-          rows={2}
-          maxLength={2000}
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          placeholder={t("cube7.decision.reason_placeholder")}
-          aria-label={t("cube7.decision.reason_label")}
-        />
+        <div className="flex gap-2 items-start">
+          <textarea
+            className="w-full rounded-md border bg-background px-2 py-1 text-sm"
+            rows={2}
+            maxLength={2000}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder={t("cube7.decision.reason_placeholder")}
+            aria-label={t("cube7.decision.reason_label")}
+          />
+          <LiveVoiceDictate
+            sessionId={sessionId}
+            role="moderator"
+            value={reason}
+            onChange={setReason}
+            disabled={busy}
+            size="icon"
+          />
+        </div>
       )}
       {problem === "reason" && <p className="text-[11px] text-yellow-400">{t("cube7.decision.reason_required")}</p>}
       {error && <p className="text-[11px] text-red-400">{error}</p>}

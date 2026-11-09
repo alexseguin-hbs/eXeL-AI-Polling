@@ -67,7 +67,7 @@ function storedParticipantToken(sessionId: string): { pid: string; token: string
 
 /** The token for a participant write: responses/voice name the participant in the body (the token
  *  must be theirs); a ballot and a time entry name nobody (the token says who). */
-export const PARTICIPANT_WRITE = /^\/sessions\/([^/]+)\/(responses|voice|rankings|time\/start|time\/stop)$/;
+export const PARTICIPANT_WRITE = /^\/sessions\/([^/]+)\/(responses|voice(?:\/transcribe)?|rankings|time\/start|time\/stop)$/;
 /** CRS-22.04 / S4: a participant reads the live group ranking + decision with their join token (no login). */
 export const PARTICIPANT_READ = /^\/sessions\/([^/]+)\/rankings\/live$/;
 function participantReadTokenFor(path: string): string | null {
@@ -381,6 +381,93 @@ export const api = {
 
     return response.json();
   },
+
+  /** CRS-15.09 dictate path — STT only, no response create. */
+  transcribeVoice: async (
+    sessionId: string,
+    audioBlob: Blob,
+    opts: {
+      languageCode?: string;
+      audioFormat?: string;
+      participantId?: string;
+      role?: "participant" | "moderator";
+      signal?: AbortSignal;
+    } = {},
+  ): Promise<{
+    transcript_text: string;
+    transcript_confidence: number;
+    language_detected: string;
+    stt_provider: string;
+    audio_duration_sec: number;
+    cost_usd: number;
+    rate_usd_per_min?: number | null;
+    rate_source?: string | null;
+    cost_logged: boolean;
+  }> => {
+    const languageCode = opts.languageCode ?? "en";
+    const audioFormat = opts.audioFormat ?? "webm";
+    const role = opts.role ?? "participant";
+
+    if (MOCK_MODE) {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      return {
+        transcript_text: "SIMULATED browser-fallback transcript for testing.",
+        transcript_confidence: 0.91,
+        language_detected: languageCode,
+        stt_provider: "browser",
+        audio_duration_sec: 1.2,
+        cost_usd: 0,
+        rate_usd_per_min: 0,
+        rate_source: "browser-web-speech",
+        cost_logged: false,
+      };
+    }
+
+    const formData = new FormData();
+    formData.append("audio", audioBlob, `recording.${audioFormat}`);
+    formData.append("language_code", languageCode);
+    formData.append("audio_format", audioFormat);
+    formData.append("role", role);
+    if (opts.participantId) formData.append("participant_id", opts.participantId);
+
+    const headers: Record<string, string> = {};
+    if (getAccessToken) {
+      try {
+        const token = await getAccessToken();
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+      } catch {
+        /* proceed without auth */
+      }
+    }
+    const path = `/sessions/${sessionId}/voice/transcribe`;
+    const participantToken = opts.participantId
+      ? participantTokenFor(path, { participant_id: opts.participantId })
+      : null;
+    if (participantToken) headers[PARTICIPANT_TOKEN_HEADER] = participantToken;
+
+    const url = buildUrl(path);
+    let response: Response;
+    try {
+      response = await fetch(url, { method: "POST", headers, body: formData, signal: opts.signal });
+    } catch {
+      if (opts.signal?.aborted) {
+        throw Object.assign(new Error("timeout"), { name: "TimeoutError" });
+      }
+      throw new ApiClientError(0, "Connection lost. Check your internet and try again.");
+    }
+    if (!response.ok) {
+      let detail = "Voice transcription failed. Please try again.";
+      try {
+        const errorData = await response.json();
+        if (typeof errorData.detail === "string") detail = errorData.detail;
+      } catch {
+        /* ignore */
+      }
+      throw new ApiClientError(response.status, detail);
+    }
+    return response.json();
+  },
+
 };
 
 export { ApiClientError };

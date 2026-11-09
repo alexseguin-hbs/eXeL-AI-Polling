@@ -563,6 +563,13 @@ const cube3: TranslationEntry[] = [
   { key: "cube3.voice.low_confidence", englishDefault: "Low transcription confidence — please review", context: "Low confidence warning toast", cubeId: 3 },
   { key: "cube3.voice.confidence_label", englishDefault: "confidence", context: "Confidence percentage label", cubeId: 3 },
   { key: "cube3.voice.reduce_to_33", englishDefault: "Reduce to 33 words", context: "On-demand 33-word summary button in live feed (MoT-1)", cubeId: 3 },
+  { key: "cube3.voice.dictate", englishDefault: "Dictate", context: "CRS-15.09 mic button — fill editable text", cubeId: 3 },
+  { key: "cube3.voice.edit_before_submit", englishDefault: "Review and edit before submitting", context: "CRS-15.09 toast after dictate", cubeId: 3 },
+  { key: "cube3.voice.browser_only_hint", englishDefault: "This browser has no speech recognition, and no session is open for server transcription.", context: "Create-form browser-only gap", cubeId: 3 },
+  { key: "cube3.voice.timeout", englishDefault: "Processing timed out — try a shorter clip.", context: "STT timeout", cubeId: 3 },
+  { key: "cube3.voice.network_error", englishDefault: "Could not reach the voice API.", context: "Network error", cubeId: 3 },
+  { key: "cube3.voice.stt_fallback_failed", englishDefault: "Server transcription failed. You can still type your response.", context: "Server STT failure", cubeId: 3 },
+  { key: "cube3.voice.moderator_dictate", englishDefault: "Dictate question or notes", context: "Moderator create / decision mic label", cubeId: 3 },
   // V2T provider settings (Moderator Settings panel)
   { key: "cube3.settings.v2t_provider", englishDefault: "Voice-to-Text Provider", context: "V2T settings section heading", cubeId: 3 },
   { key: "cube3.settings.v2t_desc", englishDefault: "Select the speech-to-text engine for voice responses in this session.", context: "V2T settings description", cubeId: 3 },
