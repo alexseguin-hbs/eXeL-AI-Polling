@@ -196,7 +196,8 @@ class TestModeratorCheckout:
             # Verify Stripe was called with correct params
             call_kwargs = mock_create.call_args[1]
             assert call_kwargs["mode"] == "payment"
-            assert call_kwargs["payment_method_types"] == ["card"]
+            # Stripe now rejects payment_method_types on Checkout (dynamic payment methods, Dashboard-managed)
+            assert "payment_method_types" not in call_kwargs
             assert call_kwargs["line_items"][0]["price_data"]["unit_amount"] == 2500
             assert call_kwargs["line_items"][0]["price_data"]["currency"] == "usd"
             assert call_kwargs["metadata"]["transaction_type"] == "moderator_fee"
