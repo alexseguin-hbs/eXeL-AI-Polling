@@ -253,7 +253,7 @@ async def run_pipeline(
         session.pipeline_stage = "storing"
         logger.info("Step 8: Storing results")
         replay_hash = await _store_results(
-            db, session, responses, bin_samples, reduced
+            db, session, responses, bin_samples, reduced, summarizer=summarizer
         )
         _lap("store")
 
@@ -610,6 +610,10 @@ async def get_session_themes_enriched(
             "theme01_category": category,
             "theme_level": level,
             "parent_theme_id": t.parent_theme_id,
+            # t182: Theme02 tree parent for bubble layout (distinct from Theme01 parent_theme_id).
+            "parent_id": getattr(t, "tree_parent_id", None),
+            # t181: level-sized description (111@9 / 222@6 / 333@3); paid-gated in GET /themes.
+            "description": getattr(t, "description", None),
             "summary_111": t.theme_summary_111,
             "summary_333": t.theme_summary_333,
         })
