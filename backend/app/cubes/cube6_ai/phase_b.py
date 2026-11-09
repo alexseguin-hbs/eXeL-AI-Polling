@@ -48,7 +48,7 @@ from app.models.theme_sample import ThemeSample
 logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib raised TypeError
 
 # Theme01 categories (matches monolith)
-THEME01_CATEGORIES = ["Risk & Concerns", "Supporting Comments", "Neutral Comments"]
+THEME01_CATEGORIES = ["Supporting Comments", "Risk & Concerns", "Neutral Comments"]  # owner order (t165u, 2026-11-09)
 _CONFIDENCE_THRESHOLD = 65  # <65% -> reclassify as Neutral (monolith line 127)
 _ASSIGN_CHUNK = 2000  # rows per theme-assignment upsert (× 11 columns < 32,767 bind parameters)
 
@@ -148,7 +148,7 @@ async def _fetch_summaries(
 _CLASSIFY_INSTRUCTION = (
     "If the input is not in English, translate it to English first. "
     "Then reply with the exact format: 'THEME (Confidence: XX%)' where THEME is "
-    "ONE of these three exact phrases: 'Risk & Concerns' or 'Supporting Comments' "
+    "ONE of these three exact phrases: 'Supporting Comments' or 'Risk & Concerns' "
     "or 'Neutral Comments', and XX is a number from 0 to 100 indicating your confidence."
 )
 

@@ -1,7 +1,7 @@
 """Cube 6 Theme02 fast path — the monolith's semantics, scaled (CRS-09.08.01-.05, 2026-11-09).
 
 The original notebook (eXeL-AI_Polling_v04.2.py) is the reference: Theme01 on the 33-word summary as
-'Risk & Concerns' / 'Supporting Comments' / 'Neutral Comments' with confidence (<65% → Neutral); shuffle each category
+'Supporting Comments' / 'Risk & Concerns' / 'Neutral Comments' (owner's exact labels and order, 2026-11-09) with confidence (<65% → Neutral); shuffle each category
 into samples of 10; 3 themes per sample (5-word name, 7-12 word description); pool → 9 → 6 → 3 with confidence; assign
 every response a Theme2_9/6/3. Those outputs and prompts are kept. What changes is only HOW the work is scheduled:
 
@@ -52,7 +52,7 @@ _GEN_MAX_CONCURRENT = 96
 
 _BATCH_CLASSIFY_INSTRUCTION = (
     "If an input is not in English, translate it to English first. For EACH numbered input decide ONE of these three "
-    "exact phrases: 'Risk & Concerns' or 'Supporting Comments' or 'Neutral Comments', and a confidence from 0 to 100. "
+    "exact phrases: 'Supporting Comments' or 'Risk & Concerns' or 'Neutral Comments', and a confidence from 0 to 100. "
     'Reply with ONLY a JSON array, one object per input, in order: [{"i": 1, "theme": "...", "confidence": 87}, ...]'
 )
 

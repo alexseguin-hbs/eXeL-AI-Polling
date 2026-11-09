@@ -45,7 +45,7 @@ from app.cubes.cube6_ai.phase_b import (
 logger = structlog.get_logger(__name__)  # keyword fields need structlog; stdlib raised TypeError
 
 # Theme01 categories (matches monolith)
-THEME01_CATEGORIES = ["Risk & Concerns", "Supporting Comments", "Neutral Comments"]
+THEME01_CATEGORIES = ["Supporting Comments", "Risk & Concerns", "Neutral Comments"]  # owner order (t165u, 2026-11-09)
 _CONFIDENCE_THRESHOLD = 65  # <65% -> reclassify as Neutral (monolith line 127)
 
 
