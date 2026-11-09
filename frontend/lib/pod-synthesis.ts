@@ -72,7 +72,7 @@ const numH = (n: number) => n.toFixed(4);   // hours: the same precision as ever
 const num3 = (n: number) => n.toFixed(3);   // 웃: the same precision as the receipt
 
 const methodPhrase = (m: string) =>
-  m === "video" ? "as an unlisted video link"
+  m === "video" ? "as a YouTube video link"
     : m === "voice" ? "by voice, transcribed on the spot"
       : "in written words";
 

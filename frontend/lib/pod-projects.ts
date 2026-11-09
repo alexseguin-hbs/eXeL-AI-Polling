@@ -103,7 +103,7 @@ export const findProject = (id: string): PodProject | undefined =>
 /** How outcomes get recorded when the pod stops (operator's three ways). */
 export type RecordMethod = "video" | "written" | "voice";
 export const RECORD_METHODS: { id: RecordMethod; label: string; hint: string }[] = [
-  { id: "video", label: "Video link", hint: "An unlisted YouTube link of the session outcome." },
+  { id: "video", label: "Video link", hint: "Paste a YouTube link of the session. Unlisted: anyone with the link can watch and reshare. Private: only people you invite on YouTube, signed into those accounts — a private link alone does not open it for the whole team." },
   { id: "written", label: "Written", hint: "Type the outcome in words." },
   { id: "voice", label: "Voice → text", hint: "Speak it — the polling tool's voice-to-text captures it." },
 ];
@@ -120,7 +120,7 @@ export const POD_SIZE = 3;
 
 /** The pod runs on free tools — nothing here needs a purchase to witness an outcome. */
 export const FREE_TOOLS_NOTE =
-  "The pod runs on free tools: the polling tool's voice-to-text, an unlisted video link, or plain text. " +
+  "The pod runs on free tools: the polling tool's voice-to-text, a YouTube video link (Unlisted or Private — see the video hint), or plain text. " +
   "No purchase is needed to witness and record an outcome — the Seed is membership, not a paywall on contribution.";
 
 /**

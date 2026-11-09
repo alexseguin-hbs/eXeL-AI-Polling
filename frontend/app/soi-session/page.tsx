@@ -52,6 +52,12 @@ import { format as fmtABC } from "@/lib/abc-3600";
 import { measure, supported, witnessedHours as spanHours, hhmmss, heartsFor, RUNGS, type ClockEvent, type Rung } from "@/lib/pod-clock";
 import { readProvider } from "@/lib/ai-provider";
 import { appendPod, replayPod, recentPods } from "@/lib/pod-store";
+import { attemptSharedPersist, combinePersistStatus, PERSIST_STATUS_COPY, auth0PrefillIsMembershipProof, type SharedPersistStatus, type DevicePersistStatus } from "@/lib/pod-persist";
+import { RCoreBadge } from "@/components/2525-core/rcore-badge";
+import { fromLedgerJson } from "@/lib/2525-core/revisions";
+import { POD_SESSION_LEDGER } from "@/lib/2525-core/pod-session-ledger.gen";
+
+const POD_RCORE_HISTORY = fromLedgerJson(POD_SESSION_LEDGER);
 import { BANDS, bandFor, standing, hoursToCeiling, YUG_CEILING, mint, stamp, type Vintage } from "@/lib/pod-yug";
 import {
   TIER_REASON, settleInRegion, formatLocal, DEFAULT_REGION_ID,
@@ -499,6 +505,8 @@ export default function SoISessionPage() {
   // rcore.ledger — each move APPENDS a revision of the pod to this device. Nothing is overwritten, so an earlier revision
   // still reads back exactly as it was, and a reload reopens what happened rather than a blank pod.
   const [saveFailed, setSaveFailed] = useState(false);
+  const [devicePersistStatus, setDevicePersistStatus] = useState<DevicePersistStatus>("device_idle");
+  const [sharedPersistStatus, setSharedPersistStatus] = useState<SharedPersistStatus>("shared_unavailable");
   const [resumed, setResumed] = useState("");
   const podRev = useRef(0);
   const restored = useRef(false);
@@ -526,7 +534,27 @@ export default function SoISessionPage() {
   useEffect(() => {
     if (!podCode) return;
     const ok = appendPod(podCode, ++podRev.current, { phase, intent, outcome, members, clockEvents, baselineHrs, signerIdx, recordMethod, recordValue, rung, vintage, memberVintages, regionIdSel, lock }, Date.now());
+    const device: DevicePersistStatus = ok ? "device_saved" : "device_failed";
     if (!ok) setSaveFailed(true);
+    setDevicePersistStatus(device);
+    // Shared team save is fail-closed until signed seat membership exists (t65u/t69u).
+    // Auth0 prefill and anonymous QR join are explicitly not membership proof.
+    void auth0PrefillIsMembershipProof();
+    const shared = attemptSharedPersist({
+      podCode,
+      rev: podRev.current,
+      knownServerRev: null,
+      memberOutcomes: members.map((m) => m.outcome),
+      auth: {
+        ownerSubject: null,
+        provenSeats: [],
+        projectId: Array.from(projects)[0] ?? null,
+        claimedProjectId: Array.from(projects)[0] ?? null,
+        podSize: POD_SIZE,
+      },
+    }, null);
+    setSharedPersistStatus(shared.status);
+    combinePersistStatus(device, shared.status);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [podCode, phase, members, clockEvents, recordValue, rung, vintage, memberVintages, regionIdSel, lock]);
   // OPERATOR RULING 2026-09-11: "button should start and end clock". The clock is a BUTTON, not a side-effect of a
@@ -1051,6 +1079,13 @@ export default function SoISessionPage() {
 
             {resumed && <p className="mb-3 rounded-md border border-primary/40 bg-primary/5 p-2 text-xs text-primary" data-testid="pod-resumed">{resumed}</p>}
             {saveFailed && <p className="mb-3 rounded-md border border-amber-500/50 bg-amber-500/5 p-2 text-xs text-amber-500" data-testid="pod-save-failed">{t("soi.pod.save_failed_device_warning")}</p>}
+            {podCode && (
+              <p className="mb-3 rounded-md border border-border bg-muted/30 p-2 text-xs text-muted-foreground" data-testid="pod-persist-status">
+                <span data-testid="pod-persist-device">{PERSIST_STATUS_COPY[devicePersistStatus]}</span>
+                {" · "}
+                <span data-testid="pod-persist-shared">{PERSIST_STATUS_COPY[sharedPersistStatus]}</span>
+              </p>
+            )}
             {recentPods().length > 0 && (
               <div className="mb-4 rounded-lg border border-border p-3 text-sm" data-testid="pod-recent">
                 <div className="font-medium">{t("soi.pod.ui.come_back_to_pod")}</div>
@@ -1847,6 +1882,8 @@ export default function SoISessionPage() {
         Prototype · {connected ? "live — one roster across the pod" : "local state"} · <TrinityGlyphs inline size="text-[11px]" /> mint nothing new here — the pod is a gate on the
         currencies that already exist. — MoT
       </p>
+      {/* R-CORE · version history + before/after compare (t67u) — same shared badge as Security-2525 */}
+      <RCoreBadge history={POD_RCORE_HISTORY} accent="#22d3ee" />
     </div>
   );
 }
