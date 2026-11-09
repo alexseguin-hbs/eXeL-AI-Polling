@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.cubes.cube8_tokens.stripe_config import resolve_secret_key
+from app.cubes.cube8_tokens.payment_idempotency import stripe_idempotency_key, new_attempt_nonce
 from app.models.payment import PaymentTransaction
 from app.models.session import Session
 from app.models.participant import Participant
@@ -136,6 +137,13 @@ async def create_usage_billing_checkout(
     metered = await estimate_metered_cost(db, session_id)
     amount_cents = max(metered["estimated_cost_cents"], 50)  # Stripe minimum $0.50
 
+    idem_key = stripe_idempotency_key(
+        action="checkout_usage_billing",
+        session_id=str(session_id),
+        amount_cents=amount_cents,
+        transaction_type="usage_billing",
+        nonce=new_attempt_nonce(),
+    )
     checkout = stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[{
@@ -160,6 +168,7 @@ async def create_usage_billing_checkout(
             "transaction_type": "usage_billing",
             "billable_tokens": str(metered["billable_tokens"]),
         },
+        idempotency_key=idem_key,
     )
 
     tx = PaymentTransaction(
@@ -226,6 +235,13 @@ async def create_moderator_checkout(
 
     final_amount = max(amount_cents or MODERATOR_MIN_FEE_CENTS, MODERATOR_MIN_FEE_CENTS)
 
+    idem_key = stripe_idempotency_key(
+        action="checkout_moderator_fee",
+        session_id=str(session_id),
+        amount_cents=final_amount,
+        transaction_type="moderator_fee",
+        nonce=new_attempt_nonce(),
+    )
     checkout = stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[{
@@ -247,6 +263,7 @@ async def create_moderator_checkout(
             "short_code": session.short_code,
             "transaction_type": "moderator_fee",
         },
+        idempotency_key=idem_key,
     )
 
     # Record pending transaction
@@ -339,6 +356,14 @@ async def create_cost_split_intent(
         share_cents = max(math.ceil(user_share / user_count), 50)  # Min $0.50 per user
         description = f"User share (50%/{user_count}) — Session {session.short_code}"
 
+    idem_key = stripe_idempotency_key(
+        action="intent_cost_split",
+        session_id=str(session_id),
+        participant_id=str(participant_id),
+        amount_cents=share_cents,
+        transaction_type="cost_split",
+        nonce=new_attempt_nonce(),
+    )
     intent = stripe.PaymentIntent.create(
         amount=share_cents,
         currency="usd",
@@ -350,6 +375,7 @@ async def create_cost_split_intent(
             "estimated_total_cents": str(total_cents),
         },
         description=description,
+        idempotency_key=idem_key,
     )
 
     # Record pending transaction
@@ -406,6 +432,14 @@ async def create_donation_intent(
 
     session = await _get_session(db, session_id)
 
+    idem_key = stripe_idempotency_key(
+        action="intent_donation",
+        session_id=str(session_id),
+        participant_id=str(participant_id) if participant_id else None,
+        amount_cents=amount_cents,
+        transaction_type="donation",
+        nonce=new_attempt_nonce(),
+    )
     intent = stripe.PaymentIntent.create(
         amount=amount_cents,
         currency="usd",
@@ -415,6 +449,7 @@ async def create_donation_intent(
             "transaction_type": "donation",
         },
         description=f"Donation — Session {session.short_code}",
+        idempotency_key=idem_key,
     )
 
     tx = PaymentTransaction(
@@ -470,6 +505,12 @@ async def create_divinity_donation_checkout(
             detail="Minimum donation is $0.50",
         )
 
+    idem_key = stripe_idempotency_key(
+        action="checkout_divinity_donation",
+        amount_cents=amount_cents,
+        transaction_type="divinity_guide_donation",
+        nonce=new_attempt_nonce(),
+    )
     checkout = stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[{
@@ -491,6 +532,7 @@ async def create_divinity_donation_checkout(
             "transaction_type": "divinity_guide_donation",
             "amount_cents": str(amount_cents),
         },
+        idempotency_key=idem_key,
     )
 
     # Record transaction so webhook can find it and award HI tokens

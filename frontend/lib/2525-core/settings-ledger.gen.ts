@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Settings append-only traceability ledger — 6 entries, extracted at build time. */
+/** Settings append-only traceability ledger — 7 entries, extracted at build time. */
 export const SETTINGS_LEDGER: LedgerInput = {
   "section": "Settings",
   "route": "Settings slide-over",
@@ -50,6 +50,13 @@ export const SETTINGS_LEDGER: LedgerInput = {
       "date": "2026-11-08",
       "kind": "release",
       "text": "Cost Estimate panel (1,000 users) gains catalog-backed rates with freshness (catalog version / checked date / stale), UI_ESTIMATE badge, billable-audio-minute denominator for V2T $/min, unknown rates shown as 'rate unknown' (never silent $0), and corrected free-tier footer: participants not charged ≠ provider cost zero. Summary combo heritage totals preserved as UI_ESTIMATE_STATIC; Azure V2T flagged unknown until catalog override. Weekly server-side fee reaffirmation is reviewed config only (not activated). Session cost ledger API + migration 033 are review-only — no live Supabase apply; invoice_accurate remains false until genuine reconcile.",
+      "commit": ""
+    },
+    {
+      "rev": 7,
+      "date": "2026-11-08",
+      "kind": "release",
+      "text": "Cost Estimate panel loads GET /payments/provider-fees when available; shows honest loading/server_ok/unavailable/offline/bad_shape status; retains labeled offline local UI estimates when server unreachable (never unknown→$0). New status/assumption strings routed through t() englishDefault keys (33-language validation not claimed). Stripe PaymentIntent/Checkout creates now pass Idempotency-Key via stripe_idempotency_key. Weekly official-source HTTP fee adapters remain an explicit blocker (fee_source_adapters interface only).",
       "commit": ""
     }
   ]

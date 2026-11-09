@@ -1191,6 +1191,32 @@ export async function handleMockRequest<T>(
   // MOCK_MODE (default deploy) has no backend + no Stripe. Return graceful demo
   // responses so donate UIs show a friendly "demo" state instead of a misleading
   // "Session not found" 404. Real Checkout runs when NEXT_PUBLIC_MOCK_MODE=false.
+  // Cost Estimate panel — labeled mock catalog (not invoice-accurate; unknown Azure stays null).
+  if (method === "GET" && path === "/payments/provider-fees") {
+    return {
+      catalog_version: "2026-04.v1-mock",
+      currency: "USD",
+      freshness: {
+        checked_at: "2026-04-01T00:00:00Z",
+        stale: true,
+        catalog_version: "2026-04.v1-mock",
+        next_refresh_due_at: null,
+      },
+      combos: [
+        { summary_provider: "openai", v2t_provider: "whisper", label: "OpenAI + Whisper", is_default: true, summary_usd: "0.33", v2t_usd: "2.22", total_usd: "2.55", v2t_verification: "estimated_from_catalog", invoice_accurate: false },
+        { summary_provider: "gemini", v2t_provider: "gemini", label: "Gemini + Gemini", is_default: false, summary_usd: "0.22", v2t_usd: "0.06", total_usd: "0.28", v2t_verification: "estimated_from_catalog", invoice_accurate: false },
+        { summary_provider: "gemini", v2t_provider: "whisper", label: "Gemini + Whisper", is_default: false, summary_usd: "0.22", v2t_usd: "2.22", total_usd: "2.44", v2t_verification: "estimated_from_catalog", invoice_accurate: false },
+        { summary_provider: "grok", v2t_provider: "whisper", label: "Grok + Whisper", is_default: false, summary_usd: "5.25", v2t_usd: "2.22", total_usd: "7.47", v2t_verification: "estimated_from_catalog", invoice_accurate: false },
+        { summary_provider: "claude", v2t_provider: "whisper", label: "Claude + Whisper", is_default: false, summary_usd: "7.87", v2t_usd: "2.22", total_usd: "10.09", v2t_verification: "estimated_from_catalog", invoice_accurate: false },
+        { summary_provider: "claude", v2t_provider: "azure", label: "Claude + Azure", is_default: false, summary_usd: "7.87", v2t_usd: null, total_usd: null, v2t_verification: "unknown_rate", invoice_accurate: false },
+        { summary_provider: "claude", v2t_provider: "aws", label: "Claude + AWS", is_default: false, summary_usd: "7.87", v2t_usd: "8.88", total_usd: "16.75", v2t_verification: "estimated_from_catalog", invoice_accurate: false },
+      ],
+      free_tier: { corrected: "Free tier (≤19 users): participants are not charged a session fee; provider STT/Theme02 costs may still accrue." },
+      invoice_accurate: false,
+      pricing_activation_enabled: false,
+    } as T;
+  }
+
   if (method === "POST" && (path === "/payments/divinity-donate" || path === "/payments/donate")) {
     const amt = Number((body as Record<string, unknown>)?.amount_cents) || 0;
     // Empty checkout_url/client_secret signals "demo — no real charge" to the caller.
