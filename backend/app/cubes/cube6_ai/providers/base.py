@@ -31,7 +31,10 @@ class AIProviderName(str, Enum):
 AI_COST_RATES: dict[str, dict[str, float]] = {
     "openai": {"embed_per_1k": 0.00002, "summary_per_1k_input": 0.00015, "summary_per_1k_output": 0.0006},
     "gemini": {"embed_per_1k": 0.000004, "summary_per_1k_input": 0.000075, "summary_per_1k_output": 0.0003},
-    "grok": {"embed_per_1k": 0.00002, "summary_per_1k_input": 0.0005, "summary_per_1k_output": 0.002},
+    # xAI grok-4.20-0309-non-reasoning, official $1.25 in / $2.50 out per 1M tokens (cached in $0.20/1M not modelled —
+    # conservative): https://docs.x.ai/docs/pricing (updated 2026-10-10; read 2026-11-09, CRS-15.10). xAI has no
+    # embedding API, so grok embeddings delegate to OpenAI text-embedding-3-small → OpenAI's embed rate.
+    "grok": {"embed_per_1k": 0.00002, "summary_per_1k_input": 0.00125, "summary_per_1k_output": 0.0025},
     "claude": {"embed_per_1k": 0.00002, "summary_per_1k_input": 0.003, "summary_per_1k_output": 0.015},
 }
 

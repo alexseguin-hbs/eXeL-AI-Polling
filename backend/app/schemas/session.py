@@ -4,6 +4,13 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+
+def _default_ai_provider() -> str:
+    from app.config import settings
+
+    name = (settings.default_ai_provider or "openai").lower()
+    return name if name in ("openai", "grok", "gemini") else "openai"
+
 # Shared Literal type for theme_id (used in Create, Update, Read)
 ThemeIdType = Literal[
     "exel-cyan", "ocean-blue", "emerald", "sunset",
@@ -23,7 +30,9 @@ class SessionCreate(BaseModel):
     ranking_mode: Literal["auto", "manual"] = "auto"
     language: str = Field("en", min_length=2, max_length=10)
     max_response_length: int = Field(3333, ge=50, le=3333)
-    ai_provider: Literal["openai", "grok", "gemini"] = "openai"
+    # CRS-15.10 (2026-11-09): a poll that names no provider uses the deployment default (prod: grok = xAI, the owner's
+    # funded primary; OpenAI/Gemini remain runtime fallbacks). Explicit choices are honoured unchanged.
+    ai_provider: Literal["openai", "grok", "gemini"] = Field(default_factory=lambda: _default_ai_provider())
     seed: str | None = None
     # Session type & polling mode
     session_type: Literal["polling", "peer_volunteer", "team_collaboration", "simulation"] = "polling"

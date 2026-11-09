@@ -666,11 +666,9 @@ async def _assign_themes_embedding(
         all_embeddings = await embedder.embed(all_texts)
     else:
         # Large dataset — batch into chunks of _EMBED_BATCH_SIZE
-        all_embeddings = []
-        for batch_start in range(0, len(all_texts), _EMBED_BATCH_SIZE):
-            batch = all_texts[batch_start : batch_start + _EMBED_BATCH_SIZE]
-            batch_embeddings = await embedder.embed(batch)
-            all_embeddings.extend(batch_embeddings)
+        # Batches embed concurrently (CRS-09.08.02, 2026-11-09); order is preserved by gather.
+        batches = [all_texts[b : b + _EMBED_BATCH_SIZE] for b in range(0, len(all_texts), _EMBED_BATCH_SIZE)]
+        all_embeddings = [vec for part in await asyncio.gather(*(embedder.embed(b) for b in batches)) for vec in part]
 
     theme_embeddings = np.array(all_embeddings[: len(all_theme_labels)])
     response_embeddings = np.array(all_embeddings[len(all_theme_labels):])

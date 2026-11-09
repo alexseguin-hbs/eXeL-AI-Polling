@@ -1130,7 +1130,7 @@ function DashboardContent() {
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newType, setNewType] = useState<string>("single_poll");
-  const [newAiProvider, setNewAiProvider] = useState("openai");
+  const [newAiProvider, setNewAiProvider] = useState("grok"); // CRS-15.10: xAI is the funded primary; OpenAI/Gemini fall back server-side
   const [newMaxResponse, setNewMaxResponse] = useState("3333");
   const [newPricingTier, setNewPricingTier] = useState<"free" | "moderator_paid" | "cost_split">("free");
   const [newFeeAmountCents, setNewFeeAmountCents] = useState(1111); // $11.11 default
@@ -1219,7 +1219,7 @@ function DashboardContent() {
       setNewTitle("");
       setNewDescription("");
       setNewType("single_poll");
-      setNewAiProvider("openai");
+      setNewAiProvider("grok");
       setNewMaxResponse("3333");
       setNewPricingTier("free");
       setNewMaxParticipants("");
@@ -1449,8 +1449,8 @@ function DashboardContent() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="openai">OpenAI</SelectItem>
                         <SelectItem value="grok">Grok (xAI)</SelectItem>
+                        <SelectItem value="openai">OpenAI</SelectItem>
                         <SelectItem value="gemini">Gemini</SelectItem>
                       </SelectContent>
                     </Select>

@@ -287,6 +287,13 @@ async def _summarize_single_response_inner(
                     instruction=_SUMMARIZE_INSTRUCTION.format(translate="", target=33),
                 )
 
+    # CRS-15.10: record the vendor that actually served (xAI primary; OpenAI/Gemini only on failover), not the request.
+    served_provider = ai_provider
+    if cost_tracked is not None:
+        from app.cubes.cube6_ai.providers.multi_vendor import dominant_vendor
+
+        served_provider = dominant_vendor(cost_tracked._inner, ai_provider)
+
     # Enforce the 333/111/33 upper bounds whatever the model returned (word_count == repo tokenizer).
     summary_333 = cap_words(str(summary_333), 333)
     summary_111 = cap_words(str(summary_111), 111)
@@ -299,7 +306,7 @@ async def _summarize_single_response_inner(
     stmt = pg_insert(ResponseSummary).values(
         response_meta_id=response_id,
         session_id=session_id,
-        provider=ai_provider,
+        provider=served_provider,
         summary_333=summary_333,
         summary_111=summary_111,
         summary_33=summary_33,
@@ -309,7 +316,7 @@ async def _summarize_single_response_inner(
             "summary_333": summary_333,
             "summary_111": summary_111,
             "summary_33": summary_33,
-            "provider": ai_provider,
+            "provider": served_provider,
         },
     )
     await db.execute(stmt)
@@ -317,13 +324,25 @@ async def _summarize_single_response_inner(
     # short-circuit and the OFFLINE provider cost nothing and write no row.
     if cost_tracked is not None and cost_tracked.tracker.total_calls and ai_provider != "offline":
         from app.models.ai_cost_log import AICostLog
+        from app.cubes.cube6_ai.providers.multi_vendor import vendor_cost_rows
 
-        t = cost_tracked.tracker
-        db.add(AICostLog(
-            session_id=session_id, phase="phase_a", provider=ai_provider, total_calls=t.total_calls,
-            total_input_chars=t.total_input_chars, total_output_chars=t.total_output_chars,
-            estimated_cost_usd=round(t.estimated_cost_usd, 6), response_count=1, duration_sec=0.0,
-        ))
+        rows = vendor_cost_rows(cost_tracked._inner)
+        if rows:  # CRS-15.10: one row per vendor that was called, each at its own rate
+            for row in rows:
+                if row["estimated_cost_usd"] is None:
+                    continue  # unknown rate is never written as $0
+                db.add(AICostLog(
+                    session_id=session_id, phase="phase_a", provider=row["provider"], total_calls=row["total_calls"],
+                    total_input_chars=row["total_input_chars"], total_output_chars=row["total_output_chars"],
+                    estimated_cost_usd=row["estimated_cost_usd"], response_count=1, duration_sec=0.0,
+                ))
+        else:
+            t = cost_tracked.tracker
+            db.add(AICostLog(
+                session_id=session_id, phase="phase_a", provider=ai_provider, total_calls=t.total_calls,
+                total_input_chars=t.total_input_chars, total_output_chars=t.total_output_chars,
+                estimated_cost_usd=round(t.estimated_cost_usd, 6), response_count=1, duration_sec=0.0,
+            ))
     await db.commit()
 
     logger.info(

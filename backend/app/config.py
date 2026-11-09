@@ -19,7 +19,13 @@ class Settings(BaseSettings):
     xai_api_key: str = ""
     gemini_api_key: str = ""
     anthropic_api_key: str = ""
-    default_ai_provider: str = "openai"  # openai | gemini | grok | claude
+    default_ai_provider: str = "openai"  # openai | gemini | grok | claude (prod Worker var: grok, CRS-15.10)
+    xai_summarization_model: str = "grok-4.20-0309-non-reasoning"  # fast non-reasoning Grok (CRS-09.08)
+    # Multi-vendor theming (CRS-09.08.01): per-call timeout, hedge delay and per-vendor in-flight cap before spill-over.
+    ai_call_timeout_s: float = 20.0
+    ai_hedge_after_s: float = 2.5
+    ai_vendor_max_inflight: int = 48
+    theme_fast_path: bool = True  # CRS-09.08.01: batched Theme01 + streamed samples + tree reduce + cosine assign
 
     # Real-time STT (Cube 3 — paid feature: Azure primary, AWS fallback)
     azure_speech_key: str = ""

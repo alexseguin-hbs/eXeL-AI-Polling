@@ -2,8 +2,13 @@
 
 Grok uses an OpenAI-compatible API endpoint at api.x.ai.
 Pinned models for deterministic reproducibility:
-- Embedding: (not available — falls back to OpenAI embedding)
-- Summarization: grok-3-mini (temperature=0.0, cheapest reasoning model)
+- Embedding: xAI exposes no embedding models (GET /v1/embedding-models -> []), so embeddings delegate to the next
+  keyed embedding vendor (OpenAI text-embedding-3-small, then Gemini) — the same pattern as ClaudeEmbedding.
+- Summarization: grok-4.20-0309-non-reasoning (temperature=0.0). CRS-09.08 / CRS-15 (2026-11-09): chosen because it is
+  the account's non-reasoning model — measured ~0.4 s per Theme01 classify call with 0 reasoning tokens, versus
+  2.6-5 s for grok-4.3 / grok-build-0.1, which spend 340-440 reasoning tokens per call — at the same $1.25/$2.50 per
+  1M token price (https://docs.x.ai/docs/pricing, updated 2026-10-10). grok-3-mini (the previous pin) is no longer
+  served to this account. Override with XAI_SUMMARIZATION_MODEL.
 """
 
 import asyncio
@@ -19,50 +24,39 @@ from app.cubes.cube6_ai.providers.base import (
 )
 
 _GROK_BASE_URL = "https://api.x.ai/v1"
-_SUMMARIZATION_MODEL = "grok-3-mini"
+_SUMMARIZATION_MODEL = "grok-4.20-0309-non-reasoning"
+
+
+def summarization_model() -> str:
+    return (getattr(settings, "xai_summarization_model", "") or _SUMMARIZATION_MODEL).strip()
 
 
 class GrokEmbedding(EmbeddingProvider):
-    """Grok embedding provider.
-
-    Note: xAI does not currently offer a dedicated embedding API.
-    Uses OpenAI-compatible endpoint with text-embedding model if available,
-    otherwise falls back to OpenAI embedding with Grok API key routing.
-    """
+    """xAI has no embedding API: delegate to the next keyed embedding vendor (OpenAI, then Gemini)."""
 
     provider_name = AIProviderName.GROK
 
     def __init__(self) -> None:
-        self._client = openai.AsyncOpenAI(
-            api_key=settings.xai_api_key,
-            base_url=_GROK_BASE_URL,
-            timeout=120.0,
-        )
+        if settings.openai_api_key:
+            from app.cubes.cube6_ai.providers.openai_provider import OpenAIEmbedding
+
+            self._delegate: EmbeddingProvider = OpenAIEmbedding()
+        elif settings.gemini_api_key:
+            from app.cubes.cube6_ai.providers.gemini_provider import GeminiEmbedding
+
+            self._delegate = GeminiEmbedding()
+        else:
+            raise ValueError("xAI has no embedding API and no OpenAI/Gemini key is configured for delegation")
 
     def model_id(self) -> str:
-        return "grok-embedding-beta"
+        return self._delegate.model_id()
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
-        """Generate embeddings via Grok API."""
-        all_embeddings: list[list[float]] = []
-        batch_size = settings.batch_size
-
-        for i in range(0, len(texts), batch_size):
-            batch = texts[i : i + batch_size]
-            response = await asyncio.wait_for(
-                self._client.embeddings.create(
-                    model=self.model_id(),
-                    input=batch,
-                ),
-                timeout=120.0,
-            )
-            all_embeddings.extend([item.embedding for item in response.data])
-
-        return all_embeddings
+        return await self._delegate.embed(texts)
 
 
 class GrokSummarization(SummarizationProvider):
-    """Grok summarization/classification provider using grok-3-mini."""
+    """Grok summarization/classification provider (non-reasoning Grok, see module docstring)."""
 
     provider_name = AIProviderName.GROK
 
@@ -71,6 +65,7 @@ class GrokSummarization(SummarizationProvider):
             api_key=settings.xai_api_key,
             base_url=_GROK_BASE_URL,
             timeout=120.0,
+            max_retries=0,  # the multi-vendor layer owns retries/failover (a 402 credit stop must fail fast)
         )
 
     async def summarize(self, texts: list[str], instruction: str = "") -> str:
@@ -83,7 +78,7 @@ class GrokSummarization(SummarizationProvider):
 
         response = await asyncio.wait_for(
             self._client.chat.completions.create(
-                model=_SUMMARIZATION_MODEL,
+                model=summarization_model(),
                 messages=messages,
                 temperature=0.0,
             ),
