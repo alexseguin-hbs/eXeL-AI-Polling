@@ -577,6 +577,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Newly introduced collaborative progress, settings, reviewer, and auth notes look up English through the shared lexicon t() keys (sf.collab.*). Non-English fills stay AFTER_FILL and are not claimed complete. Preexisting SensorFusion English strings outside this set are unchanged.",
       commit: "ae99d95",
     },
+    {
+      rev: 80,
+      date: "2026-11-08",
+      kind: "release",
+      text: "Live Supabase labeling schema: review columns (level, labeled_by, reviewed_by, codex) and collab tables (progress, settings, XML provenance, append-only corrections) applied additively with membership RLS. Independent-reviewer check is on. Anon cannot read label tables. Real member seats still require verified auth users — none were invented.",
+      commit: "288cae1",
+    },
   ],
 };
 
