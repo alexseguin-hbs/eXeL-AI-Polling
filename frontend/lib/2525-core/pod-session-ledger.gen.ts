@@ -197,7 +197,7 @@ export const POD_SESSION_LEDGER: LedgerInput = {
       "date": "2026-11-08",
       "kind": "fix",
       "text": "Pod persist/video status English literals moved to lexicon keys (soi.pod.persist.*, soi.pod.record.hint.*, soi.pod.free_tools_note) rendered via t() on /soi-session; PERSIST_STATUS_COPY removed; RECORD_METHODS.hint → hintKey; ×32 fills staged in AFTER_FILL/AFTER_BATCH as explicit coverage gap (not claimed 33-lang).",
-      "commit": ""
+      "commit": "3a3c96a8504190e0351507c299f0b390df1d659d"
     }
   ]
 };
