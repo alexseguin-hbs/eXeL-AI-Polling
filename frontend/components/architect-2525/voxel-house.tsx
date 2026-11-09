@@ -287,9 +287,34 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
     </div>
   );
 
+  // THE PLOT VOXEL — a true 36×36×36 cube on the yard (operator 2026-11-08: "36x36x36 is cube size of voxel if on yard …
+  // establish top floors in future … should be cube using pixel dimensions if zoomed or not; see how we did in
+  // security-2525"; decided "make voxel 3 stories but house 1 level for now"). THREE stacked 12-ft storey levels
+  // (FLOORS × SHELL_FT = 36 ft = the 36-ft cell edge → a true cube at ANY zoom, because the camera scale is uniform).
+  // Level 1 is the BUILT one-storey house (cube3 above, UNCHANGED — the 900 ft² one-storey truth holds); levels 2 & 3 are
+  // GHOST headroom reserved for future floors — faint dashed grid planes + faint corner posts, like Security-2525's
+  // stacked altitude cubes (lib/voxel.ts). This adds a display container; it does NOT change the house's real geometry.
+  const FLOORS = 3;                                     // the plot voxel is three storeys tall: one built, two reserved
+  const voxTop = FLOORS * houseHpx;                     // 3 × 12 ft = 36 ft ≈ cell → height equals the footprint edge (a cube)
+  const plotVoxel = (
+    <div data-arch-plot-voxel style={{ transformStyle: "preserve-3d" }}>
+      {/* the two GHOST storey planes above the built ceiling — floor 2 (2×hpx) and the cube roof (3×hpx) — ruled at the
+          12-ft outer-module pitch, far fainter than the built shell so "one floor built, two reserved" reads at a glance */}
+      {[2, 3].map((k) => (
+        <div key={`pv${k}`} style={{ ...at(`translateZ(${k * houseHpx}px)`), width: cell, height: cell,
+          border: `1px dashed ${C.cyan}1e`,
+          backgroundImage: `repeating-linear-gradient(to right, ${C.cyan}10 0 1px, transparent 1px ${modulePx}px), repeating-linear-gradient(to bottom, ${C.cyan}10 0 1px, transparent 1px ${modulePx}px)` }} />
+      ))}
+      {/* ghost corner posts continue from the built ceiling (houseHpx) up to the full 36-ft cube (voxTop) */}
+      {([[-1, -1], [1, -1], [-1, 1], [1, 1]] as const).map(([sx, sy], i) => (
+        <div key={`pp${i}`} style={{ ...at(`translate3d(${sx * cell / 2}px,${sy * cell / 2}px,${houseHpx + (voxTop - houseHpx) / 2}px) rotateX(90deg)`), width: 1.2, height: voxTop - houseHpx, background: `${C.cyan}22` }} />
+      ))}
+    </div>
+  );
+
   const beds = program?.bedrooms;
   const caption = tiny
-    ? "Tiny Home · 36×36×12 one-storey shell · nine 10' clear rooms · surrounding land shows elevation · drag (one finger) rotate/tilt · pinch/scroll zoom"
+    ? "Tiny Home · 36×36×12 one-storey shell in a 36×36×36 plot (one floor built, two reserved for future storeys) · nine 10' clear rooms · drag (one finger) rotate/tilt · pinch/scroll zoom"
     : `3×3 land base · house at centre · surrounding land shows elevation${beds ? ` · ${beds} bed` : ""} · drag (one finger) rotate/tilt · pinch/scroll zoom`;
 
   return (
@@ -302,6 +327,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
           {landFloor}
           {terrain}
           {cube3}
+          {plotVoxel}
           {tiny
             ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCubes}{porch}{ducts}{sockets}</div>
             : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube("house", "House", "H", cell, 1, 1, 0, 0, { hpx: houseHpx })}</div>}

@@ -40,6 +40,15 @@ ok(/data-arch-voxel-cube[\s\S]*?width: cell, height: cell/.test(vox), "the shell
 ok(/data-arch-voxel-cube[\s\S]*?transparent 1px \$\{modulePx\}px\)/.test(vox), "the floor/ceiling are ruled 3×3 at the 12-ft outer-module pitch (modulePx)");
 ok(/translate3d\(\$\{sx \* cell \/ 2\}px,\$\{sy \* cell \/ 2\}px,\$\{houseHpx \/ 2\}px\) rotateX\(90deg\)`\), width: 1\.6, height: houseHpx/.test(vox), "the four corner posts stand at the shell's corners, ONE storey (houseHpx) tall — not a cell-tall cube");
 ok(/pitch: modulePx/.test(vox), "the nine rooms are positioned at the 12-ft module pitch (so the 1-ft reserved zone shows as the gap)");
+// R-VOX (operator 2026-11-08: "36x36x36 is cube size of voxel if on yard … establish top floors in future … cube using
+// pixel dimensions if zoomed or not; see security-2525"; decided "make voxel 3 stories but house 1 level for now"). The
+// PLOT VOXEL is a true 36×36×36 cube = three stacked 12-ft storeys ABOVE the unchanged one-storey shell: level 1 built,
+// levels 2 & 3 ghost headroom. It never touches the house's real geometry (the shell assertions above are untouched).
+ok(3 * HOUSE_H === HOUSE_FT, `three ${HOUSE_H}-ft storeys = the ${HOUSE_FT}-ft footprint → the plot voxel is a TRUE cube (${3 * HOUSE_H} = ${HOUSE_FT})`);
+ok(/const FLOORS = 3/.test(vox) && /const voxTop = FLOORS \* houseHpx/.test(vox), "the plot voxel declares FLOORS = 3 and voxTop = 3 × houseHpx (the 36-ft cube height, equal to the 36-ft footprint)");
+ok(/data-arch-plot-voxel/.test(vox) && /\[2, 3\]\.map\(\(k\) =>/.test(vox), "the 36×36×36 plot voxel adds the two GHOST headroom storeys (planes at 2× and 3× houseHpx) above the built one-storey shell");
+ok(/height: voxTop - houseHpx/.test(vox), "ghost corner posts continue from the built ceiling (houseHpx) up to the full 36-ft cube (voxTop) — reserved future-floor headroom");
+ok(/36×36×36 plot \(one floor built, two reserved/.test(vox), "the caption names the 36×36×36 plot (one floor built, two reserved for future storeys), keeping the 36×36×12 one-storey shell truth");
 ok(/const ELEV_SCALE = VOXEL_PX_PER_FT \* FT_PER_M/.test(vox) && /const FT_PER_M = 3\.28084/.test(vox), "terrain relief shares the plan's scale (ELEV_SCALE = VOXEL_PX_PER_FT × 3.28084 px/m), not a free 5 px/m");
 ok(/Math\.min\(heightOf\(o\), STOREY_FT\)/.test(vox) && /elevOf\(o\)/.test(vox) && !/Math\.min\(sp\.h, 8\)/.test(vox), "furniture rises to its real (variant) height, capped at the ceiling, lifted by its elevation — no 8-ft cap");
 ok(/\bz = OUTLET_AFF_FT \* VOXEL_PX_PER_FT/.test(vox), "sockets sit at the receptacle height (OUTLET_AFF_FT × VOXEL_PX_PER_FT)");
