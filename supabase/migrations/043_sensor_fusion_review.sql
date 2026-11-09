@@ -1,3 +1,5 @@
+-- Applied live 2026-11-08 as migration sensor_fusion_review_label_fields (history 20261109030753).
+-- NOTE: live history already used version 043 for whitepaper_pdf_bucket; this file keeps repo content for SensorFusion review columns.
 -- A finished Sensor Fusion set can name who labeled it, who reviewed it, and the Light Codex line for each.
 -- The picture and the XML stay on the device. This adds the review words to the project copy.
 

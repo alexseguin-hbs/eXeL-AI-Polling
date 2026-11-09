@@ -563,6 +563,48 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
         "and only these seven.",
       commit: "",
     },
+    {
+      rev: 78,
+      date: "2026-11-08",
+      kind: "release",
+      text: "Collaborative persistence contracts: PNG and XML share one stem across member devices; team progress and per-project settings serialize for Supabase membership sync; Level 2 must be a different person; corrections are append-only; project JSON still waits until every picture has independent Level 1 and Level 2. Migration 044 is review-only and not applied live. Missing auth fails honestly and does not claim a local cache as a team save. R-CORE history badge remains the SensorFusion ledger surface.",
+      commit: "d3f3feb",
+    },
+    {
+      rev: 79,
+      date: "2026-11-08",
+      kind: "release",
+      text: "Newly introduced collaborative progress, settings, reviewer, and auth notes look up English through the shared lexicon t() keys (sf.collab.*). Non-English fills stay AFTER_FILL and are not claimed complete. Preexisting SensorFusion English strings outside this set are unchanged.",
+      commit: "4a31959",
+    },
+    {
+      rev: 80,
+      date: "2026-11-08",
+      kind: "release",
+      text: "Live Supabase labeling schema: review columns (level, labeled_by, reviewed_by, codex) and collab tables (progress, settings, XML provenance, append-only corrections) applied additively with membership RLS. Independent-reviewer check is on. Anon cannot read label tables. Real member seats still require verified auth users — none were invented.",
+      commit: "8070d06",
+    },
+    {
+      rev: 81,
+      date: "2026-11-08",
+      kind: "release",
+      text: "L1→L2 source close: label/picture/correction row builders match live columns; Accept/Reject gate on independent reviewer; reject/adjust append corrections (device-local always, cloud when member session exists). Upload carries XML/pair provenance. No invented membership — auth.users empty remains the browser E2E blocker.",
+      commit: "a9a4131",
+    },
+    {
+      rev: 82,
+      date: "2026-11-08",
+      kind: "release",
+      text: "Rebased SensorFusion collab/labeling branch onto main after PR #3 (Cost Estimate TS syntax) so Workers Build can go green. Ledger commit cites for revs 78–81 retargeted to rebased SHAs. Merge-as-you-go: no check bypass.",
+      commit: "bb231da",
+    },
+    {
+      rev: 83,
+      date: "2026-11-08",
+      kind: "release",
+      text: "Workers Build typecheck: Labeler calls useLexicon for Level-2 notes; correction event narrowing; team progress sync uses project clock and SwarmPage-shaped boxes. No check bypass.",
+      commit: "f20b536",
+    },
   ],
 };
 
