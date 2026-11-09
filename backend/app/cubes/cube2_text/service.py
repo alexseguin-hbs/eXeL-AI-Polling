@@ -543,14 +543,16 @@ async def publish_submission_event(
 
 
 def apply_response_paid_view_gate(item: dict, *, unlocked_333: bool | None = None) -> dict:
-    """Pass-through today. When W2 exposes a shared unlock map, redact paid tiers.
+    """Pass-through for cube2 list/detail.
 
-    TODO(W2/CRS-39): call the shared unlock helper (session.is_paid / content-tier
-    map). For unpaid callers, null out summary_333 and clean_text (Original) so
-    FE locks stay server-consistent. Do not invent a parallel Stripe/payment check
-    in this module — leave that to W2 payment unlock work.
+    CRS-39 Pay-to-View is enforced on GET /sessions/{id}/drilldown via
+    ``cube8_tokens.view_entitlement.resolve_view_entitlement`` (W2 — do not
+    duplicate payment logic here). List/detail remain additive exposes of stored
+    summary_111/333 for owners; unpaid redaction for those routes should call
+    the same helper when a user context is threaded through (TODO: wire router
+    user → entitlement → null summary_333/clean_text). Do not edit payment modules.
     """
-    _ = unlocked_333  # reserved for W2 hook
+    _ = unlocked_333  # reserved when router threads entitlement
     return item
 
 

@@ -32,7 +32,7 @@ Token rates: reuse Cube 5 (`♡=ceil(minutes)` per entry / floor public accum; l
 
 - ResponseRead/ResponseListItem + cube2 list/detail now return `summary_111`/`summary_333` (generation unchanged).
 - ThemeRead + enriched themes API return `summary_111`/`summary_333` from `theme_summary_*`.
-- Flower ResponseDrawer wired via `GET /collected?include_summaries&include_themes` → ThemedResponse.
+- Flower ResponseDrawer uses W2 `GET /drilldown` (view_entitlement-gated) for 33/111/333; RankedThemes uses ThemeRead summary_111/333.
 - Cost ledger: `AICostLog.phase=phase_a` maps to `CostKind.PHASE_A` (was lumped as theme02).
 - Paid-view: `apply_response_paid_view_gate` passthrough TODO for W2 unlock (no payment module edits).
 - Tests: `tests/cube2/test_summary_tiers_expose.py` (5), FE `adapt-collected-responses.test.mjs`.
