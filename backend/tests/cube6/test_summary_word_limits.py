@@ -31,3 +31,19 @@ def test_parse_json_reply_strips_fences():
     assert _parse_json_reply("Here you go: " + json.dumps(body)) == body
     with pytest.raises((json.JSONDecodeError, TypeError)):
         _parse_json_reply("no json here")
+
+
+def test_cost_tracked_wrapper_counts_calls():
+    import asyncio
+    from app.cubes.cube6_ai.phase_a import _CostTracked
+
+    class Inner:
+        async def summarize(self, texts, instruction=""):
+            return "x" * 40
+
+    w = _CostTracked(Inner(), "openai")
+    asyncio.run(w.summarize(["a" * 400], instruction="b" * 100))
+    asyncio.run(w.summarize(["c" * 100]))
+    t = w.tracker
+    assert (t.total_calls, t.total_input_chars, t.total_output_chars) == (2, 600, 80)
+    assert t.estimated_cost_usd > 0

@@ -121,6 +121,21 @@ def cap_words(text: str, limit: int) -> str:
     return " ".join(words[:limit])
 
 
+class _CostTracked:
+    """Wraps a summarizer so each call's chars feed an AICostTracker (same ~4 chars/token estimate as Phase B)."""
+
+    def __init__(self, inner, provider: str):
+        from app.cubes.cube6_ai.providers.base import AICostTracker
+
+        self._inner = inner
+        self.tracker = AICostTracker(provider)
+
+    async def summarize(self, texts: list[str], instruction: str = "") -> str:
+        out = await self._inner.summarize(texts, instruction=instruction)
+        self.tracker.log_call(len(instruction) + sum(len(t) for t in texts), len(out or ""))
+        return out
+
+
 def _parse_json_reply(reply: str) -> dict:
     """Models often wrap JSON in ```json fences; strip them before json.loads (raises JSONDecodeError/TypeError)."""
     t = (reply or "").strip()
@@ -196,6 +211,7 @@ async def _summarize_single_response_inner(
     from app.core.supabase_broadcast import broadcast_event
 
     word_count = len(raw_text.split())
+    cost_tracked = None
 
     # --- Task A0: Short-circuit ≤33 words (BR-1) ---
     # Text already at or below target summary length — no AI call needed.
@@ -214,7 +230,8 @@ async def _summarize_single_response_inner(
         # in dev/test/CI so a single response never crashes Phase A (prod raises).
         # Addendum 4: a simulation session never silently reaches a paid provider.
         ai_provider = await resolve_phase_a_provider(db, session_id, ai_provider)
-        summarizer = get_summarization_provider_or_offline(ai_provider)
+        summarizer = _CostTracked(get_summarization_provider_or_offline(ai_provider), ai_provider)
+        cost_tracked = summarizer
 
         translate = (
             "If the text is not in English, translate it to English first. "
@@ -296,6 +313,17 @@ async def _summarize_single_response_inner(
         },
     )
     await db.execute(stmt)
+    # Per-session cost ledger: every paid Phase A call lands in ai_cost_logs (phase "phase_a"); the ≤33-word
+    # short-circuit and the OFFLINE provider cost nothing and write no row.
+    if cost_tracked is not None and cost_tracked.tracker.total_calls and ai_provider != "offline":
+        from app.models.ai_cost_log import AICostLog
+
+        t = cost_tracked.tracker
+        db.add(AICostLog(
+            session_id=session_id, phase="phase_a", provider=ai_provider, total_calls=t.total_calls,
+            total_input_chars=t.total_input_chars, total_output_chars=t.total_output_chars,
+            estimated_cost_usd=round(t.estimated_cost_usd, 6), response_count=1, duration_sec=0.0,
+        ))
     await db.commit()
 
     logger.info(
