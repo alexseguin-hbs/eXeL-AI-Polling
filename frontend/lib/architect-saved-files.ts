@@ -11,9 +11,9 @@
  * cannot be minted durably. It FAILS CLOSED: no durable key means no cloud, never a shared bucket. The 2525 apps
  * sit behind the eXeL login while MVP, so this swaps to the authenticated user id in ONE place when accounts land.
  *
- * Reads and writes go through the SECURITY DEFINER RPCs of migration 044 first and fall back to the legacy
+ * Reads and writes go through the SECURITY DEFINER RPCs of migration 053 (044 was the planned number; it was never written) first and fall back to the legacy
  * direct-table path when they are absent, which is what lets this client ship BEFORE the migration without a
- * window where saving fails. Until 044 is applied the table's own policies are the permissive ones 023/024
+ * window where saving fails. Until 053 is applied the table's own policies are the permissive ones 023/024
  * shipped — see the migration header for what that means and why it is being closed.
  *
  * Supabase table (optional — see supabase/migrations/022_architect_saved_files.sql):
@@ -127,8 +127,8 @@ export async function saveSnapshot(snap: ArchitectSnapshot, sourceHash?: string)
   const h = contentHash(content);
   if (lastHash[NAME] === h) return "saved"; // unchanged → no network write
   try {
-    // RPC FIRST, legacy table SECOND. This is what makes the client and migration 044 order-independent:
-    // against a pre-044 database the RPC 404s and the table path still works; against a post-044 database
+    // RPC FIRST, legacy table SECOND. This is what makes the client and migration 053 order-independent:
+    // against a pre-053 database the RPC 404s and the table path still works; against a post-053 database
     // the RPC succeeds and the table path is denied anyway. So the client can ship first and nobody's save
     // breaks in the window before the migration is applied.
     const { error } = await sb.rpc("architect_saved_files_put",
