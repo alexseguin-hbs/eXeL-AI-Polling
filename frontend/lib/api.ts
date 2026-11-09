@@ -235,6 +235,12 @@ export const api = {
     participantId: string,
     text: string,
     languageCode: string = "en",
+    active?: {
+      active_ms?: number;
+      paste_detected?: boolean;
+      input_opened_at?: string;
+      voice_active_ms?: number;
+    },
   ) =>
     request<import("./types").TextResponseRead>(
       "POST",
@@ -245,6 +251,10 @@ export const api = {
           participant_id: participantId,
           raw_text: text,
           language_code: languageCode,
+          ...(active?.active_ms != null ? { active_ms: active.active_ms } : {}),
+          ...(active?.paste_detected != null ? { paste_detected: active.paste_detected } : {}),
+          ...(active?.input_opened_at ? { input_opened_at: active.input_opened_at } : {}),
+          ...(active?.voice_active_ms != null ? { voice_active_ms: active.voice_active_ms } : {}),
         },
       },
     ),

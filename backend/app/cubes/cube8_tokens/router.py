@@ -191,7 +191,7 @@ cd backend &amp;&amp; python scripts/verify_stripe_charge.py</pre>
 async def create_moderator_checkout(
     payload: ModeratorCheckoutRequest,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    user: CurrentUser = Depends(require_role("moderator", "admin", creator=True)),
 ):
     """Create Stripe Checkout Session for Moderator Paid tier (min $11.11)."""
     if not (_own_site(payload.success_url) and _own_site(payload.cancel_url)):

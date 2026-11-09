@@ -105,6 +105,8 @@ class TestTriggerAggregation:
         assert resp.status_code == 400
         assert "ranking_method" in resp.json()["detail"]
 
+    @pytest.mark.usefixtures("not_owner")
+
     @pytest.mark.asyncio
     async def test_requires_moderator_role(self, client, regular_user):
         from app.core.auth import get_current_user
@@ -237,6 +239,8 @@ class TestAnomalies:
         data = resp.json()
         assert "anomalies" in data
         assert data["session_id"] == str(SID)
+
+    @pytest.mark.usefixtures("not_owner")
 
     @pytest.mark.asyncio
     async def test_regular_user_blocked(self, client, regular_user):

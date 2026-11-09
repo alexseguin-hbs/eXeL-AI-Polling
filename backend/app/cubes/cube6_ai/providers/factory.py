@@ -163,6 +163,7 @@ def get_summarization_provider(name: str) -> SummarizationProvider:
             hedge_after_s=_num(getattr(settings, "ai_hedge_after_s", None), 2.5),
             max_inflight=_num(getattr(settings, "ai_vendor_max_inflight", None), 48),
             mode=v if isinstance(v := getattr(settings, "ai_vendor_mode", None), str) else "speed_rr",
+            race_when_idle=r if isinstance(r := getattr(settings, "ai_race_when_idle", None), bool) else True,
         )
 
     raise AIProviderUnavailableError(

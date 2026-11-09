@@ -71,6 +71,10 @@ const AFTER_FILL = new Set([
   'polling.rcore.history_hint',
   'rcore.commit_link',
 
+  // CRS-19.09 active ♡ S.I. credit (2026-11-09 engagement-si): ENGLISH ONLY — staged; ×32 fill owed.
+  'cube2.input.si_earned_label',
+  'cube2.input.si_none',
+
   'arch.design.tapToAddToHouse',
   // Architect-2525 first-person walkthrough controls (operator 2026-11-06): MOVE/LOOK stick labels, the look hint, the
   // caption. ENGLISH ONLY — staged until the Architect UI/UX is final; no fill dispatched.

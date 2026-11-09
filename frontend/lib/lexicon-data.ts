@@ -527,6 +527,8 @@ const cube2: TranslationEntry[] = [
   { key: "cube2.input.submission_failed", englishDefault: "Submission failed", context: "Error toast title on submission failure", cubeId: 2 },
   { key: "cube2.input.submitted", englishDefault: "Response submitted!", context: "Success confirmation", cubeId: 2 },
   { key: "cube2.input.tokens_earned", englishDefault: "Tokens earned:", context: "Post-submit token display label", cubeId: 2 },
+  { key: "cube2.input.si_earned_label", englishDefault: "♡ S.I. earned for active input:", context: "Post-submit active typing/speaking credit", cubeId: 2 },
+  { key: "cube2.input.si_none", englishDefault: "No ♡ S.I. this time — credit only while actively typing or speaking.", context: "Post-submit when active_ms credited zero", cubeId: 2 },
   { key: "cube2.feed.title", englishDefault: "Live Responses", context: "Live feed heading (host PC)", cubeId: 2 },
   { key: "cube2.feed.toggle", englishDefault: "Show live feed", context: "Toggle live feed on/off", cubeId: 2 },
   { key: "cube2.feed.empty", englishDefault: "No responses yet", context: "Empty feed state", cubeId: 2 },
@@ -756,7 +758,7 @@ const cube8: TranslationEntry[] = [
   { key: "cube8.donate.desc_divinity", englishDefault: "Voluntary contribution supporting the Divinity Guide; not tax-deductible", context: "Stripe Checkout line-item description, Divinity Guide (approved t197u)", cubeId: 8 },
   { key: "cube8.donate.desc_session", englishDefault: "Voluntary contribution supporting this session and the SoI Governance platform; not tax-deductible", context: "Stripe Checkout line-item description, poll-scoped contribution (same treatment as t197u)", cubeId: 8 },
   { key: "cube8.donate.not_deductible", englishDefault: "Contributions are voluntary and not tax-deductible.", context: "Donate modal footnote — IRS-safe labeling (t193u/t197u)", cubeId: 8 },
-  { key: "cube8.donate.thanks", englishDefault: "Thank you — your contribution went through.", context: "Toast shown once when Stripe Checkout returns the visitor with ?donated=true (never before Stripe confirms)", cubeId: 8 },
+  { key: "cube8.donate.thanks", englishDefault: "Thank you — your contribution was received. We're confirming it with Stripe now.", context: "Toast shown once when Stripe Checkout returns the visitor with ?donated=true (never before Stripe confirms)", cubeId: 8 },
   { key: "cube8.donate.received", englishDefault: "Contribution received — thank you.", context: "Divinity Guide toast after a verified Stripe return (no token grant is claimed — no ledger backs one)", cubeId: 8 },
   // Payment (Cube 8)
   { key: "cube8.payment.session_payment", englishDefault: "Session Payment", context: "Moderator checkout heading", cubeId: 8 },

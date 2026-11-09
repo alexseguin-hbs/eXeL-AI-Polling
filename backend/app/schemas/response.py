@@ -19,6 +19,11 @@ class ResponseCreate(BaseModel):
     participant_id: uuid.UUID
     raw_text: str = Field(..., min_length=1, max_length=3333)
     language_code: str = Field(default="en", min_length=2, max_length=10)
+    # CRS-19.09: client-measured active typing/speaking ms (server-capped)
+    active_ms: int | None = Field(default=None, ge=0, le=3 * 3600 * 1000)
+    paste_detected: bool = False
+    input_opened_at: datetime | None = None
+    voice_active_ms: int | None = Field(default=None, ge=0, le=3 * 3600 * 1000)
 
 
 # ---------------------------------------------------------------------------

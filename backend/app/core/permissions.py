@@ -14,9 +14,18 @@ def canonical_role(role: str | None) -> str:
     return ROLE_ALIASES.get(role or "", role or "")
 
 
-def require_role(*roles: str):
-    """Dependency factory that enforces role-based access (exact role match; admin passes)."""
+def require_role(*roles: str, creator: bool = False):
+    """Dependency factory that enforces role-based access (exact role match; admin passes).
+
+    t190u "anyone can poll": every signed-in OAuth user is a creator. A route opts in with
+    creator=True ONLY when it is owner-scoped (sessions.created_by == the caller's sub, checked
+    by require_session_owner or verify_session_owner) or self-scoped (create / list my polls);
+    then an authenticated "user" passes as well as "moderator". Every other route keeps its exact
+    roles. Admin / lead_developer never widen; API keys ("api_key") never become creators.
+    """
     allowed = {canonical_role(r) for r in roles}
+    if creator and "moderator" in allowed:
+        allowed.add("user")
 
     async def _check_role(
         current_user: CurrentUser = Depends(get_current_user),

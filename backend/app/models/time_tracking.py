@@ -12,14 +12,14 @@ Token defaults (SoI Trinity):
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String, text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
 # Valid action types for time tracking
-VALID_ACTION_TYPES = ("login", "responding", "ranking", "reviewing")
+VALID_ACTION_TYPES = ("login", "responding", "responding_active", "ranking", "reviewing")
 
 
 class TimeEntry(Base):
@@ -46,6 +46,11 @@ class TimeEntry(Base):
     heart_tokens_earned: Mapped[float] = mapped_column(Float, default=0.0)
     human_tokens_earned: Mapped[float] = mapped_column(Float, default=0.0)
     unity_tokens_earned: Mapped[float] = mapped_column(Float, default=0.0)
+
+    # CRS-19.09 active-input credit metadata (nullable for legacy rows)
+    active_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    paste_detected: Mapped[bool | None] = mapped_column(Boolean, nullable=True, default=False)
+    rule_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     session = relationship("Session", back_populates="time_entries")
 

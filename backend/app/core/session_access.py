@@ -28,7 +28,8 @@ async def session_owner_of(db: AsyncSession, session_id: uuid.UUID) -> str | Non
 
 def require_session_owner(*roles: str, leads_read: bool = False):
     """Role check + ownership of the `session_id` path parameter."""
-    role_dep = require_role(*roles)
+    # Ownership is enforced below, so any signed-in creator may pass the role gate (t190u).
+    role_dep = require_role(*roles, creator=True)
 
     async def _check(
         session_id: uuid.UUID,

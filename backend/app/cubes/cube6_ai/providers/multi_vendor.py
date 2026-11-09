@@ -101,11 +101,17 @@ _RR_CREDIT: dict[str, float] = {}
 _RR_MIN_SAMPLES = 3
 
 
-def _record_vendor_latency(vendor: str, seconds: float) -> None:
-    xs = _VLAT.setdefault(vendor, [])
-    xs.append(seconds)
-    if len(xs) > _LAT_KEEP:
-        del xs[0]
+_KVLAT: dict[tuple[str, str], list[float]] = {}
+
+
+def _record_vendor_latency(vendor: str, seconds: float, kind: str | None = None) -> None:
+    for key, store in ((vendor, _VLAT), ((vendor, kind), _KVLAT) if kind is not None else (None, None)):
+        if store is None:
+            continue
+        xs = store.setdefault(key, [])
+        xs.append(seconds)
+        if len(xs) > _LAT_KEEP:
+            del xs[0]
 
 
 def _pct(xs: list[float], q: float) -> float | None:
@@ -115,14 +121,19 @@ def _pct(xs: list[float], q: float) -> float | None:
     return ys[min(len(ys) - 1, int(q * len(ys)))]
 
 
-def vendor_p50(vendor: str) -> float | None:
+def vendor_p50(vendor: str, kind: str | None = None) -> float | None:
+    """p50 for this call kind when 3+ samples exist for it on this vendor, else the vendor's all-kinds p50."""
+    if kind is not None:
+        xs = _KVLAT.get((vendor, kind), [])
+        if len(xs) >= _RR_MIN_SAMPLES:
+            return _pct(xs, 0.5)
     xs = _VLAT.get(vendor, [])
     return _pct(xs, 0.5) if len(xs) >= _RR_MIN_SAMPLES else None
 
 
-def speed_weights(vendors: list[str]) -> dict[str, float]:
+def speed_weights(vendors: list[str], kind: str | None = None) -> dict[str, float]:
     """1/p50 per vendor; vendors without enough samples get the mean known weight (or 1.0) so they are explored."""
-    known = {v: 1.0 / max(0.001, p) for v in vendors if (p := vendor_p50(v)) is not None}
+    known = {v: 1.0 / max(0.001, p) for v in vendors if (p := vendor_p50(v, kind)) is not None}
     seed = (sum(known.values()) / len(known)) if known else 1.0
     return {v: known.get(v, seed) for v in vendors}
 
@@ -162,6 +173,7 @@ def reset_circuits() -> None:
     _CB_OPEN_UNTIL.clear()
     _LAT.clear()
     _VLAT.clear()
+    _KVLAT.clear()
     _RR_CREDIT.clear()
 
 
@@ -185,6 +197,7 @@ class MultiVendorSummarizer(SummarizationProvider):
         hedge_after_s: float | None = 2.5,
         max_inflight: int = 48,
         mode: str = "speed_rr",
+        race_when_idle: bool = False,
     ) -> None:
         if not vendors:
             raise ValueError("MultiVendorSummarizer needs at least one vendor")
@@ -196,6 +209,7 @@ class MultiVendorSummarizer(SummarizationProvider):
         self._inflight: dict[str, int] = {v.provider_name.value: 0 for v in vendors}
         self.usage: dict[str, dict[str, int]] = {}
         self.mode = mode if mode in ("speed_rr", "primary") else "speed_rr"
+        self.race_when_idle = race_when_idle
         self.latencies: dict[str, list[float]] = {}
         self._sent_at: dict[asyncio.Task, float] = {}
         self.last_error: dict[str, dict] = {}  # this summarizer's served-call latencies (metrics p50/p95)
@@ -212,14 +226,14 @@ class MultiVendorSummarizer(SummarizationProvider):
                                            "failures": 0, "hedges": 0, "cancelled": 0})
         u[key] = u.get(key, 0) + n
 
-    def _rr_pick(self, healthy: list[SummarizationProvider]) -> SummarizationProvider:
+    def _rr_pick(self, healthy: list[SummarizationProvider], kind: str | None = None) -> SummarizationProvider:
         """Smooth weighted round-robin (nginx style) over vendors with headroom, weights = 1/p50."""
         now = time.monotonic()
         names = [v.provider_name.value for v in healthy]
         ok = [v for v in healthy if self._inflight.get(v.provider_name.value, 0) < self.max_inflight
               and _NEXT_SLOT.get(v.provider_name.value, 0.0) - now <= 0.25]
         cand = ok or healthy
-        w = speed_weights(names)
+        w = speed_weights(names, kind)
         total = sum(w[v.provider_name.value] for v in cand)
         for v in cand:
             n = v.provider_name.value
@@ -228,12 +242,12 @@ class MultiVendorSummarizer(SummarizationProvider):
         _RR_CREDIT[best.provider_name.value] -= total
         return best
 
-    def _order(self) -> list[SummarizationProvider]:
+    def _order(self, kind: str | None = None) -> list[SummarizationProvider]:
         healthy = [v for v in self._vendors if not circuit_open(v.provider_name.value)]
         if not healthy:  # every circuit open: still try everything rather than fail without a call
             healthy = list(self._vendors)
         if self.mode == "speed_rr" and len(healthy) > 1:
-            first = self._rr_pick(healthy)
+            first = self._rr_pick(healthy, kind)
             return [first] + [v for v in healthy if v is not first]  # rest in fixed order (error failover)
         primary = healthy[0]
         if self._inflight.get(primary.provider_name.value, 0) >= self.max_inflight and len(healthy) > 1:
@@ -268,7 +282,7 @@ class MultiVendorSummarizer(SummarizationProvider):
         raise last  # type: ignore[misc]
 
     async def _summarize_once(self, texts: list[str], instruction: str = "") -> str:
-        order = self._order()
+        order = self._order(_kind(instruction))
         in_chars = len(instruction or "") + sum(len(t or "") for t in texts)
         pending: dict[asyncio.Task, str] = {}
         nxt = 0
@@ -282,9 +296,9 @@ class MultiVendorSummarizer(SummarizationProvider):
             nonlocal nxt
             if nxt >= len(order):
                 return False
-            if reason == "hedge" and self.mode == "speed_rr" and len(order) - nxt > 1:
+            if reason in ("hedge", "race") and self.mode == "speed_rr" and len(order) - nxt > 1:
                 rest = order[nxt:]
-                w = speed_weights([x.provider_name.value for x in rest])
+                w = speed_weights([x.provider_name.value for x in rest], kind)
                 fastest = max(rest, key=lambda x: w[x.provider_name.value])
                 order[nxt:] = [fastest] + [x for x in rest if x is not fastest]
             v = order[nxt]
@@ -294,6 +308,8 @@ class MultiVendorSummarizer(SummarizationProvider):
             nxt += 1
             if reason == "hedge":
                 self._bump(name, "hedges")
+            elif reason == "race":
+                self._bump(name, "races")
             if nxt > 1:
                 logger.info("cube6.provider.runtime_failover", to=name, reason=reason, primary=self.provider_name.value)
             task = asyncio.create_task(self._attempt(v, texts, instruction))
@@ -302,9 +318,14 @@ class MultiVendorSummarizer(SummarizationProvider):
             return True
 
         start_next("primary")
+        # Spare capacity → race: when fewer calls are in flight than there are healthy vendors (small N, or the
+        # single critical-path reduce call), also start the fastest other vendor now; first reply wins (t186u).
+        if (self.mode == "speed_rr" and self.race_when_idle and len(order) > 1
+                and sum(self._inflight.values()) <= len({v.provider_name.value for v in order})):
+            start_next("race")
         try:
             while pending:
-                can_hedge = hedge_after is not None and nxt < len(order) and len(pending) == 1
+                can_hedge = hedge_after is not None and nxt < len(order) and len(pending) <= 2
                 done, _ = await asyncio.wait(
                     set(pending), timeout=hedge_after if can_hedge else None,
                     return_when=asyncio.FIRST_COMPLETED,
@@ -327,7 +348,7 @@ class MultiVendorSummarizer(SummarizationProvider):
                         _record_success(name)
                         dt_s = time.monotonic() - self._sent_at.pop(task, started.get(task, time.monotonic()))
                         _record_latency(kind, dt_s)
-                        _record_vendor_latency(name, dt_s)
+                        _record_vendor_latency(name, dt_s, kind)
                         self.latencies.setdefault(name, []).append(dt_s)
                         self._bump(name, "served_ms", int(dt_s * 1000))
                         return out

@@ -642,6 +642,15 @@ def _session_owner_is_caller(request):
         yield
 
 
+@pytest.fixture
+def not_owner():
+    """t190u: role "user" now passes owner-scoped routes — the OWNERSHIP check is what blocks a non-owner."""
+    async def _owner(db, session_id):
+        return "auth0|someone-else"
+    with patch("app.core.session_access.session_owner_of", _owner):
+        yield
+
+
 def pytest_configure(config):
     config.addinivalue_line("markers", "real_ownership: run the real session-ownership check")
 
