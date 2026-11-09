@@ -3,6 +3,9 @@ export const AUTH0_DOMAIN =
   process.env.NEXT_PUBLIC_AUTH0_DOMAIN || "exel-ai-polling.us.auth0.com";
 export const AUTH0_CLIENT_ID =
   process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID || "H8wuT6P2nfm87bvbRjaegoOliLyhPw4K";
+// Empty until Auth0 API Identifier exists. Canonical value once created:
+// https://api.exel-ai-polling — see docs/ops/AUTH0_GO_LIVE.md. Do NOT default it
+// here before the Auth0 API exists or SPA login returns "Service not found".
 export const AUTH0_AUDIENCE =
   process.env.NEXT_PUBLIC_AUTH0_AUDIENCE || "";
 export const AUTH0_REDIRECT_URI =

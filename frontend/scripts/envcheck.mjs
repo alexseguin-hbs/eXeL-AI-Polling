@@ -20,13 +20,27 @@ const OPTIONAL = [
   "NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_WS_URL",
   "NEXT_PUBLIC_AUTH0_DOMAIN", "NEXT_PUBLIC_AUTH0_CLIENT_ID", "NEXT_PUBLIC_AUTH0_AUDIENCE",
   "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+  "NEXT_PUBLIC_MOCK_MODE",
 ];
+
+// Live backend mode: audience + API URL are REQUIRED when mock is explicitly off.
+// Leaving MOCK_MODE unset keeps the backendless static export (today's workers.dev default).
+const mockOff = (process.env.NEXT_PUBLIC_MOCK_MODE ?? "").trim() === "false";
+const LIVE_REQUIRED = mockOff
+  ? ["NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_AUTH0_DOMAIN", "NEXT_PUBLIC_AUTH0_CLIENT_ID", "NEXT_PUBLIC_AUTH0_AUDIENCE"]
+  : [];
 
 const warnOnly = process.argv.includes("--warn");
 const missing = (list) => list.filter((k) => !(process.env[k] ?? "").trim());
 
 const missOpt = missing(OPTIONAL);
 if (missOpt.length) console.warn(`⚠ optional build vars not set (feature degrades, deploy continues): ${missOpt.join(", ")}`);
+if (mockOff) console.log("ℹ NEXT_PUBLIC_MOCK_MODE=false — live API mode; Auth0 audience + API URL required");
+const missLive = missing(LIVE_REQUIRED);
+if (missLive.length) {
+  console.error(`✗ envcheck: NEXT_PUBLIC_MOCK_MODE=false but live-required vars missing:\n${missLive.map((k) => `  ${k}`).join("\n")}\nSee docs/ops/AUTH0_GO_LIVE.md`);
+  process.exit(warnOnly ? 0 : 1);
+}
 
 // Test scaffolding must never ship: NEXT_PUBLIC_SIGN_NO_AUTH=1 turns the Sign Doc creator login OFF for local
 // Playwright runs only. A deploy built with it would let anyone sign as the creator without Auth0.
