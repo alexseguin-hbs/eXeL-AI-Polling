@@ -43,3 +43,44 @@ $3.33 Divinity Guide donation (steps in the payments report).
 
 Ops incident during this run: API containers for api-v1u/v1s failed to boot (asyncpg connect TimeoutError) because idle DB sessions from
 older API instances filled the 15-slot pooler. Idle `exel_api` backends were terminated and main redeployed as api-v1w (15:59 CST).
+
+---
+## 2026-11-09 16:20–17:00 CST — real contribution, ledger-first fix, payment-path inventory (t192u–t197u)
+
+**User's own real test (ids + amounts only).** Community Contribution $3.33 USD, gross 333¢, Stripe fee 40¢, net 293¢.
+Checkout `cs_live_a1PgFYOJ0LBE0YA4MMJtJ1GgJrQDPOIiCTTwgMgzi867c9fDIe3dJcaNsI` created 16:19:40 CST, completed 16:20:13 CST;
+PaymentIntent `pi_3Ua0vAAiPbve9Sot0Bn2tY0a`, charge `ch_3Ua0vAAiPbve9Sot089SK48c`, event `evt_1Ua0vBAiPbve9SotaP96TnhF`.
+Created by the edge `/api/donate` (source=edge_donate) directly at Stripe — **no ledger row before redirect** (🔴, fixed below).
+
+**Why the webhook did not record it:** Cloudflare logs show Stripe's deliveries at 16:20:36–16:20:56 CST answered **501**
+(API container BOOT_FAILED during another worker's api-v1x deploy). Signature verification was not the cause (Stripe-signed
+expired events at 16:02 CST were recorded). Stripe keeps retrying (pending_webhooks=1).
+**Backfill:** ledger row `207f7189-a61f-4aec-b9ad-c6a69e6bd4e7` — status `pending`, reconcile_status `backfilled_from_stripe`;
+the next signed retry of the event completes it (handler matches by checkout id; idempotent on event id).
+
+| Check (CST) | Merge SHA | Cloudflare version | Result | Evidence |
+|---|---|---|---|---|
+| 16:52 edge donate is ledger-first | #57 c69fd09c0 + hotfix #65 7c169b53d | FE 7c169b5 (version.json) | ✅ PASS — `/api/donate` → API; pending row `awaiting_webhook` for cs_live_a1eb9QE1… existed before any payment (probe Checkout left unpaid; it expires) | Supabase payment_transactions |
+| 16:47 refunds/disputes handled | #60 3572136ae | API 32deccf9 (api-w2b) | ✅ code + tests; Stripe endpoint we_1UZjpT… now subscribed to charge.refunded + charge.dispute.created | tests/cube8/test_reconcile_and_reversals.py |
+| 16:47 reconciliation check | #60 | — | ✅ `scripts/reconcile_stripe_ledger.py` (read-only, exit 2 on mismatch); 🔴 not yet scheduled daily | app/cubes/cube8_tokens/reconcile.py |
+| 16:35 creators = real OAuth identity | #56 500af52ca | API 56f0923b (api-w2a) | ✅ forged token 401, signed-out create 401 | tests/test_auth_id_token.py |
+| 16:47 mock OFF | #63 22efef79d | FE 9c739333 (sha 22efef7) | ✅ deployed; pages / dashboard join divinity-guide r-core session callback all 200 | curl |
+| 16:40 IRS-safe wording | #61 c6cc6c13d | FE c6cc6c1 | ✅ Stripe Products prod_VavRF4QMRRsden / prod_VavR1Xy18Cyu43 → "…; not tax-deductible" (approved t197u); modal footnote | Stripe product read-back |
+
+### Payment-path inventory
+| Path | Creates | Ledger row before redirect | Webhook-confirmed |
+|---|---|---|---|
+| Moderator Paid — `POST /payments/moderator-checkout` | Checkout | ✅ | ✅ |
+| Cost Split creator — `create_cost_split_intent` | PaymentIntent | ✅ | ✅ (payment_intent.succeeded) |
+| Cost Split participant share — `POST /payments/cost-split-checkout` | Checkout | ✅ | ✅ |
+| Usage billing — `create_usage_billing_checkout` | Checkout | ✅ | ✅ |
+| Donation (poll, API) — `POST /payments/donate` | PaymentIntent | ✅ | ✅ |
+| Community / Divinity Guide / DeRisking — `POST /payments/divinity-donate` | Checkout | ✅ | ✅ |
+| Edge `/api/donate` (all site donate buttons) | via API since #57/#65 | ✅ (🔴 before 16:52 CST) | ✅ |
+| Expert Opinion / Pay to View | uses the donation ladder (above) | ✅ | ✅ |
+| `POST /payments/stripe/test-checkout` (ops page) | Checkout | 🔴 no row — ops test only; review | — |
+
+### Open decisions for the user (no legal claims made here)
+- 501(c)(3) status: unverified → all copy says "not tax-deductible". Product **names** still say "Donation" for Divinity Guide and DeRisking Strategies; DeRisking description unchanged.
+- Payer receipts: Stripe shows "No receipts sent". Turn on Dashboard → Settings → Customer emails → **Successful payments** (cannot be set via API).
+- Stripe Tax is **not** enabled: sales-tax applicability of paid polls / pay-to-view is a user/accountant decision.
