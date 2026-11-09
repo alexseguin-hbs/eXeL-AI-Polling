@@ -32,6 +32,27 @@
       "notes": "proof7 after admin restart; typed wall-capped; paste zero via CRS-19.09",
       "rule_version": "si-active-input-v1-2026-11-09",
       "merge_sha_feature": "1ae0df2a98a7d2ca751943c6a01668e32fa70727"
+    },
+    {
+      "at_cst": "2026-11-09 16:55",
+      "n": 2,
+      "path": "live_proof8_api_v1y_wall_wait",
+      "typed": {
+        "heart": 2.0,
+        "active_ms_credited": 67176,
+        "action_type": "responding_active",
+        "response_id": "c0e64720-fe2b-40e1-aa39-7cce266790e8"
+      },
+      "paste": {
+        "heart": 0.0,
+        "active_ms_credited": 0,
+        "paste_detected": true,
+        "response_id": "b44c8255-b76d-436c-8072-e42e822febed"
+      },
+      "label": "SIMULATED",
+      "notes": "65s wall wait; typed_heart_2 and paste_heart_0 both True",
+      "rule_version": "si-active-input-v1-2026-11-09",
+      "merge_sha_feature": "1ae0df2a98a7d2ca751943c6a01668e32fa70727"
     }
   ]
 }
