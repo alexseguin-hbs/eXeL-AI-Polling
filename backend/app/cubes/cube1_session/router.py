@@ -86,6 +86,29 @@ async def _return_session(
     return SessionRead(**data)
 
 
+def _fire_final_aggregation(session_id: uuid.UUID, short_code: str, seed, cycle_id: int) -> None:
+    async def _finalize() -> None:
+        from app.db.postgres import async_session_factory
+        from app.cubes.cube7_ranking.service import run_ranking_pipeline
+
+        try:
+            async with async_session_factory() as bg_db:
+                await run_ranking_pipeline(
+                    bg_db, session_id=session_id, session_short_code=short_code, seed=seed, cycle_id=cycle_id,
+                )
+        except ValueError as exc:  # "No rankings found" — a round closed with no ballots
+            logger.info("cube1.close.final_aggregation.skipped", extra={"session_id": str(session_id), "reason": str(exc)})
+        except Exception as exc:  # never an unretrieved task exception
+            logger.error("cube1.close.final_aggregation.failed", extra={"session_id": str(session_id), "error": str(exc)})
+
+    try:
+        task = asyncio.create_task(_finalize())
+    except RuntimeError:
+        return
+    _BACKGROUND_TASKS.add(task)
+    task.add_done_callback(_BACKGROUND_TASKS.discard)
+
+
 async def _transition_and_return(
     db: AsyncSession,
     session_id: uuid.UUID,
@@ -100,9 +123,15 @@ async def _transition_and_return(
     """
     session = await service.get_session_by_id(db, session_id)
     service.verify_session_owner(session, user)
+    prior_status = session.status
     updated = await service.transition_session(
         db, session, target_state, actor_id=user.user_id
     )
+
+    # G3: closing a ranking round finalizes it — the full aggregation (is_final, ranking_complete webhook, CQS) runs
+    # once on the round's ballots, in its own DB session after the close commits. No ballots → nothing to finalize.
+    if target_state == "closed" and prior_status == "ranking":
+        _fire_final_aggregation(session_id, updated.short_code, updated.seed, int(getattr(updated, "current_cycle", 1) or 1))
 
     # Fire Cube 5 orchestrator on polling → ranking transition
     if target_state == "ranking":

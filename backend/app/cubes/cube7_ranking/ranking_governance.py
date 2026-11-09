@@ -69,8 +69,14 @@ async def emit_ranking_complete(
     replay_hash: str | None = None,
     anomaly_count: int = 0,
     excluded_participants: int = 0,
+    live: bool = False,
 ) -> dict:
     """Broadcast ranking_complete + trigger CQS scoring via Cube 5.
+
+    `live=True` (G3, live 9-theme prioritization): an in-round tally while ballots are still arriving. The same
+    ranking_complete broadcast goes out (payload `live: true`, `is_final: false`) so the moderator panel and phones
+    refresh, but the ranking_complete webhook and CQS scoring are NOT fired — those run once, on the final
+    aggregation (moderator aggregate or session close).
 
     Contract fields (Krishna audit, 2026-07-03): algorithm, theme01_category,
     theme_level, replay_hash, anomaly_count, excluded_participants,
@@ -139,6 +145,8 @@ async def emit_ranking_complete(
         "anomaly_count": anomaly_count,
         "excluded_participants": excluded_participants,
         "contract_version": "2026-07-03.1",
+        "live": live,
+        "is_final": not live,
     }
     try:
         # One low-rate message on the topic clients actually join. Above 1000 voters it used to go
@@ -158,6 +166,12 @@ async def emit_ranking_complete(
             "cube7.ranking_complete.broadcast_failed",
             extra={"session_id": str(session_id), "error": str(exc)},
         )
+
+    if live:
+        return {**{k: payload[k] for k in ("session_id", "cycle_id", "algorithm", "participant_count",
+                                            "theme01_category", "theme_level", "top_theme2_id", "top_theme2_label",
+                                            "replay_hash", "anomaly_count", "excluded_participants")},
+                "status": "ranking_live"}
 
     # Fire the `ranking_complete` WEBHOOK to any registered subscriptions (CRS-19 /
     # API productization). The webhook infra (HMAC-signed, SSRF-guarded, metered) was
@@ -625,6 +639,7 @@ async def run_ranking_pipeline(
     participant_stakes: dict[str, float] | None = None,
     theme01_category: str | None = None,
     theme_level: str | None = None,
+    live: bool = False,
 ) -> dict:
     """Full ranking pipeline: detect anomalies → exclude → aggregate → identify → emit.
 
@@ -664,6 +679,7 @@ async def run_ranking_pipeline(
         excluded_participant_ids=excluded_participants,
         theme01_category=theme01_category,
         theme_level=theme_level,
+        is_final=not live,
     )
 
     # 4. Identify top theme
@@ -691,6 +707,7 @@ async def run_ranking_pipeline(
         replay_hash=replay_hash,
         anomaly_count=len(anomalies),
         excluded_participants=len(excluded_participants),
+        live=live,
     )
 
     await db.commit()
@@ -710,7 +727,8 @@ async def run_ranking_pipeline(
         "anomalies": anomalies,
         "excluded_participants": len(excluded_participants),
         "weight_audit": weight_audit,
-        "status": "ranking_complete",
+        "status": "ranking_live" if live else "ranking_complete",
+        "is_final": not live,
     }
 
 

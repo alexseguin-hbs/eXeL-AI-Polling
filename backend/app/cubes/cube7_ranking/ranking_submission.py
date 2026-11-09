@@ -264,3 +264,66 @@ async def _broadcast_ranking_progress(
             extra={"error": str(exc)},
         )
 
+
+
+# ---------------------------------------------------------------------------
+# G3 (live 9-theme prioritization): debounced live aggregation while ranking is open
+# ---------------------------------------------------------------------------
+# Before this, nothing in a real session ever ran the tally (only the Admin Console sim driver called
+# POST /rankings/aggregate), so the moderator and phones never saw a group ranking. Now each accepted ballot in a
+# session whose status is "ranking" schedules ONE live tally per window per (session, cycle) — the same coalescing
+# as ranking_progress above, so N ballots in a window cost one aggregation, not N. The live run writes is_final=False
+# rows and broadcasts ranking_complete {live: true}; it never fires the ranking_complete webhook or CQS (those run
+# once, on the final aggregation at close or when the moderator aggregates). The window's task re-reads the session,
+# so a round that closed or moved to a new cycle in the meantime is left alone.
+
+LIVE_AGGREGATE_INTERVAL_S = 2.0
+_live_due: dict[tuple, float] = {}
+_live_tasks: set = set()
+
+
+def schedule_live_aggregation(session_id: uuid.UUID, short_code: str, cycle_id: int) -> bool:
+    """Coalesce live tallies: the first ballot in a window schedules one run at the window's end. True if scheduled."""
+    import asyncio
+    import time
+
+    key = (session_id, cycle_id)
+    now = time.monotonic()
+    due = _live_due.get(key)
+    if due is not None and due > now:
+        return False  # a run is already scheduled for this window; it will include this ballot
+    _live_due[key] = now + LIVE_AGGREGATE_INTERVAL_S
+
+    async def _run():
+        await asyncio.sleep(LIVE_AGGREGATE_INTERVAL_S)
+        try:
+            from app.db.postgres import async_session_factory
+
+            async with async_session_factory() as bg_db:
+                await run_live_aggregation(bg_db, session_id, short_code, cycle_id)
+        except Exception as exc:  # noqa: BLE001 — a live tally is best-effort; the final one runs at close
+            logger.warning("cube7.live_aggregate.failed", extra={"session_id": str(session_id), "error": str(exc)})
+
+    try:
+        task = asyncio.get_running_loop().create_task(_run())
+    except RuntimeError:
+        _live_due.pop(key, None)
+        return False
+    _live_tasks.add(task)
+    task.add_done_callback(_live_tasks.discard)
+    return True
+
+
+async def run_live_aggregation(
+    db: AsyncSession, session_id: uuid.UUID, short_code: str, cycle_id: int
+) -> dict | None:
+    """One live tally, only if the session is still ranking in this cycle. Returns the pipeline result or None."""
+    from app.models.session import Session
+    from app.cubes.cube7_ranking.ranking_governance import run_ranking_pipeline
+
+    s = (await db.execute(select(Session).where(Session.id == session_id))).scalar_one_or_none()
+    if s is None or s.status != "ranking" or int(getattr(s, "current_cycle", 1) or 1) != cycle_id:
+        return None
+    return await run_ranking_pipeline(
+        db, session_id=session_id, session_short_code=short_code, seed=s.seed, cycle_id=cycle_id, live=True,
+    )

@@ -279,6 +279,7 @@ async def aggregate_rankings(
     excluded_participant_ids: set[str] | None = None,
     theme01_category: str | None = None,
     theme_level: str | None = None,
+    is_final: bool = True,
 ) -> list[AggregatedRanking]:
     """CRS-12.01 + CRS-12.02 + CRS-12.04: Borda count with quadratic weights + anomaly exclusion.
 
@@ -297,7 +298,7 @@ async def aggregate_rankings(
     return await _write_aggregation(
         db, session_id, cycle_id, t["scores"], t["vote_counts"], t["participant_count"], t["algorithm"],
         effective_seed, t["replay_hash"], theme01_category, theme_level, participant_stakes,
-        t["weights"], t["participant_ids"],
+        t["weights"], t["participant_ids"], is_final=is_final,
     )
 
 
@@ -404,6 +405,7 @@ async def _write_aggregation(
     participant_stakes: dict[str, float] | None,
     weights: dict[str, float],
     all_participant_ids: list[str],
+    is_final: bool = True,
 ) -> list[AggregatedRanking]:
     """Steps 4-7 shared by both tallies: deterministic order, replace the cycle's rows, attach the audit."""
     sorted_themes = sorted(
@@ -453,7 +455,7 @@ async def _write_aggregation(
             confidence_avg=round(theme_confidence.get(tid, 0.0), 4),
             participant_count=participant_count,
             algorithm=algorithm,
-            is_final=True,
+            is_final=is_final,  # False for a live (in-round) tally; the close/moderator aggregation is final
             aggregated_at=now,
         )
         db.add(agg)

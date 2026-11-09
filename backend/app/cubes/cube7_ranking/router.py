@@ -134,6 +134,12 @@ async def submit_ranking(
             allow_revote=True,
         )
         await db.commit()
+        # G3: live prioritization — while the ranking round is open, every ballot schedules a debounced live tally
+        # (one per 2 s window per session+cycle) so the group ranking updates as votes arrive.
+        if session.status == "ranking":
+            from app.cubes.cube7_ranking.ranking_submission import schedule_live_aggregation
+
+            schedule_live_aggregation(session_id, session.short_code, getattr(session, "current_cycle", 1) or 1)
         return ranking
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -180,6 +186,7 @@ async def trigger_aggregation(
     seed: str | None = None,
     ranking_method: str = Query("borda_count", description="Ranking algorithm: 'borda_count' or 'quadratic_borda'"),
     body: AggregateRequest | None = Body(None),
+    live: bool = Query(False, description="True = in-round live tally (is_final=false; no webhook/CQS). Default final."),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_session_owner("moderator", "admin")),
 ):
@@ -220,6 +227,7 @@ async def trigger_aggregation(
             seed=seed or session.seed,
             cycle_id=int(getattr(session, "current_cycle", 1) or 1),
             participant_stakes=stakes if ranking_method == "quadratic_borda" else None,
+            live=live,
         )
         return result
     except ValueError as e:
