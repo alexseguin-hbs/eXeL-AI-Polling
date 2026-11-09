@@ -3,8 +3,9 @@
 // (like architect-immersion) + runtime on the pure libs (walkMep solids · clipNear · ftIn). INVARIANTS:
 //  · zoom is clamped [1,3] (NO sub-1×: refusal culling deletes the walls you stand beside), multiplies the focal length, and
 //    DIVIDES the look gains (drag + stick); ≥2 pointers SUSPEND the look-drag (pinch never spins the view); persisted.
-//  · eye height defaults to 5.1 ft, is clamped [1.8, DOOR_H − 0.2] (a door step is always possible), persisted, slider +
-//    ft-in readout live INSIDE the map panel; EYE_FT stays the named fallback; collision stays horizontal-only.
+//  · eye height defaults to 5.1 ft, is clamped [1.8, CEIL_FT] (floor to the 10-ft ceiling — raised 2026-11-09 from the old
+//    DOOR_H−0.2 cap on operator LIVE feedback "make height up to 10 feet"; stepping a door is horizontal-only so a high eye
+//    still crosses), persisted, slider + ft-in readout live INSIDE the map panel; EYE_FT stays the named fallback; collision stays horizontal-only.
 //  · measurements are a persisted toggle; labels read ftIn from the one formatter; the door reads the PLACED door's own
 //    size, never DOOR_W (which would print a non-existent 3'-2").
 //  · a KEEP_VISIBLE glyph (ahu · camera · heater) keeps its LABEL at any depth, hung on a vertical face.
@@ -18,7 +19,7 @@ import { walkMep, AHU_W, AHU_D, AHU_H, DUCT_Z, OUTLET_AFF_FT } from "../lib/arch
 import { MEP_COLOR } from "../lib/mep-runs.ts";
 import { clipNear } from "../lib/solid-shade.ts";
 import { ftIn } from "../lib/dim-annot.ts";
-import { OPENING_STD } from "../lib/room-layout.ts";
+import { OPENING_STD, STOREY_FT } from "../lib/room-layout.ts";
 import { defaultObjectsForRoom } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
@@ -50,19 +51,21 @@ ok(/<button data-arch-walk-zoom-step onClick=\{stepZoom\}/.test(walk) && /\{Numb
 ok(/const stepZoom = \(\) => setZoom\(zoom >= ZOOM_MAX \? ZOOM_MIN : Math\.floor\(zoom\) \+ 1\)/.test(walk), "the stepper cycles 1→2→3→1");
 
 // ══ §3 EYE HEIGHT ══════════════════════════════════════════════════════════════════════════════════════════════════════════
-ok(/const EYE_DEFAULT_FT = 5\.1, EYE_MIN_FT = 1\.8, EYE_MAX_FT = DOOR_H - 0\.2;/.test(walk), "eye height: default 5.1 ft (his 5'6\", eyes a little low), clamp band [1.8, DOOR_H − 0.2]");
+ok(/const EYE_DEFAULT_FT = 5\.1, EYE_MIN_FT = 1\.8, EYE_MAX_FT = CEIL_FT;/.test(walk), "eye height: default 5.1 ft (his 5'6\", eyes a little low), clamp band [1.8, CEIL_FT] — floor to the 10-ft ceiling (operator 2026-11-09 'make height up to 10 feet')");
 ok(/EYE_FT = 5\.5/.test(walk) && /const ez = Number\.isFinite\(eyeHt\) \? eyeHt : EYE_FT;/.test(walk), "ez reads the eyeHt state with EYE_FT (5.5) as the named fallback");
 ok(/const \[eyeHt, setEyeHtState\] = useState\(EYE_DEFAULT_FT\)/.test(walk), "eyeHt is state, default EYE_DEFAULT_FT");
 ok(/clamp\(Number\.isFinite\(v\) \? v : EYE_FT, EYE_MIN_FT, EYE_MAX_FT\)/.test(walk) && /setEyeHtState\(clamp\(e, EYE_MIN_FT, EYE_MAX_FT\)\)/.test(walk), "the setter AND the persisted load clamp into [EYE_MIN_FT, EYE_MAX_FT]");
 const DOOR_H = OPENING_STD.DOOR_H_FT;
-ok(/const DOOR_H = OPENING_STD\.DOOR_H_FT;/.test(walk), "the walkthrough's DOOR_H is bound to OPENING_STD (one opening source) — the clamp band follows the standard");
-ok(DOOR_H - 0.2 > 5.1 && 5.1 > 1.8, `the default 5.1 ft sits inside the band [1.8, ${(DOOR_H - 0.2).toFixed(2)}] — a door step is always possible`);
+const CEIL_FT = STOREY_FT;   // the clamp's upper bound is now the 10-ft ceiling (operator 2026-11-09 "make height up to 10 feet")
+ok(/const DOOR_H = OPENING_STD\.DOOR_H_FT;/.test(walk), "the walkthrough's DOOR_H is bound to OPENING_STD (one opening source) — still the door-opening standard, no longer the eye clamp");
+ok(/const CEIL_FT = STOREY_FT/.test(walk), "the walkthrough's CEIL_FT is bound to STOREY_FT (one ceiling source) — the eye clamp's top follows the storey height, never a literal 10");
+ok(CEIL_FT > 5.1 && 5.1 > 1.8, `the default 5.1 ft sits inside the band [1.8, ${CEIL_FT}] — floor to the 10-ft ceiling`);
 ok(/LS_EYE = "arch2525\.walkEyeHt"/.test(walk) && /localStorage\.setItem\(LS_EYE/.test(walk), 'eye height persists under "arch2525.walkEyeHt"');
 ok(/<input data-arch-walk-eye-height type="range" min=\{EYE_MIN_FT\} max=\{EYE_MAX_FT\} step=\{0\.1\} value=\{ez\}/.test(walk), "the eye-height slider (data-arch-walk-eye-height) spans exactly the clamp band");
 ok(/data-arch-walk-eye-readout[^>]*>\{ftIn\(ez\)\}/.test(walk), "the slider readout is ft-in via ftIn (5'-1\")");
 ok(/data-arch-walk-eye-ht=\{ez\.toFixed\(2\)\}/.test(walk), "the root carries data-arch-walk-eye-ht (feet)");
 ok(/const m = walkMove\(from, \{ x: want\.x - from\.x, y: want\.y - from\.y \}, furnRects\.current\)/.test(walk), "collision is untouched (walkMove on x/y only — horizontal-only, the eye height never enters it)");
-ok(ftIn(5.1) === "5'-1\"" && ftIn(DOOR_H - 0.2) === "6'-6\"", `ftIn renders the band ends (5'-1\" · ${ftIn(DOOR_H - 0.2)})`);
+ok(ftIn(5.1) === "5'-1\"" && ftIn(CEIL_FT) === "10'-0\"", `ftIn renders the band ends (5'-1\" · ${ftIn(CEIL_FT)})`);
 
 // ══ §6 MEASUREMENTS + near-plane segment clipping ══════════════════════════════════════════════════════════════════════════
 ok(/const \[dims, setDimsState\] = useState\(false\)/.test(walk) && /LS_DIMS = "arch2525\.walkDims"/.test(walk), 'measurements are a persisted toggle ("arch2525.walkDims"), off by default');
@@ -152,5 +155,5 @@ ok(/data-arch-walk-room className="absolute left-2 top-2/.test(walk) && /data-ar
 ok(/tests\/architect-walk-controls\.test\.mjs/.test(pkg.scripts["test:architect-walk-controls"] ?? ""), "package.json registers test:architect-walk-controls");
 ok(/npm run test:architect-walk-mep-callsite && npm run test:architect-walk-controls/.test(pkg.scripts["test:ci"]), "test:ci runs the walk-controls gate beside the walk gates");
 
-console.log(`\nARCHITECT-WALK-CONTROLS ${pass}/${pass + fail} passed · zoom 1–3× (f×zoom · look÷zoom · pinch suspends drag) · eye 5.1 ft [1.8, DOOR_H−0.2] · dims via ftIn · near-plane clipNear · AHU label at any depth on a face · additive solids in a SECOND solidFaces pass`);
+console.log(`\nARCHITECT-WALK-CONTROLS ${pass}/${pass + fail} passed · zoom 1–3× (f×zoom · look÷zoom · pinch suspends drag) · eye 5.1 ft [1.8, CEIL_FT=10] · dims via ftIn · near-plane clipNear · AHU label at any depth on a face · additive solids in a SECOND solidFaces pass`);
 if (fail > 0) process.exit(1);
