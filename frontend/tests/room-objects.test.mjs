@@ -251,8 +251,14 @@ ok(dM.length > 0, "defaultObjectsForRoom('M') seeds furniture — a room never o
 // the 'defaults vanish' HOLD still holds, just against the feng-shui set, not a cluttered one).
 const PACKED = Object.keys(ROOM_ASSETS).filter((rk) => !STANDARD_LAYOUTS[rk]);
 const intendedDefault = (rk) => (Object.hasOwn(DECOR_DEFAULTS, rk) ? DECOR_DEFAULTS[rk] : ROOM_ASSETS[rk]);
-ok(PACKED.length === 8 && PACKED.every((rk) => defaultObjectsForRoom(rk).length === intendedDefault(rk).length), "EVERY packed room places ALL its intended default set (feng-shui DECOR_DEFAULTS where set, else ROOM_ASSETS) — nothing dropped");
+ok(PACKED.length === 7 && PACKED.every((rk) => defaultObjectsForRoom(rk).length === intendedDefault(rk).length), "EVERY packed room places ALL its intended default set (feng-shui DECOR_DEFAULTS where set, else ROOM_ASSETS) — nothing dropped (M + L are now DECIDED layouts, not packed)");
 ok(PACKED.every((rk) => intendedDefault(rk).length <= (ROOM_ASSETS[rk]?.length ?? 0)), "the feng-shui default set is a declutter — never more items than the full ROOM_ASSETS palette");
+// NEVER AUTO-PLACE THE LIBRARY (operator 2026-11-09: "NOONE EVER INDICATED ALL 139 asset list items must be placed").
+// A room opens with a curated handful — the critical pieces — and the 139-asset library is REACHED, never seeded. Lock it:
+// every room's default is a small set, and the whole house's defaults together are a tiny fraction of the library.
+const ROOM_KEYS9 = ["M", "B", "C", "L", "K", "D", "O", "S", "E"];
+ok(ROOM_KEYS9.every((rk) => { const n = defaultObjectsForRoom(rk).length; return n >= 1 && n <= 10; }), `every room opens with a curated handful (1–10 items), never the library (${ROOM_KEYS9.map((rk) => rk + ":" + defaultObjectsForRoom(rk).length).join(" ")})`);
+ok(ROOM_KEYS9.reduce((s, rk) => s + defaultObjectsForRoom(rk).length, 0) < 60, `the whole house's auto-placed defaults are a small fraction of the 139-asset library (total ${ROOM_KEYS9.reduce((s, rk) => s + defaultObjectsForRoom(rk).length, 0)} ≪ 139 — the library is reached, never seeded)`);
 ok(JSON.stringify(dM) === JSON.stringify(STANDARD_LAYOUTS.M) && dM !== STANDARD_LAYOUTS.M, "the Master Bedroom's default IS the decided Layout A (a fresh copy — never the shared array)");
 ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(dM), "defaultObjectsForRoom is deterministic — identical key → identical objects (replay law)");
 const insideRoom = (o) => { const sp = worldSpan(o); return sp.x1 >= -1e-9 && sp.y1 >= -1e-9 && sp.x2 <= ROOM_GRID + 1e-9 && sp.y2 <= ROOM_GRID + 1e-9; };

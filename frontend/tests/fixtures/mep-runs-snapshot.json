@@ -566,19 +566,19 @@
         }
       },
       "k": "L",
-      "objectCount": 3,
+      "objectCount": 5,
       "outletPositions": [
         {
           "gx": 0,
           "gy": 0
         },
         {
-          "gx": 9,
+          "gx": 8,
           "gy": 0
         },
         {
           "gx": 9,
-          "gy": 9
+          "gy": 7
         },
         {
           "gx": 0,

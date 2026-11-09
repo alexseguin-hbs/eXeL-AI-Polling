@@ -35,7 +35,7 @@ ok(STANDARD_LAYOUTS.M && JSON.stringify(M) === JSON.stringify(STANDARD_LAYOUTS.M
 ok(standardLayoutFor("M") !== STANDARD_LAYOUTS.M && JSON.stringify(standardLayoutFor("M")) === JSON.stringify(STANDARD_LAYOUTS.M), "standardLayoutFor returns a fresh copy (a saved edit never mutates the decided layout)");
 ok(standardLayoutFor("K") === null && standardLayoutFor("ZZZ") === null, "rooms without a decided layout fall back to the packer (null)");
 ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(M), "deterministic (replay law)");
-ok(STANDARD_LAYOUT_REV === 2, "the standard-layout edition is 2 (Layout A′) — bump it when the decided layout changes again");
+ok(STANDARD_LAYOUT_REV === 3, "the standard-layout edition is 3 (A′ Master Bedroom + the Living Room sofa-faces-TV) — bump it when a decided layout changes again");
 
 // ── 2. Layout A′, piece by piece (HI: bed centred on the back wall · two nightstands · vanity + mirror OPPOSITE the bed · 2 windows · door · NO rug) ──
 ok(count(M, "bed") === 1 && count(M, "nightstand") === 2 && count(M, "desk") === 1 && count(M, "mirror") === 1 && count(M, "window") === 2 && count(M, "door") === 1, `Layout A′ = 1 bed · 2 nightstands · 1 desk (vanity) · 1 mirror · 2 windows · 1 door (got ${kinds(M).join(",")})`);
@@ -79,6 +79,25 @@ ok(worst < 0.01, `no floor overlap in Layout A′ (worst ${worst.toFixed(3)} ft�
 const inside = (o) => { const s = worldSpan(o); return s.x1 >= -1e-9 && s.y1 >= -1e-9 && s.x2 <= ROOM_GRID + 1e-9 && s.y2 <= ROOM_GRID + 1e-9; };
 ok(M.every(inside), "every Layout A′ piece sits fully inside the 10×10 room");
 ok(new Set(M.map((o) => o.id)).size === M.length, "ids are unique");
+
+// ── 3.5 THE LIVING ROOM (R2f · operator 2026-11-09 "living room should face tv; feng sui is the art of flow; ensure items
+//     that are not critical are removed"). The CRITICAL pair only — the sofa FACES the TV across the room. ──
+const L = defaultObjectsForRoom("L");
+ok(STANDARD_LAYOUTS.L && JSON.stringify(L) === JSON.stringify(STANDARD_LAYOUTS.L), "the Living Room default IS the decided STANDARD_LAYOUTS.L — never the greedy packer");
+ok(count(L, "sofa") === 1 && count(L, "tv") === 1 && count(L, "window") === 2 && count(L, "door") === 1 && L.length === 5, `L = the critical pair + openings only: 1 sofa · 1 tv · 2 windows · 1 door (got ${kinds(L).join(",")})`);
+ok(count(L, "table") === 0 && count(L, "chair") === 0 && count(L, "lamp") === 0 && count(L, "rug") === 0, "no coffee table / chair / lamp / rug is auto-placed (feng shui: items not critical are removed — they stay in the palette)");
+const lsofa = L.find((o) => o.kind === "sofa"), ltv = L.find((o) => o.kind === "tv"), lss = worldSpan(lsofa), lts = worldSpan(ltv);
+ok((lss.x1 + lss.x2) / 2 < ROOM_GRID / 2 && (lts.x1 + lts.x2) / 2 > ROOM_GRID / 2, `the sofa (centre x ${((lss.x1 + lss.x2) / 2).toFixed(1)}) and the TV (centre x ${((lts.x1 + lts.x2) / 2).toFixed(1)}) are on OPPOSITE sides — the seating faces the focal across the room`);
+ok(OBJECT_SPEC.tv.onWall && wallOfObject(ltv) === "E", "the TV is wall-mounted on the E wall, opposite the sofa");
+ok(lsofa.rot === 90 || lsofa.rot === 270, `the sofa is turned onto the N–S axis (rot ${lsofa.rot}) so its length runs along the W wall and it faces the TV wall`);
+const lwins = L.filter((o) => o.kind === "window");
+ok(lwins.length === 2 && lwins.every((w) => wallOfObject(w) === "W"), "both Living-Room windows are on the one EXTERIOR wall (W — L sits at row 1 · col 0)");
+ok(wallOfObject(L.find((o) => o.kind === "door")) === "S", "the Living-Room entry door is on the S wall, clear of the seating");
+const lfloor = L.filter(isFloor);
+let lworst = 0; for (let i = 0; i < lfloor.length; i++) for (let j = i + 1; j < lfloor.length; j++) lworst = Math.max(lworst, overlap(lfloor[i], lfloor[j]));
+ok(lworst < 0.01 && L.every(inside), `the Living Room has zero floor overlap and sits inside the room (worst ${lworst.toFixed(3)} ft²)`);
+const lCell = TINY_ROOM_LAYOUT.find((r) => r.k === "L");
+ok(lCell && lCell.row === 1 && lCell.col === 0, "the canonical 3×3 puts the Living Room at row 1 · col 0 (W is its one exterior wall)");
 
 // ── 4. the palette: no dresser / wardrobe / rug offered in the bedroom; desk + mirror are; the closet keeps the clothes storage ──
 ok(!ROOM_ASSETS.M.includes("dresser") && !ROOM_ASSETS.M.includes("wardrobe"), "ROOM_ASSETS.M offers no dresser and no wardrobe");

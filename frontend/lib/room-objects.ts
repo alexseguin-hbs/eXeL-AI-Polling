@@ -710,7 +710,7 @@ export const DECOR_DEFAULTS: Record<string, ObjectKind[]> = {
   // M (Master Bedroom) is intentionally omitted — it has the decided STANDARD_LAYOUTS.M (Layout A′), already decluttered.
   B: ["toilet", "sink", "shower", "tub"],       // master-bath essentials — the four core fixtures (a master bath has a tub + a shower)
   C: ["wardrobe", "dresser", "shelving"],       // closet storage
-  L: ["sofa", "table", "tv"],                   // seating · surface · focal
+  L: ["sofa", "tv"],                            // the critical pair: seating that FACES the focal (operator 2026-11-09 "living room should face tv; remove items not critical"). The coffee table stays in the palette, not auto-placed.
   K: ["counter", "fridge", "stove", "sink"],    // the kitchen work triangle
   D: ["table", "chair"],                         // a dining table + seat (the room's centre)
   O: ["desk", "chair", "bookshelf"],            // a work desk in the commanding position
@@ -811,17 +811,30 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
     { id: "window-2",     kind: "window",     gx: 0,   gy: 2.5, rot: 90 },           // W (exterior) · beside the bed · y 1.5–4.5
     { id: "door-1",       kind: "door",       gx: 1,   gy: 9,   rot: 0 },            // S wall · from the Living Room · x 0–3
   ],
+  // R2f — LIVING ROOM (operator LIVE 2026-11-09: "living room should face tv; feng sui is the art of flow; ensure items
+  // that are not critical are removed"). The CRITICAL pair only — the sofa FACES the TV — nothing else auto-placed (the
+  // coffee table and lamps stay in the palette). L sits at row 1 · col 0 of the 3×3: its one EXTERIOR wall is W (2 windows);
+  // N→Master Bed, E→Kitchen, S→Office are interior. The sofa stands along the W wall (under the windows) FACING EAST, the
+  // TV is wall-mounted on the E wall opposite it, and the entry door is on the S wall, clear of the seating — an open
+  // centre with a straight walk in. Clearances (gated): sofa x0–2 · TV on the E wall · a clear S-wall entry lane.
+  L: [
+    { id: "sofa-1",   kind: "sofa",   gx: 0.5, gy: 4.5, rot: 90 },          // W wall, long axis N–S, FACING the TV (x 0–2 · y 2.5–7.5)
+    { id: "tv-1",     kind: "tv",     gx: 9,   gy: 4.5, rot: 90, elev: 4 }, // E wall, wall-mounted at 4 ft, centred opposite the sofa
+    { id: "window-1", kind: "window", gx: 0,   gy: 1.5, rot: 90 },          // W (exterior) · y 1–4 (clear of the NW corner)
+    { id: "window-2", kind: "window", gx: 0,   gy: 6.5, rot: 90 },          // W (exterior) · y 6–9 (clear of the SW corner)
+    { id: "door-1",   kind: "door",   gx: 6,   gy: 9,   rot: 0 },           // S wall · the entry · x 5–8, clear of the sofa
+  ],
 };
 /** The standard layouts' edition. A stored room whose `layoutRev` is older is re-seated to the decided layout on load
  * (the WireGuard, lib/architect-guard.ts) — "stop reverting" reaches the devices that saved the earlier edition too. */
-export const STANDARD_LAYOUT_REV = 2;
+export const STANDARD_LAYOUT_REV = 3;
 /** The DECLUTTER edition (operator 2026-11-08 "closet declutter requested 6+ times"). Bumping this re-seats EVERY room's
  * working layout to its curated default (standardLayoutFor ?? defaultObjectsForRoom) ONCE on load, for every device —
  * the missing piece behind the reverting clutter: earlier fixes only changed the DEFAULT, never migrated a device whose
  * working layout was auto-seeded with clutter by an old build. The WireGuard (lib/architect-guard.ts) stamps a cell's
  * declutterRev when it re-seats; later user edits carry the stamp, so the one-time declutter never wipes a real arrangement
  * twice. Bump this (not the default alone) whenever a declutter must reach devices that already saved the old clutter. */
-export const DECLUTTER_REV = 1;
+export const DECLUTTER_REV = 2;
 /** The decided layout for a room key (a fresh copy), or null when the room has none (→ the packer). */
 export function standardLayoutFor(roomKey: string): PlacedObject[] | null {
   // R5b (Thor): OWN keys only — STANDARD_LAYOUTS["constructor"] is Object, and `.map` on it threw through the guard.
@@ -847,7 +860,23 @@ export const STANDARD_LAYOUT_EDITIONS: Record<number, Record<string, PlacedObjec
       { id: "door-1",       kind: "door",       gx: 1,   gy: 9,   rot: 0 },
     ],
   },
-  2: STANDARD_LAYOUTS,
+  // edition 2 = A′ (R5b) — FROZEN as the M-only snapshot it shipped as, so the guard can still recognise a device that
+  // holds exactly A′ as UNTOUCHED (append never edit — once STANDARD_LAYOUTS gained L, pointing edition 2 at it would be
+  // a lie about what edition 2 was).
+  2: {
+    M: [
+      { id: "bed-1",        kind: "bed",        gx: 4.5, gy: 2.5, rot: 0 },
+      { id: "nightstand-1", kind: "nightstand", gx: 1,   gy: 0.25, rot: 0 },
+      { id: "nightstand-2", kind: "nightstand", gx: 8,   gy: 0.25, rot: 0 },
+      { id: "desk-1",       kind: "desk",       gx: 7.5, gy: 8.5, rot: 0 },
+      { id: "mirror-1",     kind: "mirror",     gx: 7.5, gy: 9,   rot: 0, elev: 3 },
+      { id: "window-1",     kind: "window",     gx: 7.5, gy: 0,   rot: 0 },
+      { id: "window-2",     kind: "window",     gx: 0,   gy: 2.5, rot: 90 },
+      { id: "door-1",       kind: "door",       gx: 1,   gy: 9,   rot: 0 },
+    ],
+  },
+  // edition 3 = R2f — the Master Bedroom A′ (unchanged) + the Living Room (sofa faces the TV). The live set.
+  3: STANDARD_LAYOUTS,
 };
 /** The decided layout of a room key at a given edition (a fresh copy), or null. */
 export function standardLayoutAt(roomKey: string, rev: number): PlacedObject[] | null {
