@@ -24,7 +24,7 @@ const BOOT = [
   "if ! boot > /tmp/diag/api/v1/bootlog 2>&1; then echo BOOT_FAILED >> /tmp/diag/api/v1/bootlog; cat /tmp/diag/api/v1/bootlog; exec python -m http.server 8000 -d /tmp/diag; fi",
   "unset BUNDLE_TOKEN",
   "cd /srv/backend",
-  "(cd /tmp/diag && python -m http.server 8001 --bind 127.0.0.1 >/dev/null 2>&1 &) ",
+  "(cd /tmp/diag && python -m http.server 8001 --bind 0.0.0.0 >/dev/null 2>&1 &) ",
   "uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips '*' --timeout-keep-alive 75 >> /tmp/diag/api/v1/bootlog 2>&1 || true",
   "echo APP_EXITED >> /tmp/diag/api/v1/bootlog; tail -n 60 /tmp/diag/api/v1/bootlog | sed -E 's#(postgres(ql)?(\\+asyncpg)?://)[^@ ]*@#\\1***@#g' > /tmp/diag/api/v1/bootlog.tail; mv /tmp/diag/api/v1/bootlog.tail /tmp/diag/api/v1/bootlog",
   "exec python -m http.server 8000 -d /tmp/diag",
