@@ -611,6 +611,7 @@ function Labeler({
   accent: string;
   onBack: () => void;
 }) {
+  const { t } = useLexicon();
   const stageRef = useRef<HTMLDivElement>(null);
   const fitRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -927,7 +928,7 @@ function Labeler({
     const fileName = await ensurePng(pictureName(pic), list);
     touchWork(fileName, moved ? "adjust" : "level2");
     const where = await writePicture(fileName, list);
-    if (decision.kind === "adjust") {
+    if (decision.ok && decision.kind === "adjust") {
       void recordCorrectionToProject(fileName, mark.by || "", decision.event, mark.id);
     }
     if (where) setNote(`Level 2 saved. ${fileName}. ${where}`);
@@ -959,6 +960,10 @@ function Labeler({
     if (who && !sameMember(who, mark.by || "guest")) {
       if (!decision.ok) {
         setNote(t(decision.noteKey));
+        return;
+      }
+      if (decision.kind !== "reject" && decision.kind !== "adjust") {
+        setNote(t(SF_NOTE_KEYS.correctionNeedsIndep));
         return;
       }
       touchWork(fileName, "adjust");
@@ -2219,13 +2224,22 @@ export default function SensorFusion() {
     const metrics = levelMetrics(
       shots.map((shot) => {
         const xml = readXmlStore()[pictureName(shot)];
-        return xml ? readVoc(xml) : { id: pictureName(shot), boxes: [] };
+        const page = xml ? readVoc(xml) : null;
+        return {
+          id: pictureName(shot),
+          boxes: (page?.boxes || []).map((box) => ({
+            by: box.by,
+            level: box.level,
+            reviewer: box.reviewer,
+          })),
+        };
       }),
       operator || (guest ? "GUEST" : "guest"),
     );
+    const teamClock = readClock(SENSOR_FUSION_PROJECT);
     const snap = {
       projectId: SENSOR_FUSION_PROJECT,
-      clock,
+      clock: teamClock.project === SENSOR_FUSION_PROJECT ? teamClock : emptyClock(SENSOR_FUSION_PROJECT),
       pictures: metrics.pictures,
       level1: metrics.level1,
       level2: metrics.level2,
