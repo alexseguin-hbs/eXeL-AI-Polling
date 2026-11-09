@@ -57,11 +57,17 @@ _GEN_MAX_CONCURRENT = 96
 # Output tokens dominate latency, so the batch reply is one short line per input; the stored value is always the exact
 # label string. Codes: S = 'Supporting Comments', R = 'Risk & Concerns', N = 'Neutral Comments'.
 _CODE_TO_LABEL = {"S": "Supporting Comments", "R": "Risk & Concerns", "N": "Neutral Comments"}
+# 2026-11-09 parity (t183u, 60-row owner CSV = 30 risk + 30 benefit statements): the first batch wording let Grok judge
+# items RELATIVE to their batch-mates — a batch that opened with risks rated plain benefits 'N' at 50-70% (0/60 S in
+# one run, 20/60 in another). Asking for an independent judgement and naming what each code means gave 30 R / 30 S on
+# 25- and 10-item batches, 70% agreement with the notebook's labels (the notebook agrees with itself 62%: its 333/111/33
+# re-summaries shift sentiment). Deliberate clarification of the notebook prompt; labels, codes, <65% rule unchanged.
 _BATCH_CLASSIFY_INSTRUCTION = (
-    "If an input is not in English, translate it to English first. For EACH numbered input decide ONE of these three "
-    "exact categories: 'Supporting Comments' (code S) or 'Risk & Concerns' (code R) or 'Neutral Comments' (code N), "
-    "and your confidence from 0 to 100. Reply with ONLY one line per input, in order, formatted '<number>|<code>|<confidence>' "
-    "for example '1|S|87'."
+    "If an input is not in English, translate it to English first. Classify EACH numbered input on its own, "
+    "independently of the other inputs, into ONE of these three exact categories: 'Supporting Comments' (code S: the "
+    "input states benefits, support or positive views) or 'Risk & Concerns' (code R: the input states risks, harms or "
+    "worries) or 'Neutral Comments' (code N: neither, or balanced), and your confidence from 0 to 100. Reply with ONLY "
+    "one line per input, in order, formatted '<number>|<code>|<confidence>' for example '1|S|87'."
 )
 _LINE_RE = re.compile(r"^\s*(\d+)\s*[|:,.)-]\s*([SRN])\w*\s*[|:,]\s*(\d{1,3})", re.I)
 
