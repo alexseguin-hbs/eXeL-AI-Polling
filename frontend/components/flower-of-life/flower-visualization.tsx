@@ -16,6 +16,7 @@ import { ResponseDrawer } from "./response-drawer";
 import { RankedThemes } from "./ranked-themes";
 import { ThemeDetailSheet } from "./theme-detail-sheet";
 import { ThemeDescriptionList } from "./theme-description-list";
+import { buildTreeLayout, slotColor } from "@/lib/theme-tree";
 import { PollingRevisionHistory } from "@/components/polling-revision-history";
 import { normalizeRankings } from "@/lib/ranking-shape";
 import {
@@ -266,6 +267,13 @@ export function FlowerVisualization({
     }
   }, [data.theme2, state.selectedTheme1, state.theme2Level]);
 
+  // t182: strict tree (level-3 parents keep fixed slots; children split inside them). null → free layout fallback.
+  const treeLayout = useMemo(() => {
+    if (!state.selectedTheme1) return null;
+    const t2 = data.theme2[state.selectedTheme1];
+    return buildTreeLayout(t2.level3, currentTheme2Themes, state.theme2Level, [...t2.level3, ...t2.level6, ...t2.level9]);
+  }, [data.theme2, state.selectedTheme1, currentTheme2Themes, state.theme2Level]);
+
   const drawerResponses = useMemo(() => {
     if (!state.selectedTheme2 || !state.selectedTheme1) return [];
     const levelKey =
@@ -458,8 +466,31 @@ export function FlowerVisualization({
                   />
                 </g>
 
-                {/* Theme2 circles */}
-                {currentTheme2Themes.map((theme, i) => {
+                {/* t182: tree layout — each level-3 parent's slot splits 1 → 2 → 3 in the parent's colour */}
+                {treeLayout && selectedTheme1Color && treeLayout.map((b, i) => (
+                  <SplitBubble
+                    key={`${state.theme2Level}-${b.theme.id ?? b.theme.label}`}
+                    from={b.parentPos}
+                    to={b.pos}
+                    animate={state.theme2Level !== 3}
+                  >
+                    <ThemeCircle
+                      cx={b.pos.cx}
+                      cy={b.pos.cy}
+                      r={b.pos.r}
+                      theme={b.theme}
+                      fill={slotColor(selectedTheme1Color.stroke, b.slot, 0.14 + (b.theme.avgConfidence / 100) * 0.16)}
+                      stroke={slotColor(selectedTheme1Color.stroke, b.slot)}
+                      onClick={() => handleTheme2Click(b.theme.label)}
+                      compact={isPortrait}
+                      bloom={state.theme2Level === 3}
+                      bloomDelay={i * 80}
+                    />
+                  </SplitBubble>
+                ))}
+
+                {/* Theme2 circles — free layout (no parent_id yet) */}
+                {!treeLayout && currentTheme2Themes.map((theme, i) => {
                   if (i >= theme2Positions.length) return null;
                   const pos = theme2Positions[i];
                   // Vary saturation based on confidence
@@ -583,5 +614,35 @@ export function FlowerVisualization({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/** t182: a child bubble that starts at its level-3 parent's slot (scaled down) and glides out to its own spot, so a
+ *  dial turn reads as the parent splitting rather than a reshuffle. Pure CSS transition; respects reduced motion. */
+function SplitBubble({ from, to, animate, children }: {
+  from: { cx: number; cy: number }; to: { cx: number; cy: number }; animate: boolean; children: React.ReactNode;
+}) {
+  const [settled, setSettled] = useState(!animate);
+  useEffect(() => {
+    if (!animate) return;
+    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { setSettled(true); return; }
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setSettled(true)));
+    return () => cancelAnimationFrame(id);
+  }, [animate]);
+  const dx = from.cx - to.cx, dy = from.cy - to.cy;
+  return (
+    <g
+      data-split-bubble
+      style={{
+        transformBox: "view-box",
+        transformOrigin: `${to.cx}px ${to.cy}px`,
+        transform: settled ? "translate(0px, 0px) scale(1)" : `translate(${dx}px, ${dy}px) scale(0.5)`,
+        opacity: settled ? 1 : 0.4,
+        transition: "transform 0.5s cubic-bezier(0.34, 1.3, 0.64, 1), opacity 0.4s ease-out",
+      }}
+    >
+      {children}
+    </g>
   );
 }

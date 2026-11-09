@@ -191,6 +191,10 @@ export interface ThemeInfo {
   /** Theme description from GET /sessions/{id}/themes `description` (111 words at level 9, 222 at 6, 333 at 3;
    *  paid view). undefined = the API does not send the field yet (UI hides the block); null = sent but withheld/empty. */
   description?: string | null;
+  /** t182: backend theme id and its tree parent (GET /themes `parent_id`): a level-6/9 theme's level-3 parent
+   *  (or a level-6 parent that itself points at a level-3). Absent → the bubbles fall back to the free layout. */
+  id?: string;
+  parentId?: string | null;
   /** Padded placeholder slot (no responses yet). Flower-of-Life dims + greys these. */
   isEmpty?: boolean;
 }
