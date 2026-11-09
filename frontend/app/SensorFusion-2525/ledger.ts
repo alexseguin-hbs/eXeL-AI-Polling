@@ -598,6 +598,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Rebased SensorFusion collab/labeling branch onto main after PR #3 (Cost Estimate TS syntax) so Workers Build can go green. Ledger commit cites for revs 78–81 retargeted to rebased SHAs. Merge-as-you-go: no check bypass.",
       commit: "bb231da",
     },
+    {
+      rev: 83,
+      date: "2026-11-08",
+      kind: "release",
+      text: "Workers Build typecheck: Labeler calls useLexicon for Level-2 notes; correction event narrowing; team progress sync uses project clock and SwarmPage-shaped boxes. No check bypass.",
+      commit: "f20b536",
+    },
   ],
 };
 
