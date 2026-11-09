@@ -153,11 +153,14 @@ for (const [re, what] of [
   [/\{interactive && advanced && sel && dimEntry && /, "the feet-inches keypad"],
   [/\{advanced && sel && \(\(\) => \{\s*\n\s*const o = objects\.find\(\(x\) => x\.id === selId\); if \(!o\) return null;/, "the 3D height rails"],
   [/\{advanced && <button data-arch-room-link/, "the North-lock buttons"],
-  [/\{advanced && <span data-arch-nudge/, "the nudge pad"],
   [/\{advanced && objects\.length > 0 && \(\(\) => \{\s*\n\s*const bom = roomBom/, "the BOM quote"],
   [/\{advanced && <div data-arch-playtest/, "the guided demo"],
   [/\{simpleMode \? \(/, "the single-pane Simple layout"],
 ]) ok(re.test(rd), `${what} is gated on Advanced`);
+// MOVE pad — operator 2026-11-09 "active items list to match right panel of security-2525 (with ability to move)": the
+// nudge/move pad is NO LONGER gated on Advanced. It lives in the selected-detail block (sel-gated, both Simple + Advanced),
+// so any tapped element can be moved in one place, like the Security-2525 Mission-Planning asset inspector.
+ok(/\{<span data-arch-nudge className=/.test(rd) && !/advanced && <span data-arch-nudge/.test(rd), "the move pad is shown on any selected element (not gated on Advanced — Security-2525 inspector parity)");
 ok(/data-arch-roomobj-name/.test(rd) && /\{interactive && sel && simpleMode && \(\(\) => \{/.test(rd), "the NAME BADGE still names a tapped element in Simple mode (re-homed outside the CAD callouts)");
 ok(/data-arch-roomobj-rotate/.test(rd) && /data-arch-roomobj-delete/.test(rd) && /data-arch-roomobj-size/.test(rd) && /data-arch-roomdesign-undo/.test(rd), "Simple keeps the core loop: Size · Rotate · Delete · Undo");
 // R5b — Mission-Planning parity: select-after-place · the tap threshold · the palette above the pane · finger-sized chips · a hit pad on thin pieces · the Simple help tells the truth

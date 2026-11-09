@@ -27,6 +27,9 @@ import {
   defaultObjectsForRoom, groupOf,
   type PlacedObject, type ObjectKind, type Wall,
 } from "@/lib/room-objects";
+// The row/inspector display NAME (operator 2026-11-09 "make assets actual names of objects") — ONE source, shared with the
+// plan name badge (lib/room-chrome): a library-asset carrier shows its catalogue label, never the generic "Asset".
+import { elementLabel as displayName } from "@/lib/architect-2525/assets/registry";
 import { shade, FACE_SHADE } from "@/lib/solid-shade";   // the ONE shared solid-faces shader (de-dup; was a local copy)
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, MEP_COLOR, type MepRun } from "@/lib/mep-runs";
 import { phaseDraw, phaseById, showGroupInPhase } from "@/lib/architect-phases";
@@ -973,12 +976,12 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
                   style={{ background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
                   <button onClick={() => setSelId(on ? null : o.id)} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
                     <RowIcon className="h-3 w-3 shrink-0" style={{ color: on ? C.gold : s.color }} />
-                    <span className="min-w-0 flex-1 truncate">{vLabel ? `${vLabel} ` : ""}{s.label}</span>
+                    <span className="min-w-0 flex-1 truncate">{vLabel ? `${vLabel} ` : ""}{displayName(o)}</span>
                     <span className="shrink-0 tabular-nums" style={{ color: C.dim, fontSize: 8 }}>{fmt(fp.w)}×{fmt(fp.d)}×{fmt(heightOf(o))}′</span>
                   </button>
-                  <button data-arch-el-rotate={o.kind} onClick={() => commit(rotateObject(objects, o.id))} title={`Rotate ${s.label}`} aria-label={`Rotate ${s.label}`}
+                  <button data-arch-el-rotate={o.kind} onClick={() => commit(rotateObject(objects, o.id))} title={`Rotate ${displayName(o)}`} aria-label={`Rotate ${displayName(o)}`}
                     className="shrink-0 rounded p-1 hover:bg-white/10" style={{ color: C.cyan }}><RotateCw className="h-3 w-3" /></button>
-                  <button data-arch-el-delete={o.kind} onClick={() => { commit(removeObject(objects, o.id)); if (selId === o.id) setSelId(null); }} title={`Delete ${s.label}`} aria-label={`Delete ${s.label}`}
+                  <button data-arch-el-delete={o.kind} onClick={() => { commit(removeObject(objects, o.id)); if (selId === o.id) setSelId(null); }} title={`Delete ${displayName(o)}`} aria-label={`Delete ${displayName(o)}`}
                     className="shrink-0 rounded p-1 hover:bg-white/10" style={{ color: "#f87171" }}><Trash2 className="h-3 w-3" /></button>
                 </div>
               );
@@ -993,7 +996,7 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
             const selSpec = OBJECT_SPEC[sel.kind];
             return (
               <div data-arch-roomobj-detail className="mt-1 flex flex-wrap items-center gap-2 border-t pt-1.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>
-                <span className="flex items-center gap-1 font-semibold" style={{ color: C.gold }}><SelIcon className="h-3.5 w-3.5" /> {vLabel ? `${vLabel} ` : ""}{selSpec.label}</span>
+                <span className="flex items-center gap-1 font-semibold" style={{ color: C.gold }}><SelIcon className="h-3.5 w-3.5" /> {vLabel ? `${vLabel} ` : ""}{displayName(sel)}</span>
                 <span data-arch-roomobj-dims style={{ color: C.dim }}>{ftIn(fp.w)} W × {ftIn(fp.d)} D × {ftIn(heightOf(sel))} H</span>
                 {selSpec.onWall && <span data-arch-roomobj-wall className="rounded border px-1 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>{wallOf(sel.gx, sel.gy)} wall</span>}
                 {vs && (
@@ -1003,8 +1006,9 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
                 )}
                 <button data-arch-roomobj-rotate onClick={() => commit(rotateObject(objects, sel.id))} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /> Rotate</button>
                 <button data-arch-roomobj-delete onClick={() => { commit(removeObject(objects, sel.id)); setSelId(null); }} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: "#f87171" }}><Trash2 className="h-3 w-3" /> Delete</button>
-                {/* FIX-B — spatial nudge pad (arrows + ft/in step), Mission-Planning asset-planning style */}
-                {advanced && <span data-arch-nudge className="flex items-center gap-0.5 rounded border px-1 py-0.5" style={{ borderColor: C.border }} title={`Nudge the selected item by the chosen step; tap the step to change 1" / 6" / 1'`}>
+                {/* MOVE pad (arrows + ft/in step) — the Security-2525 Mission-Planning asset-inspector control, now ALWAYS
+                    shown on a selected element (operator 2026-11-09 "ability to move etc"), not hidden behind advanced. */}
+                {<span data-arch-nudge className="flex items-center gap-0.5 rounded border px-1 py-0.5" style={{ borderColor: C.border }} title={`Move the selected item by the chosen step; tap the step to change 1" / 6" / 1'`}>
                   <button data-arch-nudge-step onClick={() => setNudgeIx((i) => (i + 1) % NUDGE_STEPS_FT.length)} className="rounded px-1 text-[9px] font-bold tabular-nums" style={{ color: C.gold }}>{NUDGE_STEPS_FT[nudgeIx].label}</button>
                   {(() => { const step = NUDGE_STEPS_FT[nudgeIx].ft; return (<>
                     <button data-arch-nudge-up onClick={() => commit(nudgeObject(objects, sel.id, 0, -step))} title={t("arch.room.moveUp")} className="rounded p-0.5" style={{ color: C.cyan }}><ArrowUp className="h-3 w-3" /></button>

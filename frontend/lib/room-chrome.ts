@@ -10,6 +10,7 @@
 //  · the always-on per-element grip is gone from the loop — only the SELECTED element carries chrome.
 // Coordinates are viewBox units (0..100); the single 10×10 room is 100 units, 10 units = 1 ft.
 import { worldSpan, OBJECT_SPEC, VARIANTS, wallOf, type PlacedObject } from "./room-objects";
+import { elementLabel } from "./architect-2525/assets/registry"; // the catalogue name for a library asset (never "Asset")
 
 export interface Rect { x1: number; y1: number; x2: number; y2: number }
 export interface RoomChrome { grip: { x: number; y: number }; badge: { bx: number; by: number }; name: string; halfW: number }
@@ -44,7 +45,7 @@ export function chromeFor(o: PlacedObject, others: PlacedObject[] = []): RoomChr
   // GRIP — the object's top-left corner, clamped so the 2.3×3.3 handle box stays inside the walls (never spills over)
   const grip = { x: Math.max(2.2, Math.min(97.8, bx1)), y: Math.max(2.7, Math.min(97.3, by1)) };
   const vlab = VARIANTS[o.kind]?.find((v) => v.id === o.variant)?.label;
-  const name = `${vlab ? vlab + " " : ""}${OBJECT_SPEC[o.kind].label}`;
+  const name = `${vlab ? vlab + " " : ""}${elementLabel(o)}`;
   const halfW = name.length * 0.98 + 2;                                 // badge rect: 2·halfW wide
   const rectOf = (bx: number, by: number): Rect => ({ x1: bx - halfW, y1: by - BADGE_UP, x2: bx + halfW, y2: by + BADGE_DOWN });
   const others_ = others.filter((q) => q.id !== o.id).map(footprintRect);

@@ -12,6 +12,7 @@ import {
   OBJECT_KINDS, OBJECT_SPEC, ASSET_PARAMS, ROOM_KEYS, ASSET_CATEGORIES, MOUNTINGS, VARIANTS, ROOM_ASSETS, COMMON_ASSETS,
   ROOM_GRID, shapePartsOf, shapePartsAt, SHAPE_PARTS_LOD, LOD_LEVELS, setSize, footprintOf, heightOf, elevOf, partRects,
   placeObject, rotateObject, applyTypedSize, applyTypedHeight, sameArrangement, kindByAssetId, groupOf, worldSpan,
+  STANDARD_LAYOUT_REV, DECLUTTER_REV,
 } from "../lib/room-objects.ts";
 import { TINY_ROOM_LAYOUT, setRoomObjects, cloneLayout } from "../lib/room-layout.ts";
 import { DEV_PHASES, showGroupInPhase } from "../lib/architect-phases.ts";
@@ -189,11 +190,15 @@ ok(JSON.stringify(applyTypedSize(so, "nope", 7)) === JSON.stringify(so), "applyT
 // the ✎ dim-edit path in the designer routes through the router (no raw setVariantByWidth / setVariantByHeight left)
 const rd = read("components/architect-2525/room-designer.tsx");
 ok(/applyTypedHeight\(objects, sel\.id, v\)/.test(rd) && /applyTypedSize\(objects, sel\.id, v, ax\)/.test(rd) && !/setVariantByWidth\(|setVariantByHeight\(/.test(rd), "room-designer applyDim routes size/height through applyTypedSize/applyTypedHeight (exact sizes reach setSize)");
-// the guard carries a stored size (the persist law: a reload must not strip it) and clamps a hostile one
-const stored = cloneLayout().map((c) => (c.id === "living" ? { ...c, objects: [{ id: "sofa-1", kind: "sofa", gx: 4, gy: 4, rot: 0, size: { w: 7, d: 999, h: "x" } }] } : c));
+// the guard carries a stored size (the persist law: a reload must not strip it) and clamps a hostile one. The cell is
+// stamped at the CURRENT editions (declutterRev + layoutRev) — a device already on this build that the user then ARRANGED
+// — so the persist branch runs, not the one-time migration re-seat (which correctly replaces an untouched prior-edition
+// Living Room with the decided feng-shui layout; R2f gave "L" a STANDARD_LAYOUT, so a raw cloneLayout cell would re-seat).
+const arranged = (objects) => (c) => (c.id === "living" ? { ...c, layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV, objects } : c);
+const stored = cloneLayout().map(arranged([{ id: "sofa-1", kind: "sofa", gx: 4, gy: 4, rot: 0, size: { w: 7, d: 999, h: "x" } }]));
 const guarded = sanitizeRoomLayout(JSON.parse(JSON.stringify(stored))).find((c) => c.id === "living").objects[0];
 ok(guarded.size?.w === 7 && guarded.size?.d === ASSET_PARAMS.sofa.params.d.max && guarded.size?.h === undefined, "sanitizeRoomLayout keeps a stored size (w 7), clamps a hostile one (d 999 → max), drops a non-number (h)");
-ok(sanitizeRoomLayout(cloneLayout().map((c) => (c.id === "living" ? { ...c, objects: [{ id: "sofa-1", kind: "sofa", gx: 4, gy: 4, rot: 0 }] } : c))).find((c) => c.id === "living").objects[0].size === undefined, "a stored object without a size round-trips without one (byte-identical valid data)");
+ok(sanitizeRoomLayout(cloneLayout().map(arranged([{ id: "sofa-1", kind: "sofa", gx: 4, gy: 4, rot: 0 }]))).find((c) => c.id === "living").objects[0].size === undefined, "a stored object without a size round-trips without one (byte-identical valid data)");
 
 // ── 9. partRects == the designer's previous inline rotRect for rot 0/90/180/270 on a 2×3 object ──
 const oldRects = (o) => {               // the lifted formula, verbatim from room-designer.tsx (pre-Rev A)

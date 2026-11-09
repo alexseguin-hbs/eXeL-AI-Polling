@@ -11,8 +11,9 @@ const src = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "co
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; } else { fail++; console.log("FAIL:", m); } };
 
-// the list-row block (between "objects.map((o)" and the SELECTED detail comment)
-const listStart = src.indexOf("objects.map((o)");
+// the list-row block (the Active-Elements list container up to the SELECTED detail comment). Anchored on the unique
+// `data-arch-room-active` container, not `objects.map` — the ELEMENTS list iterates `visible` (the phase-filtered view).
+const listStart = src.indexOf("data-arch-room-active");
 const listEnd = src.indexOf("SELECTED detail");
 const rowBlock = src.slice(listStart, listEnd);
 

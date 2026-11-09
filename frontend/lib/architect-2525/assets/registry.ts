@@ -15,7 +15,7 @@
 import {
   ASSET_PARAMS, OBJECT_KINDS, OBJECT_SPEC, SHAPE_PARTS_LOD, LOD_LEVELS, shapePartsOf, kindByAssetId,
   type AssetCategory, type AssetAuthority, type DimRange, type Lod, type MaterialPreset, type Mounting,
-  type ObjectKind, type RoomKey, type ShapePart, type SnapTarget,
+  type ObjectKind, type PlacedObject, type RoomKey, type ShapePart, type SnapTarget,
 } from "@/lib/room-objects";
 import { dimsFt, dimsM, dimsUm, ftFromM, umFromFt, type DimsFt, type DimsUm } from "./dimensions";
 import { LIBRARY_MANIFEST, LIBRARY_METADATA, LIBRARY_SOURCE, type LibraryManifestEntry, type LibraryMetadata } from "./library-manifest";
@@ -146,6 +146,14 @@ export function assetById(id: string): AssetDef | undefined {
 }
 /** An asset by its placeable kind. */
 export function assetByKind(kind: ObjectKind): AssetDef { return ASSET_REGISTRY[ASSET_PARAMS[kind].id]; }
+
+/** The HUMAN display name for a placed element (operator 2026-11-09 "make assets actual names of objects"): a library-asset
+ * carrier (kind "asset") resolves to its catalogue label from the 139-asset registry (Flooring, Window, Sofa …); every
+ * other kind keeps its OBJECT_SPEC label. ONE source for the Elements list, the selected-element inspector and the plan
+ * name badge — so no surface ever shows the generic "Asset" again. Pure; a missing/unknown assetId falls back safely. */
+export function elementLabel(o: PlacedObject): string {
+  return (o.kind === "asset" && o.assetId && ASSET_REGISTRY[o.assetId]?.label) || OBJECT_SPEC[o.kind].label;
+}
 /** His metadata record for an id (or alias), or undefined. */
 export function metadataById(id: string): LibraryMetadata | undefined { return assetById(id)?.metadata; }
 
