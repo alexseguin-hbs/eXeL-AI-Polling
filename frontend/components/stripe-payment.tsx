@@ -645,6 +645,13 @@ export function PricingTierSelector({
                     .replace("{share}", usd(quote.participant_share_cents))}
                 </p>
               )}
+              {value === "cost_split" && quote.participant_share_cents === 0 && (
+                // Floor rule (poll_pricing): $11.11 minimum; shares under Stripe's $0.50 are never rounded up —
+                // the creator covers the full price. Say so instead of implying 50/50.
+                <p className="text-muted-foreground" data-testid="cost-split-floor-note">
+                  {t("cube8.pricing.quote_split_floor").replace("{total}", usd(quote.creator_due_cents))}
+                </p>
+              )}
               <p className="text-muted-foreground">
                 {t("cube8.pricing.quote_basis")
                   .replace("{cost}", `$${Number(quote.tracked_cost_usd).toFixed(4)}`)
