@@ -363,3 +363,19 @@ async def test_drilldown_access_rules(db, api):
     assert body["items"][0]["participant_ref"] and str(alice.id)[:8] not in body["items"][0]["participant_ref"]
     assert (await c.get(f"/api/v1/sessions/{s.id}/drilldown?level=4&theme=Cost")).status_code == 400
     assert (await c.get(f"/api/v1/sessions/{uuid.uuid4()}/view-entitlement")).status_code == 404
+
+
+async def test_moderator_export_follows_creator_payment_on_paid_tiers(db):
+    from app.cubes.cube9_reports.service import TIER_TALENT
+
+    split, _, _ = await _poll(db, "cost_split")  # cost_split can open unpaid → export must not be full until paid
+    assert await resolve_export_tier(db, split.id, CREATOR.user_id, "moderator") == TIER_FREE
+    db.add(_tx(split, 600, ttype="cost_split", status="pending", event=None, reconcile="awaiting_webhook"))
+    await db.commit()
+    assert await resolve_export_tier(db, split.id, CREATOR.user_id, "moderator") == TIER_FREE
+    db.add(_tx(split, 600, ttype="cost_split"))
+    await db.commit()
+    assert await resolve_export_tier(db, split.id, CREATOR.user_id, "moderator") == TIER_TALENT
+    free, _, _ = await _poll(db, "free")
+    assert await resolve_export_tier(db, free.id, CREATOR.user_id, "moderator") == TIER_TALENT, "free flow unchanged"
+    assert await resolve_export_tier(db, split.id, ADMIN.user_id, "admin") == TIER_TALENT
