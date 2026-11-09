@@ -1071,6 +1071,16 @@ function SessionDetail({
             sessionShortCode={session.short_code}
             isPaidTier={viewEntitlement.summary_333}
             unlockOriginal={viewEntitlement.original}
+            // t181: the locked theme description's payment prompt — only for an unpaid Moderator Paid poll, via the
+            // existing creator Checkout (unlock happens on the signed webhook, never on return).
+            onUnlock={session.pricing_tier === "moderator_paid" && !session.is_paid ? async () => {
+              try {
+                const c = await api.post<{ checkout_url: string }>("/payments/moderator-checkout", { session_id: session.id });
+                if (c?.checkout_url) window.location.href = c.checkout_url;
+              } catch {
+                toast({ title: t("flower.detail.unlock_failed"), variant: "destructive" });
+              }
+            } : undefined}
           />
         )}
 
