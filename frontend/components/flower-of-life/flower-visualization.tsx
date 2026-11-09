@@ -179,7 +179,9 @@ export function FlowerVisualization({
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+    // Re-attach once live themes are ready: the loading placeholder renders without the container, so a mount-only
+    // effect never observed it and live sessions never switched to the phone layout (t181 readability).
+  }, [liveStatus]);
 
   // Positions
   const theme1Positions = THEME1_POSITIONS;
