@@ -1877,6 +1877,36 @@
      "status": "recorded"
     }
    ]
+  },
+  {
+   "rev": 39,
+   "commit": "121d56e43",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "model",
+     "name": "The Model",
+     "cells": [
+      9,
+      10,
+      11,
+      13,
+      18,
+      20
+     ],
+     "files": [
+      {
+       "path": "frontend/lib/room-objects.ts",
+       "blob": "49746eb5ab7e1156b099453a8e378cd2ccfafac6"
+      }
+     ],
+     "add": 33,
+     "del": 4,
+     "bytes": 5728,
+     "lines": 72,
+     "status": "recorded"
+    }
+   ]
   }
  ]
 }
