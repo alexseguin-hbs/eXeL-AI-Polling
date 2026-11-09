@@ -591,6 +591,13 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "L1→L2 source close: label/picture/correction row builders match live columns; Accept/Reject gate on independent reviewer; reject/adjust append corrections (device-local always, cloud when member session exists). Upload carries XML/pair provenance. No invented membership — auth.users empty remains the browser E2E blocker.",
       commit: "a9a4131",
     },
+    {
+      rev: 82,
+      date: "2026-11-08",
+      kind: "release",
+      text: "Rebased SensorFusion collab/labeling branch onto main after PR #3 (Cost Estimate TS syntax) so Workers Build can go green. Ledger commit cites for revs 78–81 retargeted to rebased SHAs. Merge-as-you-go: no check bypass.",
+      commit: "bb231da",
+    },
   ],
 };
 
