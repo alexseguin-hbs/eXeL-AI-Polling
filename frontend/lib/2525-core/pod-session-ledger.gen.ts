@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** POD session append-only traceability ledger — 26 entries, extracted at build time. */
+/** POD session append-only traceability ledger — 27 entries, extracted at build time. */
 export const POD_SESSION_LEDGER: LedgerInput = {
   "section": "POD session",
   "route": "/soi-session",
@@ -190,6 +190,13 @@ export const POD_SESSION_LEDGER: LedgerInput = {
       "date": "2026-11-08",
       "kind": "release",
       "text": "Innovation Pod: fail-closed shared-persist contract (pod-persist.ts) with honest device-vs-shared status on /soi-session; Unlisted vs Private video proof copy aligned to YouTube Help; R-CORE badge mounted on the pod reading pod-session.ledger.json through the shared generator; no service-role upsert; no live schema/deploy.",
+      "commit": ""
+    },
+    {
+      "rev": 27,
+      "date": "2026-11-08",
+      "kind": "fix",
+      "text": "Pod persist/video status English literals moved to lexicon keys (soi.pod.persist.*, soi.pod.record.hint.*, soi.pod.free_tools_note) rendered via t() on /soi-session; PERSIST_STATUS_COPY removed; RECORD_METHODS.hint → hintKey; ×32 fills staged in AFTER_FILL/AFTER_BATCH as explicit coverage gap (not claimed 33-lang).",
       "commit": ""
     }
   ]

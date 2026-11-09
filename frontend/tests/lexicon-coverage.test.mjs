@@ -17,6 +17,21 @@ const en = L.DEFAULT_ENGLISH_TRANSLATIONS; const keys = Object.keys(en);
 // re-staged AND its 32 now-stale translations are removed from lib/i18n-app/*, so t() falls back to the corrected
 // English rather than returning the old, wrong translation ("listed never silent" — an orphaned fill is a silent lie).
 const AFTER_FILL = new Set([
+  // Pod persist / video status (2026-11-08, PR4 review/pod-trinity-persist-failclosed). ENGLISH ONLY —
+  // staged until a translation pass; listed, never silent. Do not claim ×33 coverage for these.
+  'soi.pod.persist.device_saved',
+  'soi.pod.persist.device_failed',
+  'soi.pod.persist.device_idle',
+  'soi.pod.persist.shared_blocked_no_membership',
+  'soi.pod.persist.shared_blocked_no_owner',
+  'soi.pod.persist.shared_blocked_project_mismatch',
+  'soi.pod.persist.shared_idempotent_hit',
+  'soi.pod.persist.shared_saved',
+  'soi.pod.persist.shared_unavailable',
+  'soi.pod.record.hint.video',
+  'soi.pod.record.hint.written',
+  'soi.pod.record.hint.voice',
+  'soi.pod.free_tools_note',
   // Architect-2525 IMG-05 (operator 2026-10-24, "drag drop on phone + computer"): the armed-banner line for the
   // tap-to-place path. ENGLISH ONLY until the operator says the Architect UI/UX is final — staged, never filled early.
   'arch.layertree.tapHouseToAdd',

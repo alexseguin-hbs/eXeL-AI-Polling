@@ -102,10 +102,10 @@ export const findProject = (id: string): PodProject | undefined =>
 
 /** How outcomes get recorded when the pod stops (operator's three ways). */
 export type RecordMethod = "video" | "written" | "voice";
-export const RECORD_METHODS: { id: RecordMethod; label: string; hint: string }[] = [
-  { id: "video", label: "Video link", hint: "Paste a YouTube link of the session. Unlisted: anyone with the link can watch and reshare. Private: only people you invite on YouTube, signed into those accounts — a private link alone does not open it for the whole team." },
-  { id: "written", label: "Written", hint: "Type the outcome in words." },
-  { id: "voice", label: "Voice → text", hint: "Speak it — the polling tool's voice-to-text captures it." },
+export const RECORD_METHODS: { id: RecordMethod; label: string; hintKey: string }[] = [
+  { id: "video", label: "Video link", hintKey: "soi.pod.record.hint.video" },
+  { id: "written", label: "Written", hintKey: "soi.pod.record.hint.written" },
+  { id: "voice", label: "Voice → text", hintKey: "soi.pod.record.hint.voice" },
 ];
 
 /** The synchronized-start window: all pod members must start within this many seconds. */
@@ -119,9 +119,10 @@ export const SYNC_START_SECONDS = 15;
 export const POD_SIZE = 3;
 
 /** The pod runs on free tools — nothing here needs a purchase to witness an outcome. */
-export const FREE_TOOLS_NOTE =
-  "The pod runs on free tools: the polling tool's voice-to-text, a YouTube video link (Unlisted or Private — see the video hint), or plain text. " +
-  "No purchase is needed to witness and record an outcome — the Seed is membership, not a paywall on contribution.";
+/** Lexicon key — render with t("soi.pod.free_tools_note"); do not hardcode English on the screen. */
+export const FREE_TOOLS_NOTE_KEY = "soi.pod.free_tools_note";
+/** @deprecated use FREE_TOOLS_NOTE_KEY + t(); kept only if a gate still greps the old name */
+export const FREE_TOOLS_NOTE = FREE_TOOLS_NOTE_KEY;
 
 /**
  * TOK-17 — the eight-step witnessed-hours evidence chain (POD of 3) that mints 웃.

@@ -52,7 +52,7 @@ import { format as fmtABC } from "@/lib/abc-3600";
 import { measure, supported, witnessedHours as spanHours, hhmmss, heartsFor, RUNGS, type ClockEvent, type Rung } from "@/lib/pod-clock";
 import { readProvider } from "@/lib/ai-provider";
 import { appendPod, replayPod, recentPods } from "@/lib/pod-store";
-import { attemptSharedPersist, combinePersistStatus, PERSIST_STATUS_COPY, auth0PrefillIsMembershipProof, type SharedPersistStatus, type DevicePersistStatus } from "@/lib/pod-persist";
+import { attemptSharedPersist, combinePersistStatus, PERSIST_STATUS_KEYS, auth0PrefillIsMembershipProof, type SharedPersistStatus, type DevicePersistStatus } from "@/lib/pod-persist";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
 import { POD_SESSION_LEDGER } from "@/lib/2525-core/pod-session-ledger.gen";
@@ -73,7 +73,7 @@ import { TrinityGlyphs } from "@/components/trinity-glyphs";
 import { SoiGlobe } from "@/components/soi-globe";
 import {
   DEFAULT_PROJECTS, OPEN_TOPIC, SAMPLE_POD, projectTasks, findProject, RECORD_METHODS,
-  SYNC_START_SECONDS, POD_SIZE, FREE_TOOLS_NOTE, EVIDENCE_CHAIN,
+  SYNC_START_SECONDS, POD_SIZE, FREE_TOOLS_NOTE_KEY, EVIDENCE_CHAIN,
   type RecordMethod, type ReceiptArtefacts, type Synthesis333,
 } from "@/lib/pod-projects";
 import {
@@ -1081,9 +1081,9 @@ export default function SoISessionPage() {
             {saveFailed && <p className="mb-3 rounded-md border border-amber-500/50 bg-amber-500/5 p-2 text-xs text-amber-500" data-testid="pod-save-failed">{t("soi.pod.save_failed_device_warning")}</p>}
             {podCode && (
               <p className="mb-3 rounded-md border border-border bg-muted/30 p-2 text-xs text-muted-foreground" data-testid="pod-persist-status">
-                <span data-testid="pod-persist-device">{PERSIST_STATUS_COPY[devicePersistStatus]}</span>
+                <span data-testid="pod-persist-device">{t(PERSIST_STATUS_KEYS[devicePersistStatus])}</span>
                 {" · "}
-                <span data-testid="pod-persist-shared">{PERSIST_STATUS_COPY[sharedPersistStatus]}</span>
+                <span data-testid="pod-persist-shared">{t(PERSIST_STATUS_KEYS[sharedPersistStatus])}</span>
               </p>
             )}
             {recentPods().length > 0 && (
@@ -1413,7 +1413,7 @@ export default function SoISessionPage() {
                 </button>
               ))}
             </div>
-            <p className="mb-2 text-xs text-muted-foreground">{RECORD_METHODS.find((r) => r.id === recordMethod)?.hint}</p>
+            <p className="mb-2 text-xs text-muted-foreground">{(() => { const m = RECORD_METHODS.find((r) => r.id === recordMethod); return m ? t(m.hintKey) : null; })()}</p>
             {recordMethod === "video" ? (
               <input
                 value={recordValue} onChange={(e) => setRecordValue(e.target.value)}
@@ -1816,7 +1816,7 @@ export default function SoISessionPage() {
               </ul>
             </div>
 
-            <p className="text-xs text-muted-foreground">{FREE_TOOLS_NOTE}</p>
+            <p className="text-xs text-muted-foreground">{t(FREE_TOOLS_NOTE_KEY)}</p>
             <p className="text-[11px] text-muted-foreground">
               Earning is never capped; payout is. A year fills to 9,999 웃 and no further, and everything above it rolls to the next
               year, and the next, so the record becomes lifelong stability rather than a single windfall. ◬ comes only from the estimate

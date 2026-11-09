@@ -9,7 +9,22 @@ const pref = ["soi.sign.", "soi.codex.", "soi.landing.", "soi.pod.", "soi.doc."]
 const entries = L.CUBE_GROUPS.flatMap((g) => g.keys).filter((e) => pref.some((p) => e.key.startsWith(p)));
 const keys = new Set(entries.map((e) => e.key));
 // keys added AFTER the 31-language batch was cut (2026-09-09 01:00Z): English until the next translation pass — listed, never silent
-const AFTER_BATCH = new Set([]);   // 2026-09-12 morning keys: English until the second fill pass lands (listed, never silent)   // empty: every key is in every language; a key added later goes here (listed, never silent) until its pass
+const AFTER_BATCH = new Set([
+  // 2026-11-08 pod persist / video status (PR4) — English until translation pass; listed, never silent
+  "soi.pod.persist.device_saved",
+  "soi.pod.persist.device_failed",
+  "soi.pod.persist.device_idle",
+  "soi.pod.persist.shared_blocked_no_membership",
+  "soi.pod.persist.shared_blocked_no_owner",
+  "soi.pod.persist.shared_blocked_project_mismatch",
+  "soi.pod.persist.shared_idempotent_hit",
+  "soi.pod.persist.shared_saved",
+  "soi.pod.persist.shared_unavailable",
+  "soi.pod.record.hint.video",
+  "soi.pod.record.hint.written",
+  "soi.pod.record.hint.voice",
+  "soi.pod.free_tools_note",
+]);   // keys added after the batch fall back to English (listed, never silent) until their pass
 const codes = L.INITIAL_LANGUAGES.map((l) => l.code).filter((c) => c !== "en" && c !== "es");
 const STRICT = process.env.SIGN_I18N_STRICT === "1" || SIGN_LOCALES.length >= 31;   // strict once every language file has landed
 const missingFiles = codes.filter((c) => !SIGN_LOCALES.includes(c));
