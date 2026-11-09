@@ -1,4 +1,4 @@
--- 053 SensorFusion-2525: every Level-2 correction is bound to the signed-in member, and every
+-- 054 (renumbered from 053: main already has two 053 files) SensorFusion-2525: every Level-2 correction is bound to the signed-in member, and every
 -- "different person" check ignores case and spacing. MoT decision B (2026-11-09).
 -- Applied live 2026-11-09 07:18 CST as migration sensor_fusion_correction_binding (history version 20261109131819); SIMULATED rolled-back proof 7/7.
 -- Closes the 044 gap: the corrections INSERT policy (044 lines 106-109) checked membership only, so a

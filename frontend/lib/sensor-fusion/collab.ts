@@ -366,7 +366,7 @@ export function correctionInsertRow(input: {
     // label_id is a UUID column; device-local box ids (e.g. "pic-0") are not label rows, so they send null.
     label_id: input.labelId && UUID_RE.test(input.labelId) ? input.labelId : null,
     corrected_by: input.event.by,
-    // Bound to the signed-in member; migration 053 overwrites it with auth.uid() and refuses a mismatch.
+    // Bound to the signed-in member; migration 054 overwrites it with auth.uid() and refuses a mismatch.
     corrected_by_uid: input.owner,
     labeled_by: input.labeledBy || null,
     kind: input.event.kind,

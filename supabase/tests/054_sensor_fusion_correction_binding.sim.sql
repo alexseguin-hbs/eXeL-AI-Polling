@@ -1,6 +1,6 @@
--- SIMULATED database proof for 053 (no real users). Two throwaway seats exist only inside this
+-- SIMULATED database proof for 054 (no real users). Two throwaway seats exist only inside this
 -- transaction; the final RAISE rolls everything back, so nothing is left behind. Result is in the error text:
--- "SIM053 RESULT pass=N fail=M | ...". Run after 053 is applied (or after it in the same script for a dry run).
+-- "SIM054 RESULT pass=N fail=M | ...". Run after 054 is applied (or after it in the same script for a dry run).
 DO $sim$
 DECLARE
   a UUID := gen_random_uuid();
@@ -10,7 +10,7 @@ DECLARE
   got_by TEXT; got_uid UUID; got_lab TEXT;
   pass INT := 0; fail INT := 0; log TEXT := '';
   refused BOOLEAN;
-  proj CONSTANT TEXT := 'sim-053-rollback';
+  proj CONSTANT TEXT := 'sim-054-rollback';
 BEGIN
   INSERT INTO public.sensor_fusion_members (project_id, member_id, display_name)
   VALUES (proj, a, 'Sim Tester A'), (proj, b, 'Sim Tester B');
@@ -83,6 +83,6 @@ BEGIN
   EXCEPTION WHEN check_violation THEN refused := true; END;
   IF refused THEN pass := pass + 1; log := log || ' ok:server-case'; ELSE fail := fail + 1; log := log || ' FAIL:server-case'; END IF;
 
-  RAISE EXCEPTION 'SIM053 RESULT pass=% fail=% |%', pass, fail, log;
+  RAISE EXCEPTION 'SIM054 RESULT pass=% fail=% |%', pass, fail, log;
 END
 $sim$;

@@ -1,6 +1,6 @@
-// SensorFusion-2525 correction binding (MoT decision B, migration 053).
+// SensorFusion-2525 correction binding (MoT decision B, migration 054).
 // A member cannot file a correction under someone else's name, and self-review is refused regardless of case.
-// The database proof is supabase/tests/053_sensor_fusion_correction_binding.sim.sql (SIMULATED seats, rolled back).
+// The database proof is supabase/tests/054_sensor_fusion_correction_binding.sim.sql (SIMULATED seats, rolled back).
 // Run: node --experimental-strip-types --experimental-loader ./tests/ts-alias-loader.mjs tests/sensor-fusion-binding.test.mjs
 import fs from "node:fs";
 import path from "node:path";
@@ -18,16 +18,21 @@ function ok(cond, msg) {
 }
 
 const root = path.resolve(import.meta.dirname, "../..");
-const sql = fs.readFileSync(path.join(root, "supabase/migrations/053_sensor_fusion_correction_binding.sql"), "utf8");
-const sim = fs.readFileSync(path.join(root, "supabase/tests/053_sensor_fusion_correction_binding.sim.sql"), "utf8");
+const sql = fs.readFileSync(path.join(root, "supabase/migrations/054_sensor_fusion_correction_binding.sql"), "utf8");
+const sim = fs.readFileSync(path.join(root, "supabase/tests/054_sensor_fusion_correction_binding.sim.sql"), "utf8");
 const old044 = fs.readFileSync(path.join(root, "supabase/migrations/044_sensor_fusion_collab_progress.sql"), "utf8");
 const code = sql.replace(/^\s*--.*$/gm, "");
 
+// --- Numbering: the binding migration must not collide with another migration number.
+const migDir = path.join(root, "supabase/migrations");
+const sameNumber = fs.readdirSync(migDir).filter((f) => f.startsWith("054_"));
+ok(sameNumber.length === 1 && sameNumber[0] === "054_sensor_fusion_correction_binding.sql", "054 is used by the binding migration only (main already has two 053s)");
+
 // --- Additive only: nothing from 040-045 is dropped or rewritten.
-ok(!/\bDROP\s+(TABLE|COLUMN|CONSTRAINT|FUNCTION)\b/i.test(code), "053 drops no table, column, constraint, or function");
-ok(!/ALTER\s+TABLE[^;]*\bDROP\b/i.test(code), "053 has no ALTER TABLE ... DROP");
-ok(!/DROP POLICY IF EXISTS "Members append corrections in their project"/.test(code), "053 keeps the 044 membership policy");
-ok((code.match(/DROP POLICY IF EXISTS "([^"]+)"/g) || []).every((m) => m.includes("Corrections are filed as the signed-in member")), "053 only re-creates its own policy (idempotent)");
+ok(!/\bDROP\s+(TABLE|COLUMN|CONSTRAINT|FUNCTION)\b/i.test(code), "054 drops no table, column, constraint, or function");
+ok(!/ALTER\s+TABLE[^;]*\bDROP\b/i.test(code), "054 has no ALTER TABLE ... DROP");
+ok(!/DROP POLICY IF EXISTS "Members append corrections in their project"/.test(code), "054 keeps the 044 membership policy");
+ok((code.match(/DROP POLICY IF EXISTS "([^"]+)"/g) || []).every((m) => m.includes("Corrections are filed as the signed-in member")), "054 only re-creates its own policy (idempotent)");
 ok(/ADD COLUMN IF NOT EXISTS corrected_by_uid UUID DEFAULT auth\.uid\(\)/.test(code), "corrections gain corrected_by_uid defaulting to auth.uid()");
 ok(/ADD COLUMN IF NOT EXISTS inserted_by_uid UUID DEFAULT auth\.uid\(\)/.test(code), "labels gain inserted_by_uid provenance");
 ok(/ADD COLUMN IF NOT EXISTS display_name TEXT/.test(code), "seats gain a server-set display_name");
@@ -108,7 +113,7 @@ ok(row2.label_id === "7d3f0c52-9a7e-4c1b-8f00-1234567890ab", "a real label UUID 
 for (const tag of ["dup-seat-name", "spoof-name", "uid-bound+independent-allowed", "self-review-case", "label-self-review-case", "non-member", "server-case"]) {
   ok(sim.includes(`ok:${tag}`), `simulated DB proof covers ${tag}`);
 }
-ok(/RAISE EXCEPTION 'SIM053 RESULT/.test(sim), "simulated DB proof always rolls back (ends in RAISE)");
+ok(/RAISE EXCEPTION 'SIM054 RESULT/.test(sim), "simulated DB proof always rolls back (ends in RAISE)");
 ok(/SIMULATED/.test(sim) && !/INSERT INTO auth\.users/i.test(sim), "simulated proof is labeled and invents no auth users");
 
 console.log(`sensor-fusion-binding: ${pass} passed, ${fail} failed`);
