@@ -123,14 +123,11 @@ async def resolve_export_tier(
     if not participant_id:
         return TIER_FREE
 
-    tx_result = await db.execute(
-        select(func.coalesce(func.sum(PaymentTransaction.amount_cents), 0)).where(
-            PaymentTransaction.session_id == session_id,
-            PaymentTransaction.participant_id == participant_id,
-            PaymentTransaction.status == "completed",
-        )
-    )
-    total_donated_cents = tx_result.scalar() or 0
+    # Only Stripe webhook-confirmed payments count (completed + stripe_event_id; amount mismatches excluded) —
+    # the same rule as the drill-down API (cube8_tokens.view_entitlement).
+    from app.cubes.cube8_tokens.view_entitlement import confirmed_cents
+
+    total_donated_cents = await confirmed_cents(db, session_id, participant_id)
 
     # Return highest qualifying tier
     if total_donated_cents >= THRESHOLD_TALENT_CENTS:

@@ -309,6 +309,8 @@ PARTICIPANT_SESSION_ROUTES = {
     "cube8_tokens.get_user_balance": "caller's own balance",
     "cube8_tokens.check_velocity": "caller's own velocity",
     "cube8_tokens.get_token_config": "public token configuration",
+    "cube8_tokens.get_view_entitlement": "caller's own paid-view entitlement (webhook-confirmed payments; CRS-39.02)",
+    "cube8_tokens.get_theme_drilldown": "creator/operator, or a results-opted-in participant of this session (checked in view_entitlement + handler); 333/Original withheld unless paid (CRS-39.02)",
     "cube9_reports.export_csv": "CRS-05 results gate: moderators checked inline (created_by), participants by their own join row",
     "cube9_reports.get_ranking_summary": "results shown to participants",
     "cube9_reports.get_content_tier": "caller's own donation tier",

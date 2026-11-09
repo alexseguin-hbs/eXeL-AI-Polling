@@ -52,6 +52,14 @@ export const DONATION_PRODUCTS = {
 };
 const isLiveKey = (k) => /^(sk|rk)_live_/.test(k);
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** {session_id, poll_id, participant_id} from a donate body — UUIDs only; participant needs a session. */
+export function donationScope(body) {
+  const sid = typeof (body && body.session_id) === "string" && UUID_RE.test(body.session_id) ? body.session_id.toLowerCase() : "";
+  const pid = sid && typeof body.participant_id === "string" && UUID_RE.test(body.participant_id) ? body.participant_id.toLowerCase() : "";
+  return sid ? { session_id: sid, poll_id: sid, participant_id: pid } : {};
+}
+
 /**
  * GET /api/donate/verify?cs=<checkout session id> — the ONLY proof a donation happened. The success
  * URL carries Stripe's {CHECKOUT_SESSION_ID}; the page asks here before saying thank you or
@@ -141,6 +149,17 @@ export async function handleDonate(request, env) {
   form.set("payment_intent_data[description]", label);
   form.set("payment_intent_data[metadata][transaction_type]", "donation");
   form.set("payment_intent_data[metadata][purpose]", purpose);
+  // Poll scope (optional): the signed webhook credits the 333 / Original donation ladder for this poll + payer.
+  // Only well-formed UUIDs pass; the API re-checks that the poll exists and the participant belongs to it.
+  const scope = donationScope(body);
+  if (scope.session_id) {
+    form.set("client_reference_id", scope.session_id);
+    for (const [k, v] of Object.entries(scope)) {
+      if (!v) continue;
+      form.set(`metadata[${k}]`, v);
+      form.set(`payment_intent_data[metadata][${k}]`, v);
+    }
+  }
 
   let res;
   try {

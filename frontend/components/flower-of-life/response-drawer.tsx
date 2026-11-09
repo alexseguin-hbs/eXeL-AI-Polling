@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { api } from "@/lib/api";
+import { drilldownPath, drilldownToThemedResponses } from "@/lib/view-entitlement";
+import { useLexicon } from "@/lib/lexicon-context";
 import { X, ChevronDown, ChevronUp, Lock, Maximize2, Minimize2, Moon, Sun, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -14,6 +17,13 @@ interface ResponseDrawerProps {
   onClose: () => void;
   /** Whether user has paid tier access (unlocks 333 + original) */
   isPaidTier?: boolean;
+  /** Server entitlement (webhook-confirmed payment) for each paid view; default to isPaidTier. */
+  unlock333?: boolean;
+  unlockOriginal?: boolean;
+  /** Live session: load this bubble's responses from GET /sessions/{id}/drilldown (server withholds locked tiers). */
+  liveSessionId?: string;
+  theme1Label?: string | null;
+  theme2Level?: 3 | 6 | 9;
 }
 
 type SummaryLevel = "33" | "111" | "333" | "original";
@@ -125,7 +135,32 @@ export function ResponseDrawer({
   accentColor,
   onClose,
   isPaidTier = false,
+  unlock333,
+  unlockOriginal,
+  liveSessionId,
+  theme1Label,
+  theme2Level,
 }: ResponseDrawerProps) {
+  const { t } = useLexicon();
+  const [liveResponses, setLiveResponses] = useState<ThemedResponse[] | null>(null);
+  const [liveUnlock, setLiveUnlock] = useState<{ s333: boolean; orig: boolean } | null>(null);
+  useEffect(() => {
+    if (!liveSessionId || !theme2Level || !theme.label) { setLiveResponses(null); setLiveUnlock(null); return; }
+    let cancelled = false;
+    api.get<unknown>(drilldownPath(liveSessionId, theme2Level, theme.label, theme1Label))
+      .then((raw) => {
+        if (cancelled) return;
+        const { items, entitlement } = drilldownToThemedResponses(raw);
+        setLiveResponses(items);
+        setLiveUnlock({ s333: entitlement.summary_333, orig: entitlement.original });
+      })
+      .catch(() => { if (!cancelled) { setLiveResponses([]); setLiveUnlock({ s333: false, orig: false }); } });
+    return () => { cancelled = true; };
+  }, [liveSessionId, theme2Level, theme.label, theme1Label]);
+  // The server's answer wins for live data; otherwise the caller's entitlement props.
+  const can333 = liveUnlock ? liveUnlock.s333 : (unlock333 ?? isPaidTier);
+  const canOriginal = liveUnlock ? liveUnlock.orig : (unlockOriginal ?? isPaidTier);
+  if (liveSessionId && liveResponses) responses = liveResponses;
   const [page, setPage] = useState(0);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [summaryLevel, setSummaryLevel] = useState<SummaryLevel>("33");
@@ -158,9 +193,9 @@ export function ResponseDrawer({
       case "111":
         return r.summary111;
       case "333":
-        return isPaidTier ? r.summary333 : r.summary33;
+        return can333 ? r.summary333 : r.summary33;
       case "original":
-        return isPaidTier ? r.rawText : r.summary33;
+        return canOriginal ? r.rawText : r.summary33;
     }
   };
 
@@ -316,7 +351,7 @@ export function ResponseDrawer({
         </span>
         {SUMMARY_LEVELS.map(({ key, label, paid }) => {
           const isActive = summaryLevel === key;
-          const isLocked = paid && !isPaidTier;
+          const isLocked = paid && !(key === "333" ? can333 : canOriginal);
 
           return (
             <button
@@ -324,6 +359,7 @@ export function ResponseDrawer({
               onClick={() => {
                 if (!isLocked) setSummaryLevel(key);
               }}
+              title={isLocked ? t("cube8.unlock.locked_hint") : undefined}
               style={{
                 padding: "3px 10px",
                 borderRadius: 12,
@@ -343,7 +379,7 @@ export function ResponseDrawer({
                 transition: "all 0.2s ease",
               }}
             >
-              {isLocked && <Lock style={{ width: 9, height: 9 }} />}
+              {isLocked && <Lock style={{ width: 9, height: 9 }} aria-label={t("cube8.unlock.locked_hint")} />}
               {label}
             </button>
           );
@@ -455,7 +491,8 @@ export function ResponseDrawer({
                     paddingLeft: 32,
                   }}
                 >
-                  {isExpanded ? r.rawText : getSummaryText(r)}
+                  {/* Expanding never bypasses the Original lock. */}
+                  {isExpanded && canOriginal && r.rawText ? r.rawText : getSummaryText(r)}
                 </div>
 
                 {/* Expand/collapse toggle */}

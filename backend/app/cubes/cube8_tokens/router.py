@@ -12,6 +12,7 @@ Payments (3 tiers):
   Cost Split: 50% Moderator + 50%/N Users via Payment Intents
 """
 
+import hashlib
 import re
 import uuid
 
@@ -41,7 +42,7 @@ _JURISDICTION_RE = re.compile(r"^[A-Z]{2}$")
 
 from fastapi.responses import HTMLResponse
 
-from app.core.auth import CurrentUser, get_current_user
+from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.session_access import require_session_owner
 from app.core.dependencies import get_db
 from app.core.hi_rates import get_all_rates, resolve_human_rate
@@ -278,6 +279,9 @@ class DivinityDonationRequest(BaseModel):
     description: str = Field("The Return to Wholeness and Living Divinity", max_length=300)
     purpose: str = Field("divinity_guide", pattern=r"^(divinity_guide|derisking_strategies|community)$")
     client_key: str | None = Field(None, pattern=r"^[A-Za-z0-9_-]{8,64}$")
+    # Optional poll scope: credits the donation ladder (333 / Original) once the webhook confirms it.
+    session_id: uuid.UUID | None = None
+    participant_id: uuid.UUID | None = None
 
 
 def _own_site(url: str) -> bool:
@@ -316,7 +320,115 @@ async def create_divinity_donation(
         description=payload.description,
         purpose=payload.purpose,
         client_key=payload.client_key,
+        session_id=payload.session_id,
+        participant_id=payload.participant_id,
     )
+
+
+# ---------------------------------------------------------------------------
+# Paid views — 333-word summaries + Original text, unlocked only by webhook-confirmed payment
+# ---------------------------------------------------------------------------
+
+DRILLDOWN_LEVELS = ("3", "6", "9")
+DRILLDOWN_CATEGORIES = {"risk": "Risk & Concerns", "support": "Supporting Comments", "neutral": "Neutral Comments"}
+
+
+async def _session_or_404(db: AsyncSession, session_id: uuid.UUID):
+    from sqlalchemy import select
+
+    from app.models.session import Session
+
+    s = (await db.execute(select(Session).where(Session.id == session_id))).scalar_one_or_none()
+    if s is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return s
+
+
+@router.get("/sessions/{session_id}/view-entitlement")
+async def get_view_entitlement(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
+):
+    """What this viewer has PAID to see (Stripe webhook-confirmed), never the tier chosen at creation."""
+    from app.cubes.cube8_tokens.view_entitlement import resolve_view_entitlement
+
+    session = await _session_or_404(db, session_id)
+    return {"session_id": str(session_id), "pricing_tier": session.pricing_tier or "free",
+            **(await resolve_view_entitlement(db, session, user))}
+
+
+@router.get("/sessions/{session_id}/drilldown")
+async def get_theme_drilldown(
+    session_id: uuid.UUID,
+    level: str = Query(..., description="Theme02 level: 3 | 6 | 9"),
+    theme: str = Query(..., min_length=1, max_length=200, description="Theme02 label at that level"),
+    category: str | None = Query(None, description="risk | support | neutral (Theme01)"),
+    offset: int = Query(0, ge=0, le=1_000_000),
+    limit: int = Query(100, ge=1, le=500),
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Responses behind one Theme02 bubble with 33 / 111 always and 333 / Original only when PAID.
+
+    Enforced here, not in the browser: summary_333 and original are null unless view_entitlement grants them.
+    Access: session creator, operators, or a participant of this session who opted into results (CRS-05).
+    """
+    from sqlalchemy import func as sa_func
+    from sqlalchemy import select
+
+    from app.cubes.cube8_tokens.view_entitlement import resolve_view_entitlement
+    from app.models.participant import Participant
+    from app.models.response_meta import ResponseMeta
+    from app.models.response_summary import ResponseSummary
+
+    if level not in DRILLDOWN_LEVELS:
+        raise HTTPException(status_code=400, detail="level must be one of: 3, 6, 9")
+    if category is not None and category not in DRILLDOWN_CATEGORIES:
+        raise HTTPException(status_code=400, detail="category must be one of: risk, support, neutral")
+    session = await _session_or_404(db, session_id)
+    ent = await resolve_view_entitlement(db, session, user)
+    if ent["viewer"] in ("other", "anonymous"):
+        raise HTTPException(status_code=403, detail="Not a member of this session")
+    if ent["viewer"] == "participant":
+        opted = (await db.execute(select(Participant.results_opt_in).where(
+            Participant.session_id == session_id, Participant.user_id == user.user_id).limit(1))).scalar_one_or_none()
+        if not opted:
+            raise HTTPException(status_code=403, detail="Results require joining this session logged in and opting into results")
+
+    col = {"3": ResponseSummary.theme2_3, "6": ResponseSummary.theme2_6, "9": ResponseSummary.theme2_9}[level]
+    conf = {"3": ResponseSummary.theme2_3_confidence, "6": ResponseSummary.theme2_6_confidence,
+            "9": ResponseSummary.theme2_9_confidence}[level]
+    where = [ResponseSummary.session_id == session_id, col == theme]
+    if category is not None:
+        where.append(ResponseSummary.theme01 == DRILLDOWN_CATEGORIES[category])
+    total = int((await db.execute(select(sa_func.count(ResponseSummary.id)).where(*where))).scalar() or 0)
+    rows = (await db.execute(
+        select(ResponseSummary, ResponseMeta)
+        .join(ResponseMeta, ResponseMeta.id == ResponseSummary.response_meta_id)
+        .where(*where)
+        .order_by(ResponseMeta.submitted_at.asc(), ResponseMeta.id.asc())
+        .offset(offset).limit(limit)
+    )).all()
+    s333, orig = ent["summary_333"], ent["original"]
+    items = []
+    for rs, rm in rows:
+        items.append({
+            "id": str(rm.id),
+            # Pseudonymous, stable per participant; never the participant id itself.
+            "participant_ref": (hashlib.sha256(f"{session_id}:{rm.participant_id}".encode()).hexdigest()[:8]
+                                if rm.participant_id else None),
+            "theme01": rs.theme01,
+            "theme01_confidence": rs.theme01_confidence,
+            "theme2_3": rs.theme2_3, "theme2_6": rs.theme2_6, "theme2_9": rs.theme2_9,
+            "confidence": getattr(rs, conf.key, None),
+            "summary_33": rs.summary_33 or "",
+            "summary_111": rs.summary_111 or "",
+            "summary_333": (rs.summary_333 or "") if s333 else None,
+            "original": (rm.raw_text or "") if orig else None,
+        })
+    return {"session_id": str(session_id), "level": level, "theme": theme, "total": total,
+            "offset": offset, "limit": limit, "entitlement": ent, "items": items}
 
 
 @router.get("/sessions/{session_id}/payments")

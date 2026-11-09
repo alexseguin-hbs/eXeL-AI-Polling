@@ -717,6 +717,8 @@ const cube8: TranslationEntry[] = [
   { key: "cube8.payment.loading", englishDefault: "Loading payment...", context: "Payment loading state", cubeId: 8 },
   { key: "cube8.payment.moderator_share", englishDefault: "Moderator Share (50%)", context: "Cost split moderator label", cubeId: 8 },
   { key: "cube8.payment.your_share", englishDefault: "Your Share", context: "Cost split participant label", cubeId: 8 },
+  { key: "cube8.payment.share_of_price", englishDefault: "Your share: {share} of the {total} poll price", context: "Cost Split participant share, priced by the same server quote as the creator", cubeId: 8 },
+  { key: "cube8.unlock.locked_hint", englishDefault: "Unlocks after a confirmed payment for this poll", context: "Response drawer: 333 / Original view locked until Stripe confirms payment", cubeId: 8 },
   { key: "cube8.payment.participant_share", englishDefault: "Your share: 50% / {count} users", context: "Cost split per-user", cubeId: 8 },
   { key: "cube8.payment.setup_failed", englishDefault: "Payment setup failed", context: "Payment error toast", cubeId: 8 },
   // Pricing tier (Cube 8)

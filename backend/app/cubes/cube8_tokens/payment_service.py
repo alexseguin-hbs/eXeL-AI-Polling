@@ -11,7 +11,6 @@ Donation timing: ALWAYS after results delivered, never gates access.
 import logging
 
 import structlog
-import math
 import uuid
 
 import stripe
@@ -333,6 +332,30 @@ async def create_moderator_checkout(
 # ---------------------------------------------------------------------------
 
 
+async def cost_split_quote(db: AsyncSession, session: Session) -> dict:
+    """The Cost Split quote both shares are priced from (one pricing path: poll_pricing).
+
+    Prefers the quote frozen on the creator's cost_split Checkout row (what the creator was actually charged
+    against), newest first; falls back to poll_pricing.quote_for_session for the stored session settings.
+    """
+    rows = (await db.execute(
+        select(PaymentTransaction.metadata_json).where(
+            PaymentTransaction.session_id == session.id,
+            PaymentTransaction.participant_id.is_(None),
+            PaymentTransaction.transaction_type == "cost_split",
+            PaymentTransaction.status.in_(("completed", "pending")),
+        ).order_by(PaymentTransaction.status.asc(), PaymentTransaction.created_at.desc())
+    )).scalars().all()
+    for raw in rows if isinstance(rows, (list, tuple)) else []:
+        try:
+            q = (json.loads(raw) or {}).get("quote") if isinstance(raw, str) else None
+        except ValueError:
+            q = None
+        if isinstance(q, dict) and q.get("pricing_tier") == "cost_split" and "participant_share_cents" in q:
+            return q
+    return poll_pricing.quote_for_session(session)
+
+
 async def create_cost_split_intent(
     db: AsyncSession,
     session_id: uuid.UUID,
@@ -374,17 +397,26 @@ async def create_cost_split_intent(
     elif participant.user_id and participant.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your participant")
 
-    estimate = await estimate_session_cost(db, session_id)
-    total_cents = estimate["estimated_cost_cents"]
-    user_count = max(estimate["user_count"] - 1, 1)  # Exclude moderator from N
+    # Same pricing path as the creator's Checkout (poll_pricing: tracked cost × margin + Stripe fee, $11.11 floor):
+    # the quote stored on the creator's cost_split Checkout row, else a fresh server-side quote of the session.
+    quote = await cost_split_quote(db, session)
+    total_cents = int(quote["total_cents"])
+    n_share = int(quote["participants"])
 
     if is_moderator:
-        share_cents = math.ceil(total_cents / 2)
+        if session.is_paid is True:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="The creator share is already paid")
+        share_cents = max(int(quote["creator_due_cents"]), STRIPE_MIN_CENTS)
         description = f"Moderator share (50%) — Session {session.short_code}"
     else:
-        user_share = math.ceil(total_cents / 2)
-        share_cents = max(math.ceil(user_share / user_count), 50)  # Min $0.50 per user
-        description = f"User share (50%/{user_count}) — Session {session.short_code}"
+        if participant.payment_status in ("paid", "lead_exempt"):
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Your share is already paid")
+        share_cents = int(quote["participant_share_cents"])
+        if share_cents <= 0:
+            # Share below Stripe's $0.50 minimum → the creator covers the full price; nothing is due.
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail="No participant share is due for this poll — the creator covers the full price")
+        description = f"User share (50%/{n_share}) — Session {session.short_code}"
 
     idem_key = stripe_idempotency_key(
         action="intent_cost_split",
@@ -403,6 +435,10 @@ async def create_cost_split_intent(
             "transaction_type": "cost_split",
             "is_moderator": str(is_moderator),
             "estimated_total_cents": str(total_cents),
+            "quote_total_cents": str(total_cents),
+            "margin_multiplier": str(quote["margin_multiplier"]),
+            "catalog_version": str(quote["catalog_version"]),
+            "product_line": "poll_cost_split_moderator" if is_moderator else "poll_cost_split_participant",
         },
         description=description,
         idempotency_key=idem_key,
@@ -436,6 +472,7 @@ async def create_cost_split_intent(
         "payment_intent_id": intent.id,
         "amount_cents": share_cents,
         "estimated_total_cents": total_cents,
+        "quote": quote,
     }
 
 
@@ -523,8 +560,13 @@ async def create_divinity_donation_checkout(
     description: str = "The Return to Wholeness and Living Divinity",
     purpose: str = "divinity_guide",
     client_key: str | None = None,
+    session_id: uuid.UUID | None = None,
+    participant_id: uuid.UUID | None = None,
 ) -> dict:
-    """Anonymous Stripe Checkout for a voluntary donation (no auth, no session).
+    """Anonymous Stripe Checkout for a voluntary donation (no auth; optionally scoped to a poll).
+
+    With `session_id` (+ optional `participant_id`) the donation is attributed to that poll / payer, so once the
+    signed webhook confirms it, it counts toward the 333 / Original donation ladder (view_entitlement.py).
 
     `purpose` picks the live Product: divinity_guide | derisking_strategies | community. Minimum $0.50,
     default $3.33. Records a pending PaymentTransaction; the signed webhook completes it.
@@ -537,9 +579,20 @@ async def create_divinity_donation_checkout(
     if purpose not in stripe_catalog.DONATION_PURPOSES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unknown donation purpose")
     line, tx_type = stripe_catalog.DONATION_PURPOSES[purpose]
+    if participant_id and not session_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="participant_id requires session_id")
+    if session_id and db is not None:
+        await _get_session(db, session_id)  # 404 for an unknown poll
+        if participant_id:
+            ok = (await db.execute(select(Participant.id).where(
+                Participant.id == participant_id, Participant.session_id == session_id))).scalar_one_or_none()
+            if ok != participant_id:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Participant not found in this session")
 
     idem_key = stripe_idempotency_key(
         action="checkout_donation",
+        session_id=str(session_id) if session_id else None,
+        participant_id=str(participant_id) if participant_id else None,
         amount_cents=amount_cents,
         transaction_type=tx_type,
         nonce=client_key or new_attempt_nonce(),
@@ -554,6 +607,11 @@ async def create_divinity_donation_checkout(
         "amount_cents": str(amount_cents),
         "source": "api_donate",
     }
+    if session_id:
+        metadata["session_id"] = str(session_id)
+        metadata["poll_id"] = str(session_id)
+    if participant_id:
+        metadata["participant_id"] = str(participant_id)
     checkout = stripe.checkout.Session.create(
         line_items=[{
             "price_data": stripe_catalog.price_data(line, amount_cents, name=label, description=description),
@@ -574,6 +632,8 @@ async def create_divinity_donation_checkout(
         )).scalar_one_or_none()
         if not isinstance(existing, PaymentTransaction):
             db.add(PaymentTransaction(
+                session_id=session_id,
+                participant_id=participant_id,
                 transaction_type=tx_type,
                 amount_cents=amount_cents,
                 currency="USD",
@@ -629,7 +689,10 @@ async def handle_payment_completed(
             tx_type = md.get("transaction_type")
             if tx_type == "donation" and md.get("purpose") in stripe_catalog.DONATION_PURPOSES:
                 tx_type = stripe_catalog.DONATION_PURPOSES[md["purpose"]][1]
+            sid, pid = await _donation_scope_from_metadata(db, md)
             tx = PaymentTransaction(
+                session_id=sid,
+                participant_id=pid,
                 transaction_type=tx_type,
                 amount_cents=int(paid_cents or md.get("amount_cents") or 0),
                 currency=(obj.get("currency") or "usd").upper()[:3],
@@ -638,7 +701,9 @@ async def handle_payment_completed(
                 status="pending",
                 product_line=product_line_for(tx_type),
                 reconcile_status="recorded_from_webhook",
-                metadata_json=json.dumps({"source": md.get("source") or "edge_donate", "purpose": md.get("purpose")}),
+                metadata_json=json.dumps({"source": md.get("source") or "edge_donate", "purpose": md.get("purpose"),
+                                          "session_id": str(sid) if sid else None,
+                                          "participant_id": str(pid) if pid else None}),
             )
             db.add(tx)
             await db.flush()
@@ -802,6 +867,36 @@ async def get_payment_status(
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+
+def _uuid_or_none(v) -> uuid.UUID | None:
+    try:
+        return uuid.UUID(str(v)) if v else None
+    except (ValueError, TypeError):
+        return None
+
+
+async def _donation_scope_from_metadata(db: AsyncSession, md: dict) -> tuple[uuid.UUID | None, uuid.UUID | None]:
+    """(session_id, participant_id) a donation Checkout was made for, validated against the DB.
+
+    The edge /api/donate route and the API donate route put poll_id/session_id + participant_id in Checkout
+    metadata so the webhook can credit the donation ladder (333 at $9.99, Original at $11.11). Unknown sessions,
+    or a participant that is not in that session, are dropped — the payment is still recorded, just unscoped.
+    """
+    sid = _uuid_or_none(md.get("session_id") or md.get("poll_id"))
+    pid = _uuid_or_none(md.get("participant_id"))
+    if not sid:
+        return None, None
+    found = (await db.execute(select(Session.id).where(Session.id == sid))).scalar_one_or_none()
+    if found != sid:
+        return None, None
+    if pid:
+        ok = (await db.execute(
+            select(Participant.id).where(Participant.id == pid, Participant.session_id == sid)
+        )).scalar_one_or_none()
+        if ok != pid:
+            pid = None
+    return sid, pid
 
 
 async def _get_session(db: AsyncSession, session_id: uuid.UUID) -> Session:

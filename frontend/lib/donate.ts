@@ -20,6 +20,10 @@ export async function startDonation(opts: {
   clientKey?: string;
   /** Which live Stripe Product the donation books to (default community). */
   purpose?: DonationPurpose;
+  /** Poll this donation is for — lets the webhook credit the 333 / Original donation ladder. */
+  sessionId?: string;
+  /** The donor's participant id in that poll (omit for the poll creator). */
+  participantId?: string;
 }): Promise<string | null> {
   const res = await fetch("/api/donate", {
     method: "POST",
@@ -32,6 +36,8 @@ export async function startDonation(opts: {
       cancel_url: opts.cancelUrl,
       client_key: opts.clientKey,
       purpose: opts.purpose || "community",
+      session_id: opts.sessionId,
+      participant_id: opts.participantId,
     }),
   });
 
