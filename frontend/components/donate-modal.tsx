@@ -26,9 +26,9 @@ export function donationPurposeFor(pathname: string, search = ""): DonationPurpo
 }
 
 const PURPOSE_LABELS: Record<DonationPurpose, [string, string]> = {
-  divinity_guide: ["The Divinity Guide — donation", "The Return to Wholeness and Living Divinity"],
-  derisking_strategies: ["DeRisking Strategies — donation", "Support DeRisking Strategies"],
-  community: ["eXeL AI Polling — Community Contribution", "Support the SoI Governance platform"],
+  divinity_guide: ["The Divinity Guide — donation", "cube8.donate.desc_divinity"],
+  derisking_strategies: ["DeRisking Strategies — donation", "Support DeRisking Strategies"], // wording not yet reviewed (t197u named community + divinity only)
+  community: ["eXeL AI Polling — Community Contribution", "cube8.donate.desc_community"],
 };
 
 export function DonateModal({ open, onClose, purpose }: { open: boolean; onClose: () => void; purpose?: DonationPurpose }) {
@@ -72,7 +72,7 @@ export function DonateModal({ open, onClose, purpose }: { open: boolean; onClose
       const url = await startDonation({
         amountCents: amount,
         label: PURPOSE_LABELS[why][0],
-        description: PURPOSE_LABELS[why][1],
+        description: PURPOSE_LABELS[why][1].startsWith("cube8.") ? t(PURPOSE_LABELS[why][1]) : PURPOSE_LABELS[why][1],
         purpose: why,
         successUrl: donatedReturnUrl(),   // back here with ?donated=true, so the page can say thank you
         cancelUrl: here,
@@ -169,6 +169,7 @@ export function DonateModal({ open, onClose, purpose }: { open: boolean; onClose
           {loading ? "…" : `${t("cube8.donate.continue")} · $${(amount / 100).toFixed(2)}`}
         </button>
         <p className="mt-3 text-center text-[11px] text-muted-foreground">{t("cube8.donate.secure_note")}</p>
+        <p className="mt-1 text-center text-[11px] text-muted-foreground" data-testid="not-deductible">{t("cube8.donate.not_deductible")}</p>
         </>
         )}
       </div>

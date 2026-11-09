@@ -382,7 +382,7 @@ export function DonationPrompt({
       const url = await startDonation({
         amountCents: amount,
         label: `eXeL AI Polling — Session ${shortCode}`,
-        description: "Support this session & the SoI Governance platform",
+        description: t("cube8.donate.desc_session"),
         successUrl: here,
         cancelUrl: here,
         sessionId,
