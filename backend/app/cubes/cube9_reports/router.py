@@ -49,6 +49,16 @@ router = APIRouter(prefix="/sessions/{session_id}", tags=["Cube 9 — Reports"])
 # ---------------------------------------------------------------------------
 
 
+
+async def _cost_split_share_due(db: AsyncSession, session) -> bool:
+    """True unless the Cost Split quote says participants owe nothing (share < Stripe's $0.50 → creator paid all)."""
+    from app.cubes.cube8_tokens.payment_service import cost_split_quote
+
+    try:
+        return int((await cost_split_quote(db, session)).get("participant_share_cents") or 0) > 0
+    except Exception:  # noqa: BLE001 — fail closed: payment stays required
+        return True
+
 @router.get("/export/csv")
 async def export_csv(
     session_id: uuid.UUID,
@@ -95,7 +105,8 @@ async def export_csv(
                 detail="Results require joining this session logged in and opting into results",
             )
         # Cost-split additionally requires payment before results are delivered.
-        if session.pricing_tier == "cost_split" and participant.payment_status not in ("paid", "lead_exempt"):
+        if (session.pricing_tier == "cost_split" and participant.payment_status not in ("paid", "lead_exempt")
+                and await _cost_split_share_due(db, session)):
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
                 detail="Payment required to access results",

@@ -109,8 +109,19 @@ async def resolve_export_tier(
       FULL       ($11.11): + original Detailed_Results
       TALENT     ($12.12): + Talent Profiles (honors 12 Ascended Masters)
     """
-    if user_role in ("moderator", "admin", "lead_developer"):
+    if user_role in ("admin", "lead_developer"):
         return TIER_TALENT
+    if user_role == "moderator":
+        # CRS-39.02 / CRS-14.05 (operator t157u: paid results only once paid). A Moderator Paid / Cost Split poll's
+        # creator gets the full export once the creator Checkout is webhook-confirmed; until then the same donation
+        # ladder as everyone else. Free polls keep the existing full moderator export (unchanged flow; flagged).
+        from app.models.session import Session as S
+        from app.cubes.cube8_tokens.view_entitlement import confirmed_cents, creator_payment_confirmed
+
+        tier_row = (await db.execute(select(S.pricing_tier).where(S.id == session_id))).scalar_one_or_none()
+        if (tier_row or "free") not in ("moderator_paid", "cost_split") or await creator_payment_confirmed(db, session_id):
+            return TIER_TALENT
+        return _ladder_tier(await confirmed_cents(db, session_id, None))
 
     # Sum all completed donations/payments by this user for this session
     from app.models.participant import Participant as P
@@ -123,16 +134,17 @@ async def resolve_export_tier(
     if not participant_id:
         return TIER_FREE
 
-    tx_result = await db.execute(
-        select(func.coalesce(func.sum(PaymentTransaction.amount_cents), 0)).where(
-            PaymentTransaction.session_id == session_id,
-            PaymentTransaction.participant_id == participant_id,
-            PaymentTransaction.status == "completed",
-        )
-    )
-    total_donated_cents = tx_result.scalar() or 0
+    # Only Stripe webhook-confirmed payments count (completed + stripe_event_id; amount mismatches excluded) —
+    # the same rule as the drill-down API (cube8_tokens.view_entitlement).
+    from app.cubes.cube8_tokens.view_entitlement import confirmed_cents
 
-    # Return highest qualifying tier
+    total_donated_cents = await confirmed_cents(db, session_id, participant_id)
+
+    return _ladder_tier(total_donated_cents)
+
+
+def _ladder_tier(total_donated_cents: int) -> str:
+    """Highest qualifying tier for a payer's webhook-confirmed cents (cumulative ladder)."""
     if total_donated_cents >= THRESHOLD_TALENT_CENTS:
         return TIER_TALENT
     elif total_donated_cents >= THRESHOLD_FULL_CENTS:

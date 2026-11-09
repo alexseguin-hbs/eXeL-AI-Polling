@@ -944,9 +944,12 @@ class TestAmountPrecision:
         assert MODERATOR_MIN_FEE_CENTS == 1111
 
     def test_cost_split_uses_ceil(self):
-        """Thoth: Cost split uses math.ceil to avoid rounding down."""
-        src = inspect.getsource(create_cost_split_intent)
-        assert "math.ceil" in src or "ceil" in src
+        """Thoth: Cost split never rounds a share down. Since 2026-11-09 (CRS-01.01) the intent is priced by the
+        creator's pricing path (poll_pricing via cost_split_quote), and that is where the ceil lives."""
+        from app.cubes.cube8_tokens import poll_pricing
+
+        assert "cost_split_quote(" in inspect.getsource(create_cost_split_intent)
+        assert "math.ceil" in inspect.getsource(poll_pricing.quote_poll)
 
     def test_cents_to_dollars_precision(self):
         """Thoth: cents/100 conversion preserves precision."""

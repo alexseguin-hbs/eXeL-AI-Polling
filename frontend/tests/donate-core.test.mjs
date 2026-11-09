@@ -88,3 +88,22 @@ const vreq = (qs, origin = SITE, method = "GET") => new Request(SITE + "/api/don
   ok3(!seen[3].get("line_items[0][price_data][product]") && seen[3].get("line_items[0][price_data][product_data][name]"), "test key: inline product_data (live product ids not used)");
   console.log(`donate-products: ${p3} passed, ${f3} failed`); if (f3) process.exit(1);
 }
+
+// 2026-11-09 (fleet W2): a poll-scoped donation carries session_id / poll_id / participant_id so the signed webhook can
+// credit the 333 / Original donation ladder; malformed ids are dropped, a participant without a session is dropped.
+{
+  let p4 = 0, f4 = 0; const ok4 = (c, m) => { if (c) p4++; else { f4++; console.log("FAIL:", m); } };
+  const seen = []; globalThis.fetch = async (url, init) => { seen.push(new URLSearchParams(init.body)); return new Response(JSON.stringify({ url: "https://checkout.stripe.com/c/pay/cs_test_y" }), { status: 200, headers: { "Content-Type": "application/json" } }); };
+  const SID = "8a0b2c4d-1e2f-4a5b-8c9d-0e1f2a3b4c5d", PID = "1b2c3d4e-5f60-4a7b-9c8d-7e6f5a4b3c2d";
+  await handleDonate(req({ amount_cents: 999, session_id: SID, participant_id: PID }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
+  ok4(seen[0].get("metadata[session_id]") === SID && seen[0].get("metadata[poll_id]") === SID && seen[0].get("metadata[participant_id]") === PID, "Checkout metadata carries poll + participant");
+  ok4(seen[0].get("payment_intent_data[metadata][session_id]") === SID && seen[0].get("payment_intent_data[metadata][participant_id]") === PID, "PaymentIntent metadata carries poll + participant");
+  ok4(seen[0].get("client_reference_id") === SID, "client_reference_id = poll id");
+  await handleDonate(req({ amount_cents: 333, session_id: "not-a-uuid'; drop", participant_id: PID }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
+  ok4(!seen[1].get("metadata[session_id]") && !seen[1].get("metadata[participant_id]") && !seen[1].get("client_reference_id"), "malformed poll id → unscoped (and no participant)");
+  await handleDonate(req({ amount_cents: 333, participant_id: PID }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
+  ok4(!seen[2].get("metadata[participant_id]"), "participant without a poll is dropped");
+  await handleDonate(req({ amount_cents: 333, session_id: SID }, { origin: SITE }), { STRIPE_SECRET_KEY: "sk_test_x" });
+  ok4(seen[3].get("metadata[session_id]") === SID && !seen[3].get("metadata[participant_id]"), "creator donation: poll only, participant blank");
+  console.log(`donate-scope: ${p4} passed, ${f4} failed`); if (f4) process.exit(1);
+}

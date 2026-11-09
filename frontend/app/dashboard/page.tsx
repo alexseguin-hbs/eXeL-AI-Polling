@@ -69,6 +69,7 @@ import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
 import { useSessionBroadcast, type RankingCompletePayload } from "@/lib/use-session-broadcast";
 import { LiveRankingPanel } from "@/components/live-ranking-panel";
+import { useViewEntitlement } from "@/lib/use-view-entitlement";
 import { supabase } from "@/lib/supabase";
 import { syncStatusToSupabase, fetchStatusFromSupabase } from "@/lib/supabase-session-sync";
 
@@ -262,6 +263,8 @@ function SessionDetail({
   const [spiralCancel, setSpiralCancel] = useState<(() => void) | null>(null);
   const [exportProgress, setExportProgress] = useState<MoTExportProgress | null>(null);
   const [donationDismissed, setDonationDismissed] = useState(false);
+  // 333 / Original unlock = webhook-confirmed payment (server), never the tier picked at creation.
+  const viewEntitlement = useViewEntitlement(session.id, `${session.is_paid}|${session.status}`);
 
   // Live response ticker — Supabase Broadcast feed for host dashboard
   const [liveResponseFeed, setLiveResponseFeed] = useState<Array<{ text: string; count: number }>>([]);
@@ -1041,7 +1044,8 @@ function SessionDetail({
             sessionId={session.id}
             sessionTitle={session.title}
             sessionShortCode={session.short_code}
-            isPaidTier={session.pricing_tier !== "free"}
+            isPaidTier={viewEntitlement.summary_333}
+            unlockOriginal={viewEntitlement.original}
           />
         )}
 

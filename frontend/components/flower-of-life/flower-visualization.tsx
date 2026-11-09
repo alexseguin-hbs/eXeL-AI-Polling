@@ -80,6 +80,8 @@ interface FlowerVisualizationProps {
   sessionId: string;
   sessionTitle: string;
   isPaidTier?: boolean;
+  /** Original-text unlock (server entitlement); defaults to isPaidTier. */
+  unlockOriginal?: boolean;
   /** Session short code — the seeded 5,000-response showcase renders ONLY for the
    *  demo codes; every real session fetches live Cube 6 themes (GET /themes). */
   sessionShortCode?: string;
@@ -89,6 +91,7 @@ export function FlowerVisualization({
   sessionId,
   sessionTitle,
   isPaidTier = false,
+  unlockOriginal,
   sessionShortCode,
 }: FlowerVisualizationProps) {
   const { t } = useLexicon();
@@ -532,6 +535,11 @@ export function FlowerVisualization({
               accentColor={selectedTheme1Color?.stroke ?? "#00E5CC"}
               onClose={handleDrawerClose}
               isPaidTier={isPaidTier}
+              unlock333={isPaidTier}
+              unlockOriginal={unlockOriginal ?? isPaidTier}
+              liveSessionId={isDemo ? undefined : sessionId}
+              theme1Label={state.selectedTheme1}
+              theme2Level={state.theme2Level}
             />
           )}
         </div>

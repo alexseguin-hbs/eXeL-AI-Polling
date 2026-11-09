@@ -180,6 +180,7 @@ export function CostSplitPayment({
   const [clientSecret, setClientSecret] = useState("");
   const [amountCents, setAmountCents] = useState(0);
   const [estimate, setEstimate] = useState<CostEstimate | null>(null);
+  const [quoteTotal, setQuoteTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -196,6 +197,7 @@ export function CostSplitPayment({
         const result = await api.post<{
           client_secret: string;
           amount_cents: number;
+          quote?: { total_cents: number; participants: number };
         }>("/payments/cost-split", {
           session_id: sessionId,
           participant_id: participantId,
@@ -203,6 +205,7 @@ export function CostSplitPayment({
         });
         setClientSecret(result.client_secret);
         setAmountCents(result.amount_cents);
+        if (result.quote) setQuoteTotal(result.quote.total_cents);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load payment");
       } finally {
@@ -229,7 +232,15 @@ export function CostSplitPayment({
         {isModerator ? t("cube8.payment.moderator_share") : t("cube8.payment.your_share")}
       </h3>
 
-      {estimate && (
+      {quoteTotal !== null && amountCents > 0 && (
+        // The share is priced by the SAME server quote as the creator's Checkout (poll_pricing).
+        <p className="text-sm">
+          {t("cube8.payment.share_of_price")
+            .replace("{share}", `$${(amountCents / 100).toFixed(2)}`)
+            .replace("{total}", `$${(quoteTotal / 100).toFixed(2)}`)}
+        </p>
+      )}
+      {estimate && quoteTotal === null && (
         <div className="text-sm text-muted-foreground space-y-1">
           <p>{t("cube8.donation.estimated_cost")}: ${(estimate.estimated_cost_cents / 100).toFixed(2)}</p>
           <p>{estimate.user_count} participants, {estimate.response_count} responses</p>
@@ -294,6 +305,8 @@ export function DonationPrompt({
         description: "Support this session & the SoI Governance platform",
         successUrl: here,
         cancelUrl: here,
+        sessionId,
+        participantId,
       });
       if (url) {
         window.location.href = url; // live Stripe hosted Checkout

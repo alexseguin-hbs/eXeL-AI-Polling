@@ -31,6 +31,9 @@ const AFTER_FILL = new Set([
   'cube8.pricing.quote_split',
   'cube8.pricing.quote_basis',
   'cube8.pricing.min_fee',
+  // Paid-view unlock + Cost Split share (2026-11-09 fleet W2): ENGLISH ONLY — staged, listed never silent; no ×32 fill.
+  'cube8.payment.share_of_price',
+  'cube8.unlock.locked_hint',
   // eXeL Polling Cost Estimate panel (2026-11-08 payments QA): new cube1.settings.cost_* keys
   // staged ENGLISH ONLY until operator finalizes English UI — listed never silent; no ×32 fill yet.
   'cube1.settings.cost_status_loading',
