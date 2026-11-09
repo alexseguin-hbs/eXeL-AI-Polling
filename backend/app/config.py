@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     xai_summarization_model: str = "grok-4.20-0309-non-reasoning"  # fast non-reasoning Grok (CRS-09.08)
     # Multi-vendor theming (CRS-09.08.01): per-call timeout, hedge delay and per-vendor in-flight cap before spill-over.
     ai_call_timeout_s: float = 20.0
-    ai_hedge_after_s: float = 2.5
+    ai_hedge_after_s: float = 2.5  # until 5 samples exist for a call kind; then 1.1 × observed p95 (min 1 s)
     ai_vendor_max_inflight: int = 48
     theme_fast_path: bool = True  # CRS-09.08.01: batched Theme01 + streamed samples + tree reduce + cosine assign
 

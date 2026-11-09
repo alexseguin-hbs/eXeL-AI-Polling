@@ -23,6 +23,7 @@ Assignment by cosine similarity (embeddings cached once per run: theme labels + 
 from __future__ import annotations
 
 import asyncio
+import html
 import json
 import re
 import time
@@ -46,14 +47,40 @@ from app.cubes.cube6_ai.providers.base import SummarizationProvider
 
 logger = structlog.get_logger(__name__)
 
-CLASSIFY_BATCH = 20
+CLASSIFY_BATCH = 25
+SAMPLES_PER_CALL = 5  # samples of 10 themed per request (each sample still gets its own 3 themes)
 REDUCE_CHUNK = 30
 _GEN_MAX_CONCURRENT = 96
 
+# Output tokens dominate latency, so the batch reply is one short line per input; the stored value is always the exact
+# label string. Codes: S = 'Supporting Comments', R = 'Risk & Concerns', N = 'Neutral Comments'.
+_CODE_TO_LABEL = {"S": "Supporting Comments", "R": "Risk & Concerns", "N": "Neutral Comments"}
 _BATCH_CLASSIFY_INSTRUCTION = (
     "If an input is not in English, translate it to English first. For EACH numbered input decide ONE of these three "
-    "exact phrases: 'Supporting Comments' or 'Risk & Concerns' or 'Neutral Comments', and a confidence from 0 to 100. "
-    'Reply with ONLY a JSON array, one object per input, in order: [{"i": 1, "theme": "...", "confidence": 87}, ...]'
+    "exact categories: 'Supporting Comments' (code S) or 'Risk & Concerns' (code R) or 'Neutral Comments' (code N), "
+    "and your confidence from 0 to 100. Reply with ONLY one line per input, in order, formatted '<number>|<code>|<confidence>' "
+    "for example '1|S|87'."
+)
+_LINE_RE = re.compile(r"^\s*(\d+)\s*[|:,.)-]\s*([SRN])\w*\s*[|:,]\s*(\d{1,3})", re.I)
+
+_MULTI_GEN_INSTRUCTION = (
+    "You are an AI assistant expert at theming {type_str}-based polling questions. You get several numbered SAMPLES "
+    "of responses. For EACH sample separately generate 3 unique SUMMARY THEMES for that sample's data. "
+    "Each theme in 5 words, description 7-12 words without commas/punctuation. Themes distinct within a sample.\n\n"
+    "Reply ONLY in this format, one line per theme:\n"
+    "S1, T001, Theme Name 001, Description of Theme 1\n"
+    "S1, T002, Theme Name 002, Description of Theme 2\n"
+    "S1, T003, Theme Name 003, Description of Theme 3\n"
+    "S2, T001, ..."
+)
+_MULTI_LINE_RE = re.compile(r"^\s*S(\d+)\s*,\s*T?\d+\s*,\s*([^,]+?)\s*,", re.I)
+
+_REDUCE_ALL_INSTRUCTION = (
+    "You are an AI expert at reducing {type_str} themes. Step 1: reduce the list to exactly 9 unique themes. "
+    "Step 2: reduce those 9 to exactly 6. Step 3: reduce those 6 to exactly 3. Each theme has a 5-word name and a "
+    "7-12 word description (no commas/punctuation) and a Confidence (70-100%) that is your certainty in the theme. "
+    "Themes distinct. Reply in CSV: a line 'LEVEL 9' then 9 lines 'T_Number, Theme, T_Description, Confidence (XX%)', "
+    "then a line 'LEVEL 6' and 6 such lines, then a line 'LEVEL 3' and 3 such lines."
 )
 
 
@@ -66,6 +93,17 @@ def _apply_theme01(r: dict, theme01: str, confidence: int) -> None:
 
 
 def _parse_batch(reply: str, n: int) -> list[tuple[str, int]] | None:
+    got: dict[int, tuple[str, int]] = {}
+    for line in (reply or "").splitlines():
+        m = _LINE_RE.match(line)
+        if m:
+            got[int(m.group(1))] = (_CODE_TO_LABEL[m.group(2).upper()], max(0, min(int(m.group(3)), 100)))
+    if all(k in got for k in range(1, n + 1)):
+        return [got[k] for k in range(1, n + 1)]
+    return _parse_batch_json(reply, n)
+
+
+def _parse_batch_json(reply: str, n: int) -> list[tuple[str, int]] | None:
     text = (reply or "").strip()
     m = re.search(r"\[.*\]", text, re.S)
     if not m:
@@ -144,16 +182,49 @@ async def generate_themes_streaming(
     sem = asyncio.Semaphore(_GEN_MAX_CONCURRENT)
     t0 = time.monotonic()
     done = 0
+    stats["requests"] = 0
+    stats["sample_fallbacks"] = 0
 
-    async def one(label: str, group: list[dict]) -> None:
+    async def single(label: str, group: list[dict]) -> list[str]:
+        try:
+            stats["requests"] += 1
+            return await _generate_themes_for_group(summarizer, group, _TYPE_MAP.get(label, "NEUTRAL"))
+        except Exception as e:  # noqa: BLE001
+            stats["failed_batches"] += 1
+            logger.warning("cube6.fast.theme_gen_failed", label=label, error=type(e).__name__)
+            return []
+
+    async def pack(label: str, groups: list[list[dict]]) -> None:
+        type_str = _TYPE_MAP.get(label, "NEUTRAL")
+        parsed: dict[int, list[str]] = {}
+        if len(groups) > 1:
+            body = "\n\n".join(
+                f"SAMPLE S{k + 1}:\n" + "\n".join(r.get("summary_33", "") for r in g)[:2500] for k, g in enumerate(groups)
+            )
+            async with sem:
+                try:
+                    stats["requests"] += 1
+                    text = await summarizer.summarize([f"INPUT:\n{body}"],
+                                                      instruction=_MULTI_GEN_INSTRUCTION.format(type_str=type_str))
+                    for line in (text or "").splitlines():
+                        m = _MULTI_LINE_RE.match(line)
+                        if m and 1 <= int(m.group(1)) <= len(groups):
+                            name = html.escape(m.group(2).strip())
+                            if name and len(parsed.setdefault(int(m.group(1)), [])) < 3:
+                                parsed[int(m.group(1))].append(name)
+                except Exception as e:  # noqa: BLE001
+                    logger.warning("cube6.fast.multi_gen_failed", label=label, error=type(e).__name__)
+        for k, g in enumerate(groups):
+            themes = parsed.get(k + 1)
+            if not themes:  # this sample's own call (the original prompt) — no sample is ever left out
+                if len(groups) > 1:
+                    stats["sample_fallbacks"] += 1
+                async with sem:
+                    themes = await single(label, g)
+            await emit(label, g, themes)
+
+    async def emit(label: str, group: list[dict], themes: list[str]) -> None:
         nonlocal done
-        async with sem:
-            try:
-                themes = await _generate_themes_for_group(summarizer, group, _TYPE_MAP.get(label, "NEUTRAL"))
-            except Exception as e:  # noqa: BLE001
-                stats["failed_batches"] += 1
-                logger.warning("cube6.fast.theme_gen_failed", label=label, error=type(e).__name__)
-                themes = []
         all_themes[label].extend(themes)
         done += 1
         if themes:
@@ -168,9 +239,21 @@ async def generate_themes_streaming(
             except Exception as e:  # noqa: BLE001 — a broadcast can never break theming
                 logger.warning("cube6.fast.on_batch_failed", error=type(e).__name__)
 
-    await asyncio.gather(*(one(label, g) for label, g in jobs))
+    packs = []
+    for label, groups in bin_samples.items():
+        gs = [g for g in groups if g]
+        packs += [(label, gs[i:i + SAMPLES_PER_CALL]) for i in range(0, len(gs), SAMPLES_PER_CALL)]
+    await asyncio.gather(*(pack(label, gs) for label, gs in packs))
     stats["coverage_pct"] = round(100.0 * stats["covered_responses"] / total_resp, 2) if total_resp else 100.0
     return all_themes, stats
+
+
+_CONF_RE = re.compile(r"Confidence\s*[:(]?\s*(\d{1,3})\s*%?\s*\)?", re.I)
+
+
+def _parse_levels(text: str) -> list[dict]:
+    """phase_b._parse_reduced_themes after normalising 'Confidence (85%)' → '85%' (models echo the header text)."""
+    return _parse_reduced_themes(_CONF_RE.sub(lambda m: f"{m.group(1)}%", text or ""))
 
 
 async def _reduce_to(summarizer, themes: list[str], type_str: str, count: int) -> list[dict]:
@@ -178,7 +261,7 @@ async def _reduce_to(summarizer, themes: list[str], type_str: str, count: int) -
         [f"Reduce these themes to {count}:\n" + "\n".join(themes)],
         instruction=_REDUCE_INSTRUCTION.format(type_str=type_str, count=count),
     )
-    return _parse_reduced_themes(text)
+    return _parse_levels(text)
 
 
 async def reduce_themes_tree(summarizer, all_themes: dict[str, list[str]], chunk: int = REDUCE_CHUNK) -> tuple[dict, dict]:
@@ -207,6 +290,24 @@ async def reduce_themes_tree(summarizer, all_themes: dict[str, list[str]], chunk
                 break
             pool = nxt
         stats["tree_rounds"][label] = rounds
+        # One request for 9 → 6 → 3 (each level derived from the previous, as in the monolith); any level that does
+        # not parse falls back to the original three serial calls.
+        try:
+            text = await summarizer.summarize(
+                ["Reduce these themes to 9, then 6, then 3:\n" + "\n".join(pool)],
+                instruction=_REDUCE_ALL_INSTRUCTION.format(type_str=type_str),
+            )
+            parts = re.split(r"^\s*LEVEL\s*(9|6|3)\s*:?\s*$", text or "", flags=re.M | re.I)
+            lv = {parts[i]: _parse_levels(parts[i + 1]) for i in range(1, len(parts) - 1, 2)}
+            if all(lv.get(k) for k in ("9", "6", "3")):
+                stats.setdefault("one_call_levels", 0)
+                stats["one_call_levels"] += 1
+                return {"9": _pad_themes_to_target(lv["9"], 9), "6": _pad_themes_to_target(lv["6"], 6),
+                        "3": _pad_themes_to_target(lv["3"], 3)}
+            logger.warning("cube6.fast.reduce_one_call_unparsed", label=label,
+                           levels={k: len(v) for k, v in lv.items()}, head=(text or "")[:120])
+        except Exception as e:  # noqa: BLE001
+            logger.warning("cube6.fast.reduce_one_call_failed", label=label, error=type(e).__name__)
         try:
             p9 = await _reduce_to(summarizer, pool, type_str, 9)
         except Exception as e:  # noqa: BLE001

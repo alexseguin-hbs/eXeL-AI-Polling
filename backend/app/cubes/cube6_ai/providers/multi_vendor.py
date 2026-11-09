@@ -28,6 +28,23 @@ from app.cubes.cube6_ai.providers.base import AIProviderName, SummarizationProvi
 
 logger = structlog.get_logger(__name__)
 
+# Client-side pacing per vendor (requests/second) so a large fan-out stays under the vendor's RPM instead of
+# collecting 429s. xAI team limit read from x-ratelimit-limit-requests on 2026-11-09: 1,800/min = 30 rps → pace at 28.
+_VENDOR_RPS: dict[str, float] = {"grok": 28.0, "openai": 50.0, "gemini": 15.0, "claude": 15.0}
+_NEXT_SLOT: dict[str, float] = {}
+
+
+async def _pace(vendor: str) -> None:
+    rps = _VENDOR_RPS.get(vendor)
+    if not rps:
+        return
+    now = time.monotonic()
+    slot = max(now, _NEXT_SLOT.get(vendor, 0.0))
+    _NEXT_SLOT[vendor] = slot + 1.0 / rps
+    if slot > now:
+        await asyncio.sleep(slot - now)
+
+
 # Circuit state is process-wide: one container serves many sessions, and a vendor that is out of credit is out for all.
 _CB_FAILS: dict[str, int] = {}
 _CB_OPEN_UNTIL: dict[str, float] = {}
@@ -44,14 +61,52 @@ def _status_code(exc: BaseException) -> int | None:
         return None
 
 
+# Recent successful-call latencies per task kind (instruction prefix), so the hedge fires at ~p95 for THAT kind of
+# call: a 1.5 s classify batch hedges early, a 4 s reduce does not hedge needlessly ("engine-out" tolerance).
+_LAT: dict[str, list[float]] = {}
+_LAT_KEEP = 64
+
+
+def _kind(instruction: str) -> str:
+    return (instruction or "")[:48]
+
+
+def _record_latency(kind: str, seconds: float) -> None:
+    xs = _LAT.setdefault(kind, [])
+    xs.append(seconds)
+    if len(xs) > _LAT_KEEP:
+        del xs[0]
+
+
+def hedge_delay(kind: str, default: float | None) -> float | None:
+    if default is None:
+        return None
+    xs = sorted(_LAT.get(kind, []))
+    if len(xs) < 5:
+        return default
+    p95 = xs[min(len(xs) - 1, int(0.95 * len(xs)))]
+    return max(1.0, 1.1 * p95)
+
+
 def circuit_open(vendor: str) -> bool:
     return _CB_OPEN_UNTIL.get(vendor, 0.0) > time.monotonic()
 
 
-def _record_failure(vendor: str, exc: BaseException) -> None:
+def _is_hard(exc: BaseException) -> bool:
+    """Key/credit problems: retrying soon cannot help (401/402/403, or a 400 that says the key is invalid)."""
     code = _status_code(exc)
-    _CB_FAILS[vendor] = _CB_FAILS.get(vendor, 0) + 1
     if code in (401, 402, 403):
+        return True
+    msg = str(exc).lower()
+    return code == 400 and ("api_key_invalid" in msg or "api key not valid" in msg or "credit" in msg)
+
+
+def _record_failure(vendor: str, exc: BaseException) -> None:
+    _CB_FAILS[vendor] = _CB_FAILS.get(vendor, 0) + 1
+    if _status_code(exc) == 429:  # rate limit: back off briefly, never a long open
+        _CB_OPEN_UNTIL[vendor] = max(_CB_OPEN_UNTIL.get(vendor, 0.0), time.monotonic() + 1.0)
+        return
+    if _is_hard(exc):
         _CB_OPEN_UNTIL[vendor] = time.monotonic() + _CB_HARD_OPEN_S
     elif _CB_FAILS[vendor] >= _CB_THRESHOLD:
         _CB_OPEN_UNTIL[vendor] = time.monotonic() + _CB_OPEN_S
@@ -66,6 +121,16 @@ def reset_circuits() -> None:
     """Tests only."""
     _CB_FAILS.clear()
     _CB_OPEN_UNTIL.clear()
+    _LAT.clear()
+
+
+class AllVendorsFailed(Exception):
+    """Every vendor in one pass failed; `retryable` when any failure was a rate limit or a timeout."""
+
+    def __init__(self, errors: list[BaseException]):
+        super().__init__("all AI vendors failed: " + ", ".join(type(e).__name__ for e in errors))
+        self.errors = errors
+        self.retryable = any(_status_code(e) == 429 or isinstance(e, asyncio.TimeoutError) for e in errors)
 
 
 class MultiVendorSummarizer(SummarizationProvider):
@@ -110,22 +175,42 @@ class MultiVendorSummarizer(SummarizationProvider):
             spill = min(healthy[1:], key=lambda v: self._inflight.get(v.provider_name.value, 0))
             if self._inflight.get(spill.provider_name.value, 0) < self.max_inflight:
                 return [spill] + [v for v in healthy if v is not spill]
+        if len(healthy) == 1:  # one vendor: a hedge re-sends to the same vendor (tail latency is per request)
+            return healthy + healthy
         return healthy
 
     async def _attempt(self, vendor: SummarizationProvider, texts: list[str], instruction: str) -> str:
         name = vendor.provider_name.value
         self._inflight[name] = self._inflight.get(name, 0) + 1
         try:
+            await _pace(name)
             return await asyncio.wait_for(vendor.summarize(texts, instruction=instruction), timeout=self.timeout_s)
         finally:
             self._inflight[name] -= 1
 
     async def summarize(self, texts: list[str], instruction: str = "") -> str:
+        """One logical call; up to 3 rounds over the vendor list when every vendor was rate-limited/timed out."""
+        last: BaseException | None = None
+        for round_ in range(3):
+            try:
+                return await self._summarize_once(texts, instruction)
+            except AllVendorsFailed as e:
+                last = e.errors[-1] if e.errors else e
+                if not e.retryable:
+                    raise last
+                await asyncio.sleep(0.5 * (2 ** round_))
+        raise last  # type: ignore[misc]
+
+    async def _summarize_once(self, texts: list[str], instruction: str = "") -> str:
         order = self._order()
         in_chars = len(instruction or "") + sum(len(t or "") for t in texts)
         pending: dict[asyncio.Task, str] = {}
         nxt = 0
-        last_exc: BaseException | None = None
+        errors: list[BaseException] = []
+
+        kind = _kind(instruction)
+        hedge_after = hedge_delay(kind, self.hedge_after_s)
+        started: dict[asyncio.Task, float] = {}
 
         def start_next(reason: str) -> bool:
             nonlocal nxt
@@ -138,15 +223,17 @@ class MultiVendorSummarizer(SummarizationProvider):
                 self._bump(name, "hedges")
             if nxt > 1:
                 logger.info("cube6.provider.runtime_failover", to=name, reason=reason, primary=self.provider_name.value)
-            pending[asyncio.create_task(self._attempt(v, texts, instruction))] = name
+            task = asyncio.create_task(self._attempt(v, texts, instruction))
+            pending[task] = name
+            started[task] = time.monotonic()
             return True
 
         start_next("primary")
         try:
             while pending:
-                can_hedge = self.hedge_after_s is not None and nxt < len(order) and len(pending) == 1
+                can_hedge = hedge_after is not None and nxt < len(order) and len(pending) == 1
                 done, _ = await asyncio.wait(
-                    set(pending), timeout=self.hedge_after_s if can_hedge else None,
+                    set(pending), timeout=hedge_after if can_hedge else None,
                     return_when=asyncio.FIRST_COMPLETED,
                 )
                 if not done:  # hedge window passed with no answer
@@ -162,15 +249,16 @@ class MultiVendorSummarizer(SummarizationProvider):
                         self._bump(name, "served")
                         self._bump(name, "output_chars", len(out))
                         _record_success(name)
+                        _record_latency(kind, time.monotonic() - started.get(task, time.monotonic()))
                         return out
-                    last_exc = exc
+                    errors.append(exc)
                     self._bump(name, "failures")
                     _record_failure(name, exc)
                     logger.warning("cube6.provider.call_failed", provider=name,
                                    error=type(exc).__name__, status=_status_code(exc))
                 if not pending:
                     start_next("error")
-            raise last_exc or RuntimeError("all AI vendors failed")
+            raise AllVendorsFailed(errors)
         finally:
             for task, name in pending.items():  # hedge losers: input is billed by the vendor even if we cancel
                 task.cancel()
