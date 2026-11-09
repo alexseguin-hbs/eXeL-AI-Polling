@@ -77,3 +77,21 @@ def test_primary_mode_kept_for_debugging():
     vs = [_V(AIProviderName.GROK), _V(AIProviderName.OPENAI)]
     s = mv.MultiVendorSummarizer(vs, hedge_after_s=None, mode="primary")
     assert set(_many(s, 6)) == {"grok"}
+
+
+def test_idle_capacity_races_two_vendors_first_reply_wins():
+    slow, fast = _V(AIProviderName.GROK, delay=0.5), _V(AIProviderName.OPENAI, delay=0.01)
+    s = mv.MultiVendorSummarizer([slow, fast], hedge_after_s=None, race_when_idle=True)
+    mv._RR_CREDIT.update({"grok": 100.0})              # RR picks the slow one first
+    assert asyncio.run(s.summarize(["x"], "reduce")) == "openai"
+    assert s.usage["openai"]["races"] == 1 and s.usage["grok"]["cancelled"] == 1
+
+
+def test_per_kind_latency_steers_that_kind():
+    for _ in range(3):
+        mv._record_vendor_latency("grok", 0.2, "reduce")
+        mv._record_vendor_latency("openai", 2.0, "reduce")
+        mv._record_vendor_latency("grok", 2.0, "classify")
+        mv._record_vendor_latency("openai", 0.2, "classify")
+    w_r, w_c = mv.speed_weights(["grok", "openai"], "reduce"), mv.speed_weights(["grok", "openai"], "classify")
+    assert w_r["grok"] > w_r["openai"] and w_c["openai"] > w_c["grok"]
