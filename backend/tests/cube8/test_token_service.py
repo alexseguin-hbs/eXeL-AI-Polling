@@ -215,10 +215,10 @@ class TestResolveHumanRate:
 
 class TestGetAllRates:
     def test_returns_all_jurisdictions(self):
-        """Should return 59 jurisdictions (9 international + 50 US states)."""
+        """Should return 60 jurisdictions (10 international incl. Ghana + 50 US states)."""
         from app.core.hi_rates import get_all_rates
         rates = get_all_rates()
-        assert len(rates) == 59
+        assert len(rates) == 60
 
     def test_rate_structure(self):
         """Each rate entry should have country, state, human_rate, currency."""

@@ -4,11 +4,11 @@
     ║  "Every token tells a story. Every story must be provable."  ║
     ║                                                               ║
     ║  SoI Trinity: ♡ (time) · 웃 (value) · ◬ (impact)            ║
-    ║  Each calculation verified to $0.01 across 59 jurisdictions. ║
+    ║  Each calculation verified to $0.01 across 60 jurisdictions. ║
     ╚═══════════════════════════════════════════════════════════════╝
 
 Tests:
-  - Token calculation precision: ♡/웃/◬ formulas for all 59 jurisdictions
+  - Token calculation precision: ♡/웃/◬ formulas for all 60 jurisdictions
   - Lifecycle exhaustive: every valid + invalid transition pair
   - Velocity cap boundaries: exact threshold testing
   - Append-only invariant: no mutations possible
@@ -46,9 +46,9 @@ class TestTokenPrecision59Jurisdictions:
         return heart, human, unity
 
     def test_all_59_jurisdictions_1_minute(self):
-        """1 minute of participation across all 59 jurisdictions."""
+        """1 minute of participation across all 60 jurisdictions."""
         rates = get_all_rates()
-        assert len(rates) == 59
+        assert len(rates) == 60
 
         for rate_info in rates:
             hr = rate_info["human_rate"]
