@@ -545,7 +545,7 @@ export function PricingTierSelector({
               <p className="font-medium text-foreground">
                 {t("cube8.pricing.quote_total").replace("{amount}", usd(quote.total_cents))}
               </p>
-              {value === "cost_split" && (
+              {value === "cost_split" && quote.participant_share_cents > 0 && (
                 <p className="text-muted-foreground">
                   {t("cube8.pricing.quote_split")
                     .replace("{creator}", usd(quote.creator_due_cents))

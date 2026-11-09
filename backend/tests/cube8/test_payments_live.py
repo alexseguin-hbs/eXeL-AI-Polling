@@ -50,6 +50,16 @@ def test_cost_split_shares():
     q = poll_pricing.quote_poll(poll_pricing.PollQuoteInput(pricing_tier="cost_split", participants=10))
     assert q["creator_due_cents"] == -(-q["total_cents"] // 2)
     assert q["participant_share_cents"] >= 50
+    # collected total never exceeds the price by more than rounding
+    assert q["creator_due_cents"] + q["participant_share_cents"] * 10 - q["total_cents"] < 10
+
+
+def test_cost_split_never_over_collects_when_share_below_stripe_min():
+    q = poll_pricing.quote_poll(poll_pricing.PollQuoteInput(pricing_tier="cost_split", participants=1_000_000,
+                                                            ai_provider="claude", options=poll_pricing.ALL_OPTIONS, voice_share=0.5))
+    assert q["participant_share_cents"] == 0
+    assert q["creator_due_cents"] == q["total_cents"]
+    assert "split_note" in q
 
 
 def test_options_change_cost():
