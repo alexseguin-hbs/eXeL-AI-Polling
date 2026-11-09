@@ -11,6 +11,27 @@
       "heart_sum": null,
       "notes": "idle/paste/inflate/empty/ceil-minutes",
       "evidence": "backend/tests/cube5/test_active_input_credit.py"
+    },
+    {
+      "at_cst": "2026-11-09 16:52",
+      "n": 2,
+      "path": "live_proof_api_v1y",
+      "typed": {
+        "heart": 1.0,
+        "active_ms_credited": 2979,
+        "action_type": "responding_active",
+        "response_id": "99116e49-d5cd-4b59-a5b5-9c94cdedbb6e"
+      },
+      "paste": {
+        "heart": 0.0,
+        "active_ms_credited": 0,
+        "paste_detected": true,
+        "response_id": "2a490982-7c44-4cde-baae-2776303d199f"
+      },
+      "label": "SIMULATED",
+      "notes": "proof7 after admin restart; typed wall-capped; paste zero via CRS-19.09",
+      "rule_version": "si-active-input-v1-2026-11-09",
+      "merge_sha_feature": "1ae0df2a98a7d2ca751943c6a01668e32fa70727"
     }
   ]
 }

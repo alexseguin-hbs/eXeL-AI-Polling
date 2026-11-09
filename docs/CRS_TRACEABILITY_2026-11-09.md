@@ -74,10 +74,10 @@ Status is recorded **only as verified**. "Local" = run on the build box, not CI 
 
 | CRS | Cube | Title | Status |
 |-----|------|-------|--------|
-| **CRS-19.09** | Cube 5 / Cube 2 / Cube 3 | ♡ S.I. credited only for active typing or speaking (idle/paste capped; one credit per response) | **In progress** — 2026-11-09 |
-| CRS-19.09.01 | Cube 2 FE | Client measures `active_ms` with ≤5 s idle cutoff; paste flagged | In progress |
-| CRS-19.09.02 | Cube 5 | Server validates wall / paste / char-plausibility / voice; append-only ledger (`responding_active`) | In progress |
-| CRS-19.09.03 | Cube 5 | Token math reuses `calculate_tokens` (♡=ceil(active minutes), ◬=5×♡); no invented tokens/min rate | In progress |
+| **CRS-19.09** | Cube 5 / Cube 2 / Cube 3 | ♡ S.I. credited only for active typing or speaking (idle/paste capped; one credit per response) | **Live** — 2026-11-09 (PR #54 merge `1ae0df2a`) |
+| CRS-19.09.01 | Cube 2 FE | Client measures `active_ms` with ≤5 s idle cutoff; paste flagged | Live |
+| CRS-19.09.02 | Cube 5 | Server validates wall / paste / char-plausibility / voice; append-only ledger (`responding_active`) | Live |
+| CRS-19.09.03 | Cube 5 | Token math reuses `calculate_tokens` (♡=ceil(active minutes), ◬=5×♡); no invented tokens/min rate | Live |
 
 Evidence: `docs/research/mentimeter-comparison-2026-11-09.md` (gap #1); tests `backend/tests/cube5/test_active_input_credit.py`; migration `061_si_active_input_credit.sql`.
 

@@ -163,6 +163,13 @@
       "kind": "decision",
       "text": "R-CORE payments tip: public /eXeL-AI-Polling badge advanced through PR #29, #38, #44; billing SECURE live proof in docs/metrics/cube8-billing.md (api-v1w 3a35ad5f, main 340a9a8e3). Commit recovered from the row-adding commit (Stage 2 newest-revision code-record bar).",
       "commit": ""
+    },
+    {
+      "rev": 24,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified \u2014 PR #54 (merge 1ae0df2a): CRS-19.09 active typing/speaking \u2661 S.I. only (idle\u22645s client; server wall/paste/char/voice caps; ledger responding_active; rate=Cube5 calculate_tokens ceil(active minutes)). Live SIMULATED proof7 on api-v1y: paste \u26610; typed wall-capped responding_active. Mentimeter comparison PR #53 merge 5be54ebc.",
+      "commit": "1ae0df2a"
     }
   ]
 }

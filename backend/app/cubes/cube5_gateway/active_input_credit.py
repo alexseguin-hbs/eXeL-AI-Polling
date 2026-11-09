@@ -135,26 +135,26 @@ async def credit_active_input(
     )
     db.add(entry)
 
-    if decision.heart > 0 or decision.human > 0 or decision.unity > 0:
-        jurisdiction, settlement_rate = settlement_stamp(country, state)
-        ledger = TokenLedger(
-            session_id=session_id,
-            user_id=str(participant_id),
-            anon_hash=anon_hash,
-            cube_id=cube_id,
-            action_type=ACTION_TYPE,
-            delta_heart=decision.heart,
-            delta_human=decision.human,
-            delta_unity=decision.unity,
-            settlement_jurisdiction=jurisdiction,
-            settlement_rate=settlement_rate,
-            lifecycle_state="pending",
-            reason=decision.reason,
-            reference_id=str(response_id),
-            version_id=RULE_VERSION,
-            active_ms=decision.credited_ms,
-        )
-        db.add(ledger)
+    # Always append a ledger row (incl. ♡0 paste/idle/empty) for anti-gaming audit.
+    jurisdiction, settlement_rate = settlement_stamp(country, state)
+    ledger = TokenLedger(
+        session_id=session_id,
+        user_id=str(participant_id),
+        anon_hash=anon_hash,
+        cube_id=cube_id,
+        action_type=ACTION_TYPE,
+        delta_heart=decision.heart,
+        delta_human=decision.human,
+        delta_unity=decision.unity,
+        settlement_jurisdiction=jurisdiction,
+        settlement_rate=settlement_rate,
+        lifecycle_state="pending",
+        reason=decision.reason,
+        reference_id=str(response_id),
+        version_id=RULE_VERSION,
+        active_ms=decision.credited_ms,
+    )
+    db.add(ledger)
 
     try:
         await db.commit()
