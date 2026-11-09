@@ -823,13 +823,13 @@ export const CRS_MATRIX: CrsEntry[] = [
     "reviewId": "DR-2026.11.09-DR.001",
     "reviewPlan": "Original polling design Pay to View — Planned",
     "vvPlan": "docs/CRS_TRACEABILITY_2026-11-09.md",
-    "testRun": "",
-    "testIssues": "",
-    "testDesc": "PLANNED — Date added 2026-11-09",
+    "testRun": "14fdbfa6f: backend tests/cube8/test_view_entitlement.py 18 passed; frontend tests/view-entitlement.test.mjs 18 passed, tests/donate-core.test.mjs donate-scope 6 passed (local, 2026-11-09)",
+    "testIssues": "CRS-39.01 Detail 1/2/3 price map still pending operator decision; merge/deploy/live verification not yet recorded",
+    "testDesc": "IN PROGRESS — CRS-39.02 server-enforced unlock (webhook-confirmed payment) + poll-scoped donation ladder; CRS-39.03 tests make no live charges. Updated 2026-11-09",
     "transfer": "",
     "transferConfirm": "",
-    "change": "",
-    "changeDesc": "planned"
+    "change": "14fdbfa6f",
+    "changeDesc": "fix(cube8/9) Pay to View unlock on webhook-confirmed payment, server-enforced; poll-scoped donations; Cost Split share via creator pricing (CRS-39.02, CRS-14.05, CRS-01.01, CRS-39.03)"
   },
   {
     "cube": "Cube 6 — AI Theme Pipeline (1,2,1)",

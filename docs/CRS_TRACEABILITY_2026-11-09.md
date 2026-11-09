@@ -20,8 +20,10 @@
 | CRS-37.01–.04 | Cube 7 | Subset ballot / per-category / aggregate / impl track | **In progress** |
 | CRS-38 | Cube 7 | Round 3 Expert Opinion (3 experts → AI 1-pager) | Planned |
 | CRS-38.01–.03 | Cube 7 | Expert UI / AI 1-pager / audit | Planned |
-| CRS-39 | Cube 9 | Pay to View details 1 / 2 / 3 | Planned |
-| CRS-39.01–.03 | Cube 9 | Tier map / unify gates / no live charges in test | Planned |
+| CRS-39 | Cube 9 | Pay to View details 1 / 2 / 3 | **In progress** (2026-11-09, see Implementation evidence) |
+| CRS-39.01 | Cube 9 | Detail 1/2/3 tier map (pricing decision) | Planned |
+| CRS-39.02 | Cube 9 / Cube 8 | Unify gates: one server rule for drawer / ranked / export | **In progress** — code + local tests (14fdbfa6f) |
+| CRS-39.03 | Cube 8 | No live charges in test | **In progress** — tests patch Stripe create calls (14fdbfa6f) |
 
 ## Numbering note
 
@@ -51,3 +53,15 @@ Polling Requirements.txt continues CRS-01…35 with **CRS-36…39** for original
 | 6 | `docs/CUBES_4-6.md` | CRS-09.08 planned 2026-11-09 |
 | 7 | `docs/CUBES_7-9.md` | original-design rounds added 2026-11-09 |
 | 9 | `docs/CUBES_7-9.md` | Pay-to-View CRS-39 added 2026-11-09 |
+
+## Implementation evidence (payments / Pay to View) — updated 2026-11-09
+
+Status is recorded **only as verified**. "Local" = run on the build box, not CI or production.
+
+| CRS | Change | Commit | Tests (verified) | Evidence | Status |
+|-----|--------|--------|------------------|----------|--------|
+| CRS-39.02 | 333 / Original unlock = Stripe **webhook-confirmed** payment (completed + `stripe_event_id`, amount mismatches excluded), never the creation tier. One rule `backend/app/cubes/cube8_tokens/view_entitlement.py`; server APIs `GET /sessions/{id}/view-entitlement`, `GET /sessions/{id}/drilldown` (333/Original returned as null unless paid); CSV ladder `resolve_export_tier` counts confirmed only; dashboard + drawer read server entitlement; expand no longer reveals Original | 14fdbfa6f | `backend/tests/cube8/test_view_entitlement.py` 18 passed (local); `frontend/tests/view-entitlement.test.mjs` 18 passed (local) | `/workspace/research-exel/artifacts/payments-live/PROGRESS.md` | In progress (merge / deploy / live pending) |
+| CRS-39.02 | Donations carry `session_id` / `poll_id` / `participant_id` (edge `/api/donate`, API `/payments/divinity-donate`); webhook validates poll + participant, scopes the row → ladder reachable | 14fdbfa6f | `test_view_entitlement.py` donation cases; `frontend/tests/donate-core.test.mjs` donate-scope 6 passed (local) | same | In progress |
+| CRS-14.05 | Results gate: cost-split export 402 waived only when the quote says no participant share is due | 14fdbfa6f | `backend/tests/cube8`, `cube9` suites (local; 3 pre-existing failures also on origin/main 56c24257f: 59-jurisdiction rate tests) | same | In progress |
+| CRS-01.01 | Cost Split participant share priced by the creator's pricing path (`cost_split_quote` → frozen creator quote or `poll_pricing.quote_for_session`); margin stays single `PRICING_MARGIN_MULTIPLIER` (1.5); share < $0.50 → 409, no minimum over-charge | 14fdbfa6f | `test_view_entitlement.py` cost-split cases; `test_payment_stripe.py::TestAmountPrecision` (local) | same | In progress |
+| CRS-39.03 | No live charges from tests: Stripe create calls patched; real-SQL ledger tests on in-memory SQLite | 14fdbfa6f | as above | same | In progress |
