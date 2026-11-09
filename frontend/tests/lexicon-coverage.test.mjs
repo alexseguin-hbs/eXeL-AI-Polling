@@ -32,6 +32,7 @@ const AFTER_FILL = new Set([
   'cube8.pricing.quote_unavailable',
   'cube8.pricing.quote_total',
   'cube8.pricing.quote_split',
+  'cube8.pricing.quote_split_floor',
   'cube8.pricing.quote_basis',
   'cube8.pricing.min_fee',
   // Paid-view unlock + Cost Split share (2026-11-09 fleet W2): ENGLISH ONLY — staged, listed never silent; no ×32 fill.

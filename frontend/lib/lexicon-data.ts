@@ -746,6 +746,7 @@ const cube8: TranslationEntry[] = [
   { key: "cube8.pricing.quote_unavailable", englishDefault: "Live price unavailable — the exact amount is set at checkout.", context: "Create Poll: price quote could not be fetched (API offline / demo)", cubeId: 8 },
   { key: "cube8.pricing.quote_total", englishDefault: "Price for these options: {amount}", context: "Create Poll: total poll price from server quote", cubeId: 8 },
   { key: "cube8.pricing.quote_split", englishDefault: "You pay {creator} now; each participant pays {share}.", context: "Create Poll: Cost Split creator vs participant share", cubeId: 8 },
+  { key: "cube8.pricing.quote_split_floor", englishDefault: "Split shares would be under Stripe's $0.50 minimum, so you pay the full {total} now and participants join free.", context: "Create Poll: Cost Split when the $11.11 floor makes each participant share < $0.50 (server split_note)", cubeId: 8 },
   { key: "cube8.pricing.quote_basis", englishDefault: "Tracked AI cost {cost} × margin {margin} + Stripe card fee; minimum {floor}.", context: "Create Poll: how the price is computed (margin setting is configurable)", cubeId: 8 },
   { key: "cube8.pricing.min_fee", englishDefault: "(min {amount})", context: "Create Poll: Moderator Paid minimum amount hint", cubeId: 8 },
   { key: "cube8.donate.demo_thanks", englishDefault: "This is a demo preview — donations run on the live deployment. Thank you for your support! ♡", context: "Donate modal demo-mode acknowledgement", cubeId: 8 },
