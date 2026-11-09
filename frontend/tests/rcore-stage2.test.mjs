@@ -18,6 +18,7 @@ import { FINANCIAL_LEDGER } from "../lib/2525-core/financial-ledger.gen.ts";
 import { LIGHT_CODEX_LEDGER } from "../lib/2525-core/light-codex-ledger.gen.ts";
 import { VISION_LEDGER } from "../lib/2525-core/vision-ledger.gen.ts";
 import { ENCRYPTED_MESSAGING_LEDGER } from "../lib/2525-core/encrypted-messaging-ledger.gen.ts"; // Light Codex (DD-55, operator 2026-10-14: "The /light-codex world")
+import { EXEL_AI_POLLING_LEDGER } from "../lib/2525-core/exel-ai-polling-ledger.gen.ts"; // eXeL AI Polling (2026-11-09)
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -33,6 +34,7 @@ const LEDGERS = [
   { name: "Light Codex", ledger: LIGHT_CODEX_LEDGER },
   { name: "Vision-2525 Worlds", ledger: VISION_LEDGER },
   { name: "Encrypted Messaging", ledger: ENCRYPTED_MESSAGING_LEDGER },
+  { name: "eXeL AI Polling", ledger: EXEL_AI_POLLING_LEDGER },
 ];
 for (const { name, ledger } of LEDGERS) {
   const H = fromLedgerJson(ledger);
@@ -62,6 +64,7 @@ const SURFACES = [
   { name: "Light Codex", file: "../app/light-codex/page.tsx", constName: "LIGHT_CODEX_LEDGER", gen: "light-codex-ledger.gen" },
   { name: "Vision-2525 Worlds", file: "../app/vision-2525/page.tsx", constName: "VISION_LEDGER", gen: "vision-ledger.gen" },
   { name: "Encrypted Messaging", file: "../app/encrypted-messaging/page.tsx", constName: "ENCRYPTED_MESSAGING_LEDGER", gen: "encrypted-messaging-ledger.gen" },
+  { name: "eXeL AI Polling", file: "../app/eXeL-AI-Polling/page.tsx", constName: "EXEL_AI_POLLING_LEDGER", gen: "exel-ai-polling-ledger.gen" },
 ];
 for (const { name, file, constName, gen } of SURFACES) {
   const src = fs.readFileSync(new URL(file, import.meta.url), "utf8");

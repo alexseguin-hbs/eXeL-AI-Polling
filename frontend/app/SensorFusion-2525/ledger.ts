@@ -605,6 +605,29 @@ export const SENSOR_FUSION_LEDGER: LedgerInput = {
       text: "Workers Build typecheck: Labeler calls useLexicon for Level-2 notes; correction event narrowing; team progress sync uses project clock and SwarmPage-shaped boxes. No check bypass.",
       commit: "f20b536",
     },
+    {
+      rev: 84,
+      date: "2026-11-09",
+      kind: "release",
+      text:
+        "Correction binding on SensorFusion labels (PR #16, merge d8d0c11): migration 054 " +
+        "(renumbered from 053 — main already carried two 053s) forces corrected_by_uid = auth.uid(), " +
+        "canonicalizes the caller's seat name, stamps labels.inserted_by_uid, and refuses spoofed " +
+        "correction names / same-person self-review (case-insensitive). Client no longer sends " +
+        "device-local box ids into UUID label_id. SIMULATED proof 7/7; live history 20261109131819. " +
+        "Gap unchanged: real two-tester seats still need named auth.users. R-CORE tip advances to r.84.",
+      commit: "d8d0c11",
+    },
+    {
+      rev: 85,
+      date: "2026-11-09",
+      kind: "decision",
+      text:
+        "Public R-CORE tip: PR #16 correction binding (migration 054, merge d8d0c11) is now on this append-only " +
+        "ledger at r.84 so the live SensorFusion-2525 badge shows it. This decision row is the tip; its commit " +
+        "is recovered from the commit that added this row (Stage 2 code-record bar).",
+      commit: "",
+    },
   ],
 };
 
