@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://exel.ai/gates/n9/round.schema.json",
+  "title": "N9 SSSES+SPIRAL round ledger",
+  "type": "object",
+  "required": ["round", "status", "hypothesis", "source_sha", "ssses", "spiral", "tests_run", "evidence_separators"],
+  "properties": {
+    "round": { "type": "integer", "minimum": 1, "maximum": 9 },
+    "status": { "enum": ["open", "in_progress", "blocked", "complete", "incomplete"] },
+    "hypothesis": { "type": "string", "minLength": 10 },
+    "source_sha": { "type": "string" },
+    "suite_run_fingerprint": { "type": "string" },
+    "ssses": { "type": "object" },
+    "spiral": {
+      "type": "object",
+      "required": ["forward", "backward"],
+      "properties": {
+        "forward": { "type": "array" },
+        "backward": { "type": "array" },
+        "metrics_baselines": { "type": "array", "items": { "enum": ["N5", "N9", "N18"] } }
+      }
+    },
+    "tests_run": { "type": "array" },
+    "failures": { "type": "array" },
+    "changes": { "type": "array" },
+    "retest": { "type": "array" },
+    "asm_before": { "type": "object" },
+    "asm_after": { "type": "object" },
+    "mot_synthesis": { "type": "object" },
+    "evidence_separators": {
+      "type": "object",
+      "required": ["test_count_is_not_pillar_score"],
+      "properties": {
+        "test_count_is_not_pillar_score": { "const": true }
+      }
+    },
+    "html_allowed": { "type": "boolean", "const": false }
+  }
+}

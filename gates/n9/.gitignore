@@ -1,0 +1,4 @@
+.evidence/**
+!evidence/samples/
+!evidence/samples/**
+*.log

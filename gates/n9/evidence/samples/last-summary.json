@@ -1,0 +1,86 @@
+{
+  "suite": "gates/n9",
+  "suite_run_fingerprint": "4ea498918fe7c7c7a8b18acaee22d635baf1da6f546f498c7380b1a7f57fe611",
+  "source_sha": "1ca50541292c351067e913239c8b2da96548c3bb",
+  "run_id": "2ca02b0aadccc823",
+  "america_chicago_note": "box clock = America/Chicago",
+  "minted_nine_from_one_run": false,
+  "html_allowed": false,
+  "ssses_scores_invented": false,
+  "qa_baseline_incorporated": "/cursor/stores/store-4ff5b235-5045-41af-8897-1124f2ebc55e/qa/BASELINE-QA-t71-t72.md",
+  "known_gaps_from_qa": [
+    "main@4c2761a Workers/typecheck RED — PR3 hotfix 1dcd2ae unmerged",
+    "weekly fee lookup docs/config only — NOT official fetch (assert fail = correct)",
+    "Cost panel static catalog — NOT /payments/provider-fees API",
+    "stripe_idempotency_key unused on PaymentIntent.create",
+    "cost UI residual hardcoded strings; 33-lang for cost_* unverified",
+    "sim-console-driver harness alias @/lib fail (distinct from product asserts)",
+    "backend jurisdiction 60!=59 on main CI",
+    "18 cost fixtures ≠ invoice proof",
+    "pod-persist / sf-collab not_available on main (PR4/PR5 open)"
+  ],
+  "results": [
+    {
+      "group": "n1_baseline_tooling",
+      "round_hint": 1,
+      "id": "gate-wordcount-self",
+      "command": "node tests/wordcount.test.mjs",
+      "cwd": "/workspace/research-exel/eXeL-AI-Polling/gates/n9",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 30,
+      "stdout_sha256": "28e26685d67a0ca80f243355a71f60bd649725b8b010c05074209ba19e760882",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "evidence_files": [
+        "gate-wordcount-self-2026-11-09T03-00-43-253Z.stdout.txt",
+        "gate-wordcount-self-2026-11-09T03-00-43-253Z.stderr.txt"
+      ],
+      "timed_out": false,
+      "error": null
+    },
+    {
+      "group": "n1_baseline_tooling",
+      "round_hint": 1,
+      "id": "gate-validate-round-self",
+      "command": "node tests/validate-round.test.mjs",
+      "cwd": "/workspace/research-exel/eXeL-AI-Polling/gates/n9",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 47,
+      "stdout_sha256": "8f20956be1b010fb4b2dae821ef01c2ffb28e29999f4950d8326e2880dd212b8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "evidence_files": [
+        "gate-validate-round-self-2026-11-09T03-00-43-284Z.stdout.txt",
+        "gate-validate-round-self-2026-11-09T03-00-43-284Z.stderr.txt"
+      ],
+      "timed_out": false,
+      "error": null
+    },
+    {
+      "group": "n1_baseline_tooling",
+      "round_hint": 1,
+      "id": "gate-runner-safety-self",
+      "command": "node tests/runner-safety.test.mjs",
+      "cwd": "/workspace/research-exel/eXeL-AI-Polling/gates/n9",
+      "status": "pass",
+      "exit_code": 0,
+      "duration_ms": 40,
+      "stdout_sha256": "7e8b204ad26b99d8ec9d0a7d08b19c09cb68d86f338fe13eb8702652b01c23e1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "evidence_files": [
+        "gate-runner-safety-self-2026-11-09T03-00-43-332Z.stdout.txt",
+        "gate-runner-safety-self-2026-11-09T03-00-43-332Z.stderr.txt"
+      ],
+      "timed_out": false,
+      "error": null
+    }
+  ],
+  "counts": {
+    "pass": 3,
+    "fail": 0,
+    "blocked": 0,
+    "not_available": 0,
+    "unverified": 0
+  },
+  "reminder": "test_count_is_not_pillar_score — do not convert counts to SSSES 100; AsM/MoT bodies not fabricated by this runner"
+}
