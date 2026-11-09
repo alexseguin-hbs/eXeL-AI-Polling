@@ -200,7 +200,11 @@ function SettingsLanguageSelector() {
           ))}
         </SelectContent>
       </Select>
-    </section>// ─── Cost Estimation Table ──────────────────────────────────────
+    </section>
+  );
+}
+
+// ─── Cost Estimation Table ──────────────────────────────────────
 
 /**
  * Moderator Settings → Cost Estimate (1,000 users) — exact panel from live UI.
@@ -303,10 +307,6 @@ function CostEstimateTable() {
         </div>
       )}
     </section>
-  );
-}
-
-
   );
 }
 
