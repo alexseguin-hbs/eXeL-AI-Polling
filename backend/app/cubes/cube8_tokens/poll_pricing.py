@@ -154,8 +154,14 @@ def quote_poll(q: PollQuoteInput) -> dict[str, Any]:
     }
     if tier == "cost_split":
         mod = int(math.ceil(total_cents / 2))
-        per = max(STRIPE_MIN_CHARGE_CENTS, int(math.ceil((total_cents - mod) / n)))
-        out.update({"creator_due_cents": mod, "participant_share_cents": per})
+        per = int(math.ceil((total_cents - mod) / n))
+        if per < STRIPE_MIN_CHARGE_CENTS:
+            # Rounding each share UP to Stripe's $0.50 minimum would collect far more than the 50% (N × $0.50).
+            # Never over-collect: the creator covers the whole price and participants pay nothing.
+            out.update({"creator_due_cents": total_cents, "participant_share_cents": 0,
+                        "split_note": "participant share below Stripe's $0.50 minimum — creator covers the full price"})
+        else:
+            out.update({"creator_due_cents": mod, "participant_share_cents": per})
     else:
         out.update({"creator_due_cents": total_cents, "participant_share_cents": 0})
     return out
