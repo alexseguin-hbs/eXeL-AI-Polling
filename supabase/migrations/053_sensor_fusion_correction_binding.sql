@@ -1,6 +1,6 @@
 -- 053 SensorFusion-2525: every Level-2 correction is bound to the signed-in member, and every
--- Applied live 2026-11-09 07:18 CST as migration sensor_fusion_correction_binding (history version 20261109131819); SIMULATED rolled-back proof 7/7.
 -- "different person" check ignores case and spacing. MoT decision B (2026-11-09).
+-- Applied live 2026-11-09 07:18 CST as migration sensor_fusion_correction_binding (history version 20261109131819); SIMULATED rolled-back proof 7/7.
 -- Closes the 044 gap: the corrections INSERT policy (044 lines 106-109) checked membership only, so a
 -- member could file a correction under someone else's name; 044's corrected_by <> labeled_by was case-sensitive.
 -- Additive only: new columns, functions, triggers, one RESTRICTIVE policy, new CHECK constraints.
