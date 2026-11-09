@@ -45,6 +45,8 @@ class AICostTracker:
         self.total_input_chars = 0
         self.total_output_chars = 0
         self.estimated_cost_usd = 0.0
+        self.rate_unknown = provider not in AI_COST_RATES
+        self.estimated_cost_usd_known = True  # flips False when any call lacks a rate
 
     def log_call(self, input_chars: int, output_chars: int) -> None:
         """Log a single AI call for cost tracking."""
@@ -52,8 +54,13 @@ class AICostTracker:
         self.total_input_chars += input_chars
         self.total_output_chars += output_chars
 
-        rates = AI_COST_RATES.get(self.provider, AI_COST_RATES["openai"])
-        # Rough token estimate: ~4 chars per token
+        rates = AI_COST_RATES.get(self.provider)
+        if rates is None:
+            # Unknown provider: do NOT fall back to openai pricing (would understate/misattribute).
+            self.rate_unknown = True
+            self.estimated_cost_usd_known = False
+            return
+        # Rough token estimate: ~4 chars per token (labeled estimate in cost_ledger)
         input_tokens = input_chars / 4
         output_tokens = output_chars / 4
         self.estimated_cost_usd += (
@@ -65,7 +72,11 @@ class AICostTracker:
         """Log an embedding call."""
         self.total_calls += 1
         self.total_input_chars += input_chars
-        rates = AI_COST_RATES.get(self.provider, AI_COST_RATES["openai"])
+        rates = AI_COST_RATES.get(self.provider)
+        if rates is None:
+            self.rate_unknown = True
+            self.estimated_cost_usd_known = False
+            return
         input_tokens = input_chars / 4
         self.estimated_cost_usd += (input_tokens / 1000) * rates["embed_per_1k"]
 
@@ -76,7 +87,12 @@ class AICostTracker:
             "total_calls": self.total_calls,
             "total_input_chars": self.total_input_chars,
             "total_output_chars": self.total_output_chars,
-            "estimated_cost_usd": round(self.estimated_cost_usd, 6),
+            # None when rate unknown — callers must not treat missing rate as $0.
+            "estimated_cost_usd": (
+                None if not self.estimated_cost_usd_known else round(self.estimated_cost_usd, 6)
+            ),
+            "rate_unknown": self.rate_unknown,
+            "rate_catalog_note": "AI_COST_RATES 2026-04; unknown provider not zero-filled",
         }
 
 

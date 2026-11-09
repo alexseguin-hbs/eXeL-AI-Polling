@@ -616,6 +616,32 @@ async def _fire_payment_received(db: AsyncSession, tx) -> None:
     )
 
 
+
+async def handle_payment_failed(
+    db: AsyncSession,
+    stripe_event: dict,
+) -> None:
+    """Mark matching PaymentTransaction failed (idempotent if already failed/completed)."""
+    obj = stripe_event.get("data", {}).get("object") or {}
+    pi_id = obj.get("id")
+    checkout_id = obj.get("id") if stripe_event.get("type", "").startswith("checkout") else None
+    tx = None
+    if pi_id and "payment_intent" in stripe_event.get("type", ""):
+        result = await db.execute(
+            select(PaymentTransaction).where(PaymentTransaction.stripe_payment_intent_id == pi_id)
+        )
+        tx = result.scalar_one_or_none()
+    elif checkout_id:
+        result = await db.execute(
+            select(PaymentTransaction).where(PaymentTransaction.stripe_checkout_session_id == checkout_id)
+        )
+        tx = result.scalar_one_or_none()
+    if tx and tx.status not in ("completed", "failed"):
+        tx.status = "failed"
+        await db.commit()
+        logger.info("cube8.payment.marked_failed", extra={"id": str(tx.id), "type": tx.transaction_type})
+
+
 # ---------------------------------------------------------------------------
 # Session Payment Status
 # ---------------------------------------------------------------------------

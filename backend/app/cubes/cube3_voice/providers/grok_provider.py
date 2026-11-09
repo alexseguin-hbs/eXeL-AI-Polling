@@ -87,7 +87,7 @@ class GrokSTT(STTProvider):
                 language_detected=getattr(response, "language", lang_hint) or lang_hint,
                 provider="grok",
                 audio_duration_sec=duration,
-                cost_usd=compute_stt_cost("grok", duration),
+                cost_usd=(compute_stt_cost("grok", duration) or 0.0),
             )
 
         except openai.APIError as e:

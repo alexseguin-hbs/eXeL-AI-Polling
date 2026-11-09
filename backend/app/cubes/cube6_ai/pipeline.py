@@ -232,6 +232,17 @@ async def run_pipeline(
     try:
         from app.models.ai_cost_log import AICostLog
         cost_summary = cost_tracker.summary()
+        # estimated_cost_usd may be None when provider rate is unknown — never coerce
+        # unknown → 0 in the ledger path; column is non-null Float so we skip persist
+        # when unknown (chars/calls still useful via usage_records).
+        _est = cost_summary.get("estimated_cost_usd")
+        if _est is None or cost_summary.get("rate_unknown"):
+            logger.warning(
+                "cube6.cost_log.rate_unknown_skip_persist",
+                provider=provider_name,
+                total_calls=cost_summary.get("total_calls"),
+            )
+            raise RuntimeError("rate_unknown_skip")  # caught below
         cost_log = AICostLog(
             session_id=session_id,
             phase="phase_b",
@@ -239,7 +250,7 @@ async def run_pipeline(
             total_calls=cost_summary["total_calls"],
             total_input_chars=cost_summary["total_input_chars"],
             total_output_chars=cost_summary["total_output_chars"],
-            estimated_cost_usd=cost_summary["estimated_cost_usd"],
+            estimated_cost_usd=_est,
             response_count=len(responses),
             duration_sec=duration,
         )

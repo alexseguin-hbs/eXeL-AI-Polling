@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { X, Check, Pipette, Mic, Shield, ChevronDown, ChevronUp, DollarSign, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +25,7 @@ import { TrinityColorPicker } from "@/components/trinity-color-picker";
 import { getSortedLanguages } from "@/lib/language-utils";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge"; // R-CORE · version-history badge (bottom-centre, two-click)
 import { fromLedgerJson } from "@/lib/2525-core/revisions";
+import { buildComboRows, COST_ASSUMPTIONS, FREE_TIER_CORRECTED } from "@/lib/provider-fee-catalog";
 import { SETTINGS_LEDGER } from "@/lib/2525-core/settings-ledger.gen"; // Settings slide-over append-only traceability ledger
 
 // R-CORE history for the Settings surface — normalized once at module scope via the shared adapter.
@@ -199,34 +200,22 @@ function SettingsLanguageSelector() {
           ))}
         </SelectContent>
       </Select>
-    </section>
-  );
-}
-
-// ─── Cost Estimation Table ──────────────────────────────────────
+    </section>// ─── Cost Estimation Table ──────────────────────────────────────
 
 /**
- * AI cost estimates for 1000 users × 1 response × 111 words.
- * 500 type / 500 voice (when V2T is enabled by Moderator).
- * Summary = Phase A (single-prompt JSON) + Phase B (theming ~30% overhead).
- * V2T = 500 voice users × 0.74 min audio each = 370 min total.
+ * Moderator Settings → Cost Estimate (1,000 users) — exact panel from live UI.
+ * Assumptions: 1,000 users × 1 response × 111 words | 500 type / 500 voice.
+ * Summary = Phase A + Phase B (~30% overhead) [UI_ESTIMATE_STATIC].
+ * V2T = 500 voice × 0.74 billable audio minutes × catalog $/min.
+ * Totals are UI estimates — not invoice-verified. Free tier: user not charged ≠ provider $0.
  */
-const COST_COMBOS = [
-  { summary: "OpenAI",  v2t: "Whisper",   sumCost: 0.33,  v2tCost: 2.22,  isDefault: true },
-  { summary: "Gemini",  v2t: "Gemini",    sumCost: 0.22,  v2tCost: 0.06,  isDefault: false },
-  { summary: "Gemini",  v2t: "Whisper",   sumCost: 0.22,  v2tCost: 2.22,  isDefault: false },
-  { summary: "Grok",    v2t: "Whisper",   sumCost: 5.25,  v2tCost: 2.22,  isDefault: false },
-  { summary: "Claude",  v2t: "Whisper",   sumCost: 7.87,  v2tCost: 2.22,  isDefault: false },
-  { summary: "Claude",  v2t: "Azure",     sumCost: 7.87,  v2tCost: 5.92,  isDefault: false },
-  { summary: "Claude",  v2t: "AWS",       sumCost: 7.87,  v2tCost: 8.88,  isDefault: false },
-] as const;
-
 function CostEstimateTable() {
   const { t } = useLexicon();
   const [showCosts, setShowCosts] = useState(false);
+  const { rows, freshness } = useMemo(() => buildComboRows("2026-04-01T00:00:00Z"), []);
 
   return (
-    <section>
+    <section data-testid="cost-estimate-panel">
       <button
         onClick={() => setShowCosts(!showCosts)}
         className="flex w-full items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:bg-accent/50"
@@ -234,20 +223,27 @@ function CostEstimateTable() {
         <div className="flex items-center gap-2">
           <DollarSign className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">{t("cube1.settings.cost_estimate_heading")}</span>
+          <span className="text-[8px] bg-muted text-muted-foreground rounded px-1 py-0.5 uppercase font-semibold">
+            {t("cube1.settings.cost_estimate_badge")}
+          </span>
         </div>
         {showCosts ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
       </button>
 
       {showCosts && (
         <div className="mt-3 rounded-lg border border-border overflow-hidden">
-          {/* Header */}
-          <div className="bg-muted/50 px-3 py-2">
+          <div className="bg-muted/50 px-3 py-2 space-y-1">
             <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-              1,000 users &times; 1 response &times; 111 words &nbsp;|&nbsp; 500 type / 500 voice
+              {COST_ASSUMPTIONS.users.toLocaleString()} users &times; {COST_ASSUMPTIONS.responsesPerUser} response &times;{" "}
+              {COST_ASSUMPTIONS.wordsPerResponse} words &nbsp;|&nbsp; {COST_ASSUMPTIONS.typeUsers} type /{" "}
+              {COST_ASSUMPTIONS.voiceUsers} voice
+            </p>
+            <p className="text-[9px] text-muted-foreground font-mono">
+              catalog {freshness.catalogVersion} · checked {freshness.checkedAt.slice(0, 10)} · V2T unit = billable audio min
+              {freshness.stale ? ` · ${t("cube1.settings.cost_rates_stale")}` : ""}
             </p>
           </div>
 
-          {/* Table header */}
           <div className="grid grid-cols-4 gap-0 px-3 py-1.5 border-b border-border bg-muted/30 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
             <span>{t("cube1.settings.cost_combo")}</span>
             <span className="text-right">{t("cube1.settings.cost_summary")}</span>
@@ -255,10 +251,9 @@ function CostEstimateTable() {
             <span className="text-right">{t("cube1.settings.cost_total")}</span>
           </div>
 
-          {/* Rows */}
-          {COST_COMBOS.map((c, i) => {
-            const total = c.sumCost + c.v2tCost;
-            const label = `${c.summary} + ${c.v2t}`;
+          {rows.map((c, i) => {
+            const label = `${c.summaryLabel} + ${c.v2tLabel}`;
+            const total = c.totalUsd;
             return (
               <div
                 key={i}
@@ -266,7 +261,7 @@ function CostEstimateTable() {
                   c.isDefault ? "bg-primary/5" : ""
                 }`}
               >
-                <span className="text-xs font-medium flex items-center gap-1">
+                <span className="text-xs font-medium flex items-center gap-1 flex-wrap">
                   {label}
                   {c.isDefault && (
                     <span className="text-[8px] bg-primary/20 text-primary rounded px-1 py-0.5 uppercase font-semibold">
@@ -275,32 +270,43 @@ function CostEstimateTable() {
                   )}
                 </span>
                 <span className="text-xs text-muted-foreground text-right font-mono">
-                  ${c.sumCost.toFixed(2)}
+                  {c.summaryUsd != null ? `$${c.summaryUsd.toFixed(2)}` : "—"}
                 </span>
                 <span className="text-xs text-muted-foreground text-right font-mono">
-                  ${c.v2tCost.toFixed(2)}
+                  {c.v2tUsd != null ? `$${c.v2tUsd.toFixed(2)}` : t("cube1.settings.cost_unknown_rate")}
                 </span>
-                <span className={`text-xs text-right font-mono font-semibold ${
-                  total < 1 ? "text-green-500" : total < 5 ? "text-foreground" : "text-orange-400"
-                }`}>
-                  ${total.toFixed(2)}
+                <span
+                  className={`text-xs text-right font-mono font-semibold ${
+                    total == null
+                      ? "text-amber-500"
+                      : total < 1
+                        ? "text-green-500"
+                        : total < 5
+                          ? "text-foreground"
+                          : "text-orange-400"
+                  }`}
+                >
+                  {total != null ? `$${total.toFixed(2)}` : "—"}
                 </span>
               </div>
             );
           })}
 
-          {/* Footer note */}
           <div className="px-3 py-2 bg-muted/30 space-y-1">
-            <p className="text-[9px] text-muted-foreground">
-              {t("cube1.settings.cost_note_formula")}
-            </p>
-            <p className="text-[9px] text-muted-foreground">
-              {t("cube1.settings.cost_note_free")}
+            <p className="text-[9px] text-muted-foreground">{t("cube1.settings.cost_note_formula")}</p>
+            <p className="text-[9px] text-muted-foreground">{t("cube1.settings.cost_audio_denom")}</p>
+            <p className="text-[9px] text-muted-foreground">{t("cube1.settings.cost_note_free")}</p>
+            <p className="text-[9px] text-muted-foreground font-mono">
+              {FREE_TIER_CORRECTED} · prices not auto-activated
             </p>
           </div>
         </div>
       )}
     </section>
+  );
+}
+
+
   );
 }
 

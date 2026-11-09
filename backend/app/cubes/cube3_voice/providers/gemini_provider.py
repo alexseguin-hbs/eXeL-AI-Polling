@@ -124,7 +124,7 @@ class GeminiSTT(STTProvider):
                 language_detected=lang_hint,
                 provider="gemini",
                 audio_duration_sec=duration,
-                cost_usd=compute_stt_cost("gemini", duration),
+                cost_usd=(compute_stt_cost("gemini", duration) or 0.0),
             )
 
         except Exception as e:

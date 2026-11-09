@@ -284,6 +284,55 @@ async def get_cost_estimate(
     return await payment_service.estimate_session_cost(db, session_id)
 
 
+
+
+@router.get("/sessions/{session_id}/cost-ledger")
+async def get_session_cost_ledger(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_session_owner("moderator", "admin", leads_read=True)),
+):
+    """Per-session Theme02 + STT cost rollup (auth: session owner / admin).
+
+    Builds from recorded VoiceResponse + AICostLog only — does not invent usage.
+    Durable Supabase table is review migration 033 (not applied here).
+    """
+    from app.cubes.cube8_tokens.session_cost_service import build_session_cost_rollup
+    return await build_session_cost_rollup(
+        db, session_id, user_id=user.user_id, role=user.role,
+    )
+
+
+@router.get("/payments/provider-fees")
+async def get_provider_fees():
+    """Moderator Settings Cost Estimate source — versioned provider fees + UI combos.
+
+    Returns UI_ESTIMATE labels; ``invoice_accurate`` is always false here.
+    Free-tier note clarifies user-not-charged ≠ provider cost zero.
+    """
+    from app.cubes.cube8_tokens.fee_catalog import public_fee_payload
+    return public_fee_payload()
+
+
+@router.post("/payments/provider-fees/refresh")
+async def refresh_provider_fees(
+    user: CurrentUser = Depends(require_role("admin", "lead_developer")),
+):
+    """Weekly server-side fee catalog reaffirmation (admin). Does not scrape or write Stripe prices.
+
+    Deployment cron should call this weekly — see backend/deploy/provider-fee-weekly-refresh.md.
+    Persists to backend/data/provider_fee_catalog.json when writable.
+    """
+    from app.cubes.cube8_tokens.fee_catalog import mark_weekly_check, freshness, public_fee_payload
+    cat = mark_weekly_check(source="admin_or_cron_refresh", persist=True)
+    return {
+        "ok": True,
+        "freshness": freshness(cat),
+        "prior_versions_retained": len(cat.get("prior_versions") or []),
+        "payload": public_fee_payload(),
+    }
+
+
 @router.get("/sessions/{session_id}/tokens", response_model=list[TokenLedgerRead])
 async def get_session_tokens(
     session_id: uuid.UUID,
