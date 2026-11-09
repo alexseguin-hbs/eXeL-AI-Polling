@@ -11,6 +11,16 @@ import { bottomRightLine, codexLine, codexStamp, emptyPairXml, pairNames, readyF
 import { IMAGE_INTAKE, VIDEO_INTAKE, pictureStem, pngSet, type VideoSource } from "@/lib/sensor-fusion/frames";
 import { signSingleHelix, signUpperLeft } from "@/lib/light-codex";
 import { crossReview, emptyClock, finalSubmission, level1Left, levelMetrics, nextFor, noteWork, readClock, saveMark, sameMember, siTokens, simulateClass, startClock, stopClock, workflowLines, writeClock, type WorkClock } from "@/lib/sensor-fusion/workflow";
+import {
+  associatePngXml,
+  authorizeReviewer,
+  progressUpsertRow,
+  projectJsonAllowed,
+  requireMemberSession,
+  serializeTeamProgress,
+  settingsUpsertRow,
+  type ProjectSettings,
+} from "@/lib/sensor-fusion/collab";
 import { supabase } from "@/lib/supabase";
 import {
   COLORS,
@@ -2125,6 +2135,55 @@ export default function SensorFusion() {
     }
   }
 
+  async function syncTeamProgressToProject(owner: string, noteOnFail = false) {
+    if (!supabase) {
+      if (noteOnFail) setUploadNote("The project is not connected from this page. Team progress stayed on this device only.");
+      return { ok: false as const, note: "not connected" };
+    }
+    const metrics = levelMetrics(
+      shots.map((shot) => {
+        const xml = readXmlStore()[pictureName(shot)];
+        return xml ? readVoc(xml) : { id: pictureName(shot), boxes: [] };
+      }),
+      operator || (guest ? "GUEST" : "guest"),
+    );
+    const snap = {
+      projectId: SENSOR_FUSION_PROJECT,
+      clock,
+      pictures: metrics.pictures,
+      level1: metrics.level1,
+      level2: metrics.level2,
+      reviewLeft: metrics.reviewLeft,
+      updatedAt: new Date().toISOString(),
+      memberId: owner,
+    };
+    // Local serialize always works; cloud upsert is gated and fails honestly if the table is not applied yet.
+    void serializeTeamProgress(snap);
+    const row = progressUpsertRow(owner, snap);
+    const written = await supabase.from("sensor_fusion_progress").upsert(row);
+    if (written.error) {
+      if (noteOnFail) setUploadNote(written.error.message || "Team progress could not be saved to the project. It stayed on this device.");
+      return { ok: false as const, note: written.error.message || "progress upsert failed" };
+    }
+    return { ok: true as const };
+  }
+
+  async function syncProjectSettingsToProject(owner: string) {
+    if (!supabase) return { ok: false as const, note: "not connected" };
+    const projectSettings: ProjectSettings = {
+      projectId: SENSOR_FUSION_PROJECT,
+      scheme: scheme === "custom" ? `custom:${customHex}` : scheme,
+      coral,
+      alerts,
+      updatedAt: new Date().toISOString(),
+      updatedBy: owner,
+    };
+    const row = settingsUpsertRow(owner, projectSettings);
+    const written = await supabase.from("sensor_fusion_project_settings").upsert(row);
+    if (written.error) return { ok: false as const, note: written.error.message || "settings upsert failed" };
+    return { ok: true as const };
+  }
+
   async function uploadSet() {
     if (!shots.length) {
       setUploadNote("Capture images before you upload a set.");
@@ -2135,21 +2194,40 @@ export default function SensorFusion() {
       const xml = store[pictureName(shot)];
       return xml ? readVoc(xml) : null;
     });
-    if (!pages.every((page) => page && readyForProject(page.boxes))) {
+    const jsonGate = projectJsonAllowed(pages.filter(Boolean).map((page) => ({ boxes: page!.boxes })));
+    if (!pages.every((page) => page && readyForProject(page.boxes)) || !jsonGate.ok) {
       setUploadNote("Level 2 is still needed. A different person reviews each box before the project can take this set.");
       setTrainStatus("");
       return;
+    }
+    for (const page of pages) {
+      if (!page) continue;
+      for (const box of page.boxes) {
+        const gate = authorizeReviewer(box.by, box.reviewer);
+        if (!gate.ok) {
+          setUploadNote(gate.note);
+          setTrainStatus("");
+          return;
+        }
+      }
+      const linked = associatePngXml(page.file || "picture.png");
+      const stem = (page.file || linked.png).replace(/\.[^.]+$/, "");
+      if (stem !== linked.stem) {
+        setUploadNote(`Picture and XML must share one name (${linked.png} + ${linked.xml}).`);
+        return;
+      }
     }
     if (!supabase) {
       setUploadNote("The project is not connected from this page. The pictures and XML stayed in the folder.");
       return;
     }
     const { data: session } = await supabase.auth.getSession();
-    const owner = session.session?.user?.id || "";
-    if (!owner) {
-      setUploadNote("Sign in as a member of the sensor-fusion project. The pictures and XML stayed in the folder.");
+    const gated = requireMemberSession(session.session);
+    if (!gated.ok) {
+      setUploadNote(gated.note);
       return;
     }
+    const owner = gated.owner;
     let sent = 0;
     for (let index = 0; index < shots.length; index += 1) {
       const shot = shots[index];
@@ -2201,6 +2279,11 @@ export default function SensorFusion() {
     const line = `${sent} pictures are in the sensor-fusion project.`;
     setTrainStatus(line);
     setUploadNote(line);
+    const progress = await syncTeamProgressToProject(owner, false);
+    const settings = await syncProjectSettingsToProject(owner);
+    if (!progress.ok || !settings.ok) {
+      setUploadNote(`${line} Team progress/settings sync is waiting on the collaborative tables (migration 044) or membership.`);
+    }
   }
 
   async function saveToNewFolder() {
