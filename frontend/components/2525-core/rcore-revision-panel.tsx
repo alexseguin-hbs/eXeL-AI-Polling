@@ -404,7 +404,15 @@ export function RCoreRevisionPanel({
                               <span key={d} style={{ fontSize: 9, fontFamily: "ui-monospace, monospace", color: "#a78bfa", border: "1px solid #a78bfa55", borderRadius: 4, padding: "0 5px", lineHeight: "15px" }}>{d}</span>
                             ))}
                             {r.commit && (
-                              <span style={{ fontSize: 10, color: "#34d399", fontFamily: "ui-monospace, monospace" }} title={t("rcore.rev_short")}><span aria-hidden>⎇ </span>{r.commit}</span>
+                              <a
+                                href={`https://github.com/alexseguin-hbs/eXeL-AI-Polling/commit/${r.commit}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                style={{ fontSize: 10, color: "#34d399", fontFamily: "ui-monospace, monospace", textDecoration: "underline", textUnderlineOffset: 2 }}
+                                title={t("rcore.commit_link")}
+                                aria-label={`${t("rcore.commit_link")}: ${r.commit}`}
+                              ><span aria-hidden>⎇ </span>{r.commit}</a>
                             )}
                           </div>
                         )}

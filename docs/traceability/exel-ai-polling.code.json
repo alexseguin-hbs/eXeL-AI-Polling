@@ -1,0 +1,173 @@
+{
+ "section": "eXeL AI Polling",
+ "route": "/eXeL-AI-Polling",
+ "model": "git-scoped",
+ "cap": {
+  "bytes": 120000,
+  "lines": 2000
+ },
+ "areas": [
+  {
+   "key": "rcore",
+   "name": "R-CORE",
+   "cells": [
+    0,
+    1,
+    3,
+    4,
+    5,
+    8,
+    14
+   ]
+  },
+  {
+   "key": "console",
+   "name": "Moderator console",
+   "cells": [
+    2,
+    11,
+    17,
+    19,
+    20,
+    23,
+    26
+   ]
+  },
+  {
+   "key": "session",
+   "name": "Join & session",
+   "cells": [
+    6,
+    7,
+    15,
+    16,
+    24,
+    25
+   ]
+  },
+  {
+   "key": "crs",
+   "name": "CRS",
+   "cells": [
+    9,
+    10,
+    12,
+    13,
+    18,
+    21,
+    22
+   ]
+  }
+ ],
+ "revisions": [
+  {
+   "rev": 1,
+   "commit": "3f09955fc0467c415373fb276b3ca7cb9c02eea2",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      8,
+      14
+     ],
+     "files": [
+      {
+       "path": "docs/traceability/exel-ai-polling.ledger.json",
+       "blob": "85585e2adc446c3eff74dc32bc57532bbcec7e53"
+      },
+      {
+       "path": "frontend/app/eXeL-AI-Polling/page.tsx",
+       "blob": "cd98b32b0a0b476c333e7714ed89ed796bde34a8"
+      }
+     ],
+     "add": 96,
+     "del": 0,
+     "bytes": 5860,
+     "lines": 102,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 2,
+   "commit": "71f1abc",
+   "status": "no-code-change",
+   "areas": []
+  },
+  {
+   "rev": 3,
+   "commit": "6d86a16",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "crs",
+     "name": "CRS",
+     "cells": [
+      9,
+      10,
+      12,
+      13,
+      18,
+      21,
+      22
+     ],
+     "files": [
+      {
+       "path": "Requirements.txt",
+       "blob": "ab738de8d4bc695e715ba5b6d8d12f600ad57bc3"
+      }
+     ],
+     "add": 32,
+     "del": 0,
+     "bytes": 6714,
+     "lines": 66,
+     "status": "recorded"
+    }
+   ]
+  },
+  {
+   "rev": 4,
+   "commit": "3f09955fc0467c415373fb276b3ca7cb9c02eea2",
+   "commitSource": "ledger-row",
+   "status": "recorded",
+   "areas": [
+    {
+     "key": "rcore",
+     "name": "R-CORE",
+     "cells": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      8,
+      14
+     ],
+     "files": [
+      {
+       "path": "docs/traceability/exel-ai-polling.ledger.json",
+       "blob": "85585e2adc446c3eff74dc32bc57532bbcec7e53"
+      },
+      {
+       "path": "frontend/app/eXeL-AI-Polling/page.tsx",
+       "blob": "cd98b32b0a0b476c333e7714ed89ed796bde34a8"
+      }
+     ],
+     "add": 96,
+     "del": 0,
+     "bytes": 5860,
+     "lines": 102,
+     "status": "recorded"
+    }
+   ]
+  }
+ ]
+}

@@ -1,8 +1,8 @@
 {
-  "note": "EVERY top-level route under frontend/app is classified here, once. Operator 2026-10-14 (DD-55): 'each innovation project gets its own rcore panel (drone, security, light codex, Vision-2525, etc)', and asked what counts: 'all projects that are off main. /project-2525'. A pure route-shape rule cannot be the test on its own — 26 top-level routes carry a page and sixteen of them are utilities — so the rule survives in a stronger form: every route is CLASSIFIED here, and a row classified 'project' must have a ledger, a panel and (when the code record lands) a code record. The gate then never guesses; the row is the decision, and a 'utility' row must say why in one line, so an exclusion is on the record rather than in someone's head. Append-only in spirit: change a row rather than dropping it, and say why in its own note.",
+  "note": "EVERY top-level route under frontend/app is classified here, once. Operator 2026-10-14 (DD-55): 'each innovation project gets its own rcore panel (drone, security, light codex, Vision-2525, etc)', and asked what counts: 'all projects that are off main. /project-2525'. A pure route-shape rule cannot be the test on its own \u2014 26 top-level routes carry a page and sixteen of them are utilities \u2014 so the rule survives in a stronger form: every route is CLASSIFIED here, and a row classified 'project' must have a ledger, a panel and (when the code record lands) a code record. The gate then never guesses; the row is the decision, and a 'utility' row must say why in one line, so an exclusion is on the record rather than in someone's head. Append-only in spirit: change a row rather than dropping it, and say why in its own note.",
   "kinds": {
     "project": "An innovation project off main. MUST have: its own append-only ledger under docs/traceability, a mounted R-CORE badge + panel over that ledger, and (DD-53) a code record per revision.",
-    "alias": "A second address for a project that is already classified. Renders the SAME component, so it inherits that project's panel and must NOT have a ledger of its own — one record per project, never two.",
+    "alias": "A second address for a project that is already classified. Renders the SAME component, so it inherits that project's panel and must NOT have a ledger of its own \u2014 one record per project, never two.",
     "surface": "Part of a project rather than a project: a reader, a viewer or a sub-page reached from one. It inherits its project's record.",
     "utility": "Not a project: a function of the app (auth, joining, a session, a redirect). No ledger, no panel. Every utility row carries a one-line why."
   },
@@ -13,7 +13,7 @@
       "ledger": "architect-2525.ledger.json",
       "panel": "components/architect-2525/command-ux1.tsx",
       "codeRecord": "git-scoped",
-      "note": "DD-101 / R2b (2026-11-08): the fourth area 'model' was added so the Room Designer DATA MODEL — the architect-* and room-* primitives in frontend/lib/, which live outside components/architect-2525/ but ARE Architect-2525 — is on the code record. Without it, a revision that lands only in those lib files (R2b did) recorded as 'no-code-change' on the newest row, which fails his minimum bar (2026.10.17). Git-pathspec globs are used for the lib-file class so a future architect lib file is covered too, not just the ones that existed when this was written. No other project claims architect-*/room-*/mep-runs (verified 2026-11-08).",
+      "note": "DD-101 / R2b (2026-11-08): the fourth area 'model' was added so the Room Designer DATA MODEL \u2014 the architect-* and room-* primitives in frontend/lib/, which live outside components/architect-2525/ but ARE Architect-2525 \u2014 is on the code record. Without it, a revision that lands only in those lib files (R2b did) recorded as 'no-code-change' on the newest row, which fails his minimum bar (2026.10.17). Git-pathspec globs are used for the lib-file class so a future architect lib file is covered too, not just the ones that existed when this was written. No other project claims architect-*/room-*/mep-runs (verified 2026-11-08).",
       "paths": [
         "frontend/components/architect-2525/",
         "frontend/app/Architect-2525/",
@@ -238,7 +238,7 @@
         },
         {
           "key": "fire",
-          "name": "Target · Approve · Fire",
+          "name": "Target \u00b7 Approve \u00b7 Fire",
           "ids": [
             "designate",
             "approveDesig",
@@ -267,7 +267,7 @@
         },
         {
           "key": "mag",
-          "name": "Magazines · light · poses",
+          "name": "Magazines \u00b7 light \u00b7 poses",
           "ids": [
             "magWell",
             "magReload",
@@ -295,7 +295,7 @@
         },
         {
           "key": "capital",
-          "name": "Map · the Capitol lawn",
+          "name": "Map \u00b7 the Capitol lawn",
           "ids": [
             "CAP_RING",
             "capEnter",
@@ -307,7 +307,7 @@
         },
         {
           "key": "austin",
-          "name": "Map · City of Austin",
+          "name": "Map \u00b7 City of Austin",
           "ids": [
             "AUSTIN",
             "cityOfAustin"
@@ -315,7 +315,7 @@
         },
         {
           "key": "texas",
-          "name": "Map · State of Texas",
+          "name": "Map \u00b7 State of Texas",
           "ids": [
             "TEXAS",
             "LANDMARKS",
@@ -324,7 +324,7 @@
         },
         {
           "key": "match",
-          "name": "Match & teams · 1v1 · 3v3",
+          "name": "Match & teams \u00b7 1v1 \u00b7 3v3",
           "ids": [
             "QUALIFIED_MATCH",
             "lobbyCanLaunch",
@@ -442,7 +442,7 @@
       "kind": "project",
       "ledger": "light-codex.ledger.json",
       "panel": "app/light-codex/page.tsx",
-      "note": "His own answer when asked which Light Codex he meant (2026-10-14): \"The /light-codex world\" — this route and its cube, NOT the LIGHT CODEX comms module inside the Drone-2525 deck, which becomes COMM-2525 under DD-41 and is recorded in drone-2525.ledger.json. The badge is on the page shell, not inside LightCodexCube: the cube is a createPortal modal, so a badge inside it would be an overlay on the tool. Revisions 2–19 of its ledger were reconstructed from the repository's own commit history on 2026-10-14; rev 1 states the method and the exact command, and the record is forward-only after it.",
+      "note": "His own answer when asked which Light Codex he meant (2026-10-14): \"The /light-codex world\" \u2014 this route and its cube, NOT the LIGHT CODEX comms module inside the Drone-2525 deck, which becomes COMM-2525 under DD-41 and is recorded in drone-2525.ledger.json. The badge is on the page shell, not inside LightCodexCube: the cube is a createPortal modal, so a badge inside it would be an overlay on the tool. Revisions 2\u201319 of its ledger were reconstructed from the repository's own commit history on 2026-10-14; rev 1 states the method and the exact command, and the record is forward-only after it.",
       "open": "HIS CALL: the route carries no -2525 suffix although the launcher already calls it CODEX-2525, so it does not match his own /project-2525 glob. Rename the route, or let this row carry the exception.",
       "codeRecord": "git-scoped",
       "paths": [
@@ -590,7 +590,7 @@
       "kind": "surface",
       "of": "/SoI-2525",
       "ledger": "sign-doc.ledger.json",
-      "why": "Sign Doc — a FEATURE of SoI with its own ledger, not a project off main, so it keeps the ledger and gets no panel of its own."
+      "why": "Sign Doc \u2014 a FEATURE of SoI with its own ledger, not a project off main, so it keeps the ledger and gets no panel of its own."
     },
     {
       "route": "/api",
@@ -608,6 +608,54 @@
       "why": "The moderator's live polling screen (Cube 1/4)."
     },
     {
+      "route": "/eXeL-AI-Polling",
+      "kind": "project",
+      "ledger": "exel-ai-polling.ledger.json",
+      "panel": "app/eXeL-AI-Polling/page.tsx",
+      "codeRecord": "git-scoped",
+      "paths": [
+        "frontend/app/eXeL-AI-Polling/",
+        "frontend/app/dashboard/",
+        "frontend/app/join/",
+        "frontend/app/session/",
+        "docs/traceability/exel-ai-polling.ledger.json",
+        "Requirements.txt"
+      ],
+      "areas": [
+        {
+          "key": "rcore",
+          "name": "R-CORE",
+          "paths": [
+            "frontend/app/eXeL-AI-Polling/",
+            "docs/traceability/exel-ai-polling.ledger.json"
+          ]
+        },
+        {
+          "key": "console",
+          "name": "Moderator console",
+          "paths": [
+            "frontend/app/dashboard/"
+          ]
+        },
+        {
+          "key": "session",
+          "name": "Join & session",
+          "paths": [
+            "frontend/app/join/",
+            "frontend/app/session/"
+          ]
+        },
+        {
+          "key": "crs",
+          "name": "CRS",
+          "paths": [
+            "Requirements.txt"
+          ]
+        }
+      ],
+      "note": "Public R-CORE surface for the eXeL AI Polling product (2026-11-09). Live moderator console remains /dashboard (utility). This route exists so append-only revision history is readable without AuthGuard \u2014 Security-2525 Stage 2 pattern."
+    },
+    {
       "route": "/join",
       "kind": "utility",
       "why": "A participant joining a session by code or QR (Cube 1)."
@@ -621,7 +669,7 @@
       "route": "/soi-session",
       "kind": "utility",
       "ledger": "pod-session.ledger.json",
-      "why": "POD session — a FEATURE of SoI with its own ledger, not a project off main."
+      "why": "POD session \u2014 a FEATURE of SoI with its own ledger, not a project off main."
     },
     {
       "route": "/workspace",
@@ -638,7 +686,7 @@
     {
       "ledger": "create-doc.ledger.json",
       "panel": null,
-      "why": "Create Doc — a FEATURE of SoI (his rule: a project is off main). Keeps its ledger, gets no panel."
+      "why": "Create Doc \u2014 a FEATURE of SoI (his rule: a project is off main). Keeps its ledger, gets no panel."
     }
   ]
 }
