@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** eXeL AI Polling append-only traceability ledger — 16 entries, extracted at build time. */
+/** eXeL AI Polling append-only traceability ledger — 18 entries, extracted at build time. */
 export const EXEL_AI_POLLING_LEDGER: LedgerInput = {
   "section": "eXeL AI Polling",
   "route": "/eXeL-AI-Polling",
@@ -121,6 +121,20 @@ export const EXEL_AI_POLLING_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "R-CORE catch-up tip: public /eXeL-AI-Polling badge advanced through PR #17–#24/#20/#22/#23/#27/#28/#30 + run7 evidence baseline. Commit recovered from the row-adding commit (Stage 2 newest-revision code-record bar).",
       "commit": ""
+    },
+    {
+      "rev": 17,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #35 (merge ae9975dc): CRS-37.01 participant top-3-per-category ballot (Support/Concerns/Neutral, 3/2/1) + ranking_method picker on Create Poll; CRS-22.04 moderator final decision with transparency (POST /rankings/decision, reason ≥10 chars when not the group's #1; participants see group #1 + reason; final_decision broadcast; migration 056_session_final_decision, additive, applied before deploy); spectators/late joiners read GET /rankings/live with participant token (labels/scores/counts only); Theme02 labels stored as plain text (no &#x27;) and Theme01 wording variants no longer silently re-binned to Neutral (root cause of the Concerns theme under Neutral). Status: verified.",
+      "commit": "ae9975d"
+    },
+    {
+      "rev": 18,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #37 (merge f5d215e4): API_INSTANCE api-v1r; API deployed (CF version f164261f) and live-verified on isolated SIMULATED session (offline AI, no charge): 21/21 checks — top3 ballots accepted, live points = hand count, spectator read before/after votes, forged token 403, participant cannot decide (401), non-#1 without reason 400, decision differs → participant + spectator see group #1 and reason, final_decision broadcast received. Evidence: fleet/voting-live/proof/gaps/gaps-proof-evidence.json. Status: verified.",
+      "commit": "f5d215e"
     }
   ]
 };
