@@ -162,6 +162,7 @@ def get_summarization_provider(name: str) -> SummarizationProvider:
             timeout_s=_num(getattr(settings, "ai_call_timeout_s", None), 20.0),
             hedge_after_s=_num(getattr(settings, "ai_hedge_after_s", None), 2.5),
             max_inflight=_num(getattr(settings, "ai_vendor_max_inflight", None), 48),
+            mode=v if isinstance(v := getattr(settings, "ai_vendor_mode", None), str) else "speed_rr",
         )
 
     raise AIProviderUnavailableError(
