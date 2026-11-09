@@ -90,7 +90,7 @@ class WhisperSTT(STTProvider):
                 language_detected=getattr(response, "language", lang_hint) or lang_hint,
                 provider="whisper",
                 audio_duration_sec=duration,
-                cost_usd=compute_stt_cost("whisper", duration),
+                cost_usd=(compute_stt_cost("whisper", duration) or 0.0),
             )
 
         except openai.APIError as e:

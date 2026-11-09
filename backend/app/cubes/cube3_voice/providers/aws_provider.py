@@ -220,7 +220,7 @@ class AWSTranscribeSTT(STTProvider):
                 language_detected=aws_language.split("-")[0],
                 provider="aws",
                 audio_duration_sec=dur,
-                cost_usd=compute_stt_cost("aws", dur),
+                cost_usd=(compute_stt_cost("aws", dur) or 0.0),
             )
 
         finally:

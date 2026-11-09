@@ -51,9 +51,15 @@ STT_COST_RATES: dict[str, float] = {
 }
 
 
-def compute_stt_cost(provider: str, duration_sec: float) -> float:
-    """Compute estimated cost for an STT call based on provider rate and audio duration."""
-    rate = STT_COST_RATES.get(provider, 0.0)
+def compute_stt_cost(provider: str, duration_sec: float) -> float | None:
+    """Compute estimated STT cost from the versioned rate table.
+
+    Unknown providers return ``None`` (not ``0.0``) so callers/ledgers can flag
+    unknown rates instead of understating cost as free.
+    """
+    if provider not in STT_COST_RATES:
+        return None
+    rate = STT_COST_RATES[provider]
     return round(rate * (duration_sec / 60.0), 6)
 
 

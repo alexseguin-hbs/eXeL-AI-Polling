@@ -153,7 +153,12 @@ const shared: TranslationEntry[] = [
   { key: "cube1.settings.cost_total", englishDefault: "Total", context: "Cost table column header — total cost", cubeId: 1 },
   { key: "cube1.settings.cost_default", englishDefault: "default", context: "Cost table default provider badge", cubeId: 1 },
   { key: "cube1.settings.cost_note_formula", englishDefault: "Summary = Phase A summarization + Phase B theming (~30% overhead). V2T = 500 voice users × 0.74 min audio each.", context: "Cost table formula explanation", cubeId: 1 },
-  { key: "cube1.settings.cost_note_free", englishDefault: "Free tier (≤19 users): effectively $0.00 on any provider.", context: "Cost table free tier note", cubeId: 1 },
+  { key: "cube1.settings.cost_note_free", englishDefault: "Free tier (≤19 users): participants are not charged a session fee; provider STT/Theme02 costs may still accrue (tracked on the session ledger).", context: "Cost table free tier note — user not charged ≠ provider cost zero", cubeId: 1 },
+  { key: "cube1.settings.cost_estimate_badge", englishDefault: "UI estimate", context: "Badge that panel totals are not invoice-verified", cubeId: 1 },
+  { key: "cube1.settings.cost_rates_stale", englishDefault: "Rates stale — weekly refresh due", context: "Shown when fee catalog checked_at older than 7 days", cubeId: 1 },
+  { key: "cube1.settings.cost_unknown_rate", englishDefault: "rate unknown", context: "Shown when V2T provider has no catalog rate", cubeId: 1 },
+  { key: "cube1.settings.cost_audio_denom", englishDefault: "V2T $/min = billable audio minutes (not session clock)", context: "Denominator clarification", cubeId: 1 },
+
   // Error states
   { key: "shared.error.something_wrong", englishDefault: "Something went wrong", context: "Error boundary heading", cubeId: 0 },
   { key: "shared.error.unexpected", englishDefault: "An unexpected error occurred. Please try refreshing the page.", context: "Error boundary description", cubeId: 0 },

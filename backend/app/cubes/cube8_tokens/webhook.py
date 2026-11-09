@@ -65,16 +65,36 @@ async def stripe_webhook(
         logger.warning("cube8.webhook.no_signature_verification (dev mode)")
 
     event_type = event.get("type", "")
+    event_id = event.get("id") or ""
 
-    if event_type in ("checkout.session.completed", "payment_intent.succeeded"):
-        await payment_service.handle_payment_completed(db, event)
-        logger.info("cube8.webhook.processed", extra={"type": event_type})
+    # Duplicate-event prevention (in-process; durable table in migration 033 review file).
+    from app.cubes.cube8_tokens.payment_idempotency import DEFAULT_WEBHOOK_DEDUPE
+    if event_id and DEFAULT_WEBHOOK_DEDUPE.already_processed(event_id):
+        logger.info("cube8.webhook.duplicate_ignored", extra={"event_id": event_id, "type": event_type})
+        return {"status": "ok", "duplicate": True}
 
-    elif event_type == "payment_intent.payment_failed":
+    if event_type in (
+        "checkout.session.completed",
+        "checkout.session.async_payment_succeeded",
+        "payment_intent.succeeded",
+    ):
+        # Fulfill only when Checkout payment_status is not unpaid (Stripe best practice).
+        obj = event.get("data", {}).get("object") or {}
+        if event_type.startswith("checkout.session.") and obj.get("payment_status") == "unpaid":
+            logger.info("cube8.webhook.checkout_unpaid_skip", extra={"type": event_type, "id": obj.get("id")})
+        else:
+            await payment_service.handle_payment_completed(db, event)
+            logger.info("cube8.webhook.processed", extra={"type": event_type, "event_id": event_id})
+
+    elif event_type in ("payment_intent.payment_failed", "checkout.session.async_payment_failed"):
         obj = event["data"]["object"]
+        await payment_service.handle_payment_failed(db, event)
         logger.warning(
             "cube8.webhook.payment_failed",
-            extra={"pi_id": obj.get("id"), "error": obj.get("last_payment_error", {}).get("message")},
+            extra={"pi_id": obj.get("id"), "error": (obj.get("last_payment_error") or {}).get("message")},
         )
+
+    if event_id:
+        DEFAULT_WEBHOOK_DEDUPE.mark_processed(event_id)
 
     return {"status": "ok"}

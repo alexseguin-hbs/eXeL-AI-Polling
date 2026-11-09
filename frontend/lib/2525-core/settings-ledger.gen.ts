@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** Settings append-only traceability ledger — 5 entries, extracted at build time. */
+/** Settings append-only traceability ledger — 6 entries, extracted at build time. */
 export const SETTINGS_LEDGER: LedgerInput = {
   "section": "Settings",
   "route": "Settings slide-over",
@@ -43,6 +43,13 @@ export const SETTINGS_LEDGER: LedgerInput = {
       "date": "2026-09-25",
       "kind": "decision",
       "text": "R-CORE version-history badge mounted inside the SETTINGS slide-over (Stage 2): it appears bottom-centre while Settings is open and, on two clicks, opens the R-CORE · Version History compare panel over this surface's own append-only ledger — so the evolution of Settings is itself traceable through the same compare tool as more features land (operator 2026-09-25).",
+      "commit": ""
+    },
+    {
+      "rev": 6,
+      "date": "2026-11-08",
+      "kind": "release",
+      "text": "Cost Estimate panel (1,000 users) gains catalog-backed rates with freshness (catalog version / checked date / stale), UI_ESTIMATE badge, billable-audio-minute denominator for V2T $/min, unknown rates shown as 'rate unknown' (never silent $0), and corrected free-tier footer: participants not charged ≠ provider cost zero. Summary combo heritage totals preserved as UI_ESTIMATE_STATIC; Azure V2T flagged unknown until catalog override. Weekly server-side fee reaffirmation is reviewed config only (not activated). Session cost ledger API + migration 033 are review-only — no live Supabase apply; invoice_accurate remains false until genuine reconcile.",
       "commit": ""
     }
   ]
