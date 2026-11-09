@@ -4,7 +4,7 @@
 
 import type { LedgerInput } from "@/lib/2525-core/revisions";
 
-/** eXeL AI Polling append-only traceability ledger — 17 entries, extracted at build time. */
+/** eXeL AI Polling append-only traceability ledger — 19 entries, extracted at build time. */
 export const EXEL_AI_POLLING_LEDGER: LedgerInput = {
   "section": "eXeL AI Polling",
   "route": "/eXeL-AI-Polling",
@@ -128,6 +128,20 @@ export const EXEL_AI_POLLING_LEDGER: LedgerInput = {
       "kind": "decision",
       "text": "BEST PRACTICE for scaling Theme02 toward a 1M poll (CRS-09.08.01–.06; owner steer t162u–t165u, Tesla/SpaceX method). The original notebook (333→111→33; Theme01 'Supporting Comments' / 'Risk & Concerns' / 'Neutral Comments' with <65% → Neutral; shuffle into samples of 10 → 3 themes; pool → 9 → 6 → 3; assign Theme2_9/6/3) is the semantic contract — only scheduling changes. (1) Delete the part: ≤33-word inputs skip summarization; Theme01 classifies 25 responses per request; 2 samples of 10 per request. (2) Parallel engines: xAI primary, OpenAI then Gemini failover, per-call timeouts, hedge at 1.1×p95 of the call kind, client pacing under each vendor's RPM (xAI 1,800/min), circuits for credit/auth failures. (3) Streaming line: each finished sample broadcasts theme_batch_progress; next step is classifying and theming samples DURING polling so only reduce + assign remain after close. (4) Tree reduce: parallel chunks of 60 → 9 (names only) until one prompt fits, then one request returns 9 → 6 → 3; cosine assignment on cached embeddings, LLM fallback. (5) Telemetry: stage_ms, per-vendor calls/hedges/failures/USD, coverage %, convergence of top-3 shares vs samples. (6) Test to failure and publish honestly: on the owner's CSVs, per-request output speed (~90–100 tokens/s) and vendor RPM are the binding limits. Status: in progress — a release row with merge SHA and live evidence follows.",
       "commit": ""
+    },
+    {
+      "rev": 18,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #35 (merge ae9975dc): CRS-37.01 participant top-3-per-category ballot (Support/Concerns/Neutral, 3/2/1) + ranking_method picker on Create Poll; CRS-22.04 moderator final decision with transparency (POST /rankings/decision, reason ≥10 chars when not the group's #1; participants see group #1 + reason; final_decision broadcast; migration 056_session_final_decision, additive, applied before deploy); spectators/late joiners read GET /rankings/live with participant token (labels/scores/counts only); Theme02 labels stored as plain text (no &#x27;) and Theme01 wording variants no longer silently re-binned to Neutral (root cause of the Concerns theme under Neutral). Status: verified.",
+      "commit": "ae9975d"
+    },
+    {
+      "rev": 19,
+      "date": "2026-11-09",
+      "kind": "release",
+      "text": "Verified — PR #37 (merge f5d215e4): API_INSTANCE api-v1r; API deployed (CF version f164261f) and live-verified on isolated SIMULATED session (offline AI, no charge): 21/21 checks — top3 ballots accepted, live points = hand count, spectator read before/after votes, forged token 403, participant cannot decide (401), non-#1 without reason 400, decision differs → participant + spectator see group #1 and reason, final_decision broadcast received. Evidence: fleet/voting-live/proof/gaps/gaps-proof-evidence.json. Status: verified.",
+      "commit": "f5d215e"
     }
   ]
 };
