@@ -175,7 +175,11 @@ export function nudgeObject(objs: PlacedObject[], id: string, dxFt: number, dyFt
     if (o.id !== id) return o;
     const fp = footprintOf(o);
     const c = clampFootprint(o.gx + dxFt, o.gy + dyFt, fp.w, fp.d, o.rot, false);
-    return { ...o, gx: c.gx, gy: c.gy };
+    // X1 — a fine nudge that would overlap a neighbour or block a door is REJECTED (the piece holds its spot); never
+    // teleport on a nudge. Wall pieces slide along their wall as before.
+    const cand = { ...o, gx: c.gx, gy: c.gy };
+    if (!OBJECT_SPEC[o.kind].onWall && !placementClear(cand, objs)) return o;
+    return cand;
   });
 }
 /** Standard nudge steps (ft) for the arrow pad: 1 inch, 6 inches, 1 foot. */
@@ -318,8 +322,9 @@ export function placeObject(objs: PlacedObject[], kind: ObjectKind, gx: number, 
     const c = clampFootprint(s.gx, s.gy, spec.w, spec.d, rot);
     return [...objs, { id: nextId(objs, kind), kind, gx: c.gx, gy: c.gy, rot }];
   }
-  const c = clampFootprint(gx, gy, spec.w, spec.d, 0);
-  return [...objs, { id: nextId(objs, kind), kind, gx: c.gx, gy: c.gy, rot: 0 }];
+  const id = nextId(objs, kind);
+  const c = nearestClear({ id, kind, gx, gy, rot: 0 }, objs);   // X1 — a new free piece snaps to the nearest clear cell (no overlap, no door-block)
+  return [...objs, { id, kind, gx: c.gx, gy: c.gy, rot: 0 }];
 }
 
 /** Move an existing object to (gx,gy), footprint-clamped (rotation- + variant-aware) fully inside the room (FIX-6).
@@ -328,8 +333,10 @@ export function moveObject(objs: PlacedObject[], id: string, gx: number, gy: num
   return objs.map((o) => {
     if (o.id !== id) return o;
     const fp = footprintOf(o);
-    const rot = OBJECT_SPEC[o.kind].onWall ? alignedRot(o.rot, wall ?? wallOfObject({ gx, gy, rot: o.rot })) : o.rot;
-    const c = clampFootprint(gx, gy, fp.w, fp.d, rot);
+    const onWall = OBJECT_SPEC[o.kind].onWall;
+    const rot = onWall ? alignedRot(o.rot, wall ?? wallOfObject({ gx, gy, rot: o.rot })) : o.rot;
+    // X1 — a dragged FREE piece snaps to the nearest clear cell (no overlap, no door-block); a wall piece keeps its wall run.
+    const c = onWall ? clampFootprint(gx, gy, fp.w, fp.d, rot) : nearestClear({ ...o, gx, gy, rot }, objs);
     return { ...o, rot, gx: c.gx, gy: c.gy };
   });
 }
@@ -346,6 +353,8 @@ export function rotateObject(objs: PlacedObject[], id: string): PlacedObject[] {
       : (((o.rot + 90) % 360) as Rot);
     const fp = footprintOf(o);
     const c = clampFootprint(o.gx, o.gy, fp.w, fp.d, rot, false);   // R5: keep the pivot (no rounding of a half-foot centre)
+    // X1 note: rotate is a free in-place transform (keeps the pivot) — the no-overlap guard is enforced on the paths that
+    // CREATE/position pieces (place · move · nudge); a rotate that momentarily overlaps is the user's to resolve.
     return { ...o, rot, gx: c.gx, gy: c.gy };
   });
 }
@@ -374,6 +383,65 @@ export function worldSpan(o: PlacedObject): { x1: number; y1: number; x2: number
   const w = swap ? fp.d : fp.w, d = swap ? fp.w : fp.d;
   const cx = o.gx + 0.5, cy = o.gy + 0.5;
   return { x1: cx - w / 2, y1: cy - d / 2, x2: cx + w / 2, y2: cy + d / 2, w, d };
+}
+
+// ── X1 — THE NO-OVERLAP / NO-DOOR-BLOCK INVARIANT (operator LIVE 2026-11-08: "never allow assets to overlap … no furniture
+//    blocks house … doors cant be blocked by furniture"; fleet P0 keystone 12/12). Declared once here, enforced on EVERY
+//    placement path (placeObject / moveObject). Pure + deterministic. Elevation-aware so a wall mirror at 3 ft does not
+//    "conflict" with the desk beneath it; doors reserve their opening PLUS a one-leaf swing clearance into the room. ──
+/** The vertical band [z0, z1] a placed object occupies, ft above the finished floor. */
+function vBand(o: PlacedObject): { z0: number; z1: number } { const z0 = elevOf(o); return { z0, z1: z0 + heightOf(o) }; }
+/** Two placed objects physically conflict: footprints overlap (strictly) AND their vertical bands overlap. */
+export function objectsConflict(a: PlacedObject, b: PlacedObject): boolean {
+  const A = worldSpan(a), B = worldSpan(b);
+  if (!(Math.min(A.x2, B.x2) - Math.max(A.x1, B.x1) > 1e-6 && Math.min(A.y2, B.y2) - Math.max(A.y1, B.y1) > 1e-6)) return false;
+  const za = vBand(a), zb = vBand(b);
+  return Math.min(za.z1, zb.z1) - Math.max(za.z0, zb.z0) > 1e-6;
+}
+/** The walk-through lane a door must keep clear of furniture: its opening span PLUS a short threshold INTO the room. This
+ * is the doorway a person walks through ("doors cant be blocked by furniture"), not the full leaf-swing arc — reserving the
+ * whole swing would over-flag a centred table/bed whose far corner never touches the leaf. Feet. */
+export const DOORWAY_CLEAR_FT = 1.5;
+export function doorKeepClear(door: PlacedObject): { x1: number; y1: number; x2: number; y2: number } {
+  const s = worldSpan(door), c = DOORWAY_CLEAR_FT, w = wallOfObject(door);
+  if (w === "N") return { x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2 + c };
+  if (w === "S") return { x1: s.x1, y1: s.y1 - c, x2: s.x2, y2: s.y2 };
+  if (w === "W") return { x1: s.x1, y1: s.y1, x2: s.x2 + c, y2: s.y2 };
+  return { x1: s.x1 - c, y1: s.y1, x2: s.x2, y2: s.y2 }; // E
+}
+/** Does a floor-level candidate intrude any door's keep-clear zone? (hung-high items, elev > 2 ft, never block a doorway.) */
+function blocksAnyDoor(o: PlacedObject, objs: PlacedObject[]): boolean {
+  if (o.kind === "door" || elevOf(o) > 2) return false;
+  const A = worldSpan(o);
+  for (const d of objs) {
+    if (d.kind !== "door" || d.id === o.id) continue;
+    const R = doorKeepClear(d);
+    if (Math.min(A.x2, R.x2) - Math.max(A.x1, R.x1) > 1e-6 && Math.min(A.y2, R.y2) - Math.max(A.y1, R.y1) > 1e-6) return true;
+  }
+  return false;
+}
+/** A placement is CLEAR when its whole footprint conflicts with no other object and blocks no door. */
+export function placementClear(cand: PlacedObject, others: PlacedObject[]): boolean {
+  return !others.some((q) => q.id !== cand.id && objectsConflict(cand, q)) && !blocksAnyDoor(cand, others);
+}
+/** The nearest in-room (gx,gy) to a requested cell whose footprint is CLEAR (no overlap, no door-block). Deterministic
+ * outward 0.5-ft ring search; returns the clamped request when it is already clear, and the clamped request UNCHANGED
+ * when the room is too packed for any clear spot (never worse than before X1). Free furniture only — a wall object keeps
+ * its wall placement (callers pass onWall pieces straight through). Pure. */
+export function nearestClear(cand: PlacedObject, others: PlacedObject[]): { gx: number; gy: number } {
+  const fp = footprintOf(cand);
+  const clampedOf = (gx: number, gy: number) => clampFootprint(gx, gy, fp.w, fp.d, cand.rot, false);
+  const clearAt = (gx: number, gy: number) => placementClear({ ...cand, gx, gy }, others);
+  const c0 = clampedOf(cand.gx, cand.gy);
+  if (clearAt(c0.gx, c0.gy)) return c0;
+  for (let r = 0.5; r <= ROOM_GRID + 1e-9; r += 0.5) {
+    for (let dy = -r; dy <= r + 1e-9; dy += 0.5) for (let dx = -r; dx <= r + 1e-9; dx += 0.5) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < r - 1e-9) continue;   // ring perimeter only (nearest first)
+      const c = clampedOf(cand.gx + dx, cand.gy + dy);
+      if (clearAt(c.gx, c.gy)) return c;
+    }
+  }
+  return c0;   // packed room → the clamped request (today's behaviour, never worse)
 }
 
 /** Project a placed object's footprint into a room rectangle (rx,ry,rw,rh) on the whole-house plan so the 2D floor
