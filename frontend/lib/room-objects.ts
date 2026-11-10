@@ -905,6 +905,56 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
     { id: "window-1", kind: "window", gx: 9,   gy: 2,   rot: 90 },          // E (exterior) wall · y 1–4 (clear of the corner)
     { id: "door-1",   kind: "door",   gx: 1.5, gy: 9,   rot: 0 },           // S wall · entry · x 0.5–3.5, clear of the seating
   ],
+  // V2 (operator LIVE 2026-11-09 "default to room placement I had in image") — the remaining six rooms get a decided,
+  // X1-clean expert layout (no overlap, no door-block), so EVERY new project opens to the furnished 3×3, not the packer.
+  // Exterior walls by 3×3 cell: B(N) · C(N+E) · K(none, centre) · O(S+W) · S(S) · E(S+E). Windows on exterior walls,
+  // interior doors on interior walls (E keeps its front door on the S exterior wall). Functions only — open centres.
+  // B — Master Bath: fixtures to the wet walls, the tub under the N window, the S door lane clear.
+  B: [
+    { id: "tub-1",    kind: "tub",    gx: 2.5, gy: 0.5, rot: 0 },           // N wall, under the window (x0.5–5.5 · y0–2)
+    { id: "shower-1", kind: "shower", gx: 7,   gy: 1,   rot: 0 },           // NE (x6–9 · y0–3)
+    { id: "sink-1",   kind: "sink",   gx: 0.5, gy: 4,   rot: 0 },           // W wall (x0–2 · y3–5)
+    { id: "toilet-1", kind: "toilet", gx: 0.5, gy: 6.5, rot: 0 },          // W wall (x0–2 · y6–8)
+    { id: "window-1", kind: "window", gx: 3,   gy: 0,   rot: 0 },           // N (exterior) over the tub
+    { id: "door-1",   kind: "door",   gx: 6,   gy: 9,   rot: 0 },           // S (interior) · lane x4.5–7.5 clear
+  ],
+  // C — Master Closet: wardrobe + dresser down the W wall, shelving on the E (exterior) wall, window on the N.
+  C: [
+    { id: "wardrobe-1", kind: "wardrobe", gx: 0.5,  gy: 2.5, rot: 90 },     // W wall (x0–2 · y1–5)
+    { id: "dresser-1",  kind: "dresser",  gx: 0.35, gy: 6,   rot: 90 },     // W wall below the wardrobe (x0–1.7 · y5–8)
+    { id: "shelving-1", kind: "shelving", gx: 9,    gy: 5,   rot: 90 },     // E (exterior) wall, wall-hung
+    { id: "window-1",   kind: "window",   gx: 6,    gy: 0,   rot: 0 },      // N (exterior)
+    { id: "door-1",     kind: "door",     gx: 6,    gy: 9,   rot: 0 },      // S (interior) · lane x4.5–7.5 clear of the W furniture
+  ],
+  // K — Kitchen (centre, no exterior wall): the work triangle — counter + stove on the N, sink on the W, fridge on the SE.
+  K: [
+    { id: "counter-1", kind: "counter", gx: 2.5, gy: 0.5,  rot: 0 },        // N wall (x0.5–5.5 · y0–2)
+    { id: "stove-1",   kind: "stove",   gx: 6.5, gy: 0.75, rot: 0 },        // N wall, right (x5.75–8.25 · y0–2.5)
+    { id: "sink-1",    kind: "sink",    gx: 0.5, gy: 4,    rot: 0 },        // W wall (x0–2 · y3–5)
+    { id: "fridge-1",  kind: "fridge",  gx: 7,   gy: 6,    rot: 0 },        // SE (x6–9 · y5.15–7.85)
+    { id: "door-1",    kind: "door",    gx: 3.5, gy: 9,    rot: 0 },        // S (interior) · lane x2–5 clear
+  ],
+  // O — Office: the desk in the commanding position on the N wall, a chair at it, a bookshelf beside it; window on the W (exterior).
+  O: [
+    { id: "desk-1",      kind: "desk",      gx: 1.5, gy: 0.5, rot: 0 },     // N wall (x0–4 · y0–2)
+    { id: "chair-1",     kind: "chair",     gx: 2,   gy: 2.5, rot: 0 },     // at the desk (x1.15–2.85 · y2.15–3.85)
+    { id: "bookshelf-1", kind: "bookshelf", gx: 6.5, gy: 0,   rot: 0 },     // N wall, right (x5.5–8.5 · y0–1)
+    { id: "window-1",    kind: "window",    gx: 0,   gy: 5,   rot: 90 },    // W (exterior)
+    { id: "door-1",      kind: "door",      gx: 9,   gy: 6,   rot: 90 },    // E (interior)
+  ],
+  // S — Storage · Laundry: washer + utility sink on the S (exterior) wall, the N door (to the kitchen) kept clear.
+  S: [
+    { id: "washer-1", kind: "washer", gx: 0.5, gy: 7.5, rot: 0 },          // S wall, SW (x0–2 · y7–9)
+    { id: "sink-1",   kind: "sink",   gx: 3,   gy: 7.5, rot: 0 },          // next to the washer (x2.5–4.5 · y7–9)
+    { id: "door-1",   kind: "door",   gx: 3.5, gy: 0,   rot: 0 },          // N (interior) · lane x2–5 · y0–1.5 clear
+  ],
+  // E — Entry · Porch: a welcoming seat, the front door on the S (exterior) wall, an interior door to the Dining Room, window on the E.
+  E: [
+    { id: "chair-1",  kind: "chair",  gx: 1,   gy: 1,   rot: 0 },           // welcoming seat, NW (x0.35–2.05 · y0.35–2.05)
+    { id: "window-1", kind: "window", gx: 9,   gy: 5,   rot: 90 },          // E (exterior)
+    { id: "door-1",   kind: "door",   gx: 3.5, gy: 9,   rot: 0 },           // S (exterior) — the FRONT door (x2–5)
+    { id: "door-2",   kind: "door",   gx: 6,   gy: 0,   rot: 0 },           // N (interior) — to the Dining Room (x4.5–7.5)
+  ],
 };
 /** The standard layouts' edition. A stored room whose `layoutRev` is older is re-seated to the decided layout on load
  * (the WireGuard, lib/architect-guard.ts) — "stop reverting" reaches the devices that saved the earlier edition too. */
@@ -915,7 +965,7 @@ export const STANDARD_LAYOUT_REV = 3;
  * working layout was auto-seeded with clutter by an old build. The WireGuard (lib/architect-guard.ts) stamps a cell's
  * declutterRev when it re-seats; later user edits carry the stamp, so the one-time declutter never wipes a real arrangement
  * twice. Bump this (not the default alone) whenever a declutter must reach devices that already saved the old clutter. */
-export const DECLUTTER_REV = 3;
+export const DECLUTTER_REV = 4;   // V2 (2026-11-09) — all nine rooms are now decided; re-seat every device to the full furnished 3×3 once
 /** The decided layout for a room key (a fresh copy), or null when the room has none (→ the packer). */
 export function standardLayoutFor(roomKey: string): PlacedObject[] | null {
   // R5b (Thor): OWN keys only — STANDARD_LAYOUTS["constructor"] is Object, and `.map` on it threw through the guard.
@@ -957,8 +1007,9 @@ export const STANDARD_LAYOUT_EDITIONS: Record<number, Record<string, PlacedObjec
     ],
   },
   // edition 3 = the current expert-layout edition, grown room by room on the LIVE set: Master Bedroom A′ (R5b) +
-  // Living Room (R2f, sofa faces the TV) + Dining Room (R2g, table + window). STANDARD_LAYOUT_REV stays 3 while rooms
-  // are ADDED (nothing already-shipped is re-decided); DECLUTTER_REV is bumped to roll each new room to every device.
+  // Living Room (R2f) + Dining Room (R2g) + V2 (2026-11-09) the remaining six — B·C·K·O·S·E — so ALL NINE rooms are now
+  // decided. STANDARD_LAYOUT_REV stays 3 while rooms are ADDED (nothing already-shipped is re-decided); DECLUTTER_REV is
+  // bumped (→4) to roll the full furnished 3×3 to every device.
   3: STANDARD_LAYOUTS,
 };
 /** The decided layout of a room key at a given edition (a fresh copy), or null. */

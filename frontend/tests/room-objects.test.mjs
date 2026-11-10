@@ -251,8 +251,10 @@ ok(dM.length > 0, "defaultObjectsForRoom('M') seeds furniture — a room never o
 // the 'defaults vanish' HOLD still holds, just against the feng-shui set, not a cluttered one).
 const PACKED = Object.keys(ROOM_ASSETS).filter((rk) => !STANDARD_LAYOUTS[rk]);
 const intendedDefault = (rk) => (Object.hasOwn(DECOR_DEFAULTS, rk) ? DECOR_DEFAULTS[rk] : ROOM_ASSETS[rk]);
-ok(PACKED.length === 6 && PACKED.every((rk) => defaultObjectsForRoom(rk).length === intendedDefault(rk).length), "EVERY packed room places ALL its intended default set (feng-shui DECOR_DEFAULTS where set, else ROOM_ASSETS) — nothing dropped (M + L + D are now DECIDED layouts, not packed)");
-ok(PACKED.every((rk) => intendedDefault(rk).length <= (ROOM_ASSETS[rk]?.length ?? 0)), "the feng-shui default set is a declutter — never more items than the full ROOM_ASSETS palette");
+ok(PACKED.length === 0, "V2 (operator 2026-11-09 'default to room placement I had in image'): all nine rooms now have a DECIDED expert layout — none fall back to the packer");
+const withDefaults = Object.keys(DECOR_DEFAULTS);
+ok(withDefaults.every((rk) => { const have = new Set(defaultObjectsForRoom(rk).map((o) => o.kind)); return intendedDefault(rk).every((k) => have.has(k)); }), "every room with a feng-shui default set places ALL of its kinds in its decided layout (nothing dropped — the 'defaults vanish' HOLD still holds)");
+ok(withDefaults.every((rk) => intendedDefault(rk).length <= (ROOM_ASSETS[rk]?.length ?? 0)), "the feng-shui default set is a declutter — never more items than the full ROOM_ASSETS palette");
 // NEVER AUTO-PLACE THE LIBRARY (operator 2026-11-09: "NOONE EVER INDICATED ALL 139 asset list items must be placed").
 // A room opens with a curated handful — the critical pieces — and the 139-asset library is REACHED, never seeded. Lock it:
 // every room's default is a small set, and the whole house's defaults together are a tiny fraction of the library.

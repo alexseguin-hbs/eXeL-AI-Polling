@@ -168,7 +168,7 @@
           "gy": 5
         },
         "returnGrille": {
-          "gx": 2,
+          "gx": 6,
           "gy": 9
         },
         "runs": [
@@ -278,7 +278,7 @@
         }
       },
       "k": "E",
-      "objectCount": 1,
+      "objectCount": 4,
       "outletPositions": [
         {
           "gx": 0,
@@ -413,23 +413,23 @@
         }
       },
       "k": "K",
-      "objectCount": 4,
+      "objectCount": 5,
       "outletPositions": [
         {
           "gx": 0,
           "gy": 0
         },
         {
-          "gx": 9,
+          "gx": 8,
           "gy": 0
         },
         {
           "gx": 9,
-          "gy": 9
+          "gy": 7
         },
         {
           "gx": 0,
-          "gy": 9
+          "gy": 8
         }
       ],
       "outlets": 4,
@@ -713,7 +713,7 @@
         }
       },
       "k": "B",
-      "objectCount": 4,
+      "objectCount": 6,
       "outletPositions": [
         {
           "gx": 0,
@@ -721,7 +721,7 @@
         },
         {
           "gx": 9,
-          "gy": 9
+          "gy": 7
         }
       ],
       "outlets": 2,
@@ -1005,7 +1005,7 @@
         }
       },
       "k": "C",
-      "objectCount": 3,
+      "objectCount": 5,
       "outletPositions": [
         {
           "gx": 0,
@@ -1013,7 +1013,7 @@
         },
         {
           "gx": 9,
-          "gy": 9
+          "gy": 7
         }
       ],
       "outlets": 2,
@@ -1150,18 +1150,18 @@
         }
       },
       "k": "O",
-      "objectCount": 3,
+      "objectCount": 5,
       "outletPositions": [
         {
           "gx": 0,
           "gy": 0
         },
         {
-          "gx": 9,
+          "gx": 8,
           "gy": 0
         },
         {
-          "gx": 9,
+          "gx": 8,
           "gy": 9
         },
         {
@@ -1297,14 +1297,14 @@
         }
       },
       "k": "S",
-      "objectCount": 2,
+      "objectCount": 3,
       "outletPositions": [
         {
           "gx": 0,
           "gy": 0
         },
         {
-          "gx": 9,
+          "gx": 7,
           "gy": 9
         }
       ],

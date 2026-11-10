@@ -33,7 +33,7 @@ const rectOverlap = (o, R) => { const A = worldSpan(o); return Math.max(0, Math.
 const M = defaultObjectsForRoom("M");
 ok(STANDARD_LAYOUTS.M && JSON.stringify(M) === JSON.stringify(STANDARD_LAYOUTS.M), "the Master Bedroom default is STANDARD_LAYOUTS.M (Layout A′) — never the greedy packer");
 ok(standardLayoutFor("M") !== STANDARD_LAYOUTS.M && JSON.stringify(standardLayoutFor("M")) === JSON.stringify(STANDARD_LAYOUTS.M), "standardLayoutFor returns a fresh copy (a saved edit never mutates the decided layout)");
-ok(standardLayoutFor("K") === null && standardLayoutFor("ZZZ") === null, "rooms without a decided layout fall back to the packer (null)");
+ok(standardLayoutFor("ZZZ") === null && standardLayoutFor("K") !== null && Object.keys(ROOM_ASSETS).every((rk) => standardLayoutFor(rk) !== null), "V2 (2026-11-09): all nine canonical rooms are now decided; only an unknown room key has no decided layout (null)");
 ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(M), "deterministic (replay law)");
 ok(STANDARD_LAYOUT_REV === 3, "the standard-layout edition is 3 (A′ Master Bedroom + Living Room sofa-faces-TV + Dining table+window) — REV stays while rooms are ADDED; bump it only when an already-shipped layout is re-decided");
 
@@ -126,7 +126,11 @@ ok(Object.hasOwn(OBJECT_SPEC, "rug"), "the rug KIND still exists (nothing delete
 const san = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: M, layoutRev: STANDARD_LAYOUT_REV } : r)));
 ok(JSON.stringify(san.find((r) => r.k === "M").objects) === JSON.stringify(M), "Layout A′ round-trips through sanitizeRoomLayout unchanged (gx 4.5 stays 4.5)");
 const legacyCell = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [{ id: "dresser-1", kind: "dresser", gx: 2, gy: 7, rot: 0 }, { id: "bed-1", kind: "bed", gx: 0, gy: 0, rot: 0 }] } : r))).find((r) => r.k === "M");
-ok(JSON.stringify(legacyCell.objects) === JSON.stringify(STANDARD_LAYOUTS.M) && legacyCell.layoutRev === STANDARD_LAYOUT_REV, "a bedroom saved at an OLDER edition (no layoutRev — e.g. with its dresser) is re-seated to Layout A′ on load ('stop reverting' reaches every device)");
+// R1 'never wipe user work' (operator; 477adbdf) wins over the old blanket rev-0 re-seat: a rev-0 arrangement with no
+// layoutRev and no 139-dump fingerprint can't be told apart from deliberate user work, so it is KEPT and stamped — NOT
+// wiped. 'Stop reverting' still reaches a device via the three unambiguous re-seat triggers: empty, the auto-seed
+// fingerprint (the DECLUTTER path), or an EXACT prior decided edition (below, test with layoutRev set).
+ok(legacyCell.objects.length === 2 && legacyCell.objects.some((o) => o.kind === "dresser") && legacyCell.objects.some((o) => o.kind === "bed") && legacyCell.layoutRev === STANDARD_LAYOUT_REV, "a rev-0 bedroom arrangement (no layoutRev, no fingerprint) is KEPT and stamped — never wiped");
 const currentCell = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [{ id: "lamp-1", kind: "lamp", gx: 2, gy: 2, rot: 0 }], layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV } : r))).find((r) => r.k === "M");
 ok(currentCell.objects.length === 1 && currentCell.objects[0].kind === "lamp" && currentCell.layoutRev === STANDARD_LAYOUT_REV, "a bedroom written at the CURRENT edition keeps the operator's own arrangement");
 // R5b (Krishna): a seed MERGES into a saved copy, it never replaces the user's own arrangement — only an UNTOUCHED prior edition re-seats.
@@ -142,7 +146,8 @@ ok(!threwK && standardLayoutFor("constructor") === null && Array.isArray(palette
 const emptied = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [], layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV } : r))).find((r) => r.k === "M");
 ok(Array.isArray(emptied.objects) && emptied.objects.length === 0, "an emptied room ([]) stays empty on reload (it used to come back as the default)");
 const packedCell = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "K" ? { ...r, objects: [{ id: "stove-1", kind: "stove", gx: 3, gy: 3, rot: 0 }], declutterRev: DECLUTTER_REV } : r))).find((r) => r.k === "K");
-ok(packedCell.objects.length === 1 && packedCell.layoutRev === undefined, "a room without a decided layout keeps its stored objects and gets no edition stamp");
+// V2 (2026-11-09): every room now HAS a decided layout — a kept user arrangement is stamped with the current edition.
+ok(packedCell.objects.length === 1 && packedCell.objects[0].id === "stove-1" && packedCell.layoutRev === STANDARD_LAYOUT_REV, "a kept user arrangement (the Kitchen is now a decided room) keeps its stored objects and is stamped with the current edition");
 
 // ── 6. SIMPLE is the designer's default; ⚙ Advanced is opt-in; the CAD chrome is gated on it ──
 const rd = fs.readFileSync(path.join(ROOT, "components/architect-2525/room-designer.tsx"), "utf8");

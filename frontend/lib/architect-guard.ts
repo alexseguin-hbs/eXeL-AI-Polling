@@ -200,7 +200,10 @@ export function sanitizeRoomLayout(raw: unknown): RoomCell[] {
         const rev = Math.min(boundInt(c.layoutRev ?? 0, 0, 9999), STANDARD_LAYOUT_REV);
         if (rev < STANDARD_LAYOUT_REV) {
           const prior = rev > 0 ? sanitizeObjects(standardLayoutAt(k, rev)) : undefined;
-          const untouched = objects === undefined || rev === 0 || (prior !== undefined && sameArrangement(objects, prior));
+          // R1/V2 (2026-11-09): re-seat an UNTOUCHED prior edition only — empty, the packer/139-dump auto-seed fingerprint,
+          // or an exact earlier decided edition. A rev-0 room the USER arranged (e.g. a packer-era room now gaining a decided
+          // layout) is KEPT, never wiped — the old blanket `rev === 0` re-seat erased real work when a room gained a layout.
+          const untouched = objects === undefined || isAutoSeededClutter(k, objects) || (prior !== undefined && sameArrangement(objects, prior));
           if (untouched) return { objects: std, layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV };
         }
         return { ...(objects !== undefined ? { objects } : {}), layoutRev: STANDARD_LAYOUT_REV, declutterRev: DECLUTTER_REV };
