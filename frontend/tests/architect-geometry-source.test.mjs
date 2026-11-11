@@ -50,6 +50,13 @@ const bld = strip(read("../components/architect-2525/architect-build.tsx"));
 ok(/\{HOUSE_FT\}×\{HOUSE_FT\}/.test(bld), "the Build header reads {HOUSE_FT}×{HOUSE_FT} (36×36)");
 ok(/GROSS_SQFT/.test(bld) && /slab \{HOUSE_FT\}×\{HOUSE_FT\}/.test(bld), "the Build shows the 1,296 ft² gross + a 36×36 slab");
 ok(!/TINY_SIDE_FT/.test(bld), "the Build no longer uses TINY_SIDE_FT (the 30-as-shell) for any displayed dimension");
+// BUILD-1 (operator LIVE 2026-11-11 "Shell envelope, 12 ft") — the Build viewport renders the 3D 36×36×12 shell (VoxelHouse,
+// the ONE shell the Design renders), with a 3D ⇄ Plan toggle so the 2D plan is preserved (Release Process #6), the whole
+// driven by the build scrubber. The header states the 12-ft shell height HOUSE_H.
+ok(/VoxelHouse/.test(bld) && /homeType="tiny"/.test(bld) && /data-arch-build-3d/.test(bld), "BUILD-1: the Build viewport renders the 3D VoxelHouse 12-ft tiny shell");
+ok(/data-arch-build-view=\{v\}/.test(bld) && /\["3d", "plan"\] as const/.test(bld) && /setView/.test(bld), "BUILD-1: a 3D ⇄ Plan toggle switches views (the 2D plan is preserved, Release Process #6)");
+ok(/\{HOUSE_FT\}×\{HOUSE_FT\}×\{HOUSE_H\} ft shell/.test(bld), "the Build header states the 12-ft shell height (HOUSE_H) — the envelope the operator asked to see");
+ok(/showSockets=\{shown\(day, "electrical"\)\}/.test(bld) && /showFurniture=\{shown\(day, "openings"\)\}/.test(bld), "BUILD-1: the 3D shell is revealed by the scrubber — sockets at Electrical, furniture at Finish");
 
 // 4c. Overview (command-ux1): the Gross Building Area tile is computed (GROSS_SQFT), not the old "NOT CALCULATED".
 const cmd = strip(read("../components/architect-2525/command-ux1.tsx"));

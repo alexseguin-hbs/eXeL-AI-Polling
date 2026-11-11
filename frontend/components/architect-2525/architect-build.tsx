@@ -12,10 +12,11 @@
  * is not reached). Self-contained SVG; pure client; deterministic (no Math.random — replay law).
  */
 import { useEffect, useRef, useState } from "react";
-import { TINY_ROOM_LAYOUT, TINY_GRID, ROOM_FT, HOUSE_FT, GROSS_SQFT } from "@/lib/room-layout";
+import { TINY_ROOM_LAYOUT, TINY_GRID, ROOM_FT, HOUSE_FT, HOUSE_H, GROSS_SQFT } from "@/lib/room-layout";
 import { defaultObjectsForRoom, ROOM_GRID } from "@/lib/room-objects";
 import { outletPositions } from "@/lib/mep-runs";
 import { doorSymbol, doorSymbolSvg, symbolForSpan, type DoorSymbol } from "@/lib/door-symbol";
+import { VoxelHouse } from "./voxel-house";   // BUILD-1 (operator "Shell envelope, 12 ft") — the SAME 36×36×12 shell the Design renders, reused here
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400" };
 const TRADE_COLOR: Record<string, string> = { Concrete: "#8a8f98", Framing: "#19c8cf", Plumbing: "#38bdf8", Electrical: "#ffd400", Finish: "#22c55e" };
@@ -52,6 +53,10 @@ const exteriorEdges = (row: number, col: number): ("N" | "S" | "E" | "W")[] => {
 export function ArchitectBuild() {
   const [day, setDay] = useState(1);
   const [playing, setPlaying] = useState(false);
+  // BUILD-1 (operator LIVE 2026-11-11 "Shell envelope, 12 ft"): the Build viewport can show the 3D 36×36×12-ft SHELL
+  // (the same VoxelHouse the Design + Simulate render) OR the top-down plan. Default to the 3D shell so the operator sees
+  // the envelope height; the plan is one tap away (Release Process #6 — nothing removed). Both are driven by the scrubber.
+  const [view, setView] = useState<"3d" | "plan">("3d");
   const raf = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
     if (!playing) return;
@@ -74,10 +79,25 @@ export function ArchitectBuild() {
       <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         <div className="mb-1 flex items-center justify-between text-[9px]" style={{ color: C.dim }}>
-          <span><b style={{ color: C.cyan }}>THE 3×3 DESIGN</b> · {rooms.length} rooms · {HOUSE_FT}×{HOUSE_FT} ft · {GROSS_SQFT.toLocaleString()} ft² — plan view, built step by step</span>
-          <span>N ↑</span>
+          <span><b style={{ color: C.cyan }}>THE 3×3 DESIGN</b> · {rooms.length} rooms · {HOUSE_FT}×{HOUSE_FT}×{HOUSE_H} ft shell · {GROSS_SQFT.toLocaleString()} ft² — {view === "3d" ? "3D shell envelope" : "plan view"}, built step by step</span>
+          {/* BUILD-1 — 3D shell ⇄ plan toggle (operator "Shell envelope, 12 ft"); default 3D */}
+          <span className="flex overflow-hidden rounded border" style={{ borderColor: C.border }}>
+            {(["3d", "plan"] as const).map((v) => (
+              <button key={v} data-arch-build-view={v} onClick={() => setView(v)} className="px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider"
+                style={{ background: view === v ? C.cyan : "transparent", color: view === v ? "#070b12" : C.dim }}>{v === "3d" ? "3D" : "Plan"}</button>
+            ))}
+          </span>
         </div>
-        {/* progressive build of the canonical 3×3 — one source (TINY_ROOM_LAYOUT), revealed by phase */}
+        {/* BUILD-1 (operator "Shell envelope, 12 ft") — the 3D 36×36×12 shell (VoxelHouse, the ONE shell the Design renders),
+            revealed by the scrubber: walls/shell always; sockets appear at the Electrical phase, furniture at Finish. */}
+        {view === "3d" && (
+          <div data-arch-build-3d className="w-full overflow-hidden rounded" style={{ background: "#070b12", aspectRatio: "10 / 7" }}>
+            <VoxelHouse homeType="tiny" layout={TINY_ROOM_LAYOUT} compact height={320}
+              showFurniture={shown(day, "openings")} showSockets={shown(day, "electrical")} hvac={false} />
+          </div>
+        )}
+        {/* progressive build of the canonical 3×3 — one source (TINY_ROOM_LAYOUT), revealed by phase (the top-down plan) */}
+        {view === "plan" && (
         <svg data-arch-build data-arch-build-3x3 viewBox="0 0 100 70" preserveAspectRatio="xMidYMid meet" className="w-full rounded" style={{ background: "#070b12", aspectRatio: "10 / 7" }}>
           {/* site datum */}
           <line x1="4" y1="66" x2="96" y2="66" stroke="#233043" strokeWidth="0.4" />
@@ -177,6 +197,7 @@ export function ArchitectBuild() {
             </g>
           )}
         </svg>
+        )}
         {/* step scrubber */}
         <div className="mt-2 flex items-center gap-2">
           <button onClick={() => setPlaying((p) => !p)} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: playing ? C.violet : C.dim }}>{playing ? "❚❚" : "▶"}</button>
