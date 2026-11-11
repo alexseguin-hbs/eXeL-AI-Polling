@@ -35,7 +35,7 @@ ok(STANDARD_LAYOUTS.M && JSON.stringify(M) === JSON.stringify(STANDARD_LAYOUTS.M
 ok(standardLayoutFor("M") !== STANDARD_LAYOUTS.M && JSON.stringify(standardLayoutFor("M")) === JSON.stringify(STANDARD_LAYOUTS.M), "standardLayoutFor returns a fresh copy (a saved edit never mutates the decided layout)");
 ok(standardLayoutFor("ZZZ") === null && standardLayoutFor("K") !== null && Object.keys(ROOM_ASSETS).every((rk) => standardLayoutFor(rk) !== null), "V2 (2026-11-09): all nine canonical rooms are now decided; only an unknown room key has no decided layout (null)");
 ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(M), "deterministic (replay law)");
-ok(STANDARD_LAYOUT_REV === 3, "the standard-layout edition is 3 (A′ Master Bedroom + Living Room sofa-faces-TV + Dining table+window) — REV stays while rooms are ADDED; bump it only when an already-shipped layout is re-decided");
+ok(STANDARD_LAYOUT_REV === 4, "the standard-layout edition is 4 — bumped from 3 because an already-shipped room was RE-DECIDED: Master Bedroom A′ → A″ (vanity relocated to the E wall so the S door centres, operator LIVE 2026-11-11); edition 3 is frozen so A′ devices re-seat to A″");
 
 // ── 2. Layout A′, piece by piece (HI: bed centred on the back wall · two nightstands · vanity + mirror OPPOSITE the bed · 2 windows · door · NO rug) ──
 ok(count(M, "bed") === 1 && count(M, "nightstand") === 2 && count(M, "desk") === 1 && count(M, "mirror") === 1 && count(M, "window") === 2 && count(M, "door") === 1, `Layout A′ = 1 bed · 2 nightstands · 1 desk (vanity) · 1 mirror · 2 windows · 1 door (got ${kinds(M).join(",")})`);
@@ -48,8 +48,8 @@ ok(near((bs.x1 + bs.x2) / 2, ROOM_GRID / 2) && near(bs.y1, 0), `the bed is centr
 const ns = M.filter((o) => o.kind === "nightstand").map(worldSpan);
 ok(ns.length === 2 && ns.some((s) => s.x2 <= bs.x1 + 1e-9) && ns.some((s) => s.x1 >= bs.x2 - 1e-9) && ns.every((s) => near(s.y1, 0)), "one nightstand each side of the bed's head, flush with the N wall");
 const desk = M.find((o) => o.kind === "desk"), ds = worldSpan(desk), mirror = M.find((o) => o.kind === "mirror"), ms = worldSpan(mirror);
-ok(wallOf(desk.gx, desk.gy) === "S" && near(ds.y2, ROOM_GRID), `the vanity stands against the S wall, OPPOSITE the bed (y ${ds.y1}–${ds.y2})`);
-ok(OBJECT_SPEC.mirror.onWall && wallOfObject(mirror) === "S" && ms.x1 >= ds.x1 - 1e-9 && ms.x2 <= ds.x2 + 1e-9, "the wall mirror hangs on the S wall within the vanity's span");
+ok(wallOf(desk.gx, desk.gy) === "E" && near(ds.x2, ROOM_GRID) && ds.y1 >= bs.y2 - 1e-9, `the vanity stands against the E wall, SE of the bed foot (A″: relocated so the S door centres) (x ${ds.x1}–${ds.x2} · y ${ds.y1}–${ds.y2})`);
+ok(OBJECT_SPEC.mirror.onWall && wallOfObject(mirror) === "E" && ms.y1 >= ds.y1 - 1e-9 && ms.y2 <= ds.y2 + 1e-9, "the wall mirror hangs on the E wall within the vanity's span");
 ok(elevOf(mirror) >= heightOf(desk), `the mirror is hung above the vanity top (elev ${elevOf(mirror)} ft ≥ desk ${heightOf(desk)} ft)`);
 const wins = M.filter((o) => o.kind === "window");
 const extWalls = new Set(["N", "W"]); // M sits at row 0 · col 0 of the 3×3 → its exterior walls are N and W
@@ -59,7 +59,7 @@ ok(wins.every((w) => { const s = worldSpan(w), v = wallOfObject(w) === "W" || wa
 const mCell = TINY_ROOM_LAYOUT.find((r) => r.k === "M");
 ok(mCell && mCell.row === 0 && mCell.col === 0 && mCell.windows === 2, "the canonical 3×3 puts the Master Bedroom at row 0 · col 0 with 2 windows (the layout's wall choice is derived from it)");
 const door = M.find((o) => o.kind === "door"), dsp = worldSpan(door);
-ok(wallOfObject(door) === "S", "the door is on the S wall — the entry from the Living Room (row 1 · col 0)");
+ok(wallOfObject(door) === "S" && near((dsp.x1 + dsp.x2) / 2, ROOM_GRID / 2), "the door is CENTERED on the S wall — the entry from the Living Room (operator LIVE 2026-11-11 'doors should be in the middle')");
 
 // ── 3. CLEARANCES (I-RD-5: ~24″ walkways · ~36″ at the chair). Floor pieces only; a window at its sill is not an obstacle. ──
 const floor = M.filter(isFloor);
@@ -67,9 +67,9 @@ const footHalf = { x1: 0, x2: ROOM_GRID, y1: bs.y1 + (bs.y2 - bs.y1) / 2, y2: bs
 const aisleW = Math.min(bs.x1, ...floor.filter((o) => o !== bed && rectOverlap(o, { x1: 0, x2: bs.x1, y1: footHalf.y1, y2: footHalf.y2 }) > 0).map((o) => worldSpan(o).x1));
 const aisleE = Math.min(ROOM_GRID - bs.x2, ...floor.filter((o) => o !== bed && rectOverlap(o, { x1: bs.x2, x2: ROOM_GRID, y1: footHalf.y1, y2: footHalf.y2 }) > 0).map((o) => ROOM_GRID - worldSpan(o).x2));
 ok(aisleW >= 2 - 1e-9 && aisleE >= 2 - 1e-9, `walkways beside the bed ≥ 24″ (W ${aisleW} ft · E ${aisleE} ft)`);
-ok(ds.y1 - bs.y2 >= 2 - 1e-9, `bed foot → vanity ≥ 24″ (${ds.y1 - bs.y2} ft)`);
-const chairZone = { x1: ds.x2 - 2.5, x2: ds.x2, y1: ds.y1 - 3, y2: ds.y1 };   // 36″ in front of the vanity, beside the bed
-ok(floor.filter((o) => o !== desk).every((o) => rectOverlap(o, chairZone) < 1e-9), `a 36″ chair zone in front of the vanity (x ${chairZone.x1}–${chairZone.x2} · y ${chairZone.y1}–${chairZone.y2}) is clear of furniture`);
+ok(ds.y1 >= bs.y2 - 1e-9, `the vanity sits below the bed foot, clear of it (vanity top y ${ds.y1} ≥ bed foot ${bs.y2})`);
+const chairZone = { x1: ds.x1 - 2.5, x2: ds.x1, y1: ds.y1, y2: ds.y2 };   // a ≥30″ approach W of the E-wall vanity, into the open room centre
+ok(floor.filter((o) => o !== desk).every((o) => rectOverlap(o, chairZone) < 1e-9), `a ≥30″ approach W of the vanity (x ${chairZone.x1}–${chairZone.x2} · y ${chairZone.y1}–${chairZone.y2}) is clear of furniture`);
 // the 3-ft door leaf sweeps a quarter circle from its W jamb on the S wall — nothing stands in it
 const hinge = { x: dsp.x1, y: ROOM_GRID }, r = dsp.x2 - dsp.x1;
 const inSweep = (o) => { const s = worldSpan(o); const px = Math.max(s.x1, Math.min(hinge.x, s.x2)), py = Math.max(s.y1, Math.min(hinge.y, s.y2)); return Math.hypot(px - hinge.x, py - hinge.y) < r - 1e-9; };
@@ -136,7 +136,12 @@ ok(currentCell.objects.length === 1 && currentCell.objects[0].kind === "lamp" &&
 // R5b (Krishna): a seed MERGES into a saved copy, it never replaces the user's own arrangement — only an UNTOUCHED prior edition re-seats.
 const LAYOUT_A_R5 = STANDARD_LAYOUT_EDITIONS[1].M;
 const untouchedA = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: LAYOUT_A_R5.map((o) => ({ ...o })), layoutRev: 1 } : r))).find((r) => r.k === "M");
-ok(JSON.stringify(untouchedA.objects) === JSON.stringify(STANDARD_LAYOUTS.M) && untouchedA.layoutRev === STANDARD_LAYOUT_REV, "an UNTOUCHED Layout A (edition 1, exactly as R5 seeded it) is re-seated to A′");
+ok(JSON.stringify(untouchedA.objects) === JSON.stringify(STANDARD_LAYOUTS.M) && untouchedA.layoutRev === STANDARD_LAYOUT_REV, "an UNTOUCHED Layout A (edition 1, exactly as R5 seeded it) is re-seated to the current edition (A″)");
+// A″ (operator LIVE 2026-11-11): a device still holding an UNTOUCHED A′ (edition 3 — the S-wall vanity, off-centre door)
+// re-seats to A″ so the centred door reaches it ("stop reverting reaches every device"); an ARRANGED A′ would be kept.
+const LAYOUT_A_PRIME = STANDARD_LAYOUT_EDITIONS[3].M;
+const untouchedAprime = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: LAYOUT_A_PRIME.map((o) => ({ ...o })), layoutRev: 3 } : r))).find((r) => r.k === "M");
+ok(JSON.stringify(untouchedAprime.objects) === JSON.stringify(STANDARD_LAYOUTS.M) && untouchedAprime.layoutRev === STANDARD_LAYOUT_REV, "an UNTOUCHED A′ (edition 3, the S-wall vanity + off-centre door) is re-seated to A″ (the centred door reaches the device)");
 const customA = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [...LAYOUT_A_R5.map((o) => (o.id === "bed-1" ? { ...o, gx: 7 } : { ...o })), { id: "lamp-9", kind: "lamp", gx: 2, gy: 2, rot: 0 }], declutterRev: DECLUTTER_REV, layoutRev: 1 } : r))).find((r) => r.k === "M");
 ok(customA.objects.some((o) => o.kind === "lamp") && customA.objects.find((o) => o.kind === "bed").gx === 7 && customA.layoutRev === STANDARD_LAYOUT_REV, "a bedroom the user ARRANGED at edition 1 (bed moved, a lamp added) is KEPT and stamped with the current edition");
 const forged = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { ...r, objects: [{ id: "lamp-1", kind: "lamp", gx: 2, gy: 2, rot: 0 }], declutterRev: DECLUTTER_REV, layoutRev: 9999 } : r))).find((r) => r.k === "M");
@@ -197,7 +202,7 @@ const legacy = sanitizeRoomLayout(TINY_ROOM_LAYOUT.map((r) => (r.k === "M" ? { .
 ok(legacy.rot === 90, `the WireGuard normalises a legacy misaligned W-wall window to rot 90 (got ${legacy.rot})`);
 // the R5 half-foot behaviour, finally gated: mirror h/v and rotate keep the half-foot centres (a Math.round revert fails here)
 const mh = mirrorObjects(M, "h"), mvv = mirrorObjects(M, "v");
-ok(near(mh.find((o) => o.kind === "bed").gx, 4.5) && near(mh.find((o) => o.kind === "desk").gx, ROOM_GRID - 1 - 7.5) && mh.every(inside), "mirror h keeps the half-foot centres (bed 4.5 → 4.5 · vanity 7.5 → 1.5) and everything inside");
+ok(near(mh.find((o) => o.kind === "bed").gx, 4.5) && near(mh.find((o) => o.kind === "desk").gx, ROOM_GRID - 1 - 8.5) && mh.every(inside), "mirror h keeps the half-foot centres (bed 4.5 → 4.5 · vanity 8.5 → 0.5) and everything inside");
 ok(JSON.stringify(mirrorObjects(mh, "h")) === JSON.stringify(M) && JSON.stringify(mirrorObjects(mvv, "v")) === JSON.stringify(M), "mirror is an involution (h∘h = id · v∘v = id)");
 ok(mvv.find((o) => o.kind === "bed").rot === 180 && mh.find((o) => o.kind === "window" && wallOfObject(o) === "E")?.rot === 270, "mirror maps the orientation (v: the headboard turns to the S wall · h: the W window becomes an E window)");
 // the bed rotates CLEAR when alone — and keeps the R5 half-foot pivot (a Math.round revert fails here)

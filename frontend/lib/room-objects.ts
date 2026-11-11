@@ -896,21 +896,20 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
  * Pure + deterministic (replay law). R-CORE-locked by tests/room-standard-layout.test.mjs.
  */
 export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
-  // R5b — LAYOUT A′ (HI 2026-10-31, after the fleet measured R5's Layout A: the vanity sat 6" from the bed and the door swept it):
-  // the vanity + mirror go OPPOSITE the bed on the S wall, where the decision card put the dresser; NO rug ("only furniture —
-  // no rugs or curtains till the later polish stage"). Clearances (gated): 2.5-ft aisles beside the bed · 2 ft bed-foot → vanity
-  // · the door's 3-ft swing clear of everything · a 36" chair zone beside the bed in front of the vanity (x 7.5–10 · y 5–8).
+  // R5c — LAYOUT A″ (operator LIVE 2026-11-11 "doors should be in middle of 10ft long interior wall"): A′ put the vanity on
+  // the S wall, which forced the S-wall door off-centre; the vanity + mirror now RELOCATE to the E wall (SE corner, below the
+  // bed foot — the same SE region A′ used, just turned onto the E wall) so the S door CENTRES at gx 4.5 like every other room.
+  // NO rug. Clearances (gated): 2.5-ft aisles beside the bed · a clear ≥2.5-ft approach W of the vanity (open room centre) ·
+  // the centred door's 3-ft swing (hinged at the W jamb) clear of everything · the vanity clear of the bed.
   M: [
     { id: "bed-1",        kind: "bed",        gx: 4.5, gy: 2.5, rot: 0 },            // centre (5, 3) · x 2.5–7.5 · y 0–6 · head on the N wall
     { id: "nightstand-1", kind: "nightstand", gx: 1,   gy: 0.25, rot: 0 },           // flush at the head, left · x 0.75–2.25 · y 0–1.5
     { id: "nightstand-2", kind: "nightstand", gx: 8,   gy: 0.25, rot: 0 },           // flush at the head, right · x 7.75–9.25 · y 0–1.5
-    { id: "desk-1",       kind: "desk",       gx: 7.5, gy: 8.5, rot: 0 },            // the vanity on the S wall, opposite the bed · x 6–10 · y 8–10
-    { id: "mirror-1",     kind: "mirror",     gx: 7.5, gy: 9,   rot: 0, elev: 3 },   // the wall mirror above the vanity (S wall)
+    { id: "desk-1",       kind: "desk",       gx: 8.5, gy: 7.5, rot: 90 },           // the vanity on the E wall, SE, below the bed foot · x 8–10 · y 6–10
+    { id: "mirror-1",     kind: "mirror",     gx: 9.4, gy: 7.5, rot: 90, elev: 3 },  // the wall mirror above the vanity (E wall) · x 9.8–10 · y 7–9
     { id: "window-1",     kind: "window",     gx: 7.5, gy: 0,   rot: 0 },            // N (exterior) · over the right nightstand · x 6.5–9.5 (clear of the corner)
     { id: "window-2",     kind: "window",     gx: 0,   gy: 2.5, rot: 90 },           // W (exterior) · beside the bed · y 1.5–4.5
-    // door centered as far as the S-wall vanity (x6–10) allows — operator "doors in middle"; a true middle needs the vanity
-    // relocated (a 5-ft bed + 4-ft vanity + 3-ft door won't all fit mid-wall in a 10-ft room), flagged for an H.I. call.
-    { id: "door-1",       kind: "door",       gx: 3,   gy: 9,   rot: 0 },            // S wall · from the Living Room · x 2–5 (clears the vanity)
+    { id: "door-1",       kind: "door",       gx: 4.5, gy: 9,   rot: 0 },            // S wall · from the Living Room · CENTERED (x 3.5–6.5) — the vanity moved to the E wall so it centres
   ],
   // R2f — LIVING ROOM (operator LIVE 2026-11-09: "living room should face tv; feng sui is the art of flow; ensure items
   // that are not critical are removed"). The CRITICAL pair only — the sofa FACES the TV — nothing else auto-placed (the
@@ -994,7 +993,7 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
 };
 /** The standard layouts' edition. A stored room whose `layoutRev` is older is re-seated to the decided layout on load
  * (the WireGuard, lib/architect-guard.ts) — "stop reverting" reaches the devices that saved the earlier edition too. */
-export const STANDARD_LAYOUT_REV = 3;
+export const STANDARD_LAYOUT_REV = 4;
 /** The DECLUTTER edition (operator 2026-11-08 "closet declutter requested 6+ times"). Bumping this re-seats EVERY room's
  * working layout to its curated default (standardLayoutFor ?? defaultObjectsForRoom) ONCE on load, for every device —
  * the missing piece behind the reverting clutter: earlier fixes only changed the DEFAULT, never migrated a device whose
@@ -1042,11 +1041,28 @@ export const STANDARD_LAYOUT_EDITIONS: Record<number, Record<string, PlacedObjec
       { id: "door-1",       kind: "door",       gx: 1,   gy: 9,   rot: 0 },
     ],
   },
-  // edition 3 = the current expert-layout edition, grown room by room on the LIVE set: Master Bedroom A′ (R5b) +
-  // Living Room (R2f) + Dining Room (R2g) + V2 (2026-11-09) the remaining six — B·C·K·O·S·E — so ALL NINE rooms are now
-  // decided. STANDARD_LAYOUT_REV stays 3 while rooms are ADDED (nothing already-shipped is re-decided); DECLUTTER_REV is
-  // bumped (→4) to roll the full furnished 3×3 to every device.
-  3: STANDARD_LAYOUTS,
+  // edition 3 = the expert-layout edition grown room by room on the LIVE set: Master Bedroom A′ (R5b, the S-wall vanity) +
+  // Living Room (R2f) + Dining Room (R2g) + V2 (2026-11-09) the remaining six — B·C·K·O·S·E. FROZEN at M (A′) so re-deciding
+  // M for edition 4 doesn't rewrite what edition 3 shipped (append never edit — the guard must still recognise a device that
+  // holds exactly A′ as an UNTOUCHED prior edition and re-seat it to A″). The 8 other rooms are UNCHANGED in edition 4, so the
+  // spread keeps them as live refs; only M is pinned.
+  3: {
+    ...STANDARD_LAYOUTS,
+    M: [
+      { id: "bed-1",        kind: "bed",        gx: 4.5, gy: 2.5, rot: 0 },
+      { id: "nightstand-1", kind: "nightstand", gx: 1,   gy: 0.25, rot: 0 },
+      { id: "nightstand-2", kind: "nightstand", gx: 8,   gy: 0.25, rot: 0 },
+      { id: "desk-1",       kind: "desk",       gx: 7.5, gy: 8.5, rot: 0 },
+      { id: "mirror-1",     kind: "mirror",     gx: 7.5, gy: 9,   rot: 0, elev: 3 },
+      { id: "window-1",     kind: "window",     gx: 7.5, gy: 0,   rot: 0 },
+      { id: "window-2",     kind: "window",     gx: 0,   gy: 2.5, rot: 90 },
+      { id: "door-1",       kind: "door",       gx: 3,   gy: 9,   rot: 0 },
+    ],
+  },
+  // edition 4 = Master Bedroom A″ (operator LIVE 2026-11-11 "doors should be in middle") — the S-wall vanity + mirror
+  // relocated to the E wall (SE, below the bed foot) so the S door CENTRES at gx 4.5 like every other room; the 8 other rooms
+  // are unchanged. STANDARD_LAYOUT_REV → 4 so a device holding an untouched A′ (edition 3) re-seats to A″.
+  4: STANDARD_LAYOUTS,
 };
 /** The decided layout of a room key at a given edition (a fresh copy), or null. */
 export function standardLayoutAt(roomKey: string, rev: number): PlacedObject[] | null {
