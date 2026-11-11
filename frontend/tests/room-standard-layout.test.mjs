@@ -35,7 +35,7 @@ ok(STANDARD_LAYOUTS.M && JSON.stringify(M) === JSON.stringify(STANDARD_LAYOUTS.M
 ok(standardLayoutFor("M") !== STANDARD_LAYOUTS.M && JSON.stringify(standardLayoutFor("M")) === JSON.stringify(STANDARD_LAYOUTS.M), "standardLayoutFor returns a fresh copy (a saved edit never mutates the decided layout)");
 ok(standardLayoutFor("ZZZ") === null && standardLayoutFor("K") !== null && Object.keys(ROOM_ASSETS).every((rk) => standardLayoutFor(rk) !== null), "V2 (2026-11-09): all nine canonical rooms are now decided; only an unknown room key has no decided layout (null)");
 ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(M), "deterministic (replay law)");
-ok(STANDARD_LAYOUT_REV === 4, "the standard-layout edition is 4 — bumped from 3 because an already-shipped room was RE-DECIDED: Master Bedroom A′ → A″ (vanity relocated to the E wall so the S door centres, operator LIVE 2026-11-11); edition 3 is frozen so A′ devices re-seat to A″");
+ok(STANDARD_LAYOUT_REV === 5, "the standard-layout edition is 5 — bumped for LIVABILITY (operator LIVE 2026-11-11 'make sq footage is livable 900 sq ft'; 12-AsM P0: the house was door-disconnected): B→ensuite off M, C→walk-in off the suite, D opens to the Kitchen via a cased opening (the bridge); editions 3+4 frozen so older devices re-seat");
 
 // ── 2. Layout A′, piece by piece (HI: bed centred on the back wall · two nightstands · vanity + mirror OPPOSITE the bed · 2 windows · door · NO rug) ──
 ok(count(M, "bed") === 1 && count(M, "nightstand") === 2 && count(M, "desk") === 1 && count(M, "mirror") === 1 && count(M, "window") === 2 && count(M, "door") === 1, `Layout A′ = 1 bed · 2 nightstands · 1 desk (vanity) · 1 mirror · 2 windows · 1 door (got ${kinds(M).join(",")})`);
@@ -103,12 +103,15 @@ ok(lCell && lCell.row === 1 && lCell.col === 0, "the canonical 3×3 puts the Liv
 //     anchor, centred, with its chairs; the one exterior wall (E) carries the window. ──
 const D = defaultObjectsForRoom("D");
 ok(STANDARD_LAYOUTS.D && JSON.stringify(D) === JSON.stringify(STANDARD_LAYOUTS.D), "the Dining Room default IS the decided STANDARD_LAYOUTS.D — never the greedy packer");
-ok(count(D, "table") === 1 && count(D, "window") === 1 && count(D, "door") === 1, `the Dining Room has a table AND a window (and a door): ${kinds(D).join(",")}`);
+ok(count(D, "table") === 1 && count(D, "window") === 1, `the Dining Room has a table AND a window: ${kinds(D).join(",")}`);
+const dDoors = D.filter((o) => o.kind === "door");
+ok(dDoors.filter((o) => !o.cased).length === 1 && dDoors.filter((o) => o.cased).length === 1, "the Dining Room has one SWING entry door + one CASED opening to the Kitchen (LIV-3 — the social core + the component bridge)");
 ok(count(D, "chair") >= 1, `the dining table has its seating (${count(D, "chair")} chairs)`);
 const dtable = D.find((o) => o.kind === "table"), dts = worldSpan(dtable);
 ok(near((dts.x1 + dts.x2) / 2, ROOM_GRID / 2) && near((dts.y1 + dts.y2) / 2, ROOM_GRID / 2), `the dining table is centred (centre ${((dts.x1 + dts.x2) / 2).toFixed(1)},${((dts.y1 + dts.y2) / 2).toFixed(1)})`);
 ok(D.filter((o) => o.kind === "window").every((w) => wallOfObject(w) === "E"), "the Dining-Room window is on the one EXTERIOR wall (E — D sits at row 1 · col 2)");
-ok(wallOfObject(D.find((o) => o.kind === "door")) === "S", "the Dining-Room entry door is on the S wall, clear of the seating");
+ok(wallOfObject(D.find((o) => o.kind === "door" && !o.cased)) === "S", "the Dining-Room entry (swing) door is on the S wall, clear of the seating");
+ok(wallOfObject(D.find((o) => o.kind === "door" && o.cased)) === "W", "the Dining↔Kitchen CASED opening is on the W wall (the bridge to the windowless centre kitchen)");
 const dfloor = D.filter(isFloor);
 let dworst = 0; for (let i = 0; i < dfloor.length; i++) for (let j = i + 1; j < dfloor.length; j++) dworst = Math.max(dworst, overlap(dfloor[i], dfloor[j]));
 ok(dworst < 0.01 && D.every(inside), `the Dining Room has zero floor overlap and sits inside the room (worst ${dworst.toFixed(3)} ft²)`);

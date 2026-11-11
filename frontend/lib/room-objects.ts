@@ -941,33 +941,38 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
     // for the CENTERED entry door (operator LIVE 2026-11-11 "doors should be in middle…") — a 4th S chair would stand in the
     // doorway, so the entry side is left clear, the natural dining arrangement. A chair's front is +y at rot 0, so rot turns
     // it toward the centre: N faces S (0), W faces E (90), E faces W (270).
+    // LIV-3 — the W side OPENS to the Kitchen (a cased opening): this is the component BRIDGE that reconnects the house AND the
+    // social core that lights the windowless centre kitchen. The W dining chair is removed (that side is now the pass to the kitchen).
     { id: "table-1",  kind: "table",  gx: 4.5, gy: 4.5, rot: 0 },           // the dining table, centred — the anchor (x 3–7 · y 3–7)
     { id: "chair-1",  kind: "chair",  gx: 4.5, gy: 1.65, rot: 0 },          // N seat, faces S into the table
-    { id: "chair-3",  kind: "chair",  gx: 1.65, gy: 4.5, rot: 90 },         // W seat, faces E into the table
     { id: "chair-4",  kind: "chair",  gx: 7.35, gy: 4.5, rot: 270 },        // E seat, faces W into the table
     { id: "window-1", kind: "window", gx: 9,   gy: 2,   rot: 90 },          // E (exterior) wall · y 1–4 (clear of the corner)
-    { id: "door-1",   kind: "door",   gx: 4.5, gy: 9,   rot: 0 },           // S wall · entry · CENTERED (x 3.5–6.5), S side open
+    { id: "opening-1",kind: "door",   gx: 0,   gy: 7,   rot: 90, cased: true }, // W → Kitchen — CASED OPENING: the social core + the component BRIDGE (LIV-3); low on the wall, clear of the kitchen fridge
+    { id: "door-1",   kind: "door",   gx: 4.5, gy: 9,   rot: 0 },           // S wall · entry · CENTERED (x 3.5–6.5)
   ],
   // V2 (operator LIVE 2026-11-09 "default to room placement I had in image") — the remaining six rooms get a decided,
   // X1-clean expert layout (no overlap, no door-block), so EVERY new project opens to the furnished 3×3, not the packer.
   // Exterior walls by 3×3 cell: B(N) · C(N+E) · K(none, centre) · O(S+W) · S(S) · E(S+E). Windows on exterior walls,
   // interior doors on interior walls (E keeps its front door on the S exterior wall). Functions only — open centres.
   // B — Master Bath: fixtures to the wet walls, the tub under the N window, the S door lane clear.
+  // B — Master Bath (LIV-3): now an ENSUITE off the Master Bedroom — the door moves to the W wall (→ M), the walk-in Closet
+  // opens off the E wall (→ C, owned by C). The sink + toilet move to the freed S wall so the W wall carries the suite door.
   B: [
     { id: "tub-1",    kind: "tub",    gx: 2.5, gy: 0.5, rot: 0 },           // N wall, under the window (x0.5–5.5 · y0–2)
-    { id: "shower-1", kind: "shower", gx: 7,   gy: 1,   rot: 0 },           // NE (x6–9 · y0–3)
-    { id: "sink-1",   kind: "sink",   gx: 0.5, gy: 4,   rot: 0 },           // W wall (x0–2 · y3–5)
-    { id: "toilet-1", kind: "toilet", gx: 0.5, gy: 6.5, rot: 0 },          // W wall (x0–2 · y6–8)
+    { id: "shower-1", kind: "shower", gx: 7,   gy: 1,   rot: 0 },           // NE (x6–9 · y0–3) — clear of the E-wall closet opening (lower)
+    { id: "sink-1",   kind: "sink",   gx: 1.5, gy: 8.5, rot: 0 },           // S wall (x0.5–3.5 · y8–10) — moved off the W wall for the suite door
+    { id: "toilet-1", kind: "toilet", gx: 6,   gy: 8.5, rot: 0 },          // S wall (x5–7 · y8–10)
     { id: "window-1", kind: "window", gx: 3,   gy: 0,   rot: 0 },           // N (exterior) over the tub
-    { id: "door-1",   kind: "door",   gx: 4.5, gy: 9,   rot: 0 },           // S (interior) · CENTERED (x 3.5–6.5)
+    { id: "door-1",   kind: "door",   gx: 0,   gy: 3.5, rot: 90 },          // W (interior) → Master Bedroom — the ENSUITE door (LIV-3)
   ],
-  // C — Master Closet: wardrobe + dresser down the W wall, shelving on the E (exterior) wall, window on the N.
+  // C — Master Closet (LIV-3): a WALK-IN off the suite — the door moves to the W wall (→ B, the ensuite), so the closet is
+  // reached bedroom → bath → closet, never off the Dining room. The wardrobe + dresser move to the freed S wall.
   C: [
-    { id: "wardrobe-1", kind: "wardrobe", gx: 0.5,  gy: 2.5, rot: 90 },     // W wall (x0–2 · y1–5)
-    { id: "dresser-1",  kind: "dresser",  gx: 0.35, gy: 6,   rot: 90 },     // W wall below the wardrobe (x0–1.7 · y5–8)
+    { id: "wardrobe-1", kind: "wardrobe", gx: 2,    gy: 8.5, rot: 0 },      // S wall (moved off the W wall for the suite door)
+    { id: "dresser-1",  kind: "dresser",  gx: 6,    gy: 8.5, rot: 0 },      // S wall
     { id: "shelving-1", kind: "shelving", gx: 9,    gy: 5,   rot: 90 },     // E (exterior) wall, wall-hung
     { id: "window-1",   kind: "window",   gx: 6,    gy: 0,   rot: 0 },      // N (exterior)
-    { id: "door-1",     kind: "door",     gx: 4.5,  gy: 9,   rot: 0 },      // S (interior) · CENTERED (x 3.5–6.5), clear of the W furniture
+    { id: "door-1",     kind: "door",     gx: 0,    gy: 4.5, rot: 90 },     // W (interior) → Master Bath — the WALK-IN door off the suite (LIV-3)
   ],
   // K — Kitchen (centre, no exterior wall): the work triangle — counter + stove on the N, sink on the W, fridge on the SE.
   K: [
@@ -1001,7 +1006,7 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
 };
 /** The standard layouts' edition. A stored room whose `layoutRev` is older is re-seated to the decided layout on load
  * (the WireGuard, lib/architect-guard.ts) — "stop reverting" reaches the devices that saved the earlier edition too. */
-export const STANDARD_LAYOUT_REV = 4;
+export const STANDARD_LAYOUT_REV = 5;
 /** The DECLUTTER edition (operator 2026-11-08 "closet declutter requested 6+ times"). Bumping this re-seats EVERY room's
  * working layout to its curated default (standardLayoutFor ?? defaultObjectsForRoom) ONCE on load, for every device —
  * the missing piece behind the reverting clutter: earlier fixes only changed the DEFAULT, never migrated a device whose
@@ -1067,10 +1072,38 @@ export const STANDARD_LAYOUT_EDITIONS: Record<number, Record<string, PlacedObjec
       { id: "door-1",       kind: "door",       gx: 3,   gy: 9,   rot: 0 },
     ],
   },
-  // edition 4 = Master Bedroom A″ (operator LIVE 2026-11-11 "doors should be in middle") — the S-wall vanity + mirror
-  // relocated to the E wall (SE, below the bed foot) so the S door CENTRES at gx 4.5 like every other room; the 8 other rooms
-  // are unchanged. STANDARD_LAYOUT_REV → 4 so a device holding an untouched A′ (edition 3) re-seats to A″.
-  4: STANDARD_LAYOUTS,
+  // edition 4 = Master Bedroom A″ (the E-wall vanity + centred S door). FROZEN at B·C·D (their pre-LIV-3 layouts) so re-deciding
+  // them for edition 5 doesn't rewrite what edition 4 shipped (append never edit); the other 6 rooms are unchanged in edition 5.
+  4: {
+    ...STANDARD_LAYOUTS,
+    B: [
+      { id: "tub-1",    kind: "tub",    gx: 2.5, gy: 0.5, rot: 0 },
+      { id: "shower-1", kind: "shower", gx: 7,   gy: 1,   rot: 0 },
+      { id: "sink-1",   kind: "sink",   gx: 0.5, gy: 4,   rot: 0 },
+      { id: "toilet-1", kind: "toilet", gx: 0.5, gy: 6.5, rot: 0 },
+      { id: "window-1", kind: "window", gx: 3,   gy: 0,   rot: 0 },
+      { id: "door-1",   kind: "door",   gx: 4.5, gy: 9,   rot: 0 },
+    ],
+    C: [
+      { id: "wardrobe-1", kind: "wardrobe", gx: 0.5,  gy: 2.5, rot: 90 },
+      { id: "dresser-1",  kind: "dresser",  gx: 0.35, gy: 6,   rot: 90 },
+      { id: "shelving-1", kind: "shelving", gx: 9,    gy: 5,   rot: 90 },
+      { id: "window-1",   kind: "window",   gx: 6,    gy: 0,   rot: 0 },
+      { id: "door-1",     kind: "door",     gx: 4.5,  gy: 9,   rot: 0 },
+    ],
+    D: [
+      { id: "table-1",  kind: "table",  gx: 4.5, gy: 4.5, rot: 0 },
+      { id: "chair-1",  kind: "chair",  gx: 4.5, gy: 1.65, rot: 0 },
+      { id: "chair-3",  kind: "chair",  gx: 1.65, gy: 4.5, rot: 90 },
+      { id: "chair-4",  kind: "chair",  gx: 7.35, gy: 4.5, rot: 270 },
+      { id: "window-1", kind: "window", gx: 9,   gy: 2,   rot: 90 },
+      { id: "door-1",   kind: "door",   gx: 4.5, gy: 9,   rot: 0 },
+    ],
+  },
+  // edition 5 = LIVABILITY (operator LIVE 2026-11-11 "make sq footage is livable 900 sq ft"; 12-AsM P0: the house was
+  // door-disconnected). B is now an ENSUITE off M (door W→M), C a WALK-IN off the suite (door W→B), and D opens to the
+  // Kitchen through a CASED opening (the component bridge + social core). All 9 rooms are now reachable from the front door.
+  5: STANDARD_LAYOUTS,
 };
 /** The decided layout of a room key at a given edition (a fresh copy), or null. */
 export function standardLayoutAt(roomKey: string, rev: number): PlacedObject[] | null {

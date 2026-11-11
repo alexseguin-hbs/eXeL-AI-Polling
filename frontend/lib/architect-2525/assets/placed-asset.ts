@@ -65,7 +65,7 @@ export function fromPlacedAsset(a: PlacedAsset, prior?: PlacedObject): PlacedObj
     ? { id: a.instanceId, kind, gx: r6(gx), gy: r6(gy), rot: snapRotation(a.rotationDeg) }
     : { id: a.instanceId, kind: "asset", assetId: a.assetId, size: { w: def!.dimensions.w, d: def!.dimensions.d, h: def!.dimensions.h }, gx: r6(gx), gy: r6(gy), rot: snapRotation(a.rotationDeg) };
   const sameId = prior && (kind ? prior.kind === kind : prior.kind === "asset" && prior.assetId === a.assetId);
-  const keep = sameId ? { ...(prior!.variant ? { variant: prior!.variant } : {}), ...(prior!.size ? { size: prior!.size } : {}) } : {};
+  const keep = sameId ? { ...(prior!.variant ? { variant: prior!.variant } : {}), ...(prior!.size ? { size: prior!.size } : {}), ...(prior!.slide ? { slide: prior!.slide } : {}), ...(prior!.cased ? { cased: prior!.cased } : {}) } : {};
   // an elevation that is just the kind's default (a window's 3-ft sill) stays implicit, as the designer stores it
   const explicit = prior && typeof prior.elev === "number";
   const withElev = explicit || Math.abs(elev - elevOf(base)) > 1e-6 ? { elev: r6(elev) } : {};
