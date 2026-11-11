@@ -67,9 +67,12 @@ ok(tiny.catalogPreset.mainFloorFt2 !== TINY_HOME.grossSqft, "the preset's 280 ft
 // ── 4. PRESET ISOLATION — the catalog presets never leak into the canonical readout (operator: "Do not write this preset into canonical geometry, project_hash, or R-CORE") ──
 const cmd = read("../components/architect-2525/command-ux1.tsx");
 const mr = read("../components/architect-2525/master-readout.tsx");
-ok(!/architect-sim-options|SIM_MODELS/.test(cmd.split("PhaseBar")[0] ?? cmd) || !/SIM_MODELS/.test(mr), "the canonical readout does not read SIM_MODELS (the Simulate presets cannot leak into Budget Target / Project Cost)");
-ok(/NOT CALCULATED/.test(cmd) && /Budget Target/.test(cmd), "the Overview keeps Budget Target + Project Cost NOT CALCULATED (canonical, untouched by the preset)");
-ok(/REVIEWABLE/.test(mr) && /NOT CALCULATED/.test(mr), "the master readout keeps PLAN · REVIEWABLE · Project Cost NOT CALCULATED");
+ok(!/architect-sim-options|SIM_MODELS/.test(cmd.split("PhaseBar")[0] ?? cmd) || !/SIM_MODELS/.test(mr), "the canonical readout does not read SIM_MODELS (the Simulate presets cannot leak into Budget Target / Est. Build Cost)");
+// R6 one-cost-truth (operator LIVE 2026-11-11 "show calculated vs target"): the Overview + master readout show the DERIVED
+// canonicalHouseTruth().costUsd (= HouseSpec + the one-cost-truth gate) vs the ASSUMED target — NOT the Simulate SIM_MODELS
+// preset and NOT the firewalled SoI economy; "NOT CALCULATED" is retired.
+ok(/canonicalHouseTruth\(\)/.test(cmd) && /Budget Target/.test(cmd) && !/SIM_MODELS/.test(cmd.split("PhaseBar")[0] ?? cmd), "the Overview shows Budget Target + the DERIVED Est. Build Cost from canonicalHouseTruth (never the preset)");
+ok(/REVIEWABLE/.test(mr) && /canonicalHouseTruth\(\)/.test(mr) && !/SIM_MODELS/.test(mr), "the master readout keeps PLAN · REVIEWABLE and shows the DERIVED Est. Build Cost from canonicalHouseTruth (never the preset)");
 
 // ── 5. ROOM COUNT MATCHES THE FORM'S OWN CELLS (operator 2026-11-01 "7 hex is 7 rooms") — no form shows a room count that
 //    disagrees with its own geometry; the Eco-Sphere's 7 hexagons are 7 rooms, never the Cube's 9 ──

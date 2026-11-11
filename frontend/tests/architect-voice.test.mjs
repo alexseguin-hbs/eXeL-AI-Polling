@@ -13,7 +13,7 @@ const read = (p) => fs.readFileSync(path.resolve(HERE, p), "utf8");
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "");   // only RENDERED copy is judged, never code comments
 
 // Machine / dev / platform / analytics vocabulary that must never face a person using Architect-2525.
-// NOTE: estimate language the operator himself sanctioned — ASSUMED, DERIVED, "NOT CALCULATED" (the honest THOW / Overview
+// NOTE: estimate language the operator himself sanctioned — ASSUMED, DERIVED, "vs target" (R6 one-cost-truth, the honest THOW / Overview
 // states) — is NOT banned; the refactor rewords the FRAMING around them into plain words. SSSES / SPIRAL / R-CORE get NO
 // exemption (operator 2026-11-01: they belong to building the platform, not to the product).
 const BANNED = /\bNOT_RUN\b|\bNOT STARTED\b|engine-derived|\bfrom the (estimate )?engine\b|\bdeterministic\b|\bcanonical\b|\bvoxel\b|\bwireframe\b|\bR-CORE\b|\bSSSES\b|\bSPIRAL\b|\bREPLAY ENGINE\b|\bDIGITAL TWINS?\b|project_hash|\bOBSERVABILITY\b|\bREVIEWABLE\b|V2525-\d|\brun all 3 first\b/;

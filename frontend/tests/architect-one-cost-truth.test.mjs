@@ -8,7 +8,8 @@ import { costFor, catalogSum, modelById, SIM_MODELS } from "@/lib/architect-sim-
 import { rollupProject, DEFAULT_SECTIONS } from "@/lib/architect-estimate";
 import { projectHeadline, materialCost, projectLaborCost, settlementComparison, deriveM } from "@/lib/architect-labor";
 import { modeledQuotes } from "@/lib/architect-vendors";
-import { canonicalHouseTruth } from "@/lib/architect-house-truth";
+import { canonicalHouseTruth, BUDGET_TARGET_USD, fmtUsdWhole } from "@/lib/architect-house-truth";
+import { readFileSync } from "node:fs";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -64,6 +65,30 @@ ok(simHeadline === estHeadline, `the Simulate and Estimate headlines AGREE ($${s
   ok(tiny && tiny.catalogPreset && catalogSum(tiny.catalogPreset) === 67000, `Tiny Home card headline is pinned at $67,000 (catalog stock plan) (got $${tiny && tiny.catalogPreset ? catalogSum(tiny.catalogPreset) : "?"})`);
   // the three displayed headlines are distinct and each on its own basis — one truth per home, no cross-contamination
   ok(simHeadline === 240000 && costFor(eco, eco.native) === 231500 && catalogSum(tiny.catalogPreset) === 67000, "all three home headlines hold: Cube $240,000 (derived) · Eco-Sphere $231,500 (assumed) · Tiny $67,000 (catalog)");
+}
+
+// ── R6 EXTENDED (operator LIVE 2026-11-11 "show calculated vs target"): the two surfaces that used to read "NOT CALCULATED"
+//    — the Overview (command-ux1) + the Master Readout — now READ this one derived truth (canonicalHouseTruth().costUsd),
+//    shown AGAINST the ASSUMED budget target, so every adjacent surface reads one cost. The SoI economy stays firewalled.
+//    ONE PRESENTATION + ONE TARGET (AsM-caught 2026-11-11, Thoth/Thor/Odin): the cost renders through the ONE shared
+//    whole-dollar formatter (fmtUsdWhole — no false cents, same format HouseSpec uses) and the budget target is the ONE
+//    shared constant (BUDGET_TARGET_USD from architect-house-truth), so the one number can never show two formats or two
+//    targets across surfaces, and a future target edit can't drift one surface from another. ──
+{
+  const srcCmd = readFileSync(new URL("../components/architect-2525/command-ux1.tsx", import.meta.url), "utf8");
+  const srcMr = readFileSync(new URL("../components/architect-2525/master-readout.tsx", import.meta.url), "utf8");
+  const srcHs = readFileSync(new URL("../components/architect-2525/house-spec.tsx", import.meta.url), "utf8");
+  ok(/canonicalHouseTruth\(\)/.test(srcCmd) && /fmtUsdWhole\(houseTruth\.costUsd\)/.test(srcCmd) && !/NOT CALCULATED/.test(srcCmd), "the Overview reads the DERIVED canonicalHouseTruth().costUsd via the shared whole-dollar format (not 'NOT CALCULATED')");
+  ok(/canonicalHouseTruth\(\)/.test(srcMr) && /fmtUsdWhole\(master\.costUsd\)/.test(srcMr) && !/NOT CALCULATED/.test(srcMr), "the Master Readout reads the DERIVED canonicalHouseTruth().costUsd via the shared whole-dollar format (not 'NOT CALCULATED')");
+  ok(!/(Est\. Build Cost|Project Cost|Budget Target)" value=\{fmtUsd(Whole)?\(econ\./.test(srcCmd), "no cost/budget tile presents the SoI economy (econ.*) as a construction cost (§XI firewall; econ stays in the incentive expander)");
+  // ONE PRESENTATION: all three cost surfaces format the one number through the shared fmtUsdWhole (no cents, no divergence)
+  ok(fmtUsdWhole(240000) === "$240,000" && fmtUsdWhole(173200) === "$173,200" && !/\.00/.test(fmtUsdWhole(240000)), "fmtUsdWhole is whole-dollar — no false cents on the build estimate");
+  ok(/fmtUsdWhole/.test(srcCmd) && /fmtUsdWhole/.test(srcMr) && /fmtUsdWhole/.test(srcHs), "all three cost surfaces (Overview · Master Readout · HouseSpec) format the cost through the ONE shared fmtUsdWhole");
+  // ONE TARGET: the budget target is the ONE shared constant, imported — never a per-file literal that could drift
+  ok(BUDGET_TARGET_USD === 66800, "the shared BUDGET_TARGET_USD is the $66,800 ASSUMED target");
+  ok(/import \{[^}]*BUDGET_TARGET_USD[^}]*\} from "@\/lib\/architect-house-truth"/.test(srcCmd) && !/const BUDGET_TARGET_USD\s*=/.test(srcCmd), "the Overview IMPORTS the shared BUDGET_TARGET_USD (no local literal to drift)");
+  ok(/import \{[^}]*BUDGET_TARGET_USD[^}]*\} from "@\/lib\/architect-house-truth"/.test(srcMr) && !/const BUDGET_TARGET_USD\s*=/.test(srcMr), "the Master Readout IMPORTS the shared BUDGET_TARGET_USD (no local literal to drift)");
+  ok(/Budget Target/.test(srcCmd) && /vs target/.test(srcMr), "the calculated-vs-target pair is shown on both surfaces (Budget Target tile · 'vs target' in the readout)");
 }
 
 // ── determinism ──

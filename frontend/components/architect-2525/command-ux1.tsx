@@ -32,6 +32,7 @@ import { FpsMeter } from "@/components/security-2525/fps-meter";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
 import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationMode } from "./architect-economy";
+import { canonicalHouseTruth, BUDGET_TARGET_USD, fmtUsdWhole } from "@/lib/architect-house-truth";   // R6 one-cost-truth: the DERIVED build cost (costFor) + the ONE ASSUMED target + the ONE whole-dollar format, all shared with HouseSpec + the Master Readout
 import { recognitionU, U_BASE_HOURS } from "@/lib/architect-labor";
 import { VectorGlass } from "./vector-glass";
 import { ArchitectDesign } from "./architect-design";
@@ -215,7 +216,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const canonSpaces = spaceCount(canonical);                       // 9
   const canonWet = wetCount(canonical);                            // 3
   const canonBath = bathCount(canonical);                          // 1
-  const BUDGET_TARGET_USD = 66_800;                                // ASSUMED (§16 ASSUMPTION_REGISTER)
+  const houseTruth = useMemo(() => canonicalHouseTruth(), []);     // R6 one-cost-truth — costUsd = $240,000 (DERIVED via costFor; = HouseSpec + the one-cost-truth gate). NOT the firewalled SoI economy.
   const [focusRoom, setFocusRoom] = useState<{ k: string; label: string } | null>(null); // entered room → context-scopes the Vision Tree (room designer)
   // IMG-05 (operator "drag drop on phone + computer") — HTML5 drag never fires on touch, so a Vision-Tree row
   // could not be added to the house on a phone. Mirror the Security-2525 / room-designer standard: TAP a tree leaf
@@ -409,8 +410,12 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
                   scores (advisory §5). */}
               <Tile label="Stage" value={`${canonStageWord} · ${canonPlanState}`} sub="HI Review Required" color={C.gold} />
               <Tile label="Net Program" value={`${canonSqft} ft²`} sub={`${canonSpaces} Spaces · ${canonWet} Wet · ${canonBath} Bath`} color={C.cyan} />
-              <Tile label="Budget Target" value={fmtUsd(BUDGET_TARGET_USD)} sub="ASSUMED" color={C.amber} />
-              <Tile label="Project Cost" value="NOT CALCULATED" sub="no estimate yet" color={C.dim} />
+              {/* R6 one-cost-truth (operator LIVE 2026-11-11 "show calculated vs target"): the Est. Build Cost is the
+                  DERIVED canonicalHouseTruth().costUsd ($240,000 = costFor, the SAME number HouseSpec + the one-cost-truth
+                  gate read), shown AGAINST the $66,800 ASSUMED Budget Target as an explicit calculated-vs-target pair —
+                  never the firewalled SoI economy (econ.totalUsd), which stays in the incentive expander below (§XI). */}
+              <Tile label="Est. Build Cost" value={fmtUsdWhole(houseTruth.costUsd)} sub={`DERIVED · vs target +${fmtUsdWhole(houseTruth.costUsd - BUDGET_TARGET_USD)} (${(houseTruth.costUsd / BUDGET_TARGET_USD).toFixed(1)}×)`} color={C.gold} />
+              <Tile label="Budget Target" value={fmtUsdWhole(BUDGET_TARGET_USD)} sub="ASSUMED (§16)" color={C.amber} />
               <Tile label="Gross Building Area" value={`${GROSS_SQFT.toLocaleString()} ft²`} sub="36×36 ft shell · 1′ wall/service zone" color={C.cyan} />
               <Tile label="Build-Ready" value="—" sub="qualify to unlock" color={C.amber} />
               <Tile label="Iteration" value="— / 33" sub="20–33 loop · not started" color={C.dim} />

@@ -35,6 +35,17 @@ import { SHELL_FT } from "./room-layout";   // the ONE shell source (12-ft outer
 
 const CANONICAL_MODEL_ID = "3x3-grid";
 
+/** The ONE ASSUMED budget target (§16 ASSUMPTION_REGISTER). Single source so the Overview tile, the Master Readout and the
+ * calculated-vs-target variance can never show two different targets for one project (operator "master source flows to all
+ * components"; was duplicated as a literal in command-ux1 + master-readout — AsM-caught, Thor/Odin 2026-11-11). */
+export const BUDGET_TARGET_USD = 66_800;
+
+/** The ONE whole-dollar presentation of the one cost truth — no false cents on a build estimate (a $240,000 construction
+ * estimate for an unbuilt PLAN project has no penny precision). HouseSpec, the Overview Est. Build Cost tile and the Master
+ * Readout all format the cost through THIS, so the one number also reads in one format across every surface (AsM-caught,
+ * Thoth 2026-11-11: economy fmtUsd showed "$240,000.00" while HouseSpec showed "$240,000" on the same Design screen). */
+export const fmtUsdWhole = (n: number): string => "$" + Math.round(n).toLocaleString();
+
 /** The canonical Cube SimModel (the one priced to $240,000 at its native option). */
 export function canonicalModel(): SimModel {
   return modelById(CANONICAL_MODEL_ID) ?? SIM_MODELS[0];

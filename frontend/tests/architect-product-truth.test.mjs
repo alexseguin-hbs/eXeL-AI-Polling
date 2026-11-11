@@ -28,9 +28,12 @@ ok(!/R-CORE <span[^>]*>SYNC</.test(ux), "no fabricated 'SYNC' status is rendered
 ok(!/SSSES <span|>SSSES</.test(ux) && !/SPIRAL <span/.test(ux) && !/R-CORE <span/.test(ux), "the ribbon/Overview no longer render SSSES / SPIRAL / R-CORE chips (R-UX6 D1b)");
 ok(!/SSSES · SPIRAL · R-CORE/.test(ux), "the ADV/More grids no longer list 'SSSES · SPIRAL · R-CORE'");
 
-// ── project cost is NOT CALCULATED; the economy is not presented as a construction cost (§XI) ──
-ok(!/Project Cost" value=\{fmtUsd\(econ\.totalUsd\)/.test(ux), "Project Cost tile no longer reads econ.totalUsd");
-ok(/Project Cost" value="NOT CALCULATED"/.test(ux), "Project Cost reads NOT CALCULATED");
+// ── R6 one-cost-truth (operator LIVE 2026-11-11 "show calculated vs target"): the Overview shows the DERIVED build cost
+//    (canonicalHouseTruth().costUsd — the SAME number HouseSpec + the one-cost-truth gate read) AGAINST the ASSUMED target;
+//    the SoI economy (econ.totalUsd) is NEVER presented as a construction cost — the firewall holds (§XI). ──
+ok(!/(Est\. Build Cost|Project Cost|Budget Target)" value=\{fmtUsd(Whole)?\(econ\./.test(ux), "no cost/budget tile presents the SoI economy (econ.*) as a construction cost (§XI firewall holds; econ stays in the incentive expander)");
+ok(!/NOT CALCULATED/.test(ux), "the Overview no longer reads 'NOT CALCULATED' — it shows the DERIVED cost vs target");
+ok(/Est\. Build Cost" value=\{fmtUsdWhole\(houseTruth\.costUsd\)/.test(ux) && /canonicalHouseTruth\(\)/.test(ux), "the Est. Build Cost tile reads the DERIVED canonicalHouseTruth().costUsd (R6 one-cost-truth)");
 ok(!/MoT × \$\/min/.test(ux), "no 'MoT × $/min' claim (§3.4)");
 ok(!/Time Capital" value=\{fmtUsd\(econ\.timeCapitalUsd\)/.test(ux), "the fabricated Time Capital tile is quarantined");
 
@@ -95,8 +98,8 @@ ok(!/Rotate great-room/.test(pn), "Share: no seeded fabricated comments");
 // R-UX1 — THE DESIGN TAB STOPS TELLING TWO STORIES. The Design LEFT rail is the CANONICAL project tree
 // (buildProjectFromSeed(TINY_HOME_V1): Project→Site→Building→Storey→9 Spaces, selectable NOT draggable, no
 // $k·Nd cost badges, no Target-Market selector) — never the legacy digital-twin catalog. The master readout
-// reads the canonical 900 ft² · PLAN · REVIEWABLE · Project Cost NOT CALCULATED — never 2,000 ft², a
-// construction cost, or a fabricated Confidence %. See the corrective plan R-UX1.
+// reads the canonical 900 ft² · PLAN · REVIEWABLE · the DERIVED Est. Build Cost (R6 one-cost-truth) vs the
+// ASSUMED target — never 2,000 ft², the firewalled SoI economy, or a fabricated Confidence %. See R-UX1.
 const readOpt = (p) => { try { return readFileSync(new URL(p, import.meta.url), "utf8"); } catch { return ""; } };
 const tree = readOpt("../components/architect-2525/canonical-project-tree.tsx");
 const mr = read("../components/architect-2525/master-readout.tsx");
@@ -113,10 +116,10 @@ ok(!/\bdraggable\b/.test(tree) && !/onDragStart/.test(tree), "canonical tree nod
 ok(!/componentEstimate|kUsd\(/.test(tree), "no $k·Nd cost badges on the canonical tree");
 ok(!/architect-layers|LAYER_TREE|PHYSICAL DIGITAL TWIN|HOME_TYPES|Target.?Market/.test(tree), "no digital-twin catalog / Target-Market selector on the canonical tree");
 
-// ── master readout: canonical 900 ft² · PLAN · REVIEWABLE · NOT CALCULATED; no 2,000 / estimate cost / Confidence ──
+// ── master readout: canonical 900 ft² · PLAN · REVIEWABLE · the DERIVED Est. Build Cost vs target (R6); no 2,000 / legacy estimate / Confidence ──
 ok(/buildProjectFromSeed\(TINY_HOME_V1\)/.test(mr) && /netProgramAreaUm2|sqftFromUm2/.test(mr), "master readout reads canonical geometry");
 ok(/portfolio_stage|PLAN/.test(mr) && /plan_state|REVIEWABLE/.test(mr), "master readout shows the canonical stage · plan state");
-ok(/NOT CALCULATED/.test(mr), "master readout shows Project Cost NOT CALCULATED");
+ok(!/NOT CALCULATED/.test(mr) && /canonicalHouseTruth\(\)/.test(mr) && /fmtUsdWhole\(master\.costUsd\)/.test(mr), "master readout shows the DERIVED Est. Build Cost (canonicalHouseTruth().costUsd) vs the ASSUMED target — R6 one-cost-truth, not 'NOT CALCULATED'");
 ok(!/Confidence/.test(mr), "master readout no longer shows a fabricated Confidence %");
 ok(!/projectRollup|houseEstimate|confidencePct|roll\.cost|est\.parallelDays/.test(mr), "master readout no longer derives cost/build/confidence from the legacy estimate");
 ok(!/room-program|areaSqft|p\.stories/.test(mr), "master readout no longer shows the legacy 2,000 ft² dimensions (room-program / DEFAULT_PARAMS path)");

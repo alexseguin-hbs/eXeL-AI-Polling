@@ -10,7 +10,7 @@ import { useMemo } from "react";
 import { X, Home, Layers } from "lucide-react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { houseEstimate, houseSchedule, componentEstimate } from "@/lib/architect-house";
-import { canonicalHouseTruth } from "@/lib/architect-house-truth";
+import { canonicalHouseTruth, fmtUsdWhole } from "@/lib/architect-house-truth";
 import { CanonicalHouseView } from "./canonical-house-view";
 import { WALL_SYSTEM_LAYERS, NATIONAL_AVG_WALL_USD_PER_SQFT, ICON_WALL_USD_PER_SQFT, ICON_WALL_SPECS, ICON_PHOENIX } from "@/lib/architect-wall-system";
 import { PRINT_MATERIALS } from "@/lib/architect-sim-options";
@@ -21,7 +21,7 @@ import { HouseSchematic } from "./house-schematic";
 import { BimIO } from "./bim-io";
 
 const C = { border: "#1e2b3a", panel: "#111826", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400", red: "#ef4444" };
-const fmtUsd = (n: number) => "$" + Math.round(n).toLocaleString();
+const fmtUsd = fmtUsdWhole;   // the ONE whole-dollar format (shared with the Overview + Master Readout, lib/architect-house-truth) — one number, one presentation on every surface
 
 export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLoadArchitect }: { state: LayerState; homeType?: HomeType; selectedId?: string | null; onSelect?: (id: string) => void; onLoadArchitect?: (file: import("@/lib/architect-project-file").ArchitectProjectFile) => void }) {
   const { t } = useLexicon();
