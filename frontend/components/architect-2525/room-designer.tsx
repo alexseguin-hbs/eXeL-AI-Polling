@@ -47,6 +47,7 @@ import { roomBom } from "@/lib/architect-bom";
 import { runPlaytest, PLAYTEST_SYSTEMS } from "@/lib/architect-playtest";
 import { useRCoreGestures } from "./use-rcore-gestures";
 import type { RoomCell } from "@/lib/room-layout";
+import { exteriorWallsOf } from "@/lib/room-layout";   // OBJ-1 — a window prefers the room's exterior wall
 
 const C = { border: "#1e2b3a", panel: "#0c1420", dim: "#5f7186", text: "#c8d6e5", cyan: "#19c8cf", gold: "#ffd400", violet: "#c084fc" };
 
@@ -78,6 +79,7 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
   // IMG-02 — a room with no saved objects shows its DEFAULT furniture (it was opening empty). Same source the 2D plan
   // and the 3D voxel use, so all three mirror; the first edit commits the full set (onChange) so it persists.
   const objects = room.objects ?? defaultObjectsForRoom(room.k);
+  const extWalls = exteriorWallsOf(room);   // OBJ-1 — the room's exterior walls (by its 3×3 cell) so a placed/moved window snaps to one
   // R5d — A PHASE SHOWS ONLY ITS LAYER (operator 2026-10-31: "mode should only show that layer of key elements (not
   // furniture. add Interior Design one element for toggle"). No phase selected → the full design view (everything).
   // Openings draw on framing/finish/interior; fixtures on the plumbing/sewer phases; furniture ONLY on Interior Design.
@@ -226,7 +228,7 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
   const placeAt = (gx: number, gy: number) => {
     if (!tool) return;
     const p = OBJECT_SPEC[tool].onWall ? wallSnap(gx, gy) : { gx, gy };
-    const next = placeObject(objects, tool, p.gx, p.gy);
+    const next = placeObject(objects, tool, p.gx, p.gy, extWalls);
     commit(next);
     setSelId(next[next.length - 1].id);   // R5b: the piece just placed is SELECTED (Mission Planning's select-after-place) — no hunt in the list
     setTool(null); // auto-disengage so a second tap doesn't stamp a duplicate (operator: re-select to place again)
@@ -264,7 +266,7 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
     // S1 — a wall object SLIDES along its captured wall (perpendicular axis pinned); everything else moves freely.
     const p = OBJECT_SPEC[o.kind].onWall ? slideAlongWall(dragWall.current ?? wallOf(c.gx, c.gy), c.gx, c.gy) : c;
     if (p.gx !== o.gx || p.gy !== o.gy) {
-      const next = moveObject(objects, o.id, p.gx, p.gy, OBJECT_SPEC[o.kind].onWall ? (dragWall.current ?? undefined) : undefined);
+      const next = moveObject(objects, o.id, p.gx, p.gy, OBJECT_SPEC[o.kind].onWall ? (dragWall.current ?? undefined) : undefined, extWalls);
       const m = next.find((x) => x.id === o.id);
       // R5b (Krishna): a clamped move that lands where the piece already is writes nothing (it persisted on every pointermove tick).
       if (!m || (m.gx === o.gx && m.gy === o.gy && m.rot === o.rot)) return;
@@ -305,7 +307,7 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
     if (!(k in OBJECT_SPEC)) return;
     const c = cellFromEvent(e); if (!c) return;
     const p = OBJECT_SPEC[k].onWall ? wallSnap(c.gx, c.gy) : c;
-    const next = placeObject(objects, k, p.gx, p.gy);
+    const next = placeObject(objects, k, p.gx, p.gy, extWalls);
     commit(next);
     setSelId(next[next.length - 1].id);   // R5b: select-after-place
     setTool(null); // auto-disengage after a drop too, so the next drop needs a fresh pick

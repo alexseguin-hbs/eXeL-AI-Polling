@@ -312,12 +312,25 @@ export function wallOfObject(o: { gx: number; gy: number; rot: Rot }): Wall {
   return cands.find((w) => ((w === "W" || w === "E") === vertical)) ?? cands[0];
 }
 
+/** The nearest of a set of walls to a cell (by in-room distance). */
+function nearestWallOf(gx: number, gy: number, walls: Wall[]): Wall {
+  const dist: Record<Wall, number> = { N: gy, S: ROOM_GRID - 1 - gy, W: gx, E: ROOM_GRID - 1 - gx };
+  return walls.reduce((best, w) => (dist[w] < dist[best] ? w : best), walls[0]);
+}
+/** The wall a NEW/moved wall-piece takes: a WINDOW prefers the room's nearest EXTERIOR wall (operator LIVE 2026-11-11
+ * "exterior prioritized" — a window belongs on an exterior wall); every other wall piece takes the nearest wall. The caller
+ * passes the room cell's exterior walls (room-layout exteriorWallsOf); empty/undefined → the nearest wall. */
+export function wallForPlacement(kind: ObjectKind, gx: number, gy: number, exteriorWalls?: Wall[]): Wall {
+  if (kind === "window" && exteriorWalls && exteriorWalls.length > 0) return nearestWallOf(gx, gy, exteriorWalls);
+  return wallOf(gx, gy);
+}
+
 /** Place a new object at (gx,gy), clamped so its whole footprint stays inside the room (FIX-6). NEW array, no mutate.
- * A wall object snaps to its nearest wall and runs along it (R5b). */
-export function placeObject(objs: PlacedObject[], kind: ObjectKind, gx: number, gy: number): PlacedObject[] {
+ * A wall object snaps to its nearest wall and runs along it (R5b); a window prefers the room's exterior wall (OBJ-1). */
+export function placeObject(objs: PlacedObject[], kind: ObjectKind, gx: number, gy: number, exteriorWalls?: Wall[]): PlacedObject[] {
   const spec = OBJECT_SPEC[kind];
   if (spec.onWall) {
-    const wall = wallOf(gx, gy), rot = wallRot(wall), s = slideAlongWall(wall, gx, gy);
+    const wall = wallForPlacement(kind, gx, gy, exteriorWalls), rot = wallRot(wall), s = slideAlongWall(wall, gx, gy);
     // the clamp keeps the piece flush to its wall (a 1.5-ft-deep closet rod sits at gy 0.25, not through the wall)
     const c = clampFootprint(s.gx, s.gy, spec.w, spec.d, rot);
     return [...objs, { id: nextId(objs, kind), kind, gx: c.gx, gy: c.gy, rot }];
@@ -329,15 +342,24 @@ export function placeObject(objs: PlacedObject[], kind: ObjectKind, gx: number, 
 
 /** Move an existing object to (gx,gy), footprint-clamped (rotation- + variant-aware) fully inside the room (FIX-6).
  * A wall object takes the alignment of the wall it lands on; a drag passes the wall it LOCKED (corner cells are ambiguous). */
-export function moveObject(objs: PlacedObject[], id: string, gx: number, gy: number, wall?: Wall): PlacedObject[] {
+export function moveObject(objs: PlacedObject[], id: string, gx: number, gy: number, wall?: Wall, exteriorWalls?: Wall[]): PlacedObject[] {
   return objs.map((o) => {
     if (o.id !== id) return o;
     const fp = footprintOf(o);
     const onWall = OBJECT_SPEC[o.kind].onWall;
-    const rot = onWall ? alignedRot(o.rot, wall ?? wallOfObject({ gx, gy, rot: o.rot })) : o.rot;
-    // X1 — a dragged FREE piece snaps to the nearest clear cell (no overlap, no door-block); a wall piece keeps its wall run.
-    const c = onWall ? clampFootprint(gx, gy, fp.w, fp.d, rot) : nearestClear({ ...o, gx, gy, rot }, objs);
-    return { ...o, rot, gx: c.gx, gy: c.gy };
+    if (onWall) {
+      // a WINDOW snaps onto the room's nearest EXTERIOR wall (OBJ-1 "exterior prioritized"); any other wall piece takes the
+      // wall it landed on. A wall piece keeps its wall run (no overlap check — it stays flush to the wall).
+      const prefExt = o.kind === "window" && exteriorWalls !== undefined && exteriorWalls.length > 0;
+      const landWall = prefExt ? nearestWallOf(gx, gy, exteriorWalls) : (wall ?? wallOfObject({ gx, gy, rot: o.rot }));
+      const rot = alignedRot(o.rot, landWall);
+      const s = prefExt ? slideAlongWall(landWall, gx, gy) : { gx, gy };
+      const c = clampFootprint(s.gx, s.gy, fp.w, fp.d, rot);
+      return { ...o, rot, gx: c.gx, gy: c.gy };
+    }
+    // X1 — a dragged FREE piece snaps to the nearest clear cell (no overlap, no door-block).
+    const c = nearestClear({ ...o, gx, gy, rot: o.rot }, objs);
+    return { ...o, rot: o.rot, gx: c.gx, gy: c.gy };
   });
 }
 

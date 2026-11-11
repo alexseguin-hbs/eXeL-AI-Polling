@@ -111,6 +111,18 @@ export function roomAt(layout: RoomCell[], row: number, col: number): RoomCell |
   return layout.find((r) => r.row === row && r.col === col);
 }
 
+/** The EXTERIOR walls of a room cell — the house-perimeter walls for its position in the 3×3 (row 0 → N · row 2 → S ·
+ * col 0 → W · col 2 → E; the centre K has none). Operator 2026-11-11 "exterior prioritized": a window belongs on an
+ * exterior wall. Follows the room's CURRENT cell, so a moved room's exterior walls update with it. Returns [] for the centre. */
+export function exteriorWallsOf(cell: Pick<RoomCell, "row" | "col">): ("N" | "S" | "W" | "E")[] {
+  const w: ("N" | "S" | "W" | "E")[] = [];
+  if (cell.row === 0) w.push("N");
+  if (cell.row === TINY_GRID - 1) w.push("S");
+  if (cell.col === 0) w.push("W");
+  if (cell.col === TINY_GRID - 1) w.push("E");
+  return w;
+}
+
 /** Total conditioned area (ft²) from the room cells — feeds sqft when rooms stretch (P3). */
 export function layoutSqft(layout: RoomCell[]): number {
   return layout.reduce((sum, r) => sum + r.w * r.d * ROOM_FT * ROOM_FT, 0);

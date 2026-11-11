@@ -169,9 +169,10 @@ ok(/\{<span data-arch-nudge className=/.test(rd) && !/advanced && <span data-arc
 ok(/data-arch-roomobj-name/.test(rd) && /\{interactive && sel && simpleMode && \(\(\) => \{/.test(rd), "the NAME BADGE still names a tapped element in Simple mode (re-homed outside the CAD callouts)");
 ok(/data-arch-roomobj-rotate/.test(rd) && /data-arch-roomobj-delete/.test(rd) && /data-arch-roomobj-size/.test(rd) && /data-arch-roomdesign-undo/.test(rd), "Simple keeps the core loop: Size · Rotate · Delete · Undo");
 // R5b — Mission-Planning parity: select-after-place · the tap threshold · the palette above the pane · finger-sized chips · a hit pad on thin pieces · the Simple help tells the truth
-ok(/const next = placeObject\(objects, tool, p\.gx, p\.gy\);\s*\n\s*commit\(next\);\s*\n\s*setSelId\(next\[next\.length - 1\]\.id\);/.test(rd), "the piece just placed is selected (select-after-place, Mission Planning)");
+ok(/const next = placeObject\(objects, tool, p\.gx, p\.gy, extWalls\);\s*\n\s*commit\(next\);\s*\n\s*setSelId\(next\[next\.length - 1\]\.id\);/.test(rd), "the piece just placed is selected (select-after-place, Mission Planning) and carries the room's exterior walls (OBJ-1)");
 ok(/dragStart\.current = \{ x: e\.clientX, y: e\.clientY \}; dragMoved\.current = false;/.test(rd) && /Math\.abs\(e\.clientX - s0\.x\) \+ Math\.abs\(e\.clientY - s0\.y\) < 8\) return;/.test(rd), "a tap never moves a piece — the drag starts after ~8 px");
-ok(/moveObject\(objects, o\.id, p\.gx, p\.gy, OBJECT_SPEC\[o\.kind\]\.onWall \? \(dragWall\.current \?\? undefined\) : undefined\)/.test(rd), "a dragged wall piece carries the wall the drag LOCKED");
+ok(/moveObject\(objects, o\.id, p\.gx, p\.gy, OBJECT_SPEC\[o\.kind\]\.onWall \? \(dragWall\.current \?\? undefined\) : undefined, extWalls\)/.test(rd), "a dragged wall piece carries the wall the drag LOCKED and the room's exterior walls (OBJ-1)");
+ok(/const extWalls = exteriorWallsOf\(room\);/.test(rd) && /import \{ exteriorWallsOf \} from "@\/lib\/room-layout";/.test(rd), "the room-designer derives the room's exterior walls from its 3×3 cell (OBJ-1)");
 ok(/\{simpleMode \? \(\s*\n\s*<div className="flex flex-col gap-2">\s*\n\s*\{paletteEl\}/.test(rd), "in Simple the palette sits ABOVE the pane");
 ok(/min-h-\[44px\] cursor-grab/.test(rd), "palette chips are finger-sized (≥ 44 px)");
 ok(/data-arch-hitpad/.test(rd), "thin wall pieces carry a transparent hit pad");

@@ -8,6 +8,7 @@ import {
   placeObject, moveObject, rotateObject, objectsConflict, placementClear, doorKeepClear,
   defaultObjectsForRoom, worldSpan, OBJECT_SPEC, ROOM_ASSETS,
 } from "../lib/room-objects.ts";
+import { exteriorWallsOf, TINY_ROOM_LAYOUT } from "../lib/room-layout.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -73,5 +74,49 @@ for (const rk of rooms) {
   ok(t2.rot === 0 && placementClear(t2, [door]), "rotating that desk toward the door is rejected — it stays put and the doorway stays clear (X1 on rotate)");
 }
 
-console.log(`\nROOM-NO-OVERLAP ${pass}/${pass + fail} passed · the no-overlap / no-door-block invariant holds on the defaults and on every place/move/ROTATE`);
+// ── 7. OBJ-1 — a WINDOW prioritizes the room's OUTER EXTERIOR wall (operator LIVE 2026-11-11: "exterior prioritized").
+//      placeObject/moveObject take the room's exterior-wall set; a window dropped anywhere in a room with an exterior
+//      wall snaps to it. A room with no exterior wall (centre K) falls back to the nearest wall. Non-window wall pieces
+//      keep nearest-wall behaviour. ──
+const span = (o) => worldSpan(o);
+const onWall = (o, wall) => {               // the piece sits ON that exterior wall (touching its plane)
+  const s = span(o);
+  if (wall === "N") return s.y1 <= 0.6;
+  if (wall === "S") return s.y2 >= 9.4;
+  if (wall === "W") return s.x1 <= 0.6;
+  if (wall === "E") return s.x2 >= 9.4;
+  return false;
+};
+// exteriorWallsOf returns the right walls per grid cell (row0→N, row2→S, col0→W, col2→E)
+ok(JSON.stringify(exteriorWallsOf({ row: 0, col: 0 }).sort()) === JSON.stringify(["N", "W"]), "exteriorWallsOf NW corner cell → [N,W]");
+ok(JSON.stringify(exteriorWallsOf({ row: 1, col: 1 }).sort()) === JSON.stringify([]), "exteriorWallsOf centre cell → [] (no exterior wall)");
+ok(JSON.stringify(exteriorWallsOf({ row: 2, col: 2 }).sort()) === JSON.stringify(["E", "S"]), "exteriorWallsOf SE corner cell → [E,S]");
+// a window dropped near the INTERIOR S wall of an N-only-exterior room snaps to the N exterior wall
+{
+  const placed = placeObject([], "window", 5, 9, ["N"]);   // dropped low (near S), exterior is N
+  ok(placed.length === 1 && onWall(placed[0], "N"), `a window dropped near the interior wall snaps to the N exterior wall (got ${JSON.stringify(span(placed[0]))})`);
+}
+// a window in a corner room (N+W exterior) lands on one of its exterior walls
+{
+  const placed = placeObject([], "window", 5, 5, ["N", "W"]);
+  ok(placed.length === 1 && (onWall(placed[0], "N") || onWall(placed[0], "W")), "a window in an N+W corner room snaps to an exterior wall");
+}
+// a window in a centre room (no exterior) falls back to the nearest wall (no crash, still on A wall)
+{
+  const placed = placeObject([], "window", 5, 9, []);
+  ok(placed.length === 1 && (onWall(placed[0], "N") || onWall(placed[0], "S") || onWall(placed[0], "W") || onWall(placed[0], "E")), "a window in a centre room (no exterior) still snaps to the nearest wall");
+}
+// DRAGGING a window re-snaps to the exterior wall too
+{
+  let objs = placeObject([], "window", 5, 1, ["N"]);       // starts on N
+  objs = moveObject(objs, objs[0].id, 5, 9, "S", ["N"]);   // dragged toward the interior S wall
+  ok(onWall(objs[0], "N"), "dragging a window toward the interior wall re-snaps it to the N exterior wall");
+}
+// a non-window wall piece (tv) is NOT forced to the exterior — it takes the wall it was dropped near
+{
+  const placed = placeObject([], "tv", 5, 9, ["N"]);       // dropped near S, exterior is N
+  ok(placed.length === 1 && onWall(placed[0], "S"), "a TV dropped near the S wall stays on the S wall (exterior preference is window-only)");
+}
+
+console.log(`\nROOM-NO-OVERLAP ${pass}/${pass + fail} passed · no-overlap / no-door-block holds on place/move/ROTATE; windows prioritize the exterior wall (OBJ-1)`);
 process.exit(fail ? 1 : 0);
