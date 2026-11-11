@@ -383,13 +383,19 @@ function downloadNamed(files: { name: string; blob: Blob }[]) {
 async function saveXmlFile(fileName: string, xml: string) {
   writeXml(fileName, xml);
   const set = pngSet(fileName);
-  const files = [{ name: set.xml, blob: new Blob([xml], { type: "application/xml" }) }];
+  const xmlFile = { name: set.xml, blob: new Blob([xml], { type: "application/xml" }) };
   if (chosenFolder) {
+    // folder path: the PNG was already written into the set folder by ensurePng(); write the XML beside it.
     const setFolder = await (await ecosystemRoot(chosenFolder)).getDirectoryHandle(setFolderOf(fileName), { create: true });
-    await writeNamed(setFolder, files);
+    await writeNamed(setFolder, [xmlFile]);
+    pendingPng = null;
     return `${deviceSavePath()}/${setFolderOf(fileName)}/${set.xml}`;
   }
+  // DOWNLOAD path: hand the user the PNG **and** its matching-stem XML together (operator: "user cant download png").
+  // pngSet pairs the names (set.png ↔ set.xml); the bytes come from the ensurePng() the save just ran.
+  const files = pendingPng && pendingPng.name === set.png ? [pendingPng, xmlFile] : [xmlFile];
   downloadNamed(files);
+  pendingPng = null;
   return set.xml;
 }
 
@@ -497,6 +503,10 @@ type Folder = {
 
 let chosenFolder: Folder | null = null;
 let savePlatform: PlatformId = "win";
+// The labelled PNG that ensurePng() just produced, held so saveXmlFile() can hand the user BOTH the PNG and its matching
+// XML in ONE download (operator LIVE 2026-11-11 "png and xml need to be same name … user cant download png"). pngSet pairs
+// the stems; this carries the bytes. Cleared after each save so a stale frame never rides along.
+let pendingPng: { name: string; blob: Blob } | null = null;
 
 function deviceSavePath(parts: string[] = []) {
   return sensorPath(savePlatform, parts);
@@ -838,6 +848,7 @@ function Labeler({
     }
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((item) => resolve(item), "image/png"));
     if (!blob) return fileName;
+    pendingPng = { name: named, blob };   // hand this to saveXmlFile so the download carries the PNG + its matching XML (operator 2026-11-11)
     const url = URL.createObjectURL(blob);
     if (chosenFolder) {
       try {
