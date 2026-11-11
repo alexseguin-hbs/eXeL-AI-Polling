@@ -31,7 +31,7 @@ export type Rot = 0 | 90 | 180 | 270;
  *  the placed object, read by footprintOf / heightOf as size → variant → kind default (every caller inherits). Set ONLY
  *  through setSize (range- + room-clamped); a missing axis falls through to the variant / kind default. */
 export interface ObjectSize { w?: number; d?: number; h?: number }
-export interface PlacedObject { id: string; kind: ObjectKind; gx: number; gy: number; rot: Rot; variant?: string; elev?: number; /* ft above finished floor — window sill, wall-mounted TV, etc. */ size?: ObjectSize; /* Rev A — per-instance dims (ft) */ assetId?: string; /* Rev A' — for kind "asset", the operator's library id (architect2525.asset.*) whose GLB + dimensionsM drive it */ slide?: boolean; /* a door drawn as SLIDING (panel parallel to the wall, no swing) instead of swing — operator 2026-11-11 */ }
+export interface PlacedObject { id: string; kind: ObjectKind; gx: number; gy: number; rot: Rot; variant?: string; elev?: number; /* ft above finished floor — window sill, wall-mounted TV, etc. */ size?: ObjectSize; /* Rev A — per-instance dims (ft) */ assetId?: string; /* Rev A' — for kind "asset", the operator's library id (architect2525.asset.*) whose GLB + dimensionsM drive it */ slide?: boolean; /* a door drawn as SLIDING (panel parallel to the wall, no swing) instead of swing — operator 2026-11-11 */ cased?: boolean; /* LIV-2: a door drawn as a CASED OPENING — a leafless, swing-less gap in the wall (open-plan social core). Counts as a circulation EDGE + borrowed-light passage; NOT a door in the materials take-off. Mutually exclusive with slide. */ }
 
 /** Size variants (feet) for kinds that come in standard sizes — beds Twin/Full/Queen/King; doors/windows standard R.O.
  *  sizes (FIX-1). `h` (height, ft) is optional — set for openings where height matters (operator: window height). */
@@ -388,6 +388,14 @@ export function rotateObject(objs: PlacedObject[], id: string): PlacedObject[] {
  * its wall, opening and width — only its drawn symbol changes (swing arc ↔ a panel parallel to the wall). No-op off a door. */
 export function toggleDoorSlide(objs: PlacedObject[], id: string): PlacedObject[] {
   return objs.map((o) => (o.id === id && o.kind === "door" ? { ...o, slide: !o.slide } : o));
+}
+
+/** LIV-2 — toggle a door between a normal (swing/slide) door and a CASED OPENING (a leafless gap in the wall, for the
+ * open-plan social core). A cased opening keeps its wall + width but drops the leaf + swing; it still connects the two rooms
+ * (a circulation edge) and passes borrowed light, but is not counted as a door in the materials take-off. Turning cased on
+ * clears slide (mutually exclusive). No-op off a door. */
+export function toggleDoorCased(objs: PlacedObject[], id: string): PlacedObject[] {
+  return objs.map((o) => (o.id === id && o.kind === "door" ? { ...o, cased: !o.cased, slide: o.cased ? o.slide : false } : o));
 }
 
 /** Footprint (ft) for a placed object — per axis: its per-instance size (Rev A) → its variant's size → the kind default. */

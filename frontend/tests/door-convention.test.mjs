@@ -7,7 +7,7 @@
 // Run: node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/door-convention.test.mjs
 import fs from "node:fs";
 import path from "node:path";
-import { STANDARD_LAYOUTS, DOOR_VARIANTS, placeObject, mirrorObjects, rotateObject, worldSpan, ROOM_GRID } from "@/lib/room-objects";
+import { STANDARD_LAYOUTS, DOOR_VARIANTS, placeObject, mirrorObjects, rotateObject, worldSpan, ROOM_GRID, toggleDoorCased, toggleDoorSlide } from "@/lib/room-objects";
 import { outletPositions, outletMarkers, wiringRuns, panelAt, doorOpeningCells } from "@/lib/mep-runs";
 import { roomBom } from "@/lib/architect-bom";
 import { electricSpecs } from "@/lib/mep-runs";
@@ -59,6 +59,22 @@ if (sym) {
   ok(arcPoints(sd).length === 2, "arcPoints returns the 2-point panel line for a sliding door (polyline surfaces draw the panel, not an arc)");
   // a plain door (no slide flag) stays a swing door — the default is unchanged
   ok(doorSymbol({ id: "d-swing", kind: "door", gx: 4, gy: 9, rot: 0 }).slide === false, "a door without the slide flag stays a SWING door (default unchanged)");
+
+  // ── 1c. CASED OPENING (LIV-2 — the open-plan social core): a leafless, swing-less gap in the wall. Only the opening is
+  //        drawn (leaf degenerate, arc empty), reusing the same fields so every surface renders it with no code change. ──
+  const casedDoor = { id: "d-cased", kind: "door", gx: 4, gy: 9, rot: 0, cased: true };   // S wall, 3-ft opening x3–6
+  const cd = doorSymbol(casedDoor);
+  ok(cd.cased === true, "a door with cased:true yields a CASED OPENING symbol");
+  const cdSvg = doorSymbolSvg(cd, 10, 10, 0, 0);
+  ok(cdSvg.cased === true && cdSvg.arc === "", "a cased opening has NO arc (no swing, no track)");
+  ok(near(cdSvg.leaf.x1, cdSvg.leaf.x2) && near(cdSvg.leaf.y1, cdSvg.leaf.y2), "a cased opening has NO leaf (the leaf is degenerate — zero length)");
+  ok(near(cdSvg.opening.x1, 30) && near(cdSvg.opening.x2, 60), "a cased opening STILL cuts the wall for its width (the opening is preserved — it connects the two rooms)");
+  ok(arcPoints(cd).length === 0, "arcPoints returns [] for a cased opening (polyline surfaces draw no leaf/arc)");
+  ok(doorSymbol({ id: "d-plain", kind: "door", gx: 4, gy: 9, rot: 0 }).cased === false, "a door without the cased flag stays a normal door (default unchanged)");
+  // toggleDoorCased flips the flag and is mutually exclusive with slide (turning cased ON clears slide)
+  const togC = toggleDoorCased([{ id: "x", kind: "door", gx: 4, gy: 9, rot: 0, slide: true }], "x")[0];
+  ok(togC.cased === true && togC.slide === false, "toggleDoorCased turns a door into a cased opening and clears slide (mutually exclusive)");
+  ok(toggleDoorSlide([{ id: "y", kind: "door", gx: 4, gy: 9, rot: 0 }], "y")[0].slide === true, "toggleDoorSlide still flips slide (unchanged)");
 
   // ── 2. Rotate flips the hinge; mirror keeps the rule; every wall swings into the room ──
   const flipped = rotateObject(M, door.id).find((o) => o.id === door.id);

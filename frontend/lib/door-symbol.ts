@@ -25,8 +25,9 @@ export interface DoorSymbol {
   into: Pt;                   // unit normal from the wall into the room
   slide: boolean;             // operator LIVE 2026-11-11 "allow for sliding door vs swing door" — a sliding/bypass door
   panelA: Pt; panelB: Pt;     // a SLIDING door's panel line (parallel to the wall, set into the room) — ft, = jambs + into×PANEL_OFF
+  cased: boolean;             // LIV-2 — a CASED OPENING: a leafless, swing-less gap in the wall (open-plan social core); only the opening is drawn
 }
-export interface SymbolOpts { room?: number; inset?: number; flip?: boolean; slide?: boolean }
+export interface SymbolOpts { room?: number; inset?: number; flip?: boolean; slide?: boolean; cased?: boolean }
 /** How far a sliding door's panel + track sit into the room (ft) — the panel reads as parallel to the wall, no swing arc. */
 export const SLIDE_PANEL_OFF = 0.5;
 export const SLIDE_TRACK_OFF = 0.25;
@@ -50,7 +51,7 @@ export function symbolForSpan(wall: Wall, a1: number, a2: number, opts: SymbolOp
   // a sliding door's PANEL runs parallel to the wall, set SLIDE_PANEL_OFF into the room (no hinge, no swing).
   const panelA = { x: jambA.x + into.x * SLIDE_PANEL_OFF, y: jambA.y + into.y * SLIDE_PANEL_OFF };
   const panelB = { x: jambB.x + into.x * SLIDE_PANEL_OFF, y: jambB.y + into.y * SLIDE_PANEL_OFF };
-  return { wall, jambA, jambB, hinge, strike, leafEnd, r, sweep: cross > 0 ? 1 : 0, into, slide: opts.slide ?? false, panelA, panelB };
+  return { wall, jambA, jambB, hinge, strike, leafEnd, r, sweep: cross > 0 ? 1 : 0, into, slide: opts.slide ?? false, panelA, panelB, cased: opts.cased ?? false };
 }
 
 /** The symbol for a placed door: its wall from wallOfObject, its opening from worldSpan, the hinge flipped by rot 180/270. */
@@ -58,11 +59,12 @@ export function doorSymbol(o: PlacedObject, opts: SymbolOpts = {}): DoorSymbol {
   const wall = wallOfObject(o), s = worldSpan(o);
   const horiz = wall === "N" || wall === "S";
   const a1 = horiz ? s.x1 : s.y1, a2 = horiz ? s.x2 : s.y2;
-  return symbolForSpan(wall, a1, a2, { ...opts, flip: o.rot === 180 || o.rot === 270, slide: opts.slide ?? Boolean(o.slide) });
+  return symbolForSpan(wall, a1, a2, { ...opts, flip: o.rot === 180 || o.rot === 270, slide: opts.slide ?? Boolean(o.slide), cased: opts.cased ?? Boolean(o.cased) });
 }
 
 /** `n` points along the swing arc from the leaf's free end to the strike jamb (the short 90° way), for polylines. */
 export function arcPoints(sym: DoorSymbol, n = 12): Pt[] {
+  if (sym.cased) return [];                          // a CASED OPENING has no leaf + no swing — only the opening gap is drawn
   if (sym.slide) return [sym.panelA, sym.panelB];   // a sliding door has no swing — its "arc" is the panel line (2 points)
   const a0 = Math.atan2(sym.leafEnd.y - sym.hinge.y, sym.leafEnd.x - sym.hinge.x);
   const a1 = Math.atan2(sym.strike.y - sym.hinge.y, sym.strike.x - sym.hinge.x);
@@ -82,6 +84,7 @@ export interface DoorSymbolSvg {
   leaf: { x1: number; y1: number; x2: number; y2: number };   // swing: the leaf (hinge→leafEnd); SLIDING: the panel (parallel to the wall)
   arc: string;                       // swing: M leafEnd A rx ry 0 0 sweep strike; SLIDING: M trackA L trackB (a straight track line)
   slide: boolean;                    // true → leaf is the sliding panel + arc is the track line (no swing)
+  cased: boolean;                    // LIV-2 — true → a cased opening: only `opening` is drawn (leaf degenerate, arc empty)
   panel: { x1: number; y1: number; x2: number; y2: number };  // the sliding panel line (same as leaf when slide; always provided)
   hinge: Pt; strike: Pt; leafEnd: Pt; into: Pt;
 }
@@ -95,13 +98,17 @@ export function doorSymbolSvg(sym: DoorSymbol, sx: number, sy: number, ox: numbe
   const tB = P({ x: sym.jambB.x + sym.into.x * SLIDE_TRACK_OFF, y: sym.jambB.y + sym.into.y * SLIDE_TRACK_OFF });
   return {
     opening: { x1: a.x, y1: a.y, x2: b.x, y2: b.y },
-    // SLIDING → the leaf IS the panel (parallel to the wall) and the "arc" is a straight track line, so every surface that
-    // already draws leaf + arc renders a sliding door with no code change; SWING → the leaf + quarter-circle arc as before.
-    leaf: sym.slide ? { x1: pa.x, y1: pa.y, x2: pb.x, y2: pb.y } : { x1: h.x, y1: h.y, x2: e.x, y2: e.y },
-    arc: sym.slide
+    // CASED → only the opening (the wall gap) is drawn: the leaf is degenerate (zero-length) and the arc is empty, so every
+    // surface that draws leaf + arc renders a cased opening (no leaf, no swing) with no code change.
+    // SLIDING → the leaf IS the panel (parallel to the wall) and the "arc" is a straight track line; SWING → leaf + quarter arc.
+    leaf: sym.cased ? { x1: a.x, y1: a.y, x2: a.x, y2: a.y } : sym.slide ? { x1: pa.x, y1: pa.y, x2: pb.x, y2: pb.y } : { x1: h.x, y1: h.y, x2: e.x, y2: e.y },
+    arc: sym.cased
+      ? ""
+      : sym.slide
       ? `M ${f(tA.x)} ${f(tA.y)} L ${f(tB.x)} ${f(tB.y)}`
       : `M ${f(e.x)} ${f(e.y)} A ${f(sym.r * sx)} ${f(sym.r * sy)} 0 0 ${sym.sweep} ${f(s.x)} ${f(s.y)}`,
     slide: sym.slide,
+    cased: sym.cased,
     panel: { x1: pa.x, y1: pa.y, x2: pb.x, y2: pb.y },
     hinge: h, strike: s, leafEnd: e, into: sym.into,
   };
