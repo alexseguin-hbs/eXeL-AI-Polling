@@ -2,7 +2,7 @@
 
 /**
  * ARCHITECT-2525 · PHASE MODE BAR (operator 2026-10-25: "there needs to be modes of phases of development").
- * A horizontal, build-ordered row of the eleven development phases (DEV_PHASES — the ONE order source; the Design bar
+ * A horizontal, build-ordered row of the twelve development phases (DEV_PHASES — the ONE order source; the Design bar
  * therefore matches the Simulate/Build order, roofing right after framing). Tap one to enter that MODE: the model shows
  * that phase's system layer (for the four with a wireframe layer) and a spec card names the phase + its specs.
  * Tap the active phase again to clear. Pure presentational; the parent owns the selection + drives the toggles.
@@ -29,7 +29,7 @@ export function PhaseBar({ phase, onSelect, compact = false }: { phase: string |
   const [sheet, setSheet] = useState(false); // WALK-07: the compact phase picker (bottom sheet) in the walk
   const toggle = () => setOpen((o) => { const n = !o; try { localStorage.setItem(CARD_KEY, n ? "1" : "0"); } catch {} return n; });
   const ActiveIcon = active ? (ICON[active.icon] ?? Layers) : Layers;
-  // WALK-07 — in the walk the VIEWER is the hero: ONE 28px chip (no phase row, no spec card) that opens the 11-phase list.
+  // WALK-07 — in the walk the VIEWER is the hero: ONE 28px chip (no phase row, no spec card) that opens the 12-phase list.
   if (compact) {
     return (
       <div data-arch-phase-bar data-arch-phase-compact="1" className="mb-1">
