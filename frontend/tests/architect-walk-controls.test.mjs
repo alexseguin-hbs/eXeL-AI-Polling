@@ -148,7 +148,12 @@ ok(/import \{ STOREY_FT, TINY_GRID, OPENING_STD \} from "@\/lib\/room-layout"/.t
 // ══ the controls live INSIDE the map panel — no new pinned overlay on the picture (HUD slot budget) ════════════════════════
 const mapAt = walk.indexOf("<div data-arch-walk-map "), stripAt = walk.indexOf("{mapOpen && (\n              <div data-arch-walk-map-settings"), mapEnd = walk.indexOf("<div data-arch-walkpad");
 ok(mapAt > 0 && stripAt > mapAt && stripAt < mapEnd, "the settings strip (data-arch-walk-map-settings) sits INSIDE data-arch-walk-map and only while the map is open");
-for (const h of ["data-arch-walk-zoom-step", "data-arch-walk-dims-toggle", "data-arch-walk-eye-height"]) { const at = walk.indexOf(h); ok(at > stripAt && at < mapEnd, `${h} is inside the map panel's settings strip`); }
+// zoom + eye-height stay in the settings strip; the MEASUREMENT toggle moved UP to the MAP HEADER (operator LIVE 2026-11-11
+// "measurement toggle should be in map header" — Security-2525 Mission-Planning pattern, and it declutters the strip).
+for (const h of ["data-arch-walk-zoom-step", "data-arch-walk-eye-height"]) { const at = walk.indexOf(h); ok(at > stripAt && at < mapEnd, `${h} is inside the map panel's settings strip`); }
+const hdrAt = walk.indexOf("data-arch-walk-map-header"), dimsAt = walk.indexOf("data-arch-walk-dims-toggle");
+ok(hdrAt > mapAt && hdrAt < stripAt, "the map HEADER (data-arch-walk-map-header) sits at the top of the map panel, before the settings strip");
+ok(dimsAt > hdrAt && dimsAt < stripAt, "the measurement toggle (data-arch-walk-dims-toggle) lives in the MAP HEADER, not the settings strip");
 ok((walk.match(/className="[^"]*\babsolute\b/g) || []).length === 11, `no new absolutely-positioned overlay on the walk root (11 before, ${(walk.match(/className="[^"]*\babsolute\b/g) || []).length} now)`);
 for (const h of ["data-arch-walk-room", "data-arch-walk-turncue", "data-arch-walk-layer", "data-arch-walk-legend", "data-arch-walk-map-toggle", "data-arch-walk-map-svg", "data-arch-walk-sticks", "data-arch-walk-eye=", "data-arch-walk-yaw="]) ok(walk.includes(h), `existing hook ${h} kept`);
 ok(/data-arch-walk-room className="absolute left-2 top-2/.test(walk) && /data-arch-walk-turncue className="pointer-events-none absolute right-2 top-2/.test(walk) && /data-arch-walk-map className="absolute right-2 top-9/.test(walk), "the existing chip positions are untouched (room top-left · turn cue top-right · map right-2 top-9)");

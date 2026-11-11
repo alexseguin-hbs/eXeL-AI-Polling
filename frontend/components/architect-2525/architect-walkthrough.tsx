@@ -567,12 +567,15 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
     const wp = (s: number, z: number): V3 => (horiz ? [s, fixed, z] : [fixed, s, z]);   // along-wall s + height → world
     const put = (p: V3, text: string) => { const q = project(p); if (q && dimLabels.length < 6) dimLabels.push({ x: clamp(q.x, 30, W - 30), y: clamp(q.y, 14, H - 8), text }); };
     const line = (a: V3, b: V3) => { const s = seg(a, b); if (s) dimLines.push(s); };
-    line(wp(0, CEIL_FT - 0.5), wp(ROOM_FT, CEIL_FT - 0.5)); put(wp(ROOM_FT / 2, CEIL_FT - 0.5), `↔ ${ftIn(ROOM_FT)}`);   // the wall's width
-    line(wp(0.5, 0), wp(0.5, CEIL_FT)); put(wp(0.5, CEIL_FT / 2), `↕ ${ftIn(CEIL_FT)}`);                                  // the ceiling height
+    // DECLUTTER (operator LIVE 2026-11-11 "number of lines above visual is too busy"): the width dimension rides the
+    // BASEBOARD (z 0.35), not the ceiling line — so the two readouts no longer pile into the top strip over the turn-cue /
+    // map. Width low + height on the near jamb, mid-wall; the door label sits INSIDE the opening (below), not floating above.
+    line(wp(0, 0.35), wp(ROOM_FT, 0.35)); put(wp(ROOM_FT / 2, 0.35), `↔ ${ftIn(ROOM_FT)}`);   // the wall's width — at the baseboard
+    line(wp(0.5, 0), wp(0.5, CEIL_FT)); put(wp(0.5, CEIL_FT / 2), `↕ ${ftIn(CEIL_FT)}`);                                  // the ceiling height (mid-wall)
     if (nb[facing]) {   // the doorway on this wall: the placed door's own size (its long side = the opening), else the opening it was framed with
       const door = roomObjs.find((o) => o.kind === "door" && wallOf(o.gx, o.gy) === facing), fp = door ? footprintOf(door) : null;
       const dw = fp ? Math.max(fp.w, fp.d) : doorOpen.span, dh = door ? heightOf(door) : doorOpen.z1;
-      put(wp(clamp(doorCtr[facing], hw, ROOM_FT - hw), dh + 0.9), `${ftIn(dw)} × ${ftIn(dh)}`);
+      put(wp(clamp(doorCtr[facing], hw, ROOM_FT - hw), Math.max(1, dh - 0.6)), `${ftIn(dw)} × ${ftIn(dh)}`);   // inside the opening top, not floating above (declutter)
     }
     if (layers.includes("wiring") || socketsOnly) {   // the outlet on the facing wall, at its real AFF (OUTLET_AFF_FT — the box's own z)
       const onWall = (pts: Vec3[]) => pts.every((p) => (facing === "N" ? p[1] > ROOM_FT - 0.1 : facing === "S" ? p[1] < 0.1 : facing === "W" ? p[0] < 0.1 : p[0] > ROOM_FT - 0.1));
@@ -694,9 +697,13 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
         const wedge = `${ex},${ey} ${ex + Math.cos(wa - spread) * r0},${ey + Math.sin(wa - spread) * r0} ${ex + Math.cos(wa + spread) * r0},${ey + Math.sin(wa + spread) * r0}`;
         return (
           <div data-arch-walk-map className="absolute right-2 top-9 rounded-lg border p-1" style={{ borderColor: `${C.cyan}66`, background: "#0a0f16ee" }}>
-            <button data-arch-walk-map-toggle onClick={toggleMap} className="mb-0.5 flex w-full items-center justify-between gap-2 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
-              <span>map</span><span>{mapOpen ? "▾" : "▸"}</span>
-            </button>
+            <div data-arch-walk-map-header className="mb-0.5 flex w-full items-center justify-between gap-1">
+              <button data-arch-walk-map-toggle onClick={toggleMap} className="flex items-center gap-1 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }} aria-label="map">
+                <span>map</span><span>{mapOpen ? "▾" : "▸"}</span>
+              </button>
+              {/* MEASUREMENT toggle lives in the MAP HEADER (operator LIVE 2026-11-11 "measurement toggle should be in map header", Security-2525 Mission-Planning pattern) — discoverable, and out of the busy settings strip */}
+              <button data-arch-walk-dims-toggle onClick={toggleDims} aria-pressed={dims} className="rounded border px-1 text-[8px] font-semibold leading-none" style={{ borderColor: dims ? C.gold : `${C.cyan}66`, color: dims ? C.gold : C.cyan }} aria-label="measurements">⟷ ″</button>
+            </div>
             {mapOpen && (
               <svg data-arch-walk-map-svg viewBox={`-1 -1 ${w + 2} ${h + 2}`} width={84} height={84 * (h / w)} style={{ display: "block" }}>
                 <rect x={0} y={0} width={w} height={h} fill="none" stroke={`${C.cyan}44`} strokeWidth={0.6} />
@@ -712,9 +719,8 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
                 picture); hidden with the map. Zoom 1×/2×/3× stepper · measurements toggle · eye-height slider with a ft-in readout. */}
             {mapOpen && (
               <div data-arch-walk-map-settings className="mt-1 flex flex-col gap-0.5 text-[8px]" style={{ width: 84, color: C.dim }}>
-                <div className="flex items-center justify-between gap-1">
+                <div className="flex items-center gap-1">
                   <button data-arch-walk-zoom-step onClick={stepZoom} className="rounded border px-1 font-semibold tabular-nums" style={{ borderColor: `${C.cyan}66`, color: C.cyan, minWidth: 26 }} aria-label={`zoom ${zoom}×`}>{Number.isInteger(zoom) ? zoom : zoom.toFixed(1)}×</button>
-                  <button data-arch-walk-dims-toggle onClick={toggleDims} aria-pressed={dims} className="rounded border px-1 font-semibold" style={{ borderColor: dims ? C.gold : `${C.cyan}66`, color: dims ? C.gold : C.cyan, minWidth: 26 }} aria-label="measurements">⟷ ″</button>
                 </div>
                 <label className="flex items-center gap-1">
                   <LookGlyph size={10} color={C.cyan} />
