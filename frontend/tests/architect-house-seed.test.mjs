@@ -7,7 +7,7 @@
  */
 import { readFileSync } from "node:fs";
 import { seededObjectsForRoom, seedHouseFromLibrary } from "../lib/architect-2525/assets/house-seed.ts";
-import { footprintOf, worldSpan, OBJECT_SPEC, heightOf, ROOM_GRID, ROOM_KEYS } from "../lib/room-objects.ts";
+import { footprintOf, worldSpan, OBJECT_SPEC, heightOf, ROOM_GRID, ROOM_KEYS, doorKeepClear } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; } else { fail++; console.log("  ✗ " + m); } };
@@ -32,23 +32,28 @@ for (const k of ROOM_KEYS) {
 ok(!dupe, "every seeded object id is unique within its room");
 ok(outOfBounds === 0, `every seeded footprint fits inside its 10×10 room (out of bounds: ${outOfBounds})`);
 
-// 4 — "ensure one can get into each room": the entry lane at each room's ACTUAL S-wall door is CLEAR of floor furniture.
-// A packed room's door defaults to the S-wall centre (x 5, the packer's reserved lane); a hand layout (M) places its own
-// door — use that door's centre. The lane is 4 ft wide at the door, the 3 ft nearest the S wall (gy 7–10).
+// 4 — "ensure one can get into each room": every floor piece is clear of the keep-clear lane at the room's ACTUAL door,
+// checked with the SINGLE shipped invariant doorKeepClear (the same lane place/move/nudge enforce). It is WALL-AWARE, so a
+// room whose door is on the N / interior wall (e.g. S = Storage·Laundry, door facing centre K, fixtures on the far S wall)
+// is checked at THAT wall — not a hardcoded S lane. This reconciles the gate to one door-clear truth and removes the stale
+// S-wall assumption that false-flagged S's back-wall sink (the X1 gate, which already uses doorKeepClear, passed it clean).
+// Low step-over items (height < 1.3 ft) don't block the walk-in. A door-less packed room still reserves the S-centre lane.
 const overlaps = (a, b) => Math.max(0, Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1)) * Math.max(0, Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1));
 let blocked = 0;
 for (const k of ROOM_KEYS) {
   const objs = seededObjectsForRoom(k);
-  const door = objs.find((o) => o.kind === "door");                 // the placed door, if the room has one
-  const doorX = door ? door.gx + 0.5 : ROOM_GRID / 2;               // else the packer's S-centre lane
-  const lane = { x1: doorX - 2, x2: doorX + 2, y1: ROOM_GRID - 3, y2: ROOM_GRID };
-  for (const o of objs) {
-    if (OBJECT_SPEC[o.kind]?.onWall) continue;          // doors/windows/wall pieces don't block the floor
-    if (heightOf(o) < 1.3) continue;                     // step-over low items don't block the walk-in
-    if (overlaps(worldSpan(o), lane) > 0.01) blocked++;
+  const doors = objs.filter((o) => o.kind === "door");
+  const checkDoors = doors.length ? doors : [{ id: "synthetic-s-door", kind: "door", gx: ROOM_GRID / 2 - 0.5, gy: ROOM_GRID - 1, rot: 0 }];
+  for (const door of checkDoors) {
+    const lane = doorKeepClear(door);
+    for (const o of objs) {
+      if (OBJECT_SPEC[o.kind]?.onWall) continue;          // doors/windows/wall pieces don't block the floor
+      if (heightOf(o) < 1.3) continue;                     // step-over low items don't block the walk-in
+      if (overlaps(worldSpan(o), lane) > 0.01) { blocked++; console.log(`  ✗ (entry blocked: ${k} ${o.kind} @ ${o.gx},${o.gy} in the ${door.gx},${door.gy}-door lane)`); }
+    }
   }
 }
-ok(blocked === 0, `each room's door entry lane is clear of furniture — one can get in (blocked: ${blocked})`);
+ok(blocked === 0, `each room's ACTUAL door lane is clear of furniture — one can get in (blocked: ${blocked})`);
 
 // 5 — seedHouseFromLibrary fills empty rooms only (a user's saved objects win), never mutates its input.
 const layout = [{ k: "L", objects: undefined }, { k: "K", objects: [{ id: "keep-1", kind: "sofa", gx: 0, gy: 0, rot: 0 }] }];
