@@ -898,10 +898,12 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
   // interior. Feng shui: the table + its seating are the function, nothing else is auto-placed.
   D: [
     { id: "table-1",  kind: "table",  gx: 4.5, gy: 4.5, rot: 0 },           // the dining table, centred — the anchor (x 3–7 · y 3–7)
-    { id: "chair-1",  kind: "chair",  gx: 4.5, gy: 1.65, rot: 0 },          // N seat, tucked to the table edge
-    { id: "chair-2",  kind: "chair",  gx: 4.5, gy: 7.35, rot: 0 },          // S seat
-    { id: "chair-3",  kind: "chair",  gx: 1.65, gy: 4.5, rot: 0 },          // W seat
-    { id: "chair-4",  kind: "chair",  gx: 7.35, gy: 4.5, rot: 0 },          // E seat
+    // every chair FACES the table (operator LIVE 2026-11-11 "chairs should all face table"): a chair's front is +y at
+    // rot 0, so rot turns it toward the centre — N seat faces S (0), S seat faces N (180), W seat faces E (90), E seat faces W (270).
+    { id: "chair-1",  kind: "chair",  gx: 4.5, gy: 1.65, rot: 0 },          // N seat, faces S into the table
+    { id: "chair-2",  kind: "chair",  gx: 4.5, gy: 7.35, rot: 180 },        // S seat, faces N into the table
+    { id: "chair-3",  kind: "chair",  gx: 1.65, gy: 4.5, rot: 90 },         // W seat, faces E into the table
+    { id: "chair-4",  kind: "chair",  gx: 7.35, gy: 4.5, rot: 270 },        // E seat, faces W into the table
     { id: "window-1", kind: "window", gx: 9,   gy: 2,   rot: 90 },          // E (exterior) wall · y 1–4 (clear of the corner)
     { id: "door-1",   kind: "door",   gx: 1.5, gy: 9,   rot: 0 },           // S wall · entry · x 0.5–3.5, clear of the seating
   ],
