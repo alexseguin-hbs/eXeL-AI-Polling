@@ -26,9 +26,13 @@ ok(!!sym && typeof sym.doorSymbol === "function" && typeof sym.symbolForSpan ===
 
 if (sym) {
   const { doorSymbol, symbolForSpan, doorSymbolSvg, arcPoints } = sym;
-  const M = STANDARD_LAYOUTS.M;
-  const door = M.find((o) => o.kind === "door");
-  // ── 1. the bedroom door (A′ door-1: S wall, x 0–3) by the convention ──
+  // FIXED convention fixture — a 3-ft CORNER door on the S wall. The door SYMBOL convention (hinge · leaf · quarter arc ·
+  // rotate · mirror) is verified on this stable fixture, independent of where the live layouts place their doors, so
+  // centering a room's door (operator LIVE 2026-11-11 "doors should be in middle of 10ft long interior wall") never churns
+  // these geometry assertions. The real-layout MEP integration (door-aware panel/outlets) is checked on STANDARD_LAYOUTS.M below.
+  const door = { id: "door-1", kind: "door", gx: 1, gy: 9, rot: 0 };
+  const M = [door];
+  // ── 1. a corner door (S wall, x 0–3) by the convention ──
   const d = doorSymbol(door);
   ok(d.wall === "S" && near(d.r, 3), `door-1 is a 3-ft door on the S wall (got ${d.wall}, r ${d.r})`);
   ok(pt(d.jambA, 0, ROOM_GRID) && pt(d.jambB, 3, ROOM_GRID), `the opening is cut in the WALL LINE from (0,10) to (3,10) — not 0.3 ft inside it (got ${JSON.stringify(d.jambA)}–${JSON.stringify(d.jambB)})`);
@@ -106,7 +110,7 @@ ok(outs.length === 4 && !outs.some((p) => p.gy === ROOM_GRID - 1 && p.gx + 1 > s
 ok(outletMarkers(4, A).length === 4 && JSON.stringify(outletPositions(4)) !== JSON.stringify(outs), "outletMarkers takes the room's objects; without them the old positions (one inside the door) are unchanged for callers that pass none");
 ok(/wiringRuns\(outlets, objects\)/.test(rd) && /outletMarkers\(outlets, objects\)/.test(rd), "the room designer passes the room's objects so wiring and markers avoid the door");
 const blocked = doorOpeningCells(A), pan = panelAt(A);
-ok(blocked.has("0,9") && !blocked.has(`${pan.gx},${pan.gy}`) && pan.gx === 0 && pan.gy === 8, `the service panel steps out of door-1's opening to (0,8) (got ${JSON.stringify(pan)})`);
+ok(blocked.has("3,9") && !blocked.has(`${pan.gx},${pan.gy}`) && pan.gx === 0 && pan.gy === 9, `the service panel steps out of door-1's centered opening (x2–5) to a clear S-wall cell (0,9) (got ${JSON.stringify(pan)})`);
 ok(wiringRuns(4, A).runs.every((r) => !blocked.has(`${r.from.gx},${r.from.gy}`) && !blocked.has(`${r.to.gx},${r.to.gy}`)), "no wiring run starts or ends inside the door opening");
 ok(roomBom(A, 4).lines.find((l) => l.id === "wire").qty === electricSpecs(4, A).wireFt, "the BOM's wire length is the designer's door-aware number (one source — AsM-caught)");
 ok(/outletPositions\(Math\.min\(4, r\.outlets\), r\.objects \?\? defaultObjectsForRoom\(r\.k\)\)/.test(bd) && /outletMarkers\(Math\.min\(8, walkRoom\.outlets \|\| 0\), walkRoom\.objects \?\? defaultObjectsForRoom\(walkRoom\.k\)\)/.test(vox), "Build 4D's outlet dots and the voxel's walk sockets use the same door-aware positions");

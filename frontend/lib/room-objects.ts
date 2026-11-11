@@ -873,11 +873,13 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
     { id: "bed-1",        kind: "bed",        gx: 4.5, gy: 2.5, rot: 0 },            // centre (5, 3) · x 2.5–7.5 · y 0–6 · head on the N wall
     { id: "nightstand-1", kind: "nightstand", gx: 1,   gy: 0.25, rot: 0 },           // flush at the head, left · x 0.75–2.25 · y 0–1.5
     { id: "nightstand-2", kind: "nightstand", gx: 8,   gy: 0.25, rot: 0 },           // flush at the head, right · x 7.75–9.25 · y 0–1.5
-    { id: "desk-1",       kind: "desk",       gx: 7.5, gy: 8.5, rot: 0 },            // the table/vanity on the S wall, opposite the bed · x 6–10 · y 8–10
+    { id: "desk-1",       kind: "desk",       gx: 7.5, gy: 8.5, rot: 0 },            // the vanity on the S wall, opposite the bed · x 6–10 · y 8–10
     { id: "mirror-1",     kind: "mirror",     gx: 7.5, gy: 9,   rot: 0, elev: 3 },   // the wall mirror above the vanity (S wall)
     { id: "window-1",     kind: "window",     gx: 7.5, gy: 0,   rot: 0 },            // N (exterior) · over the right nightstand · x 6.5–9.5 (clear of the corner)
     { id: "window-2",     kind: "window",     gx: 0,   gy: 2.5, rot: 90 },           // W (exterior) · beside the bed · y 1.5–4.5
-    { id: "door-1",       kind: "door",       gx: 1,   gy: 9,   rot: 0 },            // S wall · from the Living Room · x 0–3
+    // door centered as far as the S-wall vanity (x6–10) allows — operator "doors in middle"; a true middle needs the vanity
+    // relocated (a 5-ft bed + 4-ft vanity + 3-ft door won't all fit mid-wall in a 10-ft room), flagged for an H.I. call.
+    { id: "door-1",       kind: "door",       gx: 3,   gy: 9,   rot: 0 },            // S wall · from the Living Room · x 2–5 (clears the vanity)
   ],
   // R2f — LIVING ROOM (operator LIVE 2026-11-09: "living room should face tv; feng sui is the art of flow; ensure items
   // that are not critical are removed"). The CRITICAL pair only — the sofa FACES the TV — nothing else auto-placed (the
@@ -890,22 +892,23 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
     { id: "tv-1",     kind: "tv",     gx: 9,   gy: 4.5, rot: 90, elev: 4 }, // E wall, wall-mounted at 4 ft, centred opposite the sofa
     { id: "window-1", kind: "window", gx: 0,   gy: 1.5, rot: 90 },          // W (exterior) · y 1–4 (clear of the NW corner)
     { id: "window-2", kind: "window", gx: 0,   gy: 6.5, rot: 90 },          // W (exterior) · y 6–9 (clear of the SW corner)
-    { id: "door-1",   kind: "door",   gx: 6,   gy: 9,   rot: 0 },           // S wall · the entry · x 5–8, clear of the sofa
+    { id: "door-1",   kind: "door",   gx: 4.5, gy: 9,   rot: 0 },           // S wall · the entry · CENTERED (x 3.5–6.5), clear of the sofa
   ],
   // R2g — DINING ROOM (operator LIVE 2026-11-09: "dining room needs table and window"). The dining TABLE is the anchor,
   // centred, with its chairs tucked to it; the room's one exterior wall (E — D sits at row 1 · col 2) carries the window;
   // the entry door is on the S wall, off-centre so the walk-in is clear of the seating. N→Closet, W→Kitchen, S→Entry are
   // interior. Feng shui: the table + its seating are the function, nothing else is auto-placed.
   D: [
+    // the table is centred with chairs on N/W/E, all FACING the table ("chairs should all face table"); the S side is OPEN
+    // for the CENTERED entry door (operator LIVE 2026-11-11 "doors should be in middle…") — a 4th S chair would stand in the
+    // doorway, so the entry side is left clear, the natural dining arrangement. A chair's front is +y at rot 0, so rot turns
+    // it toward the centre: N faces S (0), W faces E (90), E faces W (270).
     { id: "table-1",  kind: "table",  gx: 4.5, gy: 4.5, rot: 0 },           // the dining table, centred — the anchor (x 3–7 · y 3–7)
-    // every chair FACES the table (operator LIVE 2026-11-11 "chairs should all face table"): a chair's front is +y at
-    // rot 0, so rot turns it toward the centre — N seat faces S (0), S seat faces N (180), W seat faces E (90), E seat faces W (270).
     { id: "chair-1",  kind: "chair",  gx: 4.5, gy: 1.65, rot: 0 },          // N seat, faces S into the table
-    { id: "chair-2",  kind: "chair",  gx: 4.5, gy: 7.35, rot: 180 },        // S seat, faces N into the table
     { id: "chair-3",  kind: "chair",  gx: 1.65, gy: 4.5, rot: 90 },         // W seat, faces E into the table
     { id: "chair-4",  kind: "chair",  gx: 7.35, gy: 4.5, rot: 270 },        // E seat, faces W into the table
     { id: "window-1", kind: "window", gx: 9,   gy: 2,   rot: 90 },          // E (exterior) wall · y 1–4 (clear of the corner)
-    { id: "door-1",   kind: "door",   gx: 1.5, gy: 9,   rot: 0 },           // S wall · entry · x 0.5–3.5, clear of the seating
+    { id: "door-1",   kind: "door",   gx: 4.5, gy: 9,   rot: 0 },           // S wall · entry · CENTERED (x 3.5–6.5), S side open
   ],
   // V2 (operator LIVE 2026-11-09 "default to room placement I had in image") — the remaining six rooms get a decided,
   // X1-clean expert layout (no overlap, no door-block), so EVERY new project opens to the furnished 3×3, not the packer.
@@ -918,7 +921,7 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
     { id: "sink-1",   kind: "sink",   gx: 0.5, gy: 4,   rot: 0 },           // W wall (x0–2 · y3–5)
     { id: "toilet-1", kind: "toilet", gx: 0.5, gy: 6.5, rot: 0 },          // W wall (x0–2 · y6–8)
     { id: "window-1", kind: "window", gx: 3,   gy: 0,   rot: 0 },           // N (exterior) over the tub
-    { id: "door-1",   kind: "door",   gx: 6,   gy: 9,   rot: 0 },           // S (interior) · lane x4.5–7.5 clear
+    { id: "door-1",   kind: "door",   gx: 4.5, gy: 9,   rot: 0 },           // S (interior) · CENTERED (x 3.5–6.5)
   ],
   // C — Master Closet: wardrobe + dresser down the W wall, shelving on the E (exterior) wall, window on the N.
   C: [
@@ -926,15 +929,15 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
     { id: "dresser-1",  kind: "dresser",  gx: 0.35, gy: 6,   rot: 90 },     // W wall below the wardrobe (x0–1.7 · y5–8)
     { id: "shelving-1", kind: "shelving", gx: 9,    gy: 5,   rot: 90 },     // E (exterior) wall, wall-hung
     { id: "window-1",   kind: "window",   gx: 6,    gy: 0,   rot: 0 },      // N (exterior)
-    { id: "door-1",     kind: "door",     gx: 6,    gy: 9,   rot: 0 },      // S (interior) · lane x4.5–7.5 clear of the W furniture
+    { id: "door-1",     kind: "door",     gx: 4.5,  gy: 9,   rot: 0 },      // S (interior) · CENTERED (x 3.5–6.5), clear of the W furniture
   ],
   // K — Kitchen (centre, no exterior wall): the work triangle — counter + stove on the N, sink on the W, fridge on the SE.
   K: [
     { id: "counter-1", kind: "counter", gx: 2.5, gy: 0.5,  rot: 0 },        // N wall (x0.5–5.5 · y0–2)
     { id: "stove-1",   kind: "stove",   gx: 6.5, gy: 0.75, rot: 0 },        // N wall, right (x5.75–8.25 · y0–2.5)
     { id: "sink-1",    kind: "sink",    gx: 0.5, gy: 4,    rot: 0 },        // W wall (x0–2 · y3–5)
-    { id: "fridge-1",  kind: "fridge",  gx: 7,   gy: 6,    rot: 0 },        // SE (x6–9 · y5.15–7.85)
-    { id: "door-1",    kind: "door",    gx: 3.5, gy: 9,    rot: 0 },        // S (interior) · lane x2–5 clear
+    { id: "fridge-1",  kind: "fridge",  gx: 7,   gy: 4.5,  rot: 0 },        // E side, raised clear of the centered door's lane (x5.5–8.5 · y3.15–5.85)
+    { id: "door-1",    kind: "door",    gx: 4.5, gy: 9,    rot: 0 },        // S (interior) · CENTERED (x 3.5–6.5)
   ],
   // O — Office: the desk in the commanding position on the N wall, a chair at it, a bookshelf beside it; window on the W (exterior).
   O: [
@@ -942,20 +945,20 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
     { id: "chair-1",     kind: "chair",     gx: 2,   gy: 2.5, rot: 0 },     // at the desk (x1.15–2.85 · y2.15–3.85)
     { id: "bookshelf-1", kind: "bookshelf", gx: 6.5, gy: 0,   rot: 0 },     // N wall, right (x5.5–8.5 · y0–1)
     { id: "window-1",    kind: "window",    gx: 0,   gy: 5,   rot: 90 },    // W (exterior)
-    { id: "door-1",      kind: "door",      gx: 9,   gy: 6,   rot: 90 },    // E (interior)
+    { id: "door-1",      kind: "door",      gx: 9,   gy: 4.5, rot: 90 },    // E (interior) · CENTERED (y 3.5–6.5)
   ],
   // S — Storage · Laundry: washer + utility sink on the S (exterior) wall, the N door (to the kitchen) kept clear.
   S: [
     { id: "washer-1", kind: "washer", gx: 0.5, gy: 7.5, rot: 0 },          // S wall, SW (x0–2 · y7–9)
     { id: "sink-1",   kind: "sink",   gx: 3,   gy: 7.5, rot: 0 },          // next to the washer (x2.5–4.5 · y7–9)
-    { id: "door-1",   kind: "door",   gx: 3.5, gy: 0,   rot: 0 },          // N (interior) · lane x2–5 · y0–1.5 clear
+    { id: "door-1",   kind: "door",   gx: 4.5, gy: 0,   rot: 0 },          // N (interior) · CENTERED (x 3.5–6.5)
   ],
   // E — Entry · Porch: a welcoming seat, the front door on the S (exterior) wall, an interior door to the Dining Room, window on the E.
   E: [
     { id: "chair-1",  kind: "chair",  gx: 1,   gy: 1,   rot: 0 },           // welcoming seat, NW (x0.35–2.05 · y0.35–2.05)
     { id: "window-1", kind: "window", gx: 9,   gy: 5,   rot: 90 },          // E (exterior)
-    { id: "door-1",   kind: "door",   gx: 3.5, gy: 9,   rot: 0 },           // S (exterior) — the FRONT door (x2–5)
-    { id: "door-2",   kind: "door",   gx: 6,   gy: 0,   rot: 0 },           // N (interior) — to the Dining Room (x4.5–7.5)
+    { id: "door-1",   kind: "door",   gx: 4.5, gy: 9,   rot: 0 },           // S — the FRONT door · CENTERED (x 3.5–6.5)
+    { id: "door-2",   kind: "door",   gx: 4.5, gy: 0,   rot: 0 },           // N (interior) — to the Dining Room · CENTERED (x 3.5–6.5)
   ],
 };
 /** The standard layouts' edition. A stored room whose `layoutRev` is older is re-seated to the decided layout on load

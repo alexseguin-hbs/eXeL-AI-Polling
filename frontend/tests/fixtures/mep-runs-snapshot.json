@@ -19,7 +19,7 @@
           "gy": 5
         },
         "returnGrille": {
-          "gx": 4,
+          "gx": 2,
           "gy": 9
         },
         "runs": [
@@ -129,7 +129,7 @@
         }
       },
       "k": "D",
-      "objectCount": 7,
+      "objectCount": 6,
       "outletPositions": [
         {
           "gx": 0,
@@ -140,14 +140,14 @@
           "gy": 1
         },
         {
-          "gx": 6,
+          "gx": 2,
           "gy": 9
         }
       ],
       "outlets": 3,
       "panel": {
         "gx": 0,
-        "gy": 8
+        "gy": 9
       }
     },
     "entry": {
@@ -168,7 +168,7 @@
           "gy": 5
         },
         "returnGrille": {
-          "gx": 6,
+          "gx": 2,
           "gy": 9
         },
         "runs": [
@@ -582,7 +582,7 @@
         },
         {
           "gx": 0,
-          "gy": 9
+          "gy": 8
         }
       ],
       "outlets": 4,
@@ -748,7 +748,7 @@
           "gy": 5
         },
         "returnGrille": {
-          "gx": 3,
+          "gx": 5,
           "gy": 9
         },
         "runs": [
@@ -873,14 +873,14 @@
           "gy": 7
         },
         {
-          "gx": 3,
+          "gx": 0,
           "gy": 9
         }
       ],
       "outlets": 4,
       "panel": {
         "gx": 0,
-        "gy": 8
+        "gy": 9
       }
     },
     "master-closet": {
@@ -1161,12 +1161,12 @@
           "gy": 0
         },
         {
-          "gx": 8,
+          "gx": 7,
           "gy": 9
         },
         {
           "gx": 0,
-          "gy": 9
+          "gy": 8
         }
       ],
       "outlets": 4,
