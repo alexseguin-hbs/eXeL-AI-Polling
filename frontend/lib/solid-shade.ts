@@ -38,11 +38,39 @@ export interface ShadedFace { d: string; depth: number; kind: FaceKind; color?: 
 /** Project tagged quads, drop any with a refused vertex, and return them painter-sorted FAR→NEAR (one fixed
  *  convention — resolves the depth-sort sign that differed across the three copies). The caller fills each polygon
  *  `shade(face.color ?? baseColor, FACE_SHADE[face.kind])`. */
-export function solidFaces(quads: Quad[], project: Projector): ShadedFace[] {
+export type DepthFn = (p: Vec3) => number;
+/** NEAR-PLANE POLYGON CLIP (pure, Sutherland–Hodgman against the near plane) — operator LIVE 2026-11-11 "should not
+ *  disappear". Given a polygon's world points and a camDepth(p) (the projector's depth, affine, so linear interpolation is
+ *  exact), return the polygon clipped so every surviving vertex is in front of the near plane (moved onto near+eps, which
+ *  passes the projector's `depth > near` test) — INSTEAD OF dropping the whole face when one corner passes behind the eye,
+ *  which made a wall / furniture box / GLB-mesh face vanish the instant you walked up to it. Fewer than 3 surviving verts →
+ *  [] (nothing to draw). The segment-pass equivalent is clipNear(); this is its polygon sibling. */
+export function clipPolyNear(pts: Vec3[], camDepth: DepthFn, near: number, eps = 0.02): Vec3[] {
+  const n = pts.length; if (n < 3) return [];
+  const plane = near + eps;
+  const out: Vec3[] = [];
+  let prev = pts[n - 1], prevD = camDepth(prev), prevIn = prevD > near;
+  for (let i = 0; i < n; i++) {
+    const cur = pts[i], curD = camDepth(cur), curIn = curD > near;
+    if (curIn !== prevIn) {                                   // the edge crosses the near plane → emit the crossing point
+      const t = (plane - prevD) / (curD - prevD);
+      out.push([prev[0] + (cur[0] - prev[0]) * t, prev[1] + (cur[1] - prev[1]) * t, prev[2] + (cur[2] - prev[2]) * t]);
+    }
+    if (curIn) out.push(cur);                                 // keep a vertex in front of the eye
+    prev = cur; prevD = curD; prevIn = curIn;
+  }
+  return out.length >= 3 ? out : [];
+}
+/** Project tagged quads, painter-sort FAR→NEAR, and (when `camDepth` is given) first clip each face to the near plane with
+ *  clipPolyNear so a face straddling the eye is TRIMMED, not dropped. Without camDepth the legacy cull-by-refusal path is
+ *  kept (a face with any refused vertex is skipped). The caller fills each polygon shade(face.color ?? baseColor, …). */
+export function solidFaces(quads: Quad[], project: Projector, camDepth?: DepthFn, near = 0.4): ShadedFace[] {
   const out: ShadedFace[] = [];
   for (const q of quads) {
-    const ps = q.pts.map(project);
-    if (ps.some((p) => !p)) continue; // cull by refusal — the radar's push() behaviour
+    const pts = camDepth ? clipPolyNear(q.pts, camDepth, near) : q.pts;
+    if (pts.length < 3) continue;                             // fully behind the eye (clipped away) — nothing to draw
+    const ps = pts.map(project);
+    if (ps.some((p) => !p)) continue; // cull by refusal — the radar's push() behaviour (and any numerical straggler post-clip)
     const depth = ps.reduce((s, p) => s + (p as { depth: number }).depth, 0) / ps.length;
     out.push({
       d: ps.map((p) => `${(p as { x: number }).x.toFixed(1)},${(p as { y: number }).y.toFixed(1)}`).join(" "),

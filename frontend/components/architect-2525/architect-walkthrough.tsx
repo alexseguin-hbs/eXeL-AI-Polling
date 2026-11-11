@@ -415,7 +415,7 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   // the wall panels dim for a structure/shell phase so the layer reads "inside" (framing/insulation 0.15, else the phase's own)
   const wallDim: number | null = structureOn ? 0.15 : shellGeo?.wallDim ?? null;
 
-  const faces = solidFaces([...wallQuads, ...furnQuads], project);
+  const faces = solidFaces([...wallQuads, ...furnQuads], project, camDepth, near);  // near-plane CLIP (not drop) so walls/furniture/GLB faces don't vanish as you walk into them (operator "should not disappear")
   // COLLISION obstacles — this room's phase-visible floor furniture, with a DOOR-WIDTH clear lane carved to EACH doorway
   // (the door-aware fix: reach the door in every room, not just the bedroom).
   const doorLanes: Rect[] = [];
@@ -513,7 +513,7 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   const chipLayer: MepLayer | null = layers[0] ?? (socketsOnly ? "wiring" : null);
   // P0·E — the MEP bodies shade + occlude like furniture through a SECOND solidFaces() pass painted AFTER the walls/furniture
   // (never merged into the walls' call above: the painter's centroid sort would hide a wall-hugging body behind the 0.55 wall).
-  const mepFaces = solidFaces(mepSolids, project);
+  const mepFaces = solidFaces(mepSolids, project, camDepth, near);   // same near-plane clip for the MEP bodies (AHU cabinet, etc.)
 
   // P4 — the SHELL phase's own sublines + glyphs join the MEP passes (quads already pushed into wallQuads above). Insulation
   // batts + camera wedges draw translucent so the room behind still reads; far glyphs cull like the MEP ones.

@@ -111,8 +111,10 @@ ok(/export const AHU_W = 2, AHU_D = 2, AHU_H = 5;/.test(mep) && /solids\.push\(\
 
 // ══ P0·E — ADDITIVE solids, a SECOND solidFaces pass after the walls (never merged into the first) ═════════════════════════
 ok(/export interface WalkMep \{ lines: Vec3\[\]\[\]; boxes: MepBox\[\]; sublines: MepSubline\[\]; glyphs: MepGlyph\[\]; solids: Quad\[\]; color: string \}/.test(mep), "WalkMep gains `solids: Quad[]` (ADDITIVE — the shipped fields keep their names and order)");
-const first = walk.indexOf("solidFaces([...wallQuads, ...furnQuads], project)"), second = walk.indexOf("solidFaces(mepSolids, project)");
-ok((walk.match(/solidFaces\((?!\))/g) || []).length === 2 && first > 0 && second > first, "exactly TWO solidFaces(…) calls (comments' `solidFaces()` mentions excluded): the walls+furniture call first, the MEP-solids call after it");
+// both calls pass camDepth + near so solidFaces CLIPS each face to the near plane (clipPolyNear) instead of dropping it —
+// operator LIVE 2026-11-11 "should not disappear" (a wall/furniture/GLB face no longer vanishes as you walk into it).
+const first = walk.indexOf("solidFaces([...wallQuads, ...furnQuads], project, camDepth, near)"), second = walk.indexOf("solidFaces(mepSolids, project, camDepth, near)");
+ok((walk.match(/solidFaces\((?!\))/g) || []).length === 2 && first > 0 && second > first, "exactly TWO solidFaces(…) calls, BOTH near-plane-clipped (project, camDepth, near): the walls+furniture call first, the MEP-solids call after it");
 ok(!/solidFaces\(\[\.\.\.wallQuads, \.\.\.furnQuads, \.\.\.mepSolids/.test(walk) && !/wallQuads\.push\(\.\.\.g\.solids\)/.test(walk), "MEP solids are NEVER merged into the walls' call (the painter's centroid sort would hide a wall-hugging body)");
 const facesAt = walk.indexOf("{faces.map((fc, i) =>"), mepFacesAt = walk.indexOf("{mepFaces.map((fc, i) =>");
 ok(facesAt > 0 && mepFacesAt > facesAt && /data-arch-walk-mep-solid="1"/.test(walk) && /mepFaces\.map\(\(fc, i\) => <polygon[^>]*fill=\{fog\(shade\(fc\.color \?\? C\.wall, FACE_SHADE\[fc\.kind\]\), fc\.depth\)\}/.test(walk), "the MEP faces paint AFTER the wall/furniture faces with the same fog + FACE_SHADE (data-arch-walk-mep-solid)");
