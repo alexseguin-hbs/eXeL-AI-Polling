@@ -47,6 +47,19 @@ if (sym) {
   const dsp = worldSpan(door);
   ok(pt(d.hinge, dsp.x1, ROOM_GRID), "the symbol's hinge equals the layout gate's clearance hinge (one law for the swing)");
 
+  // ── 1b. SLIDING door (operator LIVE 2026-11-11 "allow for sliding door vs swing door"): a panel PARALLEL to the wall,
+  //        set into the room, with NO swing arc — reusing the leaf/arc fields so every surface draws it with no code change ──
+  const slideDoor = { id: "d-slide", kind: "door", gx: 4, gy: 9, rot: 0, slide: true };   // S wall, 3-ft opening x3–6
+  const sd = doorSymbol(slideDoor);
+  ok(sd.slide === true, "a door with slide:true yields a SLIDING symbol");
+  ok(pt(sd.panelA, 3, ROOM_GRID - 0.5) && pt(sd.panelB, 6, ROOM_GRID - 0.5), `the sliding panel runs parallel to the S wall, 0.5 ft into the room (got ${JSON.stringify(sd.panelA)}–${JSON.stringify(sd.panelB)})`);
+  const sdSvg = doorSymbolSvg(sd, 10, 10, 0, 0);
+  ok(sdSvg.slide === true && !sdSvg.arc.includes("A"), "the sliding door's 'arc' is a straight TRACK line (no swing-arc 'A' command)");
+  ok(near(sdSvg.leaf.y1, sdSvg.leaf.y2), "the sliding panel (drawn via the leaf field) is parallel to the wall — constant y on the S wall");
+  ok(arcPoints(sd).length === 2, "arcPoints returns the 2-point panel line for a sliding door (polyline surfaces draw the panel, not an arc)");
+  // a plain door (no slide flag) stays a swing door — the default is unchanged
+  ok(doorSymbol({ id: "d-swing", kind: "door", gx: 4, gy: 9, rot: 0 }).slide === false, "a door without the slide flag stays a SWING door (default unchanged)");
+
   // ── 2. Rotate flips the hinge; mirror keeps the rule; every wall swings into the room ──
   const flipped = rotateObject(M, door.id).find((o) => o.id === door.id);
   const df = doorSymbol(flipped);

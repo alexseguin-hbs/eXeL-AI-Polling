@@ -21,7 +21,7 @@ import { Compass2525 } from "./compass-2525";
 import { MiniPanel } from "./mini-panel";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import {
-  OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
+  OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects, toggleDoorSlide,
   footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, partRects, paletteForRoom, groupPalette, worldSpan,
   nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, applyTypedSize, applyTypedHeight, setGap, elevOf, setElev,
   defaultObjectsForRoom, groupOf,
@@ -1005,6 +1005,10 @@ export function RoomDesigner({ room, onChange, onBack, phase = null, showWater =
                   </button>
                 )}
                 <button data-arch-roomobj-rotate onClick={() => commit(rotateObject(objects, sel.id))} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /> Rotate</button>
+                {/* SWING ⇄ SLIDING door toggle (operator LIVE 2026-11-11 "allow for sliding door vs swing door") — doors only */}
+                {sel.kind === "door" && (
+                  <button data-arch-roomobj-door-type onClick={() => commit(toggleDoorSlide(objects, sel.id))} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.gold }} title="Switch this door between a swing door and a sliding door">{sel.slide ? "Sliding" : "Swing"} ⇄</button>
+                )}
                 <button data-arch-roomobj-delete onClick={() => { commit(removeObject(objects, sel.id)); setSelId(null); }} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: "#f87171" }}><Trash2 className="h-3 w-3" /> Delete</button>
                 {/* MOVE pad (arrows + ft/in step) — the Security-2525 Mission-Planning asset-inspector control, now ALWAYS
                     shown on a selected element (operator 2026-11-09 "ability to move etc"), not hidden behind advanced. */}

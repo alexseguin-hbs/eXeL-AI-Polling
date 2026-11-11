@@ -18,13 +18,18 @@ export interface Pt { x: number; y: number }
 export interface DoorSymbol {
   wall: Wall;
   jambA: Pt; jambB: Pt;       // the opening's two jambs on the wall line (A = the lower coordinate along the wall)
-  hinge: Pt; strike: Pt;      // which jamb carries the hinge; the other takes the latch
+  hinge: Pt; strike: Pt;      // which jamb carries the hinge; the other takes the latch (swing doors)
   leafEnd: Pt;                // the free end of the open leaf (hinge + into × r)
   r: number;                  // the door width (ft) = the leaf length = the swing radius
   sweep: 0 | 1;               // the SVG arc sweep flag that bulges the quarter circle into the room (y-down frame)
   into: Pt;                   // unit normal from the wall into the room
+  slide: boolean;             // operator LIVE 2026-11-11 "allow for sliding door vs swing door" — a sliding/bypass door
+  panelA: Pt; panelB: Pt;     // a SLIDING door's panel line (parallel to the wall, set into the room) — ft, = jambs + into×PANEL_OFF
 }
-export interface SymbolOpts { room?: number; inset?: number; flip?: boolean }
+export interface SymbolOpts { room?: number; inset?: number; flip?: boolean; slide?: boolean }
+/** How far a sliding door's panel + track sit into the room (ft) — the panel reads as parallel to the wall, no swing arc. */
+export const SLIDE_PANEL_OFF = 0.5;
+export const SLIDE_TRACK_OFF = 0.25;
 
 /** The symbol for a door whose opening spans [a1, a2] along `wall` (ft along that wall). `inset` moves the wall line inward
  *  (the room designer draws its wall 0.1 ft inside the room edge); `flip` puts the hinge on the other jamb. */
@@ -42,7 +47,10 @@ export function symbolForSpan(wall: Wall, a1: number, a2: number, opts: SymbolOp
   const leafEnd = { x: hinge.x + into.x * r, y: hinge.y + into.y * r };
   // In a y-down frame a positive cross product means strike is CLOCKWISE from leafEnd about the hinge → SVG sweep 1.
   const cross = (leafEnd.x - hinge.x) * (strike.y - hinge.y) - (leafEnd.y - hinge.y) * (strike.x - hinge.x);
-  return { wall, jambA, jambB, hinge, strike, leafEnd, r, sweep: cross > 0 ? 1 : 0, into };
+  // a sliding door's PANEL runs parallel to the wall, set SLIDE_PANEL_OFF into the room (no hinge, no swing).
+  const panelA = { x: jambA.x + into.x * SLIDE_PANEL_OFF, y: jambA.y + into.y * SLIDE_PANEL_OFF };
+  const panelB = { x: jambB.x + into.x * SLIDE_PANEL_OFF, y: jambB.y + into.y * SLIDE_PANEL_OFF };
+  return { wall, jambA, jambB, hinge, strike, leafEnd, r, sweep: cross > 0 ? 1 : 0, into, slide: opts.slide ?? false, panelA, panelB };
 }
 
 /** The symbol for a placed door: its wall from wallOfObject, its opening from worldSpan, the hinge flipped by rot 180/270. */
@@ -50,11 +58,12 @@ export function doorSymbol(o: PlacedObject, opts: SymbolOpts = {}): DoorSymbol {
   const wall = wallOfObject(o), s = worldSpan(o);
   const horiz = wall === "N" || wall === "S";
   const a1 = horiz ? s.x1 : s.y1, a2 = horiz ? s.x2 : s.y2;
-  return symbolForSpan(wall, a1, a2, { ...opts, flip: o.rot === 180 || o.rot === 270 });
+  return symbolForSpan(wall, a1, a2, { ...opts, flip: o.rot === 180 || o.rot === 270, slide: opts.slide ?? Boolean(o.slide) });
 }
 
 /** `n` points along the swing arc from the leaf's free end to the strike jamb (the short 90° way), for polylines. */
 export function arcPoints(sym: DoorSymbol, n = 12): Pt[] {
+  if (sym.slide) return [sym.panelA, sym.panelB];   // a sliding door has no swing — its "arc" is the panel line (2 points)
   const a0 = Math.atan2(sym.leafEnd.y - sym.hinge.y, sym.leafEnd.x - sym.hinge.x);
   const a1 = Math.atan2(sym.strike.y - sym.hinge.y, sym.strike.x - sym.hinge.x);
   let d = a1 - a0;
@@ -70,8 +79,10 @@ export function arcPoints(sym: DoorSymbol, n = 12): Pt[] {
 
 export interface DoorSymbolSvg {
   opening: { x1: number; y1: number; x2: number; y2: number };
-  leaf: { x1: number; y1: number; x2: number; y2: number };
-  arc: string;                       // an SVG path: M leafEnd A rx ry 0 0 sweep strike (elliptical under a non-uniform scale)
+  leaf: { x1: number; y1: number; x2: number; y2: number };   // swing: the leaf (hinge→leafEnd); SLIDING: the panel (parallel to the wall)
+  arc: string;                       // swing: M leafEnd A rx ry 0 0 sweep strike; SLIDING: M trackA L trackB (a straight track line)
+  slide: boolean;                    // true → leaf is the sliding panel + arc is the track line (no swing)
+  panel: { x1: number; y1: number; x2: number; y2: number };  // the sliding panel line (same as leaf when slide; always provided)
   hinge: Pt; strike: Pt; leafEnd: Pt; into: Pt;
 }
 const f = (n: number): string => String(Number(n.toFixed(3)));
@@ -79,10 +90,19 @@ const f = (n: number): string => String(Number(n.toFixed(3)));
 export function doorSymbolSvg(sym: DoorSymbol, sx: number, sy: number, ox: number, oy: number): DoorSymbolSvg {
   const P = (p: Pt): Pt => ({ x: ox + p.x * sx, y: oy + p.y * sy });
   const a = P(sym.jambA), b = P(sym.jambB), h = P(sym.hinge), s = P(sym.strike), e = P(sym.leafEnd);
+  const pa = P(sym.panelA), pb = P(sym.panelB);
+  const tA = P({ x: sym.jambA.x + sym.into.x * SLIDE_TRACK_OFF, y: sym.jambA.y + sym.into.y * SLIDE_TRACK_OFF });
+  const tB = P({ x: sym.jambB.x + sym.into.x * SLIDE_TRACK_OFF, y: sym.jambB.y + sym.into.y * SLIDE_TRACK_OFF });
   return {
     opening: { x1: a.x, y1: a.y, x2: b.x, y2: b.y },
-    leaf: { x1: h.x, y1: h.y, x2: e.x, y2: e.y },
-    arc: `M ${f(e.x)} ${f(e.y)} A ${f(sym.r * sx)} ${f(sym.r * sy)} 0 0 ${sym.sweep} ${f(s.x)} ${f(s.y)}`,
+    // SLIDING → the leaf IS the panel (parallel to the wall) and the "arc" is a straight track line, so every surface that
+    // already draws leaf + arc renders a sliding door with no code change; SWING → the leaf + quarter-circle arc as before.
+    leaf: sym.slide ? { x1: pa.x, y1: pa.y, x2: pb.x, y2: pb.y } : { x1: h.x, y1: h.y, x2: e.x, y2: e.y },
+    arc: sym.slide
+      ? `M ${f(tA.x)} ${f(tA.y)} L ${f(tB.x)} ${f(tB.y)}`
+      : `M ${f(e.x)} ${f(e.y)} A ${f(sym.r * sx)} ${f(sym.r * sy)} 0 0 ${sym.sweep} ${f(s.x)} ${f(s.y)}`,
+    slide: sym.slide,
+    panel: { x1: pa.x, y1: pa.y, x2: pb.x, y2: pb.y },
     hinge: h, strike: s, leafEnd: e, into: sym.into,
   };
 }
