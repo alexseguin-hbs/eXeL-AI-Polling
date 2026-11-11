@@ -199,8 +199,12 @@ const mh = mirrorObjects(M, "h"), mvv = mirrorObjects(M, "v");
 ok(near(mh.find((o) => o.kind === "bed").gx, 4.5) && near(mh.find((o) => o.kind === "desk").gx, ROOM_GRID - 1 - 7.5) && mh.every(inside), "mirror h keeps the half-foot centres (bed 4.5 → 4.5 · vanity 7.5 → 1.5) and everything inside");
 ok(JSON.stringify(mirrorObjects(mh, "h")) === JSON.stringify(M) && JSON.stringify(mirrorObjects(mvv, "v")) === JSON.stringify(M), "mirror is an involution (h∘h = id · v∘v = id)");
 ok(mvv.find((o) => o.kind === "bed").rot === 180 && mh.find((o) => o.kind === "window" && wallOfObject(o) === "E")?.rot === 270, "mirror maps the orientation (v: the headboard turns to the S wall · h: the W window becomes an E window)");
-const rb = rotateObject(M, "bed-1").find((o) => o.id === "bed-1");
-ok(rb.rot === 90 && near(rb.gx, 4.5) && near(rb.gy, 2.5), "Rotate keeps the bed's half-foot pivot (4.5 / 2.5)");
+// the bed rotates CLEAR when alone — and keeps the R5 half-foot pivot (a Math.round revert fails here)
+const rb = rotateObject([bed], "bed-1")[0];
+ok(rb.rot === 90 && near(rb.gx, 4.5) && near(rb.gy, 2.5), "Rotate keeps the bed's half-foot pivot (4.5 / 2.5) when the rotation is clear");
+// X1 on rotate (operator 2026-11-11 "never allow assets to overlap"): inside the full M layout the rotated 6-ft-wide bed
+// would overlap a corner nightstand, so the rotation is REJECTED — the bed stays put, never left overlapping.
+ok(rotateObject(M, "bed-1").find((o) => o.id === "bed-1").rot === 0, "rotating the bed inside full M is rejected (a rotated bed would hit a corner nightstand — X1 on rotate)");
 ok(near(clampFootprint(0, 0, 5, 6, 0).gx, 2) && near(clampFootprint(0, 0, 5, 6, 0).gy, 2.5) && near(moveObject([bed], "bed-1", 4, 0)[0].gy, 2.5), "an integer drag lands FLUSH to the wall (the rounded cell is clamped to the fractional bounds — J1)");
 
 // ── 8. R5b — the WireGuard admits only OWN kinds, caps the volume, clamps a stored footprint inside, keeps a flush thin piece ──

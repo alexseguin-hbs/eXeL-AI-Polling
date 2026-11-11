@@ -353,9 +353,12 @@ export function rotateObject(objs: PlacedObject[], id: string): PlacedObject[] {
       : (((o.rot + 90) % 360) as Rot);
     const fp = footprintOf(o);
     const c = clampFootprint(o.gx, o.gy, fp.w, fp.d, rot, false);   // R5: keep the pivot (no rounding of a half-foot centre)
-    // X1 note: rotate is a free in-place transform (keeps the pivot) — the no-overlap guard is enforced on the paths that
-    // CREATE/position pieces (place · move · nudge); a rotate that momentarily overlaps is the user's to resolve.
-    return { ...o, rot, gx: c.gx, gy: c.gy };
+    const cand = { ...o, rot, gx: c.gx, gy: c.gy };
+    // X1 (operator LIVE "never allow assets to overlap"; AsM-found 2026-11-11): rotate now honours the no-overlap / no-door-
+    // block invariant like place · move · nudge. If the rotated piece stays clear in place, rotate (keeping the R5 half-foot
+    // pivot); if the rotated footprint would overlap another piece or block a doorway, the rotation is REJECTED (the piece
+    // stays as it was) — a rotation never LEAVES an overlap, and never silently relocates the piece out from under the user.
+    return placementClear(cand, objs) ? cand : o;
   });
 }
 

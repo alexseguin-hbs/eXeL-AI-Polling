@@ -5,7 +5,7 @@
 // create an overlap or drop furniture in a doorway. Run:
 //   node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/room-no-overlap.test.mjs
 import {
-  placeObject, moveObject, objectsConflict, placementClear, doorKeepClear,
+  placeObject, moveObject, rotateObject, objectsConflict, placementClear, doorKeepClear,
   defaultObjectsForRoom, worldSpan, OBJECT_SPEC, ROOM_ASSETS,
 } from "../lib/room-objects.ts";
 
@@ -51,5 +51,27 @@ ok(kc.y1 < worldSpan(sDoor).y1 - 1e-6 && kc.y2 >= worldSpan(sDoor).y2 - 1e-6, "a
 ok(!placementClear({ id: "c", kind: "chair", gx: 4, gy: 8, rot: 0 }, [sDoor]), "a chair parked in the S-wall doorway lane is NOT clear (door-block caught)");
 ok(placementClear({ id: "c2", kind: "chair", gx: 4, gy: 4, rot: 0 }, [sDoor]), "a chair in the room centre is clear of that doorway (no false positive)");
 
-console.log(`\nROOM-NO-OVERLAP ${pass}/${pass + fail} passed · the no-overlap / no-door-block invariant holds on the defaults and on every place/move`);
+// ── 6. ROTATE enforces X1 — a rotation never LEAVES an overlap or a door-block (operator "never allow assets to overlap";
+//      AsM-found 2026-11-11). rotateObject rotates when the rotated footprint stays clear (keeping the R5 pivot), else REJECTS
+//      the rotation (the piece is unchanged) — it never relocates the piece out from under the user. ──
+for (const rk of rooms) {
+  const objs = defaultObjectsForRoom(rk);
+  for (const o of objs.filter((x) => !OBJECT_SPEC[x.kind].onWall)) {
+    const after = rotateObject(objs, o.id);
+    ok(!anyConflict(after), `${rk}: rotating ${o.kind} never creates an overlap (rotated or rejected, never overlapping)`);
+    const a2 = after.find((x) => x.id === o.id);
+    ok(a2.rot === o.rot || placementClear(a2, after.filter((x) => x.id !== o.id)), `${rk}: ${o.kind} either stayed (rejected) or rotated into a clear spot`);
+  }
+}
+// a desk that is CLEAR of the S-wall door, whose ROTATION (4×2 → 2×4) would reach into the doorway lane, is REJECTED —
+// it stays put and the doorway stays clear (X1 on rotate).
+{
+  const door = { id: "d", kind: "door", gx: 4, gy: 9, rot: 0 };
+  const deskClear = { id: "t", kind: "desk", gx: 4, gy: 6, rot: 0 };   // 4×2 · y5.5–7.5, clear of the door lane (y≥7.8)
+  ok(placementClear(deskClear, [door]), "the desk starts clear of the doorway");
+  const t2 = rotateObject([door, deskClear], "t").find((o) => o.id === "t");
+  ok(t2.rot === 0 && placementClear(t2, [door]), "rotating that desk toward the door is rejected — it stays put and the doorway stays clear (X1 on rotate)");
+}
+
+console.log(`\nROOM-NO-OVERLAP ${pass}/${pass + fail} passed · the no-overlap / no-door-block invariant holds on the defaults and on every place/move/ROTATE`);
 process.exit(fail ? 1 : 0);
