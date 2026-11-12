@@ -991,9 +991,12 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
     { id: "door-1",      kind: "door",      gx: 9,   gy: 4.5, rot: 90 },    // E (interior) · CENTERED (y 3.5–6.5)
   ],
   // S — Storage · Laundry: washer + utility sink on the S (exterior) wall, the N door (to the kitchen) kept clear.
+  // S — Storage · Laundry (LIV-4): it owns the S exterior wall, so it gains a WINDOW for natural light (0 → 1) — a lit, pleasant
+  // utility room instead of a dark box. The window sits E of the washer/sink, clear of the SE corner.
   S: [
     { id: "washer-1", kind: "washer", gx: 0.5, gy: 7.5, rot: 0 },          // S wall, SW (x0–2 · y7–9)
     { id: "sink-1",   kind: "sink",   gx: 3,   gy: 7.5, rot: 0 },          // next to the washer (x2.5–4.5 · y7–9)
+    { id: "window-1", kind: "window", gx: 7,   gy: 9,   rot: 0 },          // S (exterior) · x 6–9 · daylight for the laundry (LIV-4)
     { id: "door-1",   kind: "door",   gx: 4.5, gy: 0,   rot: 0 },          // N (interior) · CENTERED (x 3.5–6.5)
   ],
   // E — Entry · Porch: a welcoming seat, the front door on the S (exterior) wall, an interior door to the Dining Room, window on the E.
@@ -1006,7 +1009,7 @@ export const STANDARD_LAYOUTS: Record<string, PlacedObject[]> = {
 };
 /** The standard layouts' edition. A stored room whose `layoutRev` is older is re-seated to the decided layout on load
  * (the WireGuard, lib/architect-guard.ts) — "stop reverting" reaches the devices that saved the earlier edition too. */
-export const STANDARD_LAYOUT_REV = 5;
+export const STANDARD_LAYOUT_REV = 6;
 /** The DECLUTTER edition (operator 2026-11-08 "closet declutter requested 6+ times"). Bumping this re-seats EVERY room's
  * working layout to its curated default (standardLayoutFor ?? defaultObjectsForRoom) ONCE on load, for every device —
  * the missing piece behind the reverting clutter: earlier fixes only changed the DEFAULT, never migrated a device whose
@@ -1100,10 +1103,18 @@ export const STANDARD_LAYOUT_EDITIONS: Record<number, Record<string, PlacedObjec
       { id: "door-1",   kind: "door",   gx: 4.5, gy: 9,   rot: 0 },
     ],
   },
-  // edition 5 = LIVABILITY (operator LIVE 2026-11-11 "make sq footage is livable 900 sq ft"; 12-AsM P0: the house was
-  // door-disconnected). B is now an ENSUITE off M (door W→M), C a WALK-IN off the suite (door W→B), and D opens to the
-  // Kitchen through a CASED opening (the component bridge + social core). All 9 rooms are now reachable from the front door.
-  5: STANDARD_LAYOUTS,
+  // edition 5 = LIVABILITY — walkable (B→ensuite, C→walk-in, D↔K cased bridge). FROZEN at S (its pre-LIV-4 layout) so adding
+  // the laundry window for edition 6 doesn't rewrite what edition 5 shipped (append never edit); the other 8 rooms unchanged.
+  5: {
+    ...STANDARD_LAYOUTS,
+    S: [
+      { id: "washer-1", kind: "washer", gx: 0.5, gy: 7.5, rot: 0 },
+      { id: "sink-1",   kind: "sink",   gx: 3,   gy: 7.5, rot: 0 },
+      { id: "door-1",   kind: "door",   gx: 4.5, gy: 0,   rot: 0 },
+    ],
+  },
+  // edition 6 = DAYLIGHT (LIV-4) — the Storage·Laundry gains its S-exterior window (0 → 1). All 8 other rooms unchanged.
+  6: STANDARD_LAYOUTS,
 };
 /** The decided layout of a room key at a given edition (a fresh copy), or null. */
 export function standardLayoutAt(roomKey: string, rev: number): PlacedObject[] | null {

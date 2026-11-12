@@ -97,7 +97,7 @@ export const TINY_ROOM_LAYOUT: RoomCell[] = [
   { id: "kitchen", k: "K", label: "Kitchen", row: 1, col: 1, w: 1, d: 1, windows: 0, doors: 1, outlets: 4, furniture: true },
   { id: "dining", k: "D", label: "Dining Room", row: 1, col: 2, w: 1, d: 1, windows: 1, doors: 1, outlets: 3, furniture: true },
   { id: "office", k: "O", label: "Office", row: 2, col: 0, w: 1, d: 1, windows: 1, doors: 1, outlets: 4, furniture: true },
-  { id: "storage", k: "S", label: "Storage · Laundry", row: 2, col: 1, w: 1, d: 1, windows: 0, doors: 1, outlets: 2, furniture: true },
+  { id: "storage", k: "S", label: "Storage · Laundry", row: 2, col: 1, w: 1, d: 1, windows: 1, doors: 1, outlets: 2, furniture: true },
   { id: "entry", k: "E", label: "Entry · Porch", row: 2, col: 2, w: 1, d: 1, windows: 1, doors: 2, outlets: 1, furniture: true },
 ];
 

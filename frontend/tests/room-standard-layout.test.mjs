@@ -35,7 +35,7 @@ ok(STANDARD_LAYOUTS.M && JSON.stringify(M) === JSON.stringify(STANDARD_LAYOUTS.M
 ok(standardLayoutFor("M") !== STANDARD_LAYOUTS.M && JSON.stringify(standardLayoutFor("M")) === JSON.stringify(STANDARD_LAYOUTS.M), "standardLayoutFor returns a fresh copy (a saved edit never mutates the decided layout)");
 ok(standardLayoutFor("ZZZ") === null && standardLayoutFor("K") !== null && Object.keys(ROOM_ASSETS).every((rk) => standardLayoutFor(rk) !== null), "V2 (2026-11-09): all nine canonical rooms are now decided; only an unknown room key has no decided layout (null)");
 ok(JSON.stringify(defaultObjectsForRoom("M")) === JSON.stringify(M), "deterministic (replay law)");
-ok(STANDARD_LAYOUT_REV === 5, "the standard-layout edition is 5 — bumped for LIVABILITY (operator LIVE 2026-11-11 'make sq footage is livable 900 sq ft'; 12-AsM P0: the house was door-disconnected): B→ensuite off M, C→walk-in off the suite, D opens to the Kitchen via a cased opening (the bridge); editions 3+4 frozen so older devices re-seat");
+ok(STANDARD_LAYOUT_REV === 6, "the standard-layout edition is 6 — LIVABILITY: edition 5 made the house walkable (B→ensuite, C→walk-in, D↔K cased bridge), edition 6 adds the laundry's S-exterior daylight window (LIV-4); editions 3/4/5 frozen so older devices re-seat");
 
 // ── 2. Layout A′, piece by piece (HI: bed centred on the back wall · two nightstands · vanity + mirror OPPOSITE the bed · 2 windows · door · NO rug) ──
 ok(count(M, "bed") === 1 && count(M, "nightstand") === 2 && count(M, "desk") === 1 && count(M, "mirror") === 1 && count(M, "window") === 2 && count(M, "door") === 1, `Layout A′ = 1 bed · 2 nightstands · 1 desk (vanity) · 1 mirror · 2 windows · 1 door (got ${kinds(M).join(",")})`);
@@ -262,6 +262,14 @@ ok(userOldStamp.objects.length === 1 && userOldStamp.objects[0].id === "stove-9"
   "R1: a room stamped at an OLDER declutter edition keeps the user's arrangement when DECLUTTER_REV is bumped");
 ok(arrangedAfter.objects.length === 2 && arrangedAfter.objects.some((o) => o.kind === "lamp") && arrangedAfter.declutterRev === DECLUTTER_REV,
   "a stamped room (declutterRev set) keeps the user's own post-migration arrangement — the one-time declutter never wipes twice");
+
+// ── LIV-4 — WINDOW-SOURCE PARITY (AsM-caught: two window sources must never drift): every room's RoomCell.windows count
+//    equals the number of placed window objects in its STANDARD_LAYOUT, so the metric strip (reads the field) and the drawn
+//    room (reads the objects) can never disagree. Locks M2·B1·C1·L2·K0·D1·O1·S1·E1. ──
+for (const r of TINY_ROOM_LAYOUT) {
+  const placed = defaultObjectsForRoom(r.k).filter((o) => o.kind === "window").length;
+  ok(placed === r.windows, `${r.k}: cell.windows (${r.windows}) === placed window objects (${placed}) — the two window sources agree (LIV-4)`);
+}
 
 console.log(`\nROOM-STANDARD-LAYOUT ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);
