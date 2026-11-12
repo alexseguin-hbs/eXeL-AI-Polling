@@ -14,12 +14,12 @@ import { TinyFloorplan } from "./tiny-floorplan";
 import { MiniPanel } from "./mini-panel";
 import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
-import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, setRoomObjects, toggleRoomFurniture, ROOM_FT, type RoomCell, type ElementKind } from "@/lib/room-layout";
+import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, setRoomObjects, toggleRoomFurniture, exteriorWallsOf, ROOM_FT, type RoomCell, type ElementKind } from "@/lib/room-layout";
 import { RoomDesigner } from "./room-designer";
 import { ArchitectWalkthrough } from "./architect-walkthrough";
 import { seedHouseFromLibrary } from "@/lib/architect-2525/assets/house-seed"; // Phase 0 — the default house holds all 139 library assets (rooms with no saved objects get seeded; user edits win)
 import { WalkRaster, EditGlyph } from "./architect-walk-icons";
-import { STANDARD_LAYOUT_REV, type PlacedObject } from "@/lib/room-objects";
+import { STANDARD_LAYOUT_REV, remapOpeningsForCell, defaultObjectsForRoom, type PlacedObject } from "@/lib/room-objects";
 import { PhaseBar } from "./phase-bar";
 import { readStudGauge } from "@/lib/architect-phase-palette";   // the saved framing gauge — fed to the walk's studs (P1)
 import { phaseById, phaseDraw } from "@/lib/architect-phases";
@@ -135,7 +135,19 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   // (keeps the nine-room grid full; adjacency only, so cost is unchanged — honors the operator's rule).
   const moveRoom = (dRow: number, dCol: number) => {
     if (!roomSel) return;
-    setRoomLayout((prev) => persistLayout(moveRoomInLayout(prev, roomSel, dRow, dCol)));
+    // F-V3 — after the swap, each room whose cell changed re-maps its OPENINGS to its new walls (windows → exterior, doors →
+    // interior), so a move never leaves a window on an interior wall or a door on the shell (operator "openings re-map … when a room is moved").
+    setRoomLayout((prev) => {
+      const moved = moveRoomInLayout(prev, roomSel, dRow, dCol);
+      const was = new Map(prev.map((r) => [r.id, r]));
+      const remapped = moved.map((r) => {
+        const b = was.get(r.id);
+        return b && (b.row !== r.row || b.col !== r.col)
+          ? { ...r, objects: remapOpeningsForCell(r.objects ?? defaultObjectsForRoom(r.k), exteriorWallsOf(r)) }
+          : r;
+      });
+      return persistLayout(remapped);
+    });
   };
   const resetLayout = () => setRoomLayout(persistLayout(cloneLayout()));
   // Enter a room → optimize IT ONLY: step its elements / toggle furniture (persisted, clamped).

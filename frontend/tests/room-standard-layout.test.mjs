@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 import {
   STANDARD_LAYOUTS, STANDARD_LAYOUT_REV, DECLUTTER_REV, standardLayoutFor, defaultObjectsForRoom, ROOM_ASSETS, paletteForRoom, worldSpan, elevOf,
   heightOf, OBJECT_SPEC, ROOM_GRID, STD_SILL_FT, wallOf, wallOfObject, wallRot, alignedRot, placeObject, moveObject, rotateObject,
-  mirrorObjects, clampFootprint, STANDARD_LAYOUT_EDITIONS,
+  mirrorObjects, clampFootprint, STANDARD_LAYOUT_EDITIONS, VARIANTS, footprintOf,
 } from "../lib/room-objects.ts";
 import { sanitizeRoomLayout, MAX_OBJECTS_PER_ROOM } from "../lib/architect-guard.ts";
 import { TINY_ROOM_LAYOUT } from "../lib/room-layout.ts";
@@ -270,6 +270,12 @@ for (const r of TINY_ROOM_LAYOUT) {
   const placed = defaultObjectsForRoom(r.k).filter((o) => o.kind === "window").length;
   ok(placed === r.windows, `${r.k}: cell.windows (${r.windows}) === placed window objects (${placed}) — the two window sources agree (LIV-4)`);
 }
+
+// ── F-D1 — the dining TABLE is offered as a selectable 8-seat size (operator "octagon 8-seat dining table"), WITHOUT
+//    changing the default open-core dining (the default table has no variant → 4×4). The user can pick the 6-ft 8-seat. ──
+ok(Array.isArray(VARIANTS.table) && VARIANTS.table.some((v) => /8-seat/.test(v.label) && v.w === 6 && v.d === 6), "the table offers a 6-ft 8-seat variant (F-D1)");
+ok(VARIANTS.table.some((v) => v.w === 4 && v.d === 4), "the table still offers the 4-ft 4-seat size (the default dining is unchanged)");
+ok(footprintOf(D.find((o) => o.kind === "table")).w === 4, "the DEFAULT dining table stays 4 ft (no variant) — the open social core is intact; the 8-seat is opt-in");
 
 console.log(`\nROOM-STANDARD-LAYOUT ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);

@@ -80,7 +80,14 @@ export const SHELVING_VARIANTS: SizeVariant[] = [
   { id: "sh8",  label: `8'`,       w: 8,  d: 1,   h: 6 },
   { id: "sh10", label: `10' full`, w: 10, d: 1,   h: 6 },
 ];
-export const VARIANTS: Partial<Record<ObjectKind, SizeVariant[]>> = { bed: BED_VARIANTS, door: DOOR_VARIANTS, window: WINDOW_VARIANTS, closetrod: CLOSETROD_VARIANTS, shelving: SHELVING_VARIANTS };
+// F-D1 (operator "octagon 8-seat dining table") — the dining TABLE is offered as selectable sizes: the default 4-ft 4-seat,
+// and a larger 6-ft 8-seat for a formal dining. Kept a VARIANT (the user chooses it) rather than forced into the default D
+// layout, so the open social core (LIV-3) stays intact. The top+pedestal shape reads as a round/octagon pedestal table.
+export const TABLE_VARIANTS: SizeVariant[] = [
+  { id: "t4", label: `4' · 4-seat`, w: 4, d: 4 },
+  { id: "t8", label: `6' octagon · 8-seat`, w: 6, d: 6 },
+];
+export const VARIANTS: Partial<Record<ObjectKind, SizeVariant[]>> = { bed: BED_VARIANTS, door: DOOR_VARIANTS, window: WINDOW_VARIANTS, closetrod: CLOSETROD_VARIANTS, shelving: SHELVING_VARIANTS, table: TABLE_VARIANTS };
 
 const isPosFinite = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n) && n > 0;
 
@@ -396,6 +403,32 @@ export function toggleDoorSlide(objs: PlacedObject[], id: string): PlacedObject[
  * clears slide (mutually exclusive). No-op off a door. */
 export function toggleDoorCased(objs: PlacedObject[], id: string): PlacedObject[] {
   return objs.map((o) => (o.id === id && o.kind === "door" ? { ...o, cased: !o.cased, slide: o.cased ? o.slide : false } : o));
+}
+
+/** F-V3 (operator "openings re-map to the new exterior walls when a room is moved") — when a room moves to a new cell its
+ * wall configuration changes, so its OPENINGS follow: a WINDOW snaps to the room's new EXTERIOR wall (nearest of them), a
+ * DOOR to an INTERIOR wall, if it is now on the wrong kind of wall. The caller passes the new cell's exterior walls
+ * (exteriorWallsOf). A centre cell (no exterior wall) keeps its windows where they are (clerestory / borrowed light), never
+ * dropping user content. Pure; no overlap resolution (openings stay flush to their wall). */
+export function remapOpeningsForCell(objects: PlacedObject[], exteriorWalls: Wall[]): PlacedObject[] {
+  const ALL: Wall[] = ["N", "S", "W", "E"];
+  const interior = ALL.filter((w) => !exteriorWalls.includes(w));
+  const snap = (o: PlacedObject, wall: Wall): PlacedObject => {
+    const rot = wallRot(wall), s = slideAlongWall(wall, o.gx, o.gy), fp = footprintOf({ ...o, rot });
+    const c = clampFootprint(s.gx, s.gy, fp.w, fp.d, rot);
+    return { ...o, gx: c.gx, gy: c.gy, rot };
+  };
+  return objects.map((o) => {
+    if (o.kind === "window") {
+      if (exteriorWalls.length === 0 || exteriorWalls.includes(wallOfObject(o))) return o;   // centre cell, or already on an exterior wall
+      return snap(o, nearestWallOf(o.gx, o.gy, exteriorWalls));
+    }
+    if (o.kind === "door") {
+      if (interior.length === 0 || interior.includes(wallOfObject(o))) return o;              // already on an interior wall
+      return snap(o, nearestWallOf(o.gx, o.gy, interior));
+    }
+    return o;
+  });
 }
 
 /** Footprint (ft) for a placed object — per axis: its per-instance size (Rev A) → its variant's size → the kind default. */

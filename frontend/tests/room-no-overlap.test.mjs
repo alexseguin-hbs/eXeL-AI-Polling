@@ -6,7 +6,7 @@
 //   node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/room-no-overlap.test.mjs
 import {
   placeObject, moveObject, rotateObject, objectsConflict, placementClear, doorKeepClear,
-  defaultObjectsForRoom, worldSpan, OBJECT_SPEC, ROOM_ASSETS,
+  defaultObjectsForRoom, worldSpan, OBJECT_SPEC, ROOM_ASSETS, remapOpeningsForCell, wallOfObject,
 } from "../lib/room-objects.ts";
 import { exteriorWallsOf, TINY_ROOM_LAYOUT } from "../lib/room-layout.ts";
 
@@ -118,5 +118,23 @@ ok(JSON.stringify(exteriorWallsOf({ row: 2, col: 2 }).sort()) === JSON.stringify
   ok(placed.length === 1 && onWall(placed[0], "S"), "a TV dropped near the S wall stays on the S wall (exterior preference is window-only)");
 }
 
-console.log(`\nROOM-NO-OVERLAP ${pass}/${pass + fail} passed · no-overlap / no-door-block holds on place/move/ROTATE; windows prioritize the exterior wall (OBJ-1)`);
+// ── 8. F-V3 — remapOpeningsForCell: when a room moves, a window follows the new EXTERIOR wall, a door an INTERIOR wall ──
+{
+  // a window on the S (interior-in-this-cell) wall, re-mapped for a cell whose exterior wall is N → snaps to N
+  const win = { id: "window-1", kind: "window", gx: 5, gy: 9, rot: 0 };   // near the S wall
+  const rm = remapOpeningsForCell([win], ["N"])[0];
+  ok(wallOfObject(rm) === "N", `a window re-maps to the new exterior wall (N) when its room moves (got ${wallOfObject(rm)})`);
+  // a door on an exterior wall (N), re-mapped for a cell whose exterior is N → the door moves to an interior wall
+  const door = { id: "door-1", kind: "door", gx: 5, gy: 0, rot: 0 };      // on the N wall
+  const rd = remapOpeningsForCell([door], ["N"])[0];
+  ok(["S", "W", "E"].includes(wallOfObject(rd)), `a door re-maps OFF the exterior wall to an interior one (got ${wallOfObject(rd)})`);
+  // a centre cell (no exterior wall) KEEPS the window where it is — never drops user content
+  const kept = remapOpeningsForCell([{ id: "window-9", kind: "window", gx: 5, gy: 9, rot: 0 }], [])[0];
+  ok(kept.gx === 5 && kept.gy === 9, "a window in a centre room (no exterior wall) is kept as-is (clerestory/borrowed) — not dropped");
+  // a window ALREADY on an exterior wall is left alone (idempotent for a correctly-placed opening)
+  const ok1 = remapOpeningsForCell([{ id: "window-2", kind: "window", gx: 5, gy: 0, rot: 0 }], ["N"])[0];
+  ok(wallOfObject(ok1) === "N" && ok1.gy === 0, "a window already on an exterior wall is unchanged (idempotent)");
+}
+
+console.log(`\nROOM-NO-OVERLAP ${pass}/${pass + fail} passed · no-overlap / no-door-block holds on place/move/ROTATE; windows prioritize the exterior wall (OBJ-1); openings re-map on a room move (F-V3)`);
 process.exit(fail ? 1 : 0);
