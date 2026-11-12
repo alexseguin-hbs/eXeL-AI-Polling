@@ -33,6 +33,7 @@ import { ExelWordmark } from "@/components/exel-wordmark";
 import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
 import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationMode } from "./architect-economy";
 import { canonicalHouseTruth, BUDGET_TARGET_USD, fmtUsdWhole } from "@/lib/architect-house-truth";   // R6 one-cost-truth: the DERIVED build cost (costFor) + the ONE ASSUMED target + the ONE whole-dollar format, all shared with HouseSpec + the Master Readout
+import { livabilityReport } from "@/lib/architect-livability";   // LIV-6: the computed "is the 900 ft² a real home?" headline (connected · lit · functioned)
 import { recognitionU, U_BASE_HOURS } from "@/lib/architect-labor";
 import { VectorGlass } from "./vector-glass";
 import { ArchitectDesign } from "./architect-design";
@@ -217,6 +218,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const canonWet = wetCount(canonical);                            // 3
   const canonBath = bathCount(canonical);                          // 1
   const houseTruth = useMemo(() => canonicalHouseTruth(), []);     // R6 one-cost-truth — costUsd = $240,000 (DERIVED via costFor; = HouseSpec + the one-cost-truth gate). NOT the firewalled SoI economy.
+  const liv = useMemo(() => livabilityReport(), []);               // LIV-6 — the computed livability headline ("900 ft² · 1 bed · 1 bath · livable")
   const [focusRoom, setFocusRoom] = useState<{ k: string; label: string } | null>(null); // entered room → context-scopes the Vision Tree (room designer)
   // IMG-05 (operator "drag drop on phone + computer") — HTML5 drag never fires on touch, so a Vision-Tree row
   // could not be added to the house on a phone. Mirror the Security-2525 / room-designer standard: TAP a tree leaf
@@ -410,6 +412,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
                   scores (advisory §5). */}
               <Tile label="Stage" value={`${canonStageWord} · ${canonPlanState}`} sub="HI Review Required" color={C.gold} />
               <Tile label="Net Program" value={`${canonSqft} ft²`} sub={`${canonSpaces} Spaces · ${canonWet} Wet · ${canonBath} Bath`} color={C.cyan} />
+              {/* LIV-6 — the computed livability headline: the app SHOWS the 900 ft² is a real home (connected · lit · functioned), not just claims it (operator "make sq footage is livable 900 sq ft") */}
+              <Tile label="Livable" value={liv.livable ? "YES" : "—"} sub={liv.headline} color={liv.livable ? C.green : C.amber} />
               {/* R6 one-cost-truth (operator LIVE 2026-11-11 "show calculated vs target"): the Est. Build Cost is the
                   DERIVED canonicalHouseTruth().costUsd ($240,000 = costFor, the SAME number HouseSpec + the one-cost-truth
                   gate read), shown AGAINST the $66,800 ASSUMED Budget Target as an explicit calculated-vs-target pair —
