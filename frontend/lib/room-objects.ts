@@ -630,7 +630,16 @@ const SHAPE_PARTS_L1: Partial<Record<ObjectKind, ShapePart[]>> = {
   desk:   [{ x: 0, y: 0, z: 0.82, w: 1, d: 1, h: 0.18 }, { x: 0, y: 0, z: 0, w: 0.08, d: 1, h: 0.82 }, { x: 0.92, y: 0, z: 0, w: 0.08, d: 1, h: 0.82 }], // top + 2 legs
   table:  [{ x: 0, y: 0, z: 0.82, w: 1, d: 1, h: 0.18 }, { x: 0.4, y: 0.4, z: 0, w: 0.2, d: 0.2, h: 0.82 }],  // top + pedestal
   toilet: [{ x: 0.12, y: 0.3, z: 0, w: 0.76, d: 0.7, h: 0.55 }, { x: 0.12, y: 0, z: 0, w: 0.76, d: 0.3, h: 1 }], // bowl + tank
-  sink:   [{ x: 0, y: 0, z: 0.58, w: 1, d: 1, h: 0.42 }, { x: 0.35, y: 0.35, z: 0, w: 0.3, d: 0.3, h: 0.58 }], // basin + pedestal
+  // D8b (operator OBJ-4 "sink depressed into assembly") — a BUILT-IN VANITY, not a floating pedestal: a cabinet base, a
+  // perimeter-frame counter, and a basin set BELOW the rim so it reads as recessed INTO the counter assembly.
+  sink:   [
+    { x: 0.08, y: 0.08, z: 0,    w: 0.84, d: 0.84, h: 0.5 },   // vanity cabinet (base)
+    { x: 0.02, y: 0.02, z: 0.5,  w: 0.96, d: 0.22, h: 0.12 },  // counter — front rim
+    { x: 0.02, y: 0.76, z: 0.5,  w: 0.96, d: 0.22, h: 0.12 },  // counter — back rim
+    { x: 0.02, y: 0.24, z: 0.5,  w: 0.22, d: 0.52, h: 0.12 },  // counter — left rim
+    { x: 0.76, y: 0.24, z: 0.5,  w: 0.22, d: 0.52, h: 0.12 },  // counter — right rim
+    { x: 0.3,  y: 0.3,  z: 0.4,  w: 0.4,  d: 0.4,  h: 0.14 },  // basin — RECESSED below the rim (depressed into the assembly)
+  ],
   chair:  [{ x: 0, y: 0.2, z: 0, w: 1, d: 0.8, h: 0.5 }, { x: 0, y: 0, z: 0, w: 1, d: 0.2, h: 1 }],           // seat + back
   tv:     [{ x: 0, y: 0.35, z: 0.1, w: 1, d: 0.5, h: 0.85 }],  // thin screen panel
   fridge: [{ x: 0, y: 0, z: 0.45, w: 1, d: 1, h: 0.55 }, { x: 0, y: 0, z: 0, w: 1, d: 1, h: 0.45 }],          // fridge over freezer
