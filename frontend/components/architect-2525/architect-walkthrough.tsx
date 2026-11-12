@@ -97,8 +97,19 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
     if (ext.E && !ext.W) return mid - PIER_OFF;     // window on E → open toward W
     return mid;
   };
-  // ACTUAL per-wall opening centre: the user's placed door, else the corner-clearing default (never the bare wall centre).
-  const doorCtr = { N: wallDoorCenter(roomObjs, "N") ?? defCtr("N"), S: wallDoorCenter(roomObjs, "S") ?? defCtr("S"), E: wallDoorCenter(roomObjs, "E") ?? defCtr("E"), W: wallDoorCenter(roomObjs, "W") ?? defCtr("W") };
+  // LIV-5 — THE ONE OPENING MODEL: an interior wall is crossable/seen-through ONLY where a REAL opening (a door or a cased
+  // opening) exists — on EITHER side of the shared wall (the D↔K cased opening is owned by D, so from K's side the opening is
+  // the neighbour's). So the 3D walk crosses exactly where the 2D plan's door graph (architect-circulation) says — one story,
+  // never "walk through any wall". The opening's along-wall centre maps directly (both rooms share the wall's x or y range).
+  const OPP: Record<Side, Side> = { N: "S", S: "N", E: "W", W: "E" };
+  const nbCellAt = (dr: number, dc: number) => (room ? layout.find((x) => x.row === room.row + dr && x.col === room.col + dc) : undefined);
+  const nbFor: Record<Side, ReturnType<typeof nbCellAt>> = { N: nbCellAt(-1, 0), S: nbCellAt(1, 0), E: nbCellAt(0, 1), W: nbCellAt(0, -1) };
+  const nbDoorCtr = (side: Side): number | null => { const c = nbFor[side]; return c ? wallDoorCenter(c.objects ?? defaultObjectsForRoom(c.k), OPP[side]) : null; };
+  const openOn = (side: Side): boolean => wallDoorCenter(roomObjs, side) !== null || nbDoorCtr(side) !== null;
+  // ACTUAL per-wall opening centre: this room's placed opening, else the neighbour's (shared wall), else the corner-clearing default.
+  const doorCtr = { N: wallDoorCenter(roomObjs, "N") ?? nbDoorCtr("N") ?? defCtr("N"), S: wallDoorCenter(roomObjs, "S") ?? nbDoorCtr("S") ?? defCtr("S"), E: wallDoorCenter(roomObjs, "E") ?? nbDoorCtr("E") ?? defCtr("E"), W: wallDoorCenter(roomObjs, "W") ?? nbDoorCtr("W") ?? defCtr("W") };
+  // which interior walls actually carry an opening (a door/cased on either side) — the walk crosses + sees through ONLY these.
+  const openWall = { N: openOn("N"), S: openOn("S"), E: openOn("E"), W: openOn("W") };
 
   // VIEWBOX tracks the container px so the 3D picture FILLS the box (no letterbox) and the sticks sit ON the picture.
   const rootRef = useRef<HTMLDivElement>(null);
@@ -174,6 +185,7 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
   const eyeRef = useRef(eye); eyeRef.current = eye;
   const furnRects = useRef<Rect[]>([]);     // this room's blockers, with the door lanes carved (never stuck)
   const dcRef = useRef(doorCtr); dcRef.current = doorCtr;
+  const openRef = useRef(openWall); openRef.current = openWall;   // LIV-5 — which interior walls carry a real opening (the walk crosses only these)
   const stepTo = useCallback((dRow: number, dCol: number) => { onStep?.(dRow, dCol); }, [onStep]);
   const stepRef = useRef(stepTo); stepRef.current = stepTo;
   const stepLock = useRef(false);           // one step per crossing — cleared only when the room id actually changes
@@ -238,10 +250,10 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
       if (Math.abs(v.x) > 1e-3 || Math.abs(v.y) > 1e-3) {
         const from = eyeRef.current;
         const desired = { x: from.x + v.x * dt, y: from.y + v.y * dt };
-        const n = nbRef.current, dc = dcRef.current;
-        // door crossings at the ACTUAL door centre
-        const nCross = !!n.N && canCrossDoor(desired.x - dc.N), sCross = !!n.S && canCrossDoor(desired.x - dc.S);
-        const eCross = !!n.E && canCrossDoor(desired.y - dc.E), wCross = !!n.W && canCrossDoor(desired.y - dc.W);
+        const n = nbRef.current, dc = dcRef.current, op = openRef.current;
+        // LIV-5 — cross ONLY where a neighbour exists AND a real opening (door/cased) is on that shared wall, at its ACTUAL centre
+        const nCross = !!n.N && op.N && canCrossDoor(desired.x - dc.N), sCross = !!n.S && op.S && canCrossDoor(desired.x - dc.S);
+        const eCross = !!n.E && op.E && canCrossDoor(desired.y - dc.E), wCross = !!n.W && op.W && canCrossDoor(desired.y - dc.W);
         let stepped = false;
         // the carried position is clamped into the room it enters so the overhead dot never lands outside the newly-lit room (Aset P2)
         const cR = (v: number) => clamp(v, WALK_R, ROOM_FT - WALK_R);
@@ -347,16 +359,17 @@ export function ArchitectWalkthrough({ room, layout, onStep, phase = null, showW
     { kind: "floor", color: C.floor, pts: [[0, 0, 0], [ROOM_FT, 0, 0], [ROOM_FT, ROOM_FT, 0], [0, ROOM_FT, 0]] },
     { kind: "ceil", color: C.wall, pts: [[0, 0, CEIL_FT], [ROOM_FT, 0, CEIL_FT], [ROOM_FT, ROOM_FT, CEIL_FT], [0, ROOM_FT, CEIL_FT]] },
   ];
-  // each wall: a DOORWAY at the placed door's position where there is a neighbour, else a WINDOW to the exterior.
-  wallQuads.push(...vwall("N", 0, 0, nb.N ? doorOpen : winOpen, doorCtr.N));
-  wallQuads.push(...vwall("S", 0, 0, nb.S ? doorOpen : winOpen, doorCtr.S));
-  wallQuads.push(...vwall("W", 0, 0, nb.W ? doorOpen : winOpen, doorCtr.W));
-  wallQuads.push(...vwall("E", 0, 0, nb.E ? doorOpen : winOpen, doorCtr.E));
-  // the adjacent rooms, each beyond its shared wall (its shared wall opened at OUR door centre so you see straight through)
-  if (nb.N) wallQuads.push(...roomBox(0, ROOM_FT, "S", doorCtr.N));
-  if (nb.S) wallQuads.push(...roomBox(0, -ROOM_FT, "N", doorCtr.S));
-  if (nb.E) wallQuads.push(...roomBox(ROOM_FT, 0, "W", doorCtr.E));
-  if (nb.W) wallQuads.push(...roomBox(-ROOM_FT, 0, "E", doorCtr.W));
+  // LIV-5 — each interior wall: a DOORWAY only where a real opening (door/cased) is on the shared wall; a SOLID wall where a
+  // neighbour exists but there is NO opening; a WINDOW on an exterior wall. The 3D walls now match the 2D plan's openings.
+  wallQuads.push(...vwall("N", 0, 0, nb.N ? (openWall.N ? doorOpen : null) : winOpen, doorCtr.N));
+  wallQuads.push(...vwall("S", 0, 0, nb.S ? (openWall.S ? doorOpen : null) : winOpen, doorCtr.S));
+  wallQuads.push(...vwall("W", 0, 0, nb.W ? (openWall.W ? doorOpen : null) : winOpen, doorCtr.W));
+  wallQuads.push(...vwall("E", 0, 0, nb.E ? (openWall.E ? doorOpen : null) : winOpen, doorCtr.E));
+  // the adjacent rooms, each beyond its shared wall — drawn ONLY through a real opening (a solid wall shows no room beyond it)
+  if (nb.N && openWall.N) wallQuads.push(...roomBox(0, ROOM_FT, "S", doorCtr.N));
+  if (nb.S && openWall.S) wallQuads.push(...roomBox(0, -ROOM_FT, "N", doorCtr.S));
+  if (nb.E && openWall.E) wallQuads.push(...roomBox(ROOM_FT, 0, "W", doorCtr.E));
+  if (nb.W && openWall.W) wallQuads.push(...roomBox(-ROOM_FT, 0, "E", doorCtr.W));
   // the EXTERIOR — a wide ground plane receding past the house, seen through any perimeter window (never a black void)
   wallQuads.push({ kind: "floor", color: C.ground, pts: [[-40, -40, -0.1], [50, -40, -0.1], [50, 50, -0.1], [-40, 50, -0.1]] });
 

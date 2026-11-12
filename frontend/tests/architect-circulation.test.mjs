@@ -7,6 +7,8 @@
 import { circulationReport, buildGraph, neighbourOf, reachable, isPassage, SUITE_KEYS, PUBLIC_KEYS, ENTRY_KEY } from "@/lib/architect-circulation";
 import { TINY_ROOM_LAYOUT } from "@/lib/room-layout";
 import { defaultObjectsForRoom } from "@/lib/room-objects";
+import fs from "node:fs";
+import path from "node:path";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } };
@@ -33,5 +35,12 @@ const gNoCased = buildGraph(TINY_ROOM_LAYOUT, (k) => defaultObjectsForRoom(k).fi
 const reachNoCased = reachable(gNoCased, ENTRY_KEY);
 ok(!reachNoCased.has("K") || reachNoCased.size < 9, "the cased opening is load-bearing — without it the house is NOT fully connected (the D↔K bridge matters)");
 
-console.log(`\narchitect-circulation: ${pass} passed, ${fail} failed · every room walkable from the front door · suite private + connected · cased opening = the social-core bridge`);
+// ── 4. LIV-5 — the 3D walk crosses ONLY at real openings (one opening model, not "walk through any wall") ──
+const walkSrc = fs.readFileSync(path.resolve(path.dirname(new URL(import.meta.url).pathname), "../components/architect-2525/architect-walkthrough.tsx"), "utf8");
+ok(/op\.N && canCrossDoor/.test(walkSrc) && /op\.S && canCrossDoor/.test(walkSrc), "the walk gates each crossing on a real opening (op.N/op.S …), not on bare adjacency");
+ok(!/!!n\.N && canCrossDoor/.test(walkSrc), "the walk no longer crosses on bare neighbour adjacency (!!n.N) — the over-connecting model is gone");
+ok(/const openWall = \{/.test(walkSrc) && /nbDoorCtr/.test(walkSrc), "the walk derives openWall from this room's AND the neighbour's placed openings (the shared-wall opening)");
+ok(/openWall\.N \? doorOpen : null/.test(walkSrc), "the walk draws a doorway only where an opening exists, else a solid wall");
+
+console.log(`\narchitect-circulation: ${pass} passed, ${fail} failed · every room walkable from the front door · suite private + connected · cased opening = the social-core bridge · the 3D walk crosses only at real openings`);
 process.exit(fail ? 1 : 0);
