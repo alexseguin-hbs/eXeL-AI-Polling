@@ -71,6 +71,8 @@ ok(/label: "Sq Ft", value: m\.usableSqft/.test(ms), "the metric strip's 'Sq Ft' 
 const vx = strip(read("../components/architect-2525/voxel-house.tsx"));
 ok(/const cell = Math\.round\(HOUSE_FT \* VOXEL_PX_PER_FT\)/.test(vx), "the 3D voxel's house footprint is the 36-ft shell (HOUSE_FT), not the old 30-ft envelope");
 ok(!/TINY_SIDE_FT/.test(vx), "the 3D voxel no longer references TINY_SIDE_FT (the 30-ft envelope) at all");
+// LIV-4b — a skylight in the roof over the dead-centre Kitchen (its only daylight from above; the metric still credits K via borrowed light)
+ok(/data-arch-voxel-skylight/.test(vx) && /translateZ\(\$\{houseHpx/.test(vx), "the 3D voxel renders a SKYLIGHT in the roof (over the centre Kitchen) at the shell height (LIV-4b)");
 ok(/36×36×12 one-storey shell/.test(vx), "the 3D voxel names the 36×36×12 one-storey shell");
 
 // ── 6. STAGED ALLOW-LIST (honest scope) — the one number still clear-area-derived, by design, until R3 ──

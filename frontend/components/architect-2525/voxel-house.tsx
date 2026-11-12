@@ -284,6 +284,10 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
       {([[-1, -1], [1, -1], [-1, 1], [1, 1]] as const).map(([sx, sy], i) => (
         <div key={`cp${i}`} style={{ ...at(`translate3d(${sx * cell / 2}px,${sy * cell / 2}px,${houseHpx / 2}px) rotateX(90deg)`), width: 1.6, height: houseHpx, background: `${C.cyan}66` }} />
       ))}
+      {/* LIV-4b — a SKYLIGHT in the roof over the dead-centre Kitchen (no exterior wall): daylight from above for the one
+          room that cannot have a window. It sits at the roof centre = the centre cell (K); glows so it reads as glass. */}
+      <div data-arch-voxel-skylight style={{ ...at(`translateZ(${houseHpx + 0.5}px)`), width: ROOM_FT * VOXEL_PX_PER_FT * 0.55, height: ROOM_FT * VOXEL_PX_PER_FT * 0.55,
+        background: `${C.cyan}44`, border: `1.5px solid ${C.cyan}cc`, boxShadow: `0 0 14px ${C.cyan}99` }} />
     </div>
   );
 
