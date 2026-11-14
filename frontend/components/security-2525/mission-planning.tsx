@@ -4495,11 +4495,11 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
             onMouseLeave={() => setHoverAsset((h) => (h === u.asset ? null : h))}
             className="flex w-full items-center gap-1 rounded px-1 py-0.5 text-[9px] hover:bg-white/5"
             style={{ background: (selected?.kind === "asset" && selected.id === u.id) || hoverAsset === u.asset ? "#152238" : "transparent", boxShadow: hoverAsset === u.asset ? `inset 0 0 0 1px ${C.cyan}` : undefined }}>
+            <button onClick={(e) => { e.stopPropagation(); setSelected({ kind: "asset", id: u.id }); }} title="Edit coordinate (MGRS / lat-lon)" className="shrink-0 p-0.5 opacity-60 hover:opacity-100"><Pencil className="h-3 w-3" style={{ color: C.cyan }} /></button>
             <button onClick={() => setSelected({ kind: "asset", id: u.id })} className="flex min-w-0 flex-1 items-center justify-between gap-1 text-left">
               <span style={{ color: u.aff === "hostile" ? C.red : C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
               <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
             </button>
-            <button onClick={(e) => { e.stopPropagation(); setSelected({ kind: "asset", id: u.id }); }} title="Edit coordinate (MGRS / lat-lon)" className="shrink-0 p-0.5 opacity-60 hover:opacity-100"><Pencil className="h-3 w-3" style={{ color: C.cyan }} /></button>
             <button onClick={(e) => { e.stopPropagation(); onDelete("asset", u.id); }} title={t("sec.mp.remove")} className="shrink-0 p-0.5 hover:opacity-100 opacity-60"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
           </div>
         ))}
@@ -4507,11 +4507,11 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
           <div key={`s${u.id}`}
             className="flex w-full items-center gap-1 rounded px-1 py-0.5 text-[9px] hover:bg-white/5"
             style={{ background: selected?.kind === "support" && selected.id === u.id ? "#152238" : "transparent" }}>
+            <button onClick={(e) => { e.stopPropagation(); setSelected({ kind: "support", id: u.id }); }} title="Edit coordinate (MGRS / lat-lon)" className="shrink-0 p-0.5 opacity-60 hover:opacity-100"><Pencil className="h-3 w-3" style={{ color: C.cyan }} /></button>
             <button onClick={() => setSelected({ kind: "support", id: u.id })} className="flex min-w-0 flex-1 items-center justify-between gap-1 text-left">
               <span className="truncate" style={{ color: u.aff === "hostile" ? C.red : u.def.color }}>{u.def.term}{u.path ? ` (${u.path.length}pt)` : ""}</span>
               <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
             </button>
-            <button onClick={(e) => { e.stopPropagation(); setSelected({ kind: "support", id: u.id }); }} title="Edit coordinate (MGRS / lat-lon)" className="shrink-0 p-0.5 opacity-60 hover:opacity-100"><Pencil className="h-3 w-3" style={{ color: C.cyan }} /></button>
             <button onClick={(e) => { e.stopPropagation(); onDelete("support", u.id); }} title={t("sec.mp.remove")} className="shrink-0 p-0.5 hover:opacity-100 opacity-60"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
           </div>
         ))}
