@@ -5,6 +5,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { Settings } from "lucide-react";
 import { RCoreBadge } from "@/components/2525-core/rcore-badge";
+import { Expander } from "@/components/2525-core/expander";   // E9: secondary Labeler panels (pictures / saved boxes) use the ONE shared collapsible
 import { SENSORFUSION_2525_CODE } from "@/lib/2525-core/sensorfusion-2525-code.gen";   // DD-80: every R-CORE carries the </> unlock
 // One XML escape for the page and lib/sensor-fusion/voc.ts: a name with & or quotes reads back unchanged.
 import { escapeXml, percentBox, unescapeXml } from "@/lib/sensor-fusion/voc";
@@ -1097,6 +1098,8 @@ function Labeler({
   const boxTop = Math.min(top, bottom);
   const boxWidth = Math.abs(right - left);
   const boxHeight = Math.abs(bottom - top);
+  // E9: the shared Expander's colours tie to the live SensorFusion theme (accent) and its panel/line vars.
+  const expColors = { border: "var(--sf-line, #143a3a)", panel: "var(--sf-card, #082121)", accent: accent || "var(--sf-primary, #0cff00)", dim: "#5f7186" };
 
   return (
     <main className={styles.screen}>
@@ -1114,6 +1117,7 @@ function Labeler({
           <input type="file" accept={IMAGE_INTAKE} multiple onChange={(event) => addFiles(event.target.files)} />
         </label>
         {pics.length > 1 && (
+          <Expander id="sf-pictures" title="Pictures" sub={`${pics.length}`} colors={expColors} storagePrefix="sf.exp">
           <div className={styles.film}>
             {pics.map((item, itemIndex) => (
               <button key={item.id} type="button" className={itemIndex === index ? styles.filmOn : styles.filmItem} onClick={() => setIndex(itemIndex)}>
@@ -1121,6 +1125,7 @@ function Labeler({
               </button>
             ))}
           </div>
+          </Expander>
         )}
         {pic ? (
           <div className={styles.labelFit} ref={fitRef}>
@@ -1274,6 +1279,7 @@ function Labeler({
         <p className={styles.rule}>The team shares Level 1, from 2 people up to the whole team. When every picture has a box, someone else reviews it. Upload sends the finished pictures and each person&apos;s S.I.</p>
         </div>
         {pic && (marks[pic.id] || []).length > 0 && (
+          <Expander id="sf-boxes" title="Saved boxes" sub={`${(marks[pic.id] || []).length}`} colors={expColors} storagePrefix="sf.exp">
           <div className={styles.boxList}>
             {(marks[pic.id] || []).map((mark, markIndex) => (
           <div key={mark.id} className={editing === mark.id || lit === mark.id ? styles.boxOn : styles.boxRow}>
@@ -1287,6 +1293,7 @@ function Labeler({
           </div>
             ))}
           </div>
+          </Expander>
         )}
       </div>
       <Foot accent={accent} />
