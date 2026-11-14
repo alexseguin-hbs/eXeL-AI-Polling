@@ -143,7 +143,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
       const remapped = moved.map((r) => {
         const b = was.get(r.id);
         return b && (b.row !== r.row || b.col !== r.col)
-          ? { ...r, objects: remapOpeningsForCell(r.objects ?? defaultObjectsForRoom(r.k), exteriorWallsOf(r)) }
+          ? { ...r, objects: remapOpeningsForCell(r.objects ?? defaultObjectsForRoom(r.k), exteriorWallsOf(r), { keepExteriorDoors: r.k === "E" }) }
           : r;
       });
       return persistLayout(remapped);

@@ -410,7 +410,7 @@ export function toggleDoorCased(objs: PlacedObject[], id: string): PlacedObject[
  * DOOR to an INTERIOR wall, if it is now on the wrong kind of wall. The caller passes the new cell's exterior walls
  * (exteriorWallsOf). A centre cell (no exterior wall) keeps its windows where they are (clerestory / borrowed light), never
  * dropping user content. Pure; no overlap resolution (openings stay flush to their wall). */
-export function remapOpeningsForCell(objects: PlacedObject[], exteriorWalls: Wall[]): PlacedObject[] {
+export function remapOpeningsForCell(objects: PlacedObject[], exteriorWalls: Wall[], opts: { keepExteriorDoors?: boolean } = {}): PlacedObject[] {
   const ALL: Wall[] = ["N", "S", "W", "E"];
   const interior = ALL.filter((w) => !exteriorWalls.includes(w));
   const snap = (o: PlacedObject, wall: Wall): PlacedObject => {
@@ -424,6 +424,7 @@ export function remapOpeningsForCell(objects: PlacedObject[], exteriorWalls: Wal
       return snap(o, nearestWallOf(o.gx, o.gy, exteriorWalls));
     }
     if (o.kind === "door") {
+      if (opts.keepExteriorDoors) return o;                                                   // the ENTRY keeps its front door on the exterior wall
       if (interior.length === 0 || interior.includes(wallOfObject(o))) return o;              // already on an interior wall
       return snap(o, nearestWallOf(o.gx, o.gy, interior));
     }

@@ -13,8 +13,8 @@
  */
 import { DEFAULT_PARAMS, type FinishTier, type GlobalParams, type HouseStyle } from "./architect-project";
 import { DEFAULT_PROGRAM, type RoomProgram } from "./room-program";
-import { cloneLayout, ELEMENT_MAX, TINY_GRID, type RoomCell } from "./room-layout";
-import { OBJECT_SPEC, ROOM_GRID, VARIANTS, ASSET_PARAMS, STANDARD_LAYOUT_REV, DECLUTTER_REV, standardLayoutFor, standardLayoutAt, defaultObjectsForRoom, sameArrangement, wallOfObject, alignedRot, footprintOf, clampFootprint, type PlacedObject, type ObjectKind, type ObjectSize, type Rot } from "./room-objects";
+import { cloneLayout, ELEMENT_MAX, TINY_GRID, exteriorWallsOf, type RoomCell } from "./room-layout";
+import { OBJECT_SPEC, ROOM_GRID, VARIANTS, ASSET_PARAMS, STANDARD_LAYOUT_REV, DECLUTTER_REV, standardLayoutFor, standardLayoutAt, defaultObjectsForRoom, sameArrangement, wallOfObject, alignedRot, footprintOf, clampFootprint, remapOpeningsForCell, type PlacedObject, type ObjectKind, type ObjectSize, type Rot } from "./room-objects";
 
 /** The most placements one 10×10 room may hold (a stored array of 50,000 was kept whole — AsM-caught, Thor). */
 export const MAX_OBJECTS_PER_ROOM = 99;
@@ -210,7 +210,13 @@ export function sanitizeRoomLayout(raw: unknown): RoomCell[] {
       })(),
     });
   }
-  return cells.length ? cells : cloneLayout();
+  // LIV-7 (operator LIVE 2026-11-12, from the live floor plan) — HEAL OPENINGS ON LOAD. A rearranged saved layout kept its
+  // openings on the OLD cells' walls, so doors opened to the exterior and rooms were severed (his device: 5/9 reachable). Re-map
+  // every room's openings to ITS CURRENT cell (a window → an exterior wall, a door → an interior wall), keeping the ENTRY's
+  // front door on the exterior. Idempotent for a correct layout (the decided default is unchanged) — so it only heals, never
+  // disturbs good work; a rearranged layout becomes walkable again on the next load.
+  const healed = cells.map((rc) => (rc.objects ? { ...rc, objects: remapOpeningsForCell(rc.objects, exteriorWallsOf(rc), { keepExteriorDoors: rc.k === "E" }) } : rc));
+  return healed.length ? healed : cloneLayout();
 }
 
 /** Whitelist a whole workspace snapshot (localStorage restore or Supabase row). Arrays coerced to arrays,
