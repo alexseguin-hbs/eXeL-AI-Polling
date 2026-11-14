@@ -27,7 +27,7 @@
  * subsurface layers come later — see docs/security-2525/DATA_SOURCES.md.
  */
 import { Fragment, memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2, Eye, EyeOff, Lock, Unlock } from "lucide-react";
+import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2, Eye, EyeOff, Lock, Unlock, Pencil, LocateFixed } from "lucide-react";
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
@@ -1545,6 +1545,7 @@ interface PaneProps {
   selectedSupport: SupportObjectDef | null;
   reality: RealityMode;
   hoverAsset: AssetKind | null;
+  myPos?: { lat: number; lon: number; acc?: number } | null;   // GPS current position marker
   // shared mutators used when placing on the surface
   setInventory: React.Dispatch<React.SetStateAction<InvItem[]>>;
   setPlaced: React.Dispatch<React.SetStateAction<Placed[]>>;
@@ -1583,7 +1584,7 @@ function AoMapPane(p: PaneProps) {
   const {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, otherView, osm, borders, dem, mapEngine, inventory, placed, placedSupport, selected, hoverAsset,
-    selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
+    selectedAsset, selectedSupport, reality, myPos, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
     unit: paneUnit = "km", onSetUnit, gridStepM: gridStepOverride = 0,
     maxAltFt, altRedPct = 90, altYellowPct = 70, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1, edgeWidth = EDGE_FINE, fidelity = 1,
@@ -2723,6 +2724,19 @@ function AoMapPane(p: PaneProps) {
                 </button>
               );
             })}
+            {/* GPS · MY POSITION marker (operator 2026-11-14) — pulsing cyan fix dot, projected
+                like every other marker; label on a dark chip; non-interactive (pointer-events none). */}
+            {myPos && (() => {
+              const f = project(myPos.lat, myPos.lon);
+              if (f.fx < -0.05 || f.fx > 1.05 || f.fy < -0.05 || f.fy > 1.05) return null;
+              return (
+                <div className="absolute flex flex-col items-center" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transform: "translate(-50%,-50%)", pointerEvents: "none", zIndex: 32 }}>
+                  <span className="absolute rounded-full" style={{ width: 30, height: 30, border: `1.5px solid ${C.cyan}`, opacity: 0.45, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />
+                  <span className="rounded-full" style={{ width: 12, height: 12, background: C.cyan, boxShadow: `0 0 0 2px #0a0f16, 0 0 8px ${C.cyan}` }} />
+                  <span className="mt-0.5 whitespace-nowrap rounded px-1 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan }}>MY POS</span>
+                </div>
+              );
+            })()}
             {/* CURSOR HOOK bubble (P1.3 round 3, HI / FAAD C2): right-click hooks a track —
                 IFF, SPD/ALT/HDG data, engagement tools. Billboards upright like the icons;
                 left-click anywhere or ESC releases. INSPECT = full engagement tools (rail). */}
@@ -4485,6 +4499,7 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
               <span style={{ color: u.aff === "hostile" ? C.red : C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
               <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
             </button>
+            <button onClick={(e) => { e.stopPropagation(); setSelected({ kind: "asset", id: u.id }); }} title="Edit coordinate (MGRS / lat-lon)" className="shrink-0 p-0.5 opacity-60 hover:opacity-100"><Pencil className="h-3 w-3" style={{ color: C.cyan }} /></button>
             <button onClick={(e) => { e.stopPropagation(); onDelete("asset", u.id); }} title={t("sec.mp.remove")} className="shrink-0 p-0.5 hover:opacity-100 opacity-60"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
           </div>
         ))}
@@ -4496,6 +4511,7 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
               <span className="truncate" style={{ color: u.aff === "hostile" ? C.red : u.def.color }}>{u.def.term}{u.path ? ` (${u.path.length}pt)` : ""}</span>
               <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
             </button>
+            <button onClick={(e) => { e.stopPropagation(); setSelected({ kind: "support", id: u.id }); }} title="Edit coordinate (MGRS / lat-lon)" className="shrink-0 p-0.5 opacity-60 hover:opacity-100"><Pencil className="h-3 w-3" style={{ color: C.cyan }} /></button>
             <button onClick={(e) => { e.stopPropagation(); onDelete("support", u.id); }} title={t("sec.mp.remove")} className="shrink-0 p-0.5 hover:opacity-100 opacity-60"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
           </div>
         ))}
@@ -4960,6 +4976,37 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   // during a continuous rotate. Now the twin bearing is set in the same commit — smooth).
   const setViewA_ = (u: (v: ViewState) => ViewState) => setViewA((v) => { const nv = u(v); if (mirror) setViewB((w) => (w.bearing === nv.bearing ? w : { ...w, bearing: nv.bearing })); return nv; });
   const setViewB_ = (u: (v: ViewState) => ViewState) => setViewB((v) => { const nv = u(v); if (mirror) setViewA((w) => (w.bearing === nv.bearing ? w : { ...w, bearing: nv.bearing })); return nv; });
+  // ── GPS · current position (operator 2026-11-14 "enable gps of current position") ──
+  // Phone geolocation → drop a MY POSITION marker + pan the MAP there. HTTPS-gated by the browser;
+  // permission denial / unavailability degrades to a transient readout (never throws, never blocks).
+  const [myPos, setMyPos] = useState<{ lat: number; lon: number; acc?: number } | null>(null);
+  const [gpsMsg, setGpsMsg] = useState("");
+  const gpsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flashGps = (m: string, ms = 4500) => { setGpsMsg(m); if (gpsTimer.current) clearTimeout(gpsTimer.current); gpsTimer.current = setTimeout(() => setGpsMsg(""), ms); };
+  // Mirrors the gated Site-tab pattern (architect-skysun.tsx / tests/geolocation-policy): SYNCHRONOUS
+  // getCurrentPosition inside the tap (iOS needs the gesture), honest insecure-context message, logs the
+  // browser's own refusal reason (never swallowed), one patient retry on a cold-GPS timeout, iPhone path on denial.
+  const locateMe = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) { flashGps("GPS not supported on this device", 6000); return; }
+    if (typeof window !== "undefined" && window.isSecureContext === false) { flashGps("GPS needs a secure (https) page — open the https address, then tap GPS again", 8000); return; }
+    setGpsMsg("Locating… allow the location prompt if it appears.");
+    let retried = false;
+    const onOk = (pos: GeolocationPosition) => {
+      const lat = Math.round(pos.coords.latitude * 1e6) / 1e6, lon = Math.round(pos.coords.longitude * 1e6) / 1e6;
+      setMyPos({ lat, lon, acc: pos.coords.accuracy });
+      setViewA_((v) => ({ ...v, lat, lon, spanKm: Math.min(v.spanKm, 10) })); // pan MAP to the fix
+      flashGps(`MY POSITION · ${latLonToMgrs(lat, lon, digits)} · ±${Math.round(pos.coords.accuracy)} m`, 6000);
+    };
+    const onErr = (err: GeolocationPositionError) => {
+      if (typeof console !== "undefined") console.warn("[gps] fix refused:", err.code, err.message);
+      if (err.code === err.TIMEOUT && !retried) { retried = true; navigator.geolocation.getCurrentPosition(onOk, onErr, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }); return; }
+      flashGps(err.code === err.PERMISSION_DENIED
+        ? "Location blocked. iPhone: Settings → Privacy & Security → Location Services → Safari → While Using (Precise), then reload and tap GPS"
+        : err.code === err.POSITION_UNAVAILABLE ? "No GPS fix — turn ON Location, step near a window/outside, then tap GPS again"
+        : "GPS timed out — ensure Location is ON with signal, then tap GPS again", 8000);
+    };
+    navigator.geolocation.getCurrentPosition(onOk, onErr, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+  };
   // Smooth geometric ease of the MAP span (easeOutCubic) — the cinematic "fly-in".
   const zoomChainRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animateSpanTo = (fromKm: number, toKm: number, ms = 800, setV: typeof setViewA = setViewA) => {
@@ -5226,7 +5273,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
     onDisarm: () => { setSelectedAsset(null); setSelectedSupport(null); },
     coordFmt, onSetCoordFmt: setCoordFmt, unit, onSetUnit: setUnit, gridStepM,
     maxAltFt, altRedPct, altYellowPct, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct, voxelHiColor,
-    reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
+    reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId, myPos,
     drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize], edgeWidth, fidelity,
     mapEngine, playing, onTogglePlay: () => setPlaying((p) => !p), onResetTracks: resetTracks,
   }; // NB: `dem` is passed per-pane (demA→MAP, demB→MINI) so each pane's contours match its own view.
@@ -5306,6 +5353,16 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
         <div className="relative flex shrink-0 items-center gap-2">
           {/* HI 1.3.2: removed the top-bar coordinate readout (repetitive — the in-map
               readout already shows it) and the LAYERS panel (repetitive with Settings). */}
+          {/* GPS · my current position (operator 2026-11-14) — phone geolocation → MAP pin + pan */}
+          <button onClick={locateMe} title="GPS — my current position"
+            className="flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold"
+            style={{ borderColor: myPos ? C.cyan : C.border, color: myPos ? C.cyan : C.dim }}>
+            <LocateFixed className="h-3 w-3" /> GPS
+          </button>
+          {gpsMsg && (
+            <div className="absolute right-0 top-9 z-[60] max-w-[80vw] whitespace-nowrap rounded border px-2 py-1 font-mono text-[9px] shadow-2xl"
+              style={{ background: C.panel, borderColor: C.cyan, color: C.cyan }}>{gpsMsg}</div>
+          )}
           {/* ULT · Unit Line-up Table — the COMM/LINK setup layer (who's in the fight) */}
           <button onClick={() => setShowUlt((v) => !v)} title={t("sec.mp.ult_title")}
             className="rounded border px-1.5 py-1 text-[10px] font-semibold"
