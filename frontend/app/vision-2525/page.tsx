@@ -215,7 +215,7 @@ export default function Vision2525Page() {
             <a href={FRAMEWORK_DOWNLOAD} className="block transition-colors hover:opacity-95">
               <SectionLabel color={GOLD}>The Framework · open to everyone</SectionLabel>
               <h2 className="mt-3 font-serif text-2xl font-bold leading-tight sm:text-3xl" style={{ color: GOLD }}>{"Humanity's Coordination Framework"}</h2>
-              <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">{"Thirteen sections, from humanity at the center to humanity's future. R-CORE is the nervous system beneath them. Communication, coordination, and intelligence in the field stay under human authority. One civilization. One framework."}</p>
+              <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">{"Thirteen sections, from humanity at the center to humanity's future — one shared plan for how we work together, make decisions, and build what comes next, with people in charge every step of the way. One civilization. One framework."}</p>
             </a>
             <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs uppercase tracking-[0.2em] text-slate-400">
               <span>{t("vision2525.no_login")}</span><span style={{ color: CYAN }}>&middot;</span>
