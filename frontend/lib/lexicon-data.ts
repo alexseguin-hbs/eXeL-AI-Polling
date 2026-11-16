@@ -2218,7 +2218,7 @@ const siteUxB1: TranslationEntry[] = [
   { key: "vision2525.reads_offline", englishDefault: "Reads offline", context: "White paper card access badge", cubeId: 40 },
   { key: "vision2525.open_it", englishDefault: "Open it →", context: "White paper card open call-to-action", cubeId: 40 },
   { key: "vision2525.the_worlds_of", englishDefault: "The Worlds of", context: "Worlds section label, leading run before Vision 2525 mark", cubeId: 40 },
-  { key: "vision2525.worlds_tagline", englishDefault: "One civilization · one framework · limitless possibilities.", context: "Worlds section tagline", cubeId: 40 },
+  { key: "vision2525.worlds_tagline", englishDefault: "One Civilization · One Framework · Limitless Possibilities.", context: "Worlds section tagline", cubeId: 40 },
   { key: "vision2525.our_mission", englishDefault: "Our Mission", context: "Mission section label", cubeId: 40 },
   { key: "vision2525.building_future_inheriting", englishDefault: "Building a future worth inheriting —", context: "Mission manifesto leading phrase", cubeId: 40 },
   { key: "vision2525.shared_intention_speed_of_thought", englishDefault: "Where Shared Intention moves at the Speed of Thought", context: "Mission section closing manifesto line", cubeId: 40 },
