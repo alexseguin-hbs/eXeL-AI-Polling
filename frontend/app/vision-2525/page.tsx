@@ -213,14 +213,11 @@ export default function Vision2525Page() {
         <section id="framework" className="mt-16 scroll-mt-20">
           <div className="rounded-2xl border p-6 sm:p-8" style={{ borderColor: "rgba(232,182,76,0.35)", background: "rgba(232,182,76,0.05)" }}>
             <a href={FRAMEWORK_DOWNLOAD} className="block transition-colors hover:opacity-95">
-              <SectionLabel color={GOLD}>The Framework · open to everyone</SectionLabel>
+              <SectionLabel color={GOLD}>The Framework</SectionLabel>
               <h2 className="mt-3 font-serif text-2xl font-bold leading-tight sm:text-3xl" style={{ color: GOLD }}>{"Humanity's Coordination Framework"}</h2>
               <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">{"Thirteen sections, from humanity at the center to humanity's future — one shared plan for how we work together, make decisions, and build what comes next, with people in charge every step of the way. One civilization. One framework."}</p>
             </a>
             <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs uppercase tracking-[0.2em] text-slate-400">
-              <span>{t("vision2525.no_login")}</span><span style={{ color: CYAN }}>&middot;</span>
-              <span>{t("vision2525.no_account")}</span><span style={{ color: CYAN }}>&middot;</span>
-              <span>{t("vision2525.reads_offline")}</span><span style={{ color: CYAN }}>&middot;</span>
               <a href={FRAMEWORK_DOWNLOAD} style={{ color: GOLD }}>{t("vision2525.open_it")}</a>
               <a href={FRAMEWORK_DOWNLOAD} download="VISION-2525.pdf" title="Download VISION • 2525" aria-label="Download VISION • 2525" data-vision-download="framework" className="inline-flex items-center justify-center border px-3 normal-case tracking-normal" style={{ borderColor: "#D18BE0", color: "#D18BE0", minHeight: 34, borderRadius: 8, paddingTop: 6, paddingBottom: 6 }}>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>
