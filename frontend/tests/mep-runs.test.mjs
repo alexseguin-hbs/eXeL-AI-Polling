@@ -33,10 +33,15 @@ const eps = [{ gx: 1, gy: 1 }, { gx: 8, gy: 6 }];
 ok(JSON.stringify(runsToEndpoints(MEP_SOURCE.water, eps)) === JSON.stringify(runsToEndpoints(MEP_SOURCE.water, eps)), "runsToEndpoints is deterministic");
 
 // Fixture endpoints — only water/drain kinds, deduped by cell, stable order.
-let objs = placeObject([], "sink", 3, 3);
-objs = placeObject(objs, "tub", 6, 2);
-objs = placeObject(objs, "bed", 5, 5);        // not a fixture → ignored
-objs = placeObject(objs, "sink", 3, 3);        // duplicate cell → deduped
+// placeObject now honors the exterior-priority + no-overlap operator laws, so it SNAPS/relocates a
+// fixture off a requested cell (a duplicate lands on the nearest clear cell, not the occupied one).
+// This test verifies the MEP ROUTING math on a KNOWN fixture scene — NOT placement snapping — so pin
+// each fixture to its exact intended cell (place it to get a valid record, then set the exact cell).
+const at = (prev, kind, gx, gy) => { const a = placeObject(prev, kind, gx, gy); a[a.length - 1] = { ...a[a.length - 1], gx, gy }; return a; };
+let objs = at([], "sink", 3, 3);
+objs = at(objs, "tub", 6, 2);
+objs = at(objs, "bed", 5, 5);        // not a fixture → ignored
+objs = at(objs, "sink", 3, 3);        // duplicate cell → deduped
 const fe = fixtureEndpoints(objs, ["sink", "tub", "toilet", "washer", "counter"]);
 ok(fe.length === 2, "fixtureEndpoints ignores non-fixtures + dedups same cell (2 unique)");
 

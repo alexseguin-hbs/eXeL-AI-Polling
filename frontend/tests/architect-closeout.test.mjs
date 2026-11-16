@@ -32,10 +32,21 @@ try {
   head = execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
   const impl = hp.implementation_commit;
   ok(/^[0-9a-f]{40}$/.test(impl), `implementation_commit is a real 40-hex SHA (got ${impl})`);
-  try { execSync(`git merge-base --is-ancestor ${impl} HEAD`, { stdio: "ignore" }); implInHistory = true; } catch { implInHistory = false; }
-  implIsHead = impl === head;
-  ok(implInHistory, "implementation_commit (A) is an ancestor of HEAD");
-  ok(!implIsHead, "implementation_commit (A) is NOT HEAD — the proof (B) is a later commit");
+  // A shallow clone (cloud sandbox) may not hold commit A as a local object, so the ancestry check
+  // cannot run — detect that and SKIP (not FAIL), exactly as the git-unavailable branch does. The
+  // check still runs and enforces in full-history CI, where A is present.
+  let implPresent = true;
+  try { execSync(`git cat-file -e ${impl}^{commit}`, { stdio: "ignore" }); } catch { implPresent = false; }
+  let shallow = false;
+  try { shallow = execSync("git rev-parse --is-shallow-repository", { encoding: "utf8" }).trim() === "true"; } catch { /* old git: assume full */ }
+  if (!implPresent && shallow) {
+    console.log("NOTE: shallow clone — commit A is not a local object; skipped the ancestry checks (enforced in full-history CI; content checks still enforced)");
+  } else {
+    try { execSync(`git merge-base --is-ancestor ${impl} HEAD`, { stdio: "ignore" }); implInHistory = true; } catch { implInHistory = false; }
+    implIsHead = impl === head;
+    ok(implInHistory, "implementation_commit (A) is an ancestor of HEAD");
+    ok(!implIsHead, "implementation_commit (A) is NOT HEAD — the proof (B) is a later commit");
+  }
 } catch { git = false; console.log("NOTE: git unavailable — skipped the ancestry checks (content checks still enforced)"); }
 
 console.log(`\narchitect-closeout: ${pass} passed, ${fail} failed${git ? "" : " (git checks skipped)"}`);
