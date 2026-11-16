@@ -42,6 +42,13 @@ const AFTER_FILL = new Set([
   'cube8.payment.live_backend_title',
   'cube8.payment.live_backend_required',
   'cube8.unlock.locked_hint',
+  // Donate line-item descriptions + IRS-safe footnote (b4f7c522 / t197u): ENGLISH approved; staged ENGLISH ONLY —
+  // listed never silent; legal/tax copy ("not tax-deductible") must be NATIVE-SPEAKER translated, not machine-filled
+  // (operator 2026-11-16 "ensure language lexicon is up to date").
+  'cube8.donate.desc_community',
+  'cube8.donate.desc_divinity',
+  'cube8.donate.desc_session',
+  'cube8.donate.not_deductible',
   // eXeL Polling Cost Estimate panel (2026-11-08 payments QA): new cube1.settings.cost_* keys
   // staged ENGLISH ONLY until operator finalizes English UI — listed never silent; no ×32 fill yet.
   'cube1.settings.cost_status_loading',
