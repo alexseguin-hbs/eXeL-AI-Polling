@@ -22,6 +22,7 @@
  */
 
 import { useCallback, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLexicon } from "@/lib/lexicon-context";
 import { GIT_SHA } from "@/lib/2525-core/version-stamp";
 import {
@@ -161,7 +162,7 @@ export function RCoreRevisionPanel({
   const sectionWord = (k: number) => (k === 1 ? t("rcore.section_one") : t("rcore.section_many"));
   const releaseWord = (k: number) => (k === 1 ? t("rcore.release_one") : t("rcore.release_many"));
 
-  return (
+  const panel = (
     <div
       data-rcore-panel
       role="dialog"
@@ -482,6 +483,13 @@ export function RCoreRevisionPanel({
       </div>
     </div>
   );
+  // PORTAL (fix: SensorFusion-2525 & any surface whose shell is position:fixed/overflow:hidden — e.g. its
+  // `.screen` z-index:70 — TRAPPED this fixed modal in that stacking context, so the page's bottom toolbar
+  // painted over the panel and its scroll area was occluded, so the version-history list could not be scrolled).
+  // Rendering to document.body escapes the trapped context: the overlay owns the true viewport (fixed inset:0
+  // z-index:80) and its inner overflowY:auto scrolls above everything. Only ever renders on a client click
+  // (RCoreBadge gates it on `open`), so no SSR/hydration path; guarded for static export all the same.
+  return typeof document === "undefined" ? null : createPortal(panel, document.body);
 }
 
 // ── Small presentational helpers ─────────────────────────────────────────────────────────────────
