@@ -29,6 +29,11 @@ const H1 = CONFIG?.h1 ?? "ARCHITECT-2525 — ICON FX · Wall System · Carbon X 
 const SUB = CONFIG?.sub ?? "Real 390px screenshots · one decision + comment per image · SAVE → paired JSON";
 const SLUG = CONFIG?.slug ?? "ICON_FX";
 const RELEASE = CONFIG?.release ?? "Architect-2525 · ICON FX (Wall System · Carbon X · Phoenix $25)";
+// Optional, backward-compatible overrides (a review spanning several surfaces is not "Architect-2525" only, may be
+// captured from `next dev` rather than the static build, and states its own measured tsc line).
+const TITLE_PREFIX = CONFIG?.titlePrefix ?? "Architect-2525";
+const LEAD = CONFIG?.lead ?? "Each image is its own card with its own 👍 / ✎ / ✋ row + comment (operator 2026-10-31: 1 for 1 for all images). Captured from the local static build of the shipped SHA.";
+const TSC = CONFIG?.tsc ?? "tsc 0 new";
 const sha = (r = "HEAD") => execSync(`git rev-parse --short ${r}`, { cwd: ROOT, encoding: "utf8" }).trim();
 const HEAD = sha();
 const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }));
@@ -101,6 +106,7 @@ h2{color:var(--cyan);font-size:15px;letter-spacing:1.5px;border-left:4px solid v
 .card .head{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line)}
 .kind{flex:none;font-family:'Consolas',monospace;font-size:10px;font-weight:700;border-radius:4px;padding:2px 7px;border:1px solid var(--line2)}
 .kind.AFTER{color:var(--green);border-color:#14532d}.kind.WHOLE{color:var(--cyan)}.kind.BEFORE{color:var(--dim)}
+.kind.TERMINAL{color:var(--amber);border-color:#3f3512}.kind.DOC{color:var(--violet)}.kind.MAP{color:var(--cyan)}
 .card .head .t{font-size:13px;color:#e2e8f0;font-weight:600}
 .card .head .fx{margin-left:auto;font-family:'Consolas',monospace;font-size:10px;color:var(--dim);background:#0d141d;border:1px solid var(--line);border-radius:4px;padding:2px 6px;white-space:nowrap}
 .shot{background:#000;border-bottom:1px solid var(--line)}
@@ -162,12 +168,12 @@ function render(imgs) {
   const manifest = JSON.stringify(CARDS.map((c) => c.id));
 
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Architect-2525 · ${esc(TITLE)} · ${STAMP}</title>
+<title>${esc(TITLE_PREFIX)} · ${esc(TITLE)} · ${STAMP}</title>
 <style>${CSS}</style></head><body>
 <header class="top"><div class="wrap">
 <h1>${esc(H1)}</h1>
 <div class="sub">${esc(SUB)}</div>
-<div class="meta">SHA ${HEAD} · LIVE ${esc(LIVE)}<br>tsc 0 new · gates ${esc(GATES)}<br>FX range ${esc(FXRANGE)} · stamp ${STAMP} · site https://exel-ai-polling.explore-096.workers.dev</div>
+<div class="meta">SHA ${HEAD} · LIVE ${esc(LIVE)}<br>${esc(TSC)} · gates ${esc(GATES)}<br>FX range ${esc(FXRANGE)} · stamp ${STAMP} · site https://exel-ai-polling.explore-096.workers.dev</div>
 </div></header>
 <div class="wrap">
 
@@ -177,7 +183,7 @@ ${idx}
 </div></section>
 
 <section><h2>§2 · Fix detail — one decision per image</h2>
-<p class="lead">Each image is its own card with its own 👍 / ✎ / ✋ row + comment (operator 2026-10-31: 1 for 1 for all images). Captured from the local static build of the shipped SHA.</p>
+<p class="lead">${esc(LEAD)}</p>
 ${cards}
 </section>
 
